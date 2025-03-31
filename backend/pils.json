@@ -1,0 +1,81 @@
+[
+    {
+      "name": "ASAFLOW",
+      "tablet_count": 1,
+      "time": ["morning"],
+      "interval_days": 1
+    },
+    {
+      "name": "Clopidogrel",
+      "tablet_count": 1,
+      "time": ["morning"],
+      "start_date": "2025-04-05",
+      "interval_days": 2
+    },
+    {
+      "name": "PANTOMED",
+      "tablet_count": 1,
+      "time": ["morning"],
+      "interval_days": 1
+    },
+    {
+      "name": "BURINEX",
+      "tablet_count": 1,
+      "time": ["morning"],
+      "interval_days": 2,
+      "start_date": "2025-04-05"
+    },
+    {
+      "name": "BURINEX",
+      "tablet_count": 0.5,
+      "time": ["morning"],
+      "interval_days": 2,
+      "start_date": "2025-04-06"
+    },
+    {
+      "name": "MEDROL",
+      "tablet_count": 0.25,
+      "time": ["morning"],
+      "interval_days": 1
+    },
+    {
+      "name": "D-Cure",
+      "tablet_count": 1,
+      "time": ["morning"],
+      "start_date": "2025-03-29",
+      "interval_days": 15
+    },
+    {
+      "name": "LIPITOR",
+      "tablet_count": 1,
+      "time": ["evening"],
+      "interval_days": 1
+    },
+    {
+      "name": "NOBITEN",
+      "tablet_count": 1,
+      "time": ["evening"],
+      "interval_days": 1
+    },
+    {
+      "name": "Entresto",
+      "tablet_count": 1,
+      "time": ["evening"],
+      "interval_days": 1
+    },
+    {
+      "name": "Colchicine",
+      "tablet_count": 0.5,
+      "time": ["morning"],
+      "interval_days": 3,
+      "start_date": "2025-04-06"
+    },
+    {
+      "name": "Colchicine",
+      "tablet_count": 0.5,
+      "time": ["evening"],
+      "interval_days": 3,
+      "start_date": "2025-04-06"
+    }
+  ]
+  
