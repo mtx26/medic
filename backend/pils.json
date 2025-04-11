@@ -23,14 +23,14 @@
       "tablet_count": 1,
       "time": ["morning"],
       "interval_days": 2,
-      "start_date": "2025-04-05"
+      "start_date": "2025-03-30"
     },
     {
       "name": "BURINEX",
       "tablet_count": 0.5,
       "time": ["morning"],
       "interval_days": 2,
-      "start_date": "2025-04-06"
+      "start_date": "2025-03-31"
     },
     {
       "name": "MEDROL",
@@ -68,14 +68,14 @@
       "tablet_count": 0.5,
       "time": ["morning"],
       "interval_days": 3,
-      "start_date": "2025-04-06"
+      "start_date": "2025-03-30"
     },
     {
       "name": "Colchicine",
       "tablet_count": 0.5,
       "time": ["evening"],
       "interval_days": 3,
-      "start_date": "2025-04-06"
+      "start_date": "2025-03-30"
     }
   ]
   
