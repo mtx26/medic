@@ -36,3 +36,20 @@
     transform: rotate(360deg);
   }
 }
+
+.modal {
+  z-index: 1055;
+}
+
+.modal-backdrop {
+  z-index: 1050;
+}
+
+.fc-day-cell-clickable {
+  cursor: pointer;
+}
+
+.fc-daygrid-day:hover {
+  background-color: rgba(0, 123, 255, 0.1);
+}
+

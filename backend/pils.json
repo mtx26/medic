@@ -46,6 +46,13 @@
       "interval_days": 15
     },
     {
+      "name": "Colchicine",
+      "tablet_count": 0.5,
+      "time": ["morning"],
+      "interval_days": 3,
+      "start_date": "2025-03-30"
+    },
+    {
       "name": "LIPITOR",
       "tablet_count": 1,
       "time": ["evening"],
@@ -62,13 +69,6 @@
       "tablet_count": 1,
       "time": ["evening"],
       "interval_days": 1
-    },
-    {
-      "name": "Colchicine",
-      "tablet_count": 0.5,
-      "time": ["morning"],
-      "interval_days": 3,
-      "start_date": "2025-03-30"
     },
     {
       "name": "Colchicine",
