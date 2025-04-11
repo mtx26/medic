@@ -31,7 +31,7 @@ def generate_schedule(start_date):
         date = monday + timedelta(days=i)
         for med in medications:
             if is_medication_due(med, date):
-                # forma pour fullcalendar
+                # format pour fullcalendar
                 pils_data = {}
 
                 name = f"{med['name']} ({med['tablet_count']})"
@@ -50,32 +50,3 @@ def generate_schedule(start_date):
                     }
                 schedule.append(pils_data) 
     return schedule
-
-"""def split_dates_by_weeks(start_date, schedule):
-    all_dates = sorted(schedule.keys())
-    first_day = start_date.replace(day=1)
-    first_weekday = first_day.weekday()  # lundi = 0
-
-    weeks = []
-    current_week = [None] * first_weekday
-    for date in all_dates:
-        current_week.append(date)
-        if len(current_week) == 7:
-            weeks.append(current_week)
-            current_week = []
-
-    if current_week:
-        while len(current_week) < 7:
-            current_week.append(None)
-        weeks.append(current_week)
-
-    midpoint = (len(weeks) + 1) // 2
-    return weeks[:midpoint], weeks[midpoint:]
-    c = canvas.Canvas(output_path, pagesize=landscape(A4))
-    weeks1, weeks2 = split_dates_by_weeks(start_date, schedule)
-
-    draw_calendar_page(c, weeks1, schedule, f"Calendrier Médicaments - {start_date.strftime('%B %Y')} (1/2)")
-    c.showPage()
-    draw_calendar_page(c, weeks2, schedule, f"Calendrier Médicaments - {start_date.strftime('%B %Y')} (2/2)")
-    c.save()
-    return output_path"""
