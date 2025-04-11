@@ -8,9 +8,10 @@ function Home() {
   const [startDate, setStartDate] = useState(() => {
     return new Date().toISOString().slice(0, 10);
   });
+  const API_URL = process.env.REACT_APP_API_URL;
 
   function getCalendar() {
-    fetch(`http://localhost:5000/calendar?startTime=${startDate}`, {
+    fetch(`${API_URL}/calendar?startTime=${startDate}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
