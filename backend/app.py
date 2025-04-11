@@ -1,22 +1,15 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from config import Config
-from datetime import datetime, timedelta
+from datetime import datetime
 from routes import api
-import json
-from function import generate_schedule 
-
+from function import generate_schedule
+import os
 
 app = Flask(__name__)
-CORS(app)  # Autorise les requêtes du frontend
+CORS(app)
 app.config.from_object(Config)
 app.register_blueprint(api)
-
-# Lancer la génération
-start_date = datetime(2025, 4, 1).date()
-schedule = generate_schedule(start_date)
-
-
 
 # Route pour React
 @app.route("/calendar", methods=["GET"])
@@ -27,6 +20,7 @@ def get_calendar():
     schedule = generate_schedule(start_str)
     return jsonify(schedule)
 
-
-if __name__ == '__main__':
-    app.run(debug=True)
+# Lancement en mode Render
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))  # Render définit automatiquement la variable PORT
+    app.run(host="0.0.0.0", port=port)
