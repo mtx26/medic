@@ -4,4 +4,4 @@ api = Blueprint('api', __name__)
 
 @api.route('/api/status', methods=['GET'])
 def status():
-    return jsonify({"ok"}), 200
+    return jsonify({"status": "ok"}), 200
