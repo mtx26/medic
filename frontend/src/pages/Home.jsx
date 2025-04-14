@@ -176,25 +176,55 @@ function Home() {
         <div className="modal-dialog modal-dialog-centered">
           <div className="modal-content">
             <div className="modal-header">
-              <h5 className="modal-title">📅 {selectedDate}</h5>
+            <h5 className="modal-title">
+            📅 {new Date(selectedDate).toLocaleDateString('fr-FR', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+            })}
+          </h5>
+
               <button type="button" className="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div className="modal-body">
-              {eventsForDay.length > 0 ? (
-                <ul className="list-group">
-                  {eventsForDay.map((event, index) => (
-                    <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
-                      {event.title}
-                      <span className="badge" style={{ backgroundColor: event.color, color: 'white' }}>
-                        {new Date(event.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-muted text-center">Aucun événement ce jour-là.</p>
-              )}
+              <div className="d-flex justify-content-between align-items-center">
+                {/* Flèche gauche */}
+                <button
+                  className="btn btn-outline-secondary btn-sm"
+                  onClick={() => navigateDay(-1)}
+                >
+                  ⬅
+                </button>
+
+                {/* Liste des événements */}
+                <div className="flex-grow-1 mx-3">
+                  {eventsForDay.length > 0 ? (
+                    <ul className="list-group">
+                      {eventsForDay.map((event, index) => (
+                        <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
+                          {event.title}
+                          <span className="badge" style={{ backgroundColor: event.color, color: 'white' }}>
+                            {new Date(event.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-muted text-center mb-0">Aucun événement ce jour-là.</p>
+                  )}
+                </div>
+
+                {/* Flèche droite */}
+                <button
+                  className="btn btn-outline-secondary btn-sm"
+                  onClick={() => navigateDay(1)}
+                >
+                  ➡
+                </button>
+              </div>
             </div>
+
             <div className="modal-footer">
               <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">
                 Fermer
