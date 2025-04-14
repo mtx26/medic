@@ -1,7 +1,7 @@
 [
     {
         "interval_days": 1,
-        "name": "ASAFLOW",
+        "name": "Asaflow",
         "tablet_count": 1,
         "time": [
             "morning"
@@ -18,7 +18,7 @@
     },
     {
         "interval_days": 1,
-        "name": "PANTOMED",
+        "name": "Pantomed",
         "tablet_count": 1,
         "time": [
             "morning"
@@ -26,7 +26,7 @@
     },
     {
         "interval_days": 2,
-        "name": "BURINEX",
+        "name": "Burinex",
         "start_date": "2025-03-30",
         "tablet_count": 1,
         "time": [
@@ -35,7 +35,7 @@
     },
     {
         "interval_days": 2,
-        "name": "BURINEX",
+        "name": "Burinex",
         "start_date": "2025-03-31",
         "tablet_count": 0.5,
         "time": [
@@ -44,7 +44,7 @@
     },
     {
         "interval_days": 1,
-        "name": "MEDROL",
+        "name": "Medrol",
         "tablet_count": 0.25,
         "time": [
             "morning"
@@ -70,7 +70,7 @@
     },
     {
         "interval_days": 1,
-        "name": "LIPITOR",
+        "name": "Lipitor",
         "tablet_count": 1,
         "time": [
             "evening"
@@ -78,7 +78,7 @@
     },
     {
         "interval_days": 1,
-        "name": "NOBITEN",
+        "name": "Nobiten",
         "tablet_count": 1,
         "time": [
             "evening"
@@ -99,6 +99,15 @@
         "tablet_count": 0.5,
         "time": [
             "evening"
+        ]
+    },
+    {
+        "interval_days": 1,
+        "name": "Zyloric",
+        "start_date": "",
+        "tablet_count": 0.5,
+        "time": [
+            "morning"
         ]
     }
 ]

@@ -19,14 +19,21 @@ with open("pils.json", encoding="utf-8") as f:
 # Route pour React
 @app.route("/calendar", methods=["GET"])
 def get_calendar():
+    # Charger les médicaments
+    with open("pils.json", encoding="utf-8") as f:
+        medications = json.load(f)
+
     start_str = request.args.get("startTime", default=datetime.today().strftime("%Y-%m-%d"))
     start_str = datetime.strptime(start_str, "%Y-%m-%d").date()
 
-    schedule = generate_schedule(start_str)
+    schedule = generate_schedule(start_str, medications)
     return jsonify(schedule)
 
 @app.route("/get_pils", methods=["GET"])
 def get_pils():
+    # Charger les médicaments
+    with open("pils.json", encoding="utf-8") as f:
+        medications = json.load(f)
     return jsonify(medications)
 
 @app.route("/update_pils", methods=["POST"])

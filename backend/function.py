@@ -1,35 +1,44 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 import calendar
 import json
 
 
-# Charger les médicaments
-with open("pils.json", encoding="utf-8") as f:
-    medications = json.load(f)
 
-def is_medication_due(med, date):
-    if "start_date" in med:
+def is_medication_due(med, current_date):
+    start_str = med.get("start_date", "").strip()
+    if start_str:
         start = datetime.strptime(med["start_date"], "%Y-%m-%d").date()
     else:
-        start = date
-    delta_days = (date - start).days
+        start = current_date
+    delta_days = (current_date - start).days
     if delta_days < 0:
         return False
     return delta_days % med["interval_days"] == 0
 
-def generate_schedule(start_date):
+def generate_schedule(start_date, medications):
+    # Trouver le lundi de la semaine contenant start_date
     monday = start_date - timedelta(days=start_date.weekday())
 
-    schedule = {}
-    year = start_date.year
-    month = start_date.month
-    _, days_in_month = calendar.monthrange(year, month)
+    # Dernier jour du mois
+    last_day_of_month = date(start_date.year, start_date.month, calendar.monthrange(start_date.year, start_date.month)[1])
+
+    # Nombre de jours entre le lundi et la fin du mois
+    delta = (last_day_of_month - monday).days + 1  # +1 pour inclure le dernier jour
+
+    # Nombre de semaines complètes (multiples de 7)
+    total_full_weeks = delta // 7
+    # Nombre de jours restants après les semaines complètes
+    Total_day = total_full_weeks * 7
+    if Total_day == 0:
+        Total_day = 7
+    print (f"Total_day: {Total_day}")
+
     schedule = []
 
-    for i in range(7):
-        date = monday + timedelta(days=i)
+    for i in range(Total_day):
+        current_date = monday + timedelta(days=i)
         for med in medications:
-            if is_medication_due(med, date):
+            if is_medication_due(med, current_date):
                 # format pour fullcalendar
                 pils_data = {}
 
@@ -38,14 +47,16 @@ def generate_schedule(start_date):
                 if med["time"] == ["morning"]:
                     pils_data = {
                         "title" : name,
-                        "date" : date.strftime("%Y-%m-%dT08:00:00"),
+                        "date" : current_date.strftime("%Y-%m-%dT08:00:00"),
                         "color" : "#f87171" # rouge clair
                     }
                 elif med["time"] == ["evening"]:
                     pils_data = {
                         "title" : name,
-                        "date" : date.strftime("%Y-%m-%dT18:00:00"),
+                        "date" : current_date.strftime("%Y-%m-%dT18:00:00"),
                         "color" : "#60a5fa" # bleu clair
                     }
-                schedule.append(pils_data) 
+                schedule.append(pils_data)
+                schedule.sort(key=lambda ev: datetime.strptime(ev["date"], "%Y-%m-%dT%H:%M:%S"))
+
     return schedule
