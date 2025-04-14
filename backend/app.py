@@ -6,42 +6,54 @@ from routes import api
 from function import generate_schedule
 import os
 import json
+from logger import logger
 
 app = Flask(__name__)
 CORS(app)
 app.config.from_object(Config)
 app.register_blueprint(api)
 
-# Charger les médicaments
-with open("pils.json", encoding="utf-8") as f:
-    medications = json.load(f)
-
 # Route pour React
 @app.route("/calendar", methods=["GET"])
 def get_calendar():
-    # Charger les médicaments
-    with open("pils.json", encoding="utf-8") as f:
-        medications = json.load(f)
+    try:
+        with open("pils.json", encoding="utf-8") as f:
+            medications = json.load(f)
+        logger.info("Médicaments rechargés pour génération du calendrier.")
 
-    start_str = request.args.get("startTime", default=datetime.today().strftime("%Y-%m-%d"))
-    start_str = datetime.strptime(start_str, "%Y-%m-%d").date()
+        start_str = request.args.get("startTime", default=datetime.today().strftime("%Y-%m-%d"))
+        start_date = datetime.strptime(start_str, "%Y-%m-%d").date()
+        logger.debug(f"Date de départ du calendrier reçue : {start_date}")
 
-    schedule = generate_schedule(start_str, medications)
-    return jsonify(schedule)
+        schedule = generate_schedule(start_date, medications)
+        logger.info("Calendrier généré avec succès.")
+        return jsonify(schedule)
+    except Exception as e:
+        logger.exception("Erreur dans /calendar")
+        return jsonify({"error": "Erreur lors de la génération du calendrier."}), 500
 
 @app.route("/get_pils", methods=["GET"])
 def get_pils():
-    # Charger les médicaments
-    with open("pils.json", encoding="utf-8") as f:
-        medications = json.load(f)
-    return jsonify(medications)
+    try:
+        with open("pils.json", encoding="utf-8") as f:
+            medications = json.load(f)
+        logger.info("Médicaments rechargés pour l'obtention des médicaments.")
+        return jsonify(medications)
+    except Exception as e:
+        logger.exception("Erreur dans /get_pils")
+        return jsonify({"error": "Erreur lors de la récupération des médicaments."}), 500
 
 @app.route("/update_pils", methods=["POST"])
 def update_pils():
-    update_pils = request.json
-    with open("pils.json", "w", encoding="utf-8") as f:
-        json.dump(update_pils, f, ensure_ascii=False, indent=4)
-    return jsonify({"message": "Médicaments mis à jour", "status": "ok"})
+    try:
+        update_pils = request.json
+        with open("pils.json", "w", encoding="utf-8") as f:
+            json.dump(update_pils, f, ensure_ascii=False, indent=4)
+        logger.info("Médicaments mis à jour avec succès.")
+        return jsonify({"message": "Médicaments mis à jour", "status": "ok"})
+    except Exception as e:
+        logger.exception("Erreur dans /update_pils")
+        return jsonify({"error": "Erreur lors de la mise à jour des médicaments."}), 500
 
 # Lancement en mode Render
 if __name__ == "__main__":

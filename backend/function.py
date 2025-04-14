@@ -1,18 +1,22 @@
 from datetime import datetime, timedelta, date
 import calendar
-import json
+from logger import logger
 
 
 
 def is_medication_due(med, current_date):
     start_str = med.get("start_date", "").strip()
+
     if start_str:
         start = datetime.strptime(med["start_date"], "%Y-%m-%d").date()
     else:
         start = current_date
     delta_days = (current_date - start).days
+
     if delta_days < 0:
         return False
+    
+
     return delta_days % med["interval_days"] == 0
 
 def generate_schedule(start_date, medications):
@@ -29,9 +33,14 @@ def generate_schedule(start_date, medications):
     total_full_weeks = delta // 7
     # Nombre de jours restants après les semaines complètes
     Total_day = total_full_weeks * 7
+
     if Total_day == 0:
         Total_day = 7
-    print (f"Total_day: {Total_day}")
+    
+    logger.debug(f"Nombre de jours à traiter : {Total_day}")
+    logger.debug(f"Date de début : {start_date}")
+    logger.debug(f"Date de fin : {last_day_of_month}")
+    logger.debug(f"Lundi de début : {monday}")
 
     schedule = []
 
