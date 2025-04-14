@@ -34,7 +34,7 @@ def update_pils():
     update_pils = request.json
     with open("pils.json", "w", encoding="utf-8") as f:
         json.dump(update_pils, f, ensure_ascii=False, indent=4)
-    return jsonify({"status": "ok"})
+    return jsonify({"message": "Médicaments mis à jour", "status": "ok"})
 
 # Lancement en mode Render
 if __name__ == "__main__":
