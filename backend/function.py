@@ -1,8 +1,7 @@
-from reportlab.lib.pagesizes import landscape, A4
-from reportlab.pdfgen import canvas
 from datetime import datetime, timedelta
 import calendar
 import json
+
 
 # Charger les médicaments
 with open("pils.json", encoding="utf-8") as f:

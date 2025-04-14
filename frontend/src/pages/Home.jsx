@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
@@ -10,6 +10,8 @@ function Home() {
   const [selectedDate, setSelectedDate] = useState('');
   const [eventsForDay, setEventsForDay] = useState([]); // Pour la modale
   const modalRef = useRef(null);
+  const [meds, setMeds] = useState([]); // Initialiser meds avec les données récupérées
+
 
   const [startDate, setStartDate] = useState(() => new Date().toISOString().slice(0, 10));
   const API_URL = process.env.REACT_APP_API_URL;
@@ -47,6 +49,47 @@ function Home() {
     // Afficher la modale
     const modal = new window.bootstrap.Modal(modalRef.current);
     modal.show();
+  };
+
+  useEffect(() => {
+    fetch(`${API_URL}/get_pils`)
+      .then((res) => res.json())
+      .then((medications) => {
+        setMeds(medications);
+        console.log('Médicaments récupérés :', medications);
+      })
+      .catch((error) => {
+        console.error('Erreur lors du fetch :', error);
+      });
+  }, []);
+
+  const handleMedChange = (index, field, value) => {
+    const updatedMeds = [...meds];
+    if (field === 'time') {
+      updatedMeds[index][field] = [value]; // time est un tableau
+    } else if (field === 'tablet_count' || field === 'interval_days') {
+      updatedMeds[index][field] = parseFloat(value); // convertir en nombre
+    } else {
+      updatedMeds[index][field] = value;
+    }
+    setMeds(updatedMeds);
+  };
+  
+  const handleSubmit = () => {
+    fetch(`${API_URL}/update_pils`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(meds),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log('Médicaments mis à jour :', data);
+      })
+      .catch((error) => {
+        console.error('Erreur lors de la mise à jour :', error);
+      });
   };
 
   return (
@@ -130,6 +173,63 @@ function Home() {
           </div>
         </div>
       </div>
+
+      {/* pils list */}
+      <div>
+        {meds.map((med, index) => (
+          <div key={index} style={{border: '1px solid black', margin: '10px', padding: '10px'}}>
+            <label>
+              <strong>Nom :</strong>
+              <input
+                type="text"
+                value={med.name}
+                onChange={(e) => handleMedChange(index, 'name', e.target.value)}
+              />
+            </label>
+            <br />
+            <label>
+              <strong>Comprimés :</strong>
+              <input
+                type="number"
+                step="0.25"
+                value={med.tablet_count}
+                onChange={(e) => handleMedChange(index, 'tablet_count', e.target.value)}
+              />
+            </label>
+            <br />
+            <label>
+              <strong>Moment :</strong>
+              <select
+                value={med.time[0]}
+                onChange={(e) => handleMedChange(index, 'time', e.target.value)}
+              >
+                <option value="morning">Matin</option>
+                <option value="evening">Soir</option>
+              </select>
+            </label>
+            <br />
+            <label>
+              <strong>Intervalle (jours) :</strong>
+              <input
+                type="number"
+                value={med.interval_days}
+                onChange={(e) => handleMedChange(index, 'interval_days', e.target.value)}
+              />
+            </label>
+            <br />
+            <label>
+              <strong>Date de début :</strong>
+              <input
+                type="date"
+                value={med.start_date || ''}
+                onChange={(e) => handleMedChange(index, 'start_date', e.target.value)}
+              />
+            </label>
+          </div>
+        ))}
+        <button onClick={handleSubmit}>Modifier les médicaments</button>
+      </div>
+      
     </div>
   );
 }
