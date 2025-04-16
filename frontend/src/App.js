@@ -64,7 +64,7 @@ function App() {
   
       const token = await user.getIdToken();
   
-      const res = await fetch(`${API_URL}/calendar?startTime=${startDate}`, {
+      const res = await fetch(`${API_URL}/api/calendar?startTime=${startDate}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

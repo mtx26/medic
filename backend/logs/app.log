@@ -565,3 +565,90 @@ werkzeug.exceptions.Unauthorized: 401 Unauthorized: Token manquant ou mal format
 2025-04-16 16:22:30 [WARNING] [FRONTEND] Utilisateur non connecté, calendrier non chargé.
 2025-04-16 16:22:33 [WARNING] [FRONTEND] Utilisateur non connecté, calendrier non chargé.
 2025-04-16 16:22:33 [WARNING] [FRONTEND] Utilisateur non connecté, calendrier non chargé.
+2025-04-16 16:25:31 [WARNING] [FRONTEND] Utilisateur non connecté, calendrier non chargé.
+2025-04-16 16:25:31 [WARNING] [FRONTEND] Utilisateur non connecté, calendrier non chargé.
+2025-04-16 16:25:40 [ERROR] [BACKEND] Erreur dans /api/medicines
+Traceback (most recent call last):
+  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\firebase_admin\_token_gen.py", line 397, in verify
+    verified_claims = google.oauth2.id_token.verify_token(
+        token,
+    ...<2 lines>...
+        certs_url=self.cert_url,
+        clock_skew_in_seconds=clock_skew_seconds)
+  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\oauth2\id_token.py", line 150, in verify_token
+    return jwt.decode(
+           ~~~~~~~~~~^
+        id_token,
+        ^^^^^^^^^
+    ...<2 lines>...
+        clock_skew_in_seconds=clock_skew_in_seconds,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\auth\jwt.py", line 302, in decode
+    _verify_iat_and_exp(payload, clock_skew_in_seconds)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\auth\jwt.py", line 216, in _verify_iat_and_exp
+    raise exceptions.InvalidValue(
+    ...<3 lines>...
+    )
+google.auth.exceptions.InvalidValue: Token used too early, 1744813540 < 1744813541. Check that your computer's clock is set correctly.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "c:\Users\mtx_2\Documents\Code\Medic\Medic\backend\auth.py", line 11, in verify_firebase_token
+    decoded_token = auth.verify_id_token(id_token)
+  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\firebase_admin\auth.py", line 225, in verify_id_token
+    return client.verify_id_token(
+           ~~~~~~~~~~~~~~~~~~~~~~^
+        id_token, check_revoked=check_revoked, clock_skew_seconds=clock_skew_seconds)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\firebase_admin\_auth_client.py", line 129, in verify_id_token
+    verified_claims = self._token_verifier.verify_id_token(id_token, clock_skew_seconds)
+  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\firebase_admin\_token_gen.py", line 293, in verify_id_token
+    return self.id_token_verifier.verify(id_token, self.request, clock_skew_seconds)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\firebase_admin\_token_gen.py", line 410, in verify
+    raise self._invalid_token_error(str(error), cause=error)
+firebase_admin._auth_utils.InvalidIdTokenError: Token used too early, 1744813540 < 1744813541. Check that your computer's clock is set correctly.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "c:\Users\mtx_2\Documents\Code\Medic\Medic\backend\routes.py", line 85, in handle_medicines
+    user = verify_firebase_token()
+  File "c:\Users\mtx_2\Documents\Code\Medic\Medic\backend\auth.py", line 14, in verify_firebase_token
+    abort(401, "Token invalide ou expiré")
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\helpers.py", line 284, in abort
+    current_app.aborter(code, *args, **kwargs)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\werkzeug\exceptions.py", line 876, in __call__
+    raise self.mapping[code](*args, **kwargs)
+werkzeug.exceptions.Unauthorized: 401 Unauthorized: Token invalide ou expiré
+2025-04-16 16:25:41 [INFO] [FRONTEND] Utilisateur connecté avec Google : "oR75yI71MoUmYzwgwJ4WX1Birtm1"
+2025-04-16 16:25:41 [INFO] [BACKEND] Médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-16 16:25:41 [DEBUG] [BACKEND] Nombre de jours à traiter : 14
+2025-04-16 16:25:41 [DEBUG] [BACKEND] Date de début : 2025-04-16
+2025-04-16 16:25:41 [DEBUG] [BACKEND] Date de fin : 2025-04-30
+2025-04-16 16:25:41 [DEBUG] [BACKEND] Lundi de début : 2025-04-14
+2025-04-16 16:25:41 [INFO] [BACKEND] Calendrier généré avec succès.
+2025-04-16 16:25:41 [ERROR] [FRONTEND] Erreur de récupération des médicaments : - Erreur HTTP lors de la récupération des médicaments
+2025-04-16 16:25:41 [INFO] [FRONTEND] Calendrier récupéré avec succès
+2025-04-16 16:25:41 [INFO] [BACKEND] Médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-16 16:25:41 [DEBUG] [BACKEND] Nombre de jours à traiter : 14
+2025-04-16 16:25:41 [DEBUG] [BACKEND] Date de début : 2025-04-16
+2025-04-16 16:25:41 [DEBUG] [BACKEND] Date de fin : 2025-04-30
+2025-04-16 16:25:41 [DEBUG] [BACKEND] Lundi de début : 2025-04-14
+2025-04-16 16:25:41 [INFO] [BACKEND] Calendrier généré avec succès.
+2025-04-16 16:25:42 [INFO] [FRONTEND] Calendrier récupéré avec succès
+2025-04-16 16:25:42 [INFO] [BACKEND] Médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-16 16:25:42 [DEBUG] [BACKEND] Nombre de jours à traiter : 14
+2025-04-16 16:25:42 [DEBUG] [BACKEND] Date de début : 2025-04-16
+2025-04-16 16:25:42 [DEBUG] [BACKEND] Date de fin : 2025-04-30
+2025-04-16 16:25:42 [DEBUG] [BACKEND] Lundi de début : 2025-04-14
+2025-04-16 16:25:42 [INFO] [BACKEND] Calendrier généré avec succès.
+2025-04-16 16:25:42 [INFO] [FRONTEND] Calendrier récupéré avec succès
+2025-04-16 16:31:23 [INFO] [BACKEND] Application démarrée sur le port 5000.
+2025-04-16 16:31:25 [INFO] [BACKEND] Application démarrée sur le port 5000.
