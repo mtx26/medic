@@ -25,3 +25,4 @@ yarn-error.log*
 node_modules
 backend/__pycache__
 frontend/.env
+serviceAccountKey.json

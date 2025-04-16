@@ -9,26 +9,24 @@ export const AuthProvider = ({ children }) => {
     return JSON.parse(localStorage.getItem("login")) || false;
   });
 
+  const [authReady, setAuthReady] = useState(false); // 🆕 nouvel état
+
   const setLogin = (value) => {
     setLoginState(value);
     localStorage.setItem("login", JSON.stringify(value));
   };
 
-  // ✅ Écoute les changements d'état de connexion
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setLogin(true); // 🔹 L'utilisateur est connecté
-      } else {
-        setLogin(false); // 🔹 L'utilisateur est déconnecté
-      }
+      setLogin(!!user);
+      setAuthReady(true); // ✅ Auth terminé
     });
 
-    return () => unsubscribe(); // 🔹 Se désabonner lorsqu'on quitte la page
+    return () => unsubscribe();
   }, []);
 
   return (
-    <AuthContext.Provider value={{ login, setLogin }}>
+    <AuthContext.Provider value={{ login, setLogin, authReady }}>
       {children}
     </AuthContext.Provider>
   );

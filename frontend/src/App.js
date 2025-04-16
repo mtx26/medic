@@ -1,3 +1,4 @@
+// App.js
 import React, { useState, useEffect, useRef } from 'react';
 import { BrowserRouter as Router } from 'react-router-dom';
 import Navbar from './components/Header';
@@ -5,8 +6,14 @@ import AppRoutes from './routes/AppRouter';
 import { log } from './utils/logger';
 import { UserProvider } from "./contexts/UserContext";
 import { AuthProvider } from "./contexts/LoginContext";
+import { auth } from "./services/firebase";
+import { useContext } from "react";
+import { AuthContext } from "./contexts/LoginContext";
+
+const API_URL = process.env.REACT_APP_API_URL;
 
 function App() {
+
   const [rawEvents, setRawEvents] = useState([]);
   const [calendarEvents, setCalendarEvents] = useState([]);
   const [selectedDate, setSelectedDate] = useState('');
@@ -19,71 +26,104 @@ function App() {
   const [startDate, setStartDate] = useState(() => new Date().toISOString().slice(0, 10));
 
   const modalRef = useRef(null);
-  const API_URL = process.env.REACT_APP_API_URL;
 
-  const getMeds = () => {
-    fetch(`${API_URL}/get_pils`)
-      .then((res) => res.json())
-      .then(setMeds)
-      .then(() => {
-        log.info('Médicaments récupérés avec succès');
-      })
-      .catch((err) => log.error('Erreur de récupération des médicaments :', err));
+  
+  const { authReady, login } = useContext(AuthContext);
+
+  const fetchUserMedicines = async () => {
+    const token = await auth.currentUser.getIdToken();
+    const res = await fetch(`${API_URL}/api/medicines`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!res.ok) throw new Error("Erreur HTTP lors de la récupération des médicaments");
+    const data = await res.json();
+    return data.medicines ?? [];
+  };
+
+  const getMeds = async () => {
+    try {
+      const medsFromDB = await fetchUserMedicines();
+      setMeds(medsFromDB);
+      log.info("Médicaments récupérés avec succès");
+    } catch (err) {
+      log.error("Erreur de récupération des médicaments :", err.message);
+    }
+  };
+
+  const getCalendar = async () => {
+    try {
+      const user = auth.currentUser;
+      if (!user) {
+        log.warn("Utilisateur non connecté, calendrier non chargé.");
+        return;
+      }
+  
+      const token = await user.getIdToken();
+  
+      const res = await fetch(`${API_URL}/calendar?startTime=${startDate}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+  
+      if (!res.ok) throw new Error("Erreur HTTP");
+  
+      const data = await res.json();
+  
+      setRawEvents(data);
+      setCalendarEvents(data.map(e => ({
+        title: e.title,
+        start: e.date,
+        color: e.color,
+      })));
+  
+      log.info("Calendrier récupéré avec succès");
+    } catch (err) {
+      log.error("Erreur de récupération du calendrier :", err.message);
+    }
   };
   
-  useEffect(() => {
-    getMeds();
-  }, []);
-
-  const getCalendar = () => {
-    fetch(`${API_URL}/calendar?startTime=${startDate}`)
-      .then((res) => res.json())
-      .then((data) => {
-        setRawEvents(data);
-        setCalendarEvents(data.map(e => ({
-          title: e.title,
-          start: e.date,
-          color: e.color,
-        })));
-      })
-      .then(() => {
-        log.info('Calendrier récupéré avec succès');
-      })
-      .catch((err) => log.error('Erreur de récupération du calendrier :', err));
-  };
 
   const handleMedChange = (index, field, value) => {
     const updated = [...meds];
-    const NumericFields = ['tablet_count', 'interval_days'];
-    const TimeField = 'time';
-
-    if (field === TimeField) {
-        updated[index][field] = [value];
-    } else if (NumericFields.includes(field)) {
-        updated[index][field] = value === '' ? '' : parseFloat(value);
+    const numericFields = ['tablet_count', 'interval_days'];
+    if (field === 'time') {
+      updated[index][field] = [value];
+    } else if (numericFields.includes(field)) {
+      updated[index][field] = value === '' ? '' : parseFloat(value);
     } else {
-        updated[index][field] = value;
+      updated[index][field] = value;
     }
     setMeds(updated);
   };
 
-  const handleSubmit = () => {
-    fetch(`${API_URL}/update_pils`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(meds),
-    })
-      .then((res) => res.json())
-      .then(() => {
-        setAlertMessage("✅ Médicaments mis à jour.");
-        setAlertType("success");
-        getMeds();
-        getCalendar()
-      })
-      .then(() => {
-        log.info('Médicaments mis à jour avec succès');
-      })
-      .catch((err) => log.error('Erreur de mise à jour des médicaments :', err));
+  const handleSubmit = async () => {
+    try {
+      const token = await auth.currentUser.getIdToken();
+      const res = await fetch(`${API_URL}/api/medicines`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ medicines: meds }),
+      });
+
+      if (!res.ok) throw new Error("Erreur HTTP");
+
+      setAlertMessage("✅ Médicaments mis à jour.");
+      setAlertType("success");
+      getMeds();
+      getCalendar();
+
+      log.info("Médicaments mis à jour avec succès");
+    } catch (err) {
+      log.error("Erreur de mise à jour des médicaments :", err.message);
+    }
   };
 
   const deleteSelectedMeds = () => {
@@ -116,6 +156,13 @@ function App() {
     deleteSelectedMeds,
     addMed,
   };
+
+  useEffect(() => {
+    if (authReady && login) {
+      getMeds();
+      getCalendar();
+    }
+  }, [authReady, login]);
 
   return (
     <AuthProvider>
