@@ -1,27 +1,28 @@
-// src/utils/logger.ts
-
-
-const isDev = process.env.MODE === "development"; // si tu es sous Vite, sinon adapte à process.env.NODE_ENV
+const isDev = process.env.MODE === "development"; // ou NODE_ENV si tu n’utilises pas Vite
 const API_URL = process.env.REACT_APP_API_URL;
 
-const fetchLog = (msg, error, data, Type) => {
-  // En production, tu peux l'envoyer au backend
+const fetchLog = (msg, error, data, type) => {
+  let fullMessage = msg;
+  if (data !== undefined && data !== null) {
+    fullMessage += ` ${JSON.stringify(data)}`;
+  }
+
   if (!isDev) {
     fetch(`${API_URL}/api/log`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        message: msg,
-        error: error ? JSON.stringify(error) : null,
-        data: data ? JSON.stringify(data) : null,
-        type: Type,
+        message: fullMessage,
+        error: error ?? null,
+        type,
         time: new Date().toISOString(),
       }),
-    }).catch(() => {
-      // on évite de crasher l'appli si ça échoue
+    }).catch((err) => {
+      if (isDev) console.warn("Échec de l'envoi du log au backend :", err);
     });
   }
 };
+
 
 export const log = {
   info: (msg, data) => {
@@ -33,8 +34,7 @@ export const log = {
     fetchLog(msg, null, data, "warning");
   },
   error: (msg, error) => {
-    console.error(`[ERROR] ${msg}`, error ?? "");
+    if (isDev) console.error(`[ERROR] ${msg}`, error ?? "");
     fetchLog(msg, error, null, "error");
-
   },
 };

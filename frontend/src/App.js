@@ -3,6 +3,8 @@ import { BrowserRouter as Router } from 'react-router-dom';
 import Navbar from './components/Header';
 import AppRoutes from './routes/AppRouter';
 import { log } from './utils/logger';
+import { UserProvider } from "./contexts/UserContext";
+import { AuthProvider } from "./contexts/LoginContext";
 
 function App() {
   const [rawEvents, setRawEvents] = useState([]);
@@ -116,12 +118,16 @@ function App() {
   };
 
   return (
-    <Router>
-      <Navbar />
-      <div className="container mt-4">
-        <AppRoutes sharedProps={sharedProps} />
-      </div>
-    </Router>
+    <AuthProvider>
+      <UserProvider>
+        <Router>
+          <Navbar />
+          <div className="container mt-4">
+            <AppRoutes sharedProps={sharedProps} />
+          </div>
+        </Router>
+      </UserProvider>
+    </AuthProvider>
   );
 }
 

@@ -9,6 +9,7 @@ import {
   signInWithEmailAndPassword,
   sendPasswordResetEmail
 } from "firebase/auth";
+import { log } from "../utils/logger";
 
 const GoogleProvider = new GoogleAuthProvider();
 
@@ -35,13 +36,13 @@ export const GoogleHandleLogin = async () => {
         email: user.email
       });
 
-      console.log("Utilisateur Google ajouté à Firestore !");
     }
 
     getGlobalReloadUser()(); // ✅ Rafraîchir les infos utilisateur
+    log.info("Utilisateur connecté avec Google :", user.uid);
 
   } catch (error) {
-    console.error("Erreur lors de la connexion avec Google :", error);
+    log.error("Erreur de connexion avec Google :", error.message);
   }
 };
 
@@ -63,9 +64,9 @@ export const registerWithEmail = async (email, password, name) => {
     getGlobalReloadUser()(); // ✅ Rafraîchir les infos utilisateur
     loginWithEmail(email, password); // ✅ Connexion après inscription
 
-    console.log("Utilisateur inscrit :", userCredential.user);
+    log.info("Utilisateur inscrit et ajouté à Firestore :", user.uid);
   } catch (error) {
-    console.error("Erreur d'inscription :", error.message);
+    log.error("Erreur d'inscription :", error.message);
   }
 };
 
@@ -78,9 +79,9 @@ export const loginWithEmail = async (email, password) => {
 
     getGlobalReloadUser()(); // ✅ Rafraîchir les infos utilisateur
 
-    console.log("Utilisateur connecté :", userCredential.user);
+    log.info("Utilisateur connecté :", userCredential.user.uid);
   } catch (error) {
-    console.error("Erreur de connexion :", error.message);
+    log.error("Erreur de connexion :", error.message);
   }
 };
 
@@ -90,9 +91,9 @@ export const loginWithEmail = async (email, password) => {
 export const resetPassword = async (email) => {
   try {
     await sendPasswordResetEmail(auth, email);
-    console.log("Email de réinitialisation envoyé !");
+    log.info("Email de réinitialisation envoyé à :", email);
   } catch (error) {
-    console.error("Erreur lors de la réinitialisation du mot de passe :", error.message);
+    log.error("Erreur lors de l'envoi de l'email de réinitialisation :", error.message);
   }
 };
 
@@ -105,8 +106,8 @@ export const handleLogout = async () => {
 
     getGlobalReloadUser()(); // ✅ Réinitialiser l'état utilisateur après la déconnexion
 
-    console.log("Utilisateur déconnecté !");
+    log.info("Utilisateur déconnecté");
   } catch (error) {
-    console.error("Erreur lors de la déconnexion :", error);
+    log.error("Erreur de déconnexion :", error.message);
   }
 };

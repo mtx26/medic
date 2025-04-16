@@ -27,17 +27,20 @@ def do_something():
 def log_frontend_error():
     data = request.get_json()
     msg = data.get("message", "Message vide")
-    error = data.get("error", "Erreur inconnue")
-    type = data.get("type", "info")
-    
-    if type == "error":
-        frontend_logger.error(f"{msg} - {error}")
-    elif type == "warning":
-        frontend_logger.warning(f"{msg} - {error}")
-    elif type == "info":
-        frontend_logger.info(f"{msg} - {error}")
-    else:
-        frontend_logger.debug(f"(type inconnu) {msg} - {error}")
-    
+    error = data.get("error")
+    log_type = data.get("type", "info").lower()
+
+    # Choisir la bonne fonction de log
+    log_func = {
+        "info": frontend_logger.info,
+        "warning": frontend_logger.warning,
+        "error": frontend_logger.error
+    }.get(log_type, frontend_logger.debug)
+
+    # Formatage du message
+    full_msg = f"{msg} - {error}" if error else msg
+    log_func(full_msg)
+
     return "", 204
+
 
