@@ -21,3 +21,19 @@ def do_something():
     except Exception as e:
         logger.exception("Erreur dans /api/do-something")
         return {"error": str(e)}, 500
+
+@api.route("/api/log", methods=["POST"])
+def log_frontend_error():
+    from logger import logger
+    data = request.get_json()
+    msg = data.get("message", "Message vide")
+    error = data.get("error", "Erreur inconnue")
+    type = data.get("type", "info")
+    if type == "error":
+        logger.error(f"Erreur du frontend : {msg} - {error}")
+    elif type == "warning":
+        logger.warning(f"Avertissement du frontend : {msg} - {error}")
+    elif type == "info":
+        logger.info(f"Info du frontend : {msg} - {error}")
+    return "", 204
+

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { BrowserRouter as Router } from 'react-router-dom';
 import Navbar from './components/Header';
 import AppRoutes from './routes/AppRouter';
+import { log } from './utils/logger';
 
 function App() {
   const [rawEvents, setRawEvents] = useState([]);
@@ -22,7 +23,10 @@ function App() {
     fetch(`${API_URL}/get_pils`)
       .then((res) => res.json())
       .then(setMeds)
-      .catch((err) => console.error('Erreur de récupération des médicaments :', err));
+      .then(() => {
+        log.info('Médicaments récupérés avec succès');
+      })
+      .catch((err) => log.error('Erreur de récupération des médicaments :', err));
   };
   
   useEffect(() => {
@@ -40,7 +44,7 @@ function App() {
           color: e.color,
         })));
       })
-      .catch((err) => console.error('Erreur de récupération du calendrier :', err));
+      .catch((err) => log.error('Erreur de récupération du calendrier :', err));
   };
 
   const handleMedChange = (index, field, value) => {
@@ -64,7 +68,7 @@ function App() {
         getMeds();
         getCalendar()
       })
-      .catch((err) => console.error("Erreur update:", err));
+      .catch((err) => log.error('Erreur de mise à jour des médicaments :', err));
   };
 
   const deleteSelectedMeds = () => {
