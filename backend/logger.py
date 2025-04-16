@@ -1,17 +1,23 @@
+# logger.py
 import logging
 import os
 from logging.handlers import RotatingFileHandler
 
-# Crée le dossier si besoin
 os.makedirs("logs", exist_ok=True)
 
-logger = logging.getLogger("my_app_logger")
-logger.setLevel(logging.DEBUG)
+class ContextualAdapter(logging.LoggerAdapter):
+    def process(self, msg, kwargs):
+        return f"[{self.extra.get('source', 'UNKNOWN')}] {msg}", kwargs
 
-# Fichier avec rotation (1 Mo max, 5 backups)
-handler = RotatingFileHandler("logs/backend.log", maxBytes=1_000_000, backupCount=5)
-formatter = logging.Formatter(
-    "%(asctime)s [%(levelname)s] [%(name)s] [%(filename)s:%(lineno)d] - %(message)s"
-)
+# Logger de base
+base_logger = logging.getLogger("medic_logger")
+base_logger.setLevel(logging.DEBUG)
+
+handler = RotatingFileHandler("logs/app.log", maxBytes=1_000_000, backupCount=5)
+formatter = logging.Formatter("%(asctime)s [%(levelname)s] %(message)s")
 handler.setFormatter(formatter)
-logger.addHandler(handler)
+base_logger.addHandler(handler)
+
+# Adapters
+backend_logger = ContextualAdapter(base_logger, {"source": "BACKEND"})
+frontend_logger = ContextualAdapter(base_logger, {"source": "FRONTEND"})

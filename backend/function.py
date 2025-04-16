@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, date
 import calendar
-from logger import logger
+from logger import backend_logger as logger
 
 
 

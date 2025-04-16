@@ -6,7 +6,7 @@ from routes import api
 from function import generate_schedule
 import os
 import json
-from logger import logger
+from logger import backend_logger as logger
 
 app = Flask(__name__)
 CORS(app)
@@ -19,11 +19,10 @@ def get_calendar():
     try:
         with open("pils.json", encoding="utf-8") as f:
             medications = json.load(f)
-        logger.info("Médicaments rechargés pour génération du calendrier.")
+            logger.info("pils.json chargé.")
 
         start_str = request.args.get("startTime", default=datetime.today().strftime("%Y-%m-%d"))
         start_date = datetime.strptime(start_str, "%Y-%m-%d").date()
-        logger.debug(f"Date de départ du calendrier reçue : {start_date}")
 
         schedule = generate_schedule(start_date, medications)
         logger.info("Calendrier généré avec succès.")
@@ -37,7 +36,7 @@ def get_pils():
     try:
         with open("pils.json", encoding="utf-8") as f:
             medications = json.load(f)
-        logger.info("Médicaments rechargés pour l'obtention des médicaments.")
+        logger.info("pils.json chargé.")
         return jsonify(medications)
     except Exception as e:
         logger.exception("Erreur dans /get_pils")

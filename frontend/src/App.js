@@ -44,14 +44,24 @@ function App() {
           color: e.color,
         })));
       })
+      .then(() => {
+        log.info('Calendrier récupéré avec succès');
+      })
       .catch((err) => log.error('Erreur de récupération du calendrier :', err));
   };
 
   const handleMedChange = (index, field, value) => {
     const updated = [...meds];
-    if (field === 'time') updated[index][field] = [value];
-    else if (['tablet_count', 'interval_days'].includes(field)) updated[index][field] = value === '' ? '' : parseFloat(value);
-    else updated[index][field] = value;
+    const NumericFields = ['tablet_count', 'interval_days'];
+    const TimeField = 'time';
+
+    if (field === TimeField) {
+        updated[index][field] = [value];
+    } else if (NumericFields.includes(field)) {
+        updated[index][field] = value === '' ? '' : parseFloat(value);
+    } else {
+        updated[index][field] = value;
+    }
     setMeds(updated);
   };
 
@@ -67,6 +77,9 @@ function App() {
         setAlertType("success");
         getMeds();
         getCalendar()
+      })
+      .then(() => {
+        log.info('Médicaments mis à jour avec succès');
       })
       .catch((err) => log.error('Erreur de mise à jour des médicaments :', err));
   };

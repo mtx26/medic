@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify
 from flask import request
-from logger import logger
+from logger import frontend_logger
+from logger import backend_logger as logger
 
 api = Blueprint('api', __name__)
 
@@ -24,16 +25,19 @@ def do_something():
 
 @api.route("/api/log", methods=["POST"])
 def log_frontend_error():
-    from logger import logger
     data = request.get_json()
     msg = data.get("message", "Message vide")
     error = data.get("error", "Erreur inconnue")
     type = data.get("type", "info")
+    
     if type == "error":
-        logger.error(f"Erreur du frontend : {msg} - {error}")
+        frontend_logger.error(f"{msg} - {error}")
     elif type == "warning":
-        logger.warning(f"Avertissement du frontend : {msg} - {error}")
+        frontend_logger.warning(f"{msg} - {error}")
     elif type == "info":
-        logger.info(f"Info du frontend : {msg} - {error}")
+        frontend_logger.info(f"{msg} - {error}")
+    else:
+        frontend_logger.debug(f"(type inconnu) {msg} - {error}")
+    
     return "", 204
 

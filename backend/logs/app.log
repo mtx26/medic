@@ -1,0 +1,112 @@
+2025-04-16 11:05:16,491 [ERROR] [BACKEND] Erreur dans /calendar
+Traceback (most recent call last):
+  File "c:\Users\mtx_2\Documents\Code\Medic\Medic\backend\app.py", line 20, in get_calendar
+    with open("pils.json", encoding="utf-8") as f:
+         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'pils.json'
+2025-04-16 11:05:16,492 [ERROR] [BACKEND] Erreur dans /get_pils
+Traceback (most recent call last):
+  File "c:\Users\mtx_2\Documents\Code\Medic\Medic\backend\app.py", line 38, in get_pils
+    with open("pils.json", encoding="utf-8") as f:
+         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'pils.json'
+2025-04-16 11:05:16,752 [ERROR] [BACKEND] Erreur dans /calendar
+Traceback (most recent call last):
+  File "c:\Users\mtx_2\Documents\Code\Medic\Medic\backend\app.py", line 20, in get_calendar
+    with open("pils.json", encoding="utf-8") as f:
+         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'pils.json'
+2025-04-16 11:05:16,818 [ERROR] [BACKEND] Erreur dans /get_pils
+Traceback (most recent call last):
+  File "c:\Users\mtx_2\Documents\Code\Medic\Medic\backend\app.py", line 38, in get_pils
+    with open("pils.json", encoding="utf-8") as f:
+         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'pils.json'
+2025-04-16 11:05:17,125 [ERROR] [FRONTEND] Erreur de récupération du calendrier : - {}
+2025-04-16 11:05:17,160 [INFO] [FRONTEND] Médicaments récupérés avec succès - None
+2025-04-16 11:05:17,165 [INFO] [FRONTEND] Médicaments récupérés avec succès - None
+2025-04-16 11:05:17,182 [ERROR] [FRONTEND] Erreur de récupération du calendrier : - {}
+2025-04-16 11:06:25,924 [INFO] [BACKEND] Médicaments rechargés pour génération du calendrier.
+2025-04-16 11:06:25,926 [INFO] [BACKEND] Médicaments rechargés pour l'obtention des médicaments.
+2025-04-16 11:06:25,932 [DEBUG] [BACKEND] Date de départ du calendrier reçue : 2025-04-16
+2025-04-16 11:06:25,932 [DEBUG] [BACKEND] Nombre de jours à traiter : 14
+2025-04-16 11:06:25,932 [DEBUG] [BACKEND] Date de début : 2025-04-16
+2025-04-16 11:06:25,932 [DEBUG] [BACKEND] Date de fin : 2025-04-30
+2025-04-16 11:06:25,933 [DEBUG] [BACKEND] Lundi de début : 2025-04-14
+2025-04-16 11:06:26,024 [INFO] [BACKEND] Calendrier généré avec succès.
+2025-04-16 11:06:26,186 [INFO] [BACKEND] Médicaments rechargés pour l'obtention des médicaments.
+2025-04-16 11:06:26,277 [INFO] [BACKEND] Médicaments rechargés pour génération du calendrier.
+2025-04-16 11:06:26,278 [DEBUG] [BACKEND] Date de départ du calendrier reçue : 2025-04-16
+2025-04-16 11:06:26,278 [DEBUG] [BACKEND] Nombre de jours à traiter : 14
+2025-04-16 11:06:26,278 [DEBUG] [BACKEND] Date de début : 2025-04-16
+2025-04-16 11:06:26,278 [DEBUG] [BACKEND] Date de fin : 2025-04-30
+2025-04-16 11:06:26,278 [DEBUG] [BACKEND] Lundi de début : 2025-04-14
+2025-04-16 11:06:26,376 [INFO] [BACKEND] Calendrier généré avec succès.
+2025-04-16 11:06:26,377 [INFO] [FRONTEND] Médicaments récupérés avec succès - None
+2025-04-16 11:06:26,579 [INFO] [FRONTEND] Médicaments récupérés avec succès - None
+2025-04-16 11:07:59,219 [INFO] [BACKEND] Médicaments rechargés pour génération du calendrier.
+2025-04-16 11:07:59,219 [DEBUG] [BACKEND] Date de départ du calendrier reçue : 2025-04-16
+2025-04-16 11:07:59,219 [DEBUG] [BACKEND] Nombre de jours à traiter : 14
+2025-04-16 11:07:59,220 [DEBUG] [BACKEND] Date de début : 2025-04-16
+2025-04-16 11:07:59,220 [DEBUG] [BACKEND] Date de fin : 2025-04-30
+2025-04-16 11:07:59,220 [INFO] [BACKEND] Médicaments rechargés pour l'obtention des médicaments.
+2025-04-16 11:07:59,220 [DEBUG] [BACKEND] Lundi de début : 2025-04-14
+2025-04-16 11:07:59,332 [INFO] [BACKEND] Calendrier généré avec succès.
+2025-04-16 11:08:01,637 [INFO] [BACKEND] Médicaments rechargés pour génération du calendrier.
+2025-04-16 11:08:01,638 [DEBUG] [BACKEND] Date de départ du calendrier reçue : 2025-04-16
+2025-04-16 11:08:01,638 [DEBUG] [BACKEND] Nombre de jours à traiter : 14
+2025-04-16 11:08:01,639 [DEBUG] [BACKEND] Date de début : 2025-04-16
+2025-04-16 11:08:01,640 [DEBUG] [BACKEND] Date de fin : 2025-04-30
+2025-04-16 11:08:01,640 [DEBUG] [BACKEND] Lundi de début : 2025-04-14
+2025-04-16 11:08:01,725 [INFO] [BACKEND] Calendrier généré avec succès.
+2025-04-16 11:08:01,906 [ERROR] [FRONTEND] Erreur de récupération des médicaments : - {}
+2025-04-16 11:08:01,981 [INFO] [FRONTEND] Calendrier récupéré avec succès - None
+2025-04-16 11:08:01,982 [INFO] [FRONTEND] Calendrier récupéré avec succès - None
+2025-04-16 11:08:27,035 [INFO] [BACKEND] Médicaments rechargés pour génération du calendrier.
+2025-04-16 11:08:27,035 [DEBUG] [BACKEND] Date de départ du calendrier reçue : 2025-04-16
+2025-04-16 11:08:27,035 [DEBUG] [BACKEND] Nombre de jours à traiter : 14
+2025-04-16 11:08:27,035 [DEBUG] [BACKEND] Date de début : 2025-04-16
+2025-04-16 11:08:27,035 [DEBUG] [BACKEND] Date de fin : 2025-04-30
+2025-04-16 11:08:27,035 [DEBUG] [BACKEND] Lundi de début : 2025-04-14
+2025-04-16 11:08:27,117 [INFO] [BACKEND] Calendrier généré avec succès.
+2025-04-16 11:08:27,342 [INFO] [BACKEND] Médicaments rechargés pour l'obtention des médicaments.
+2025-04-16 11:08:27,432 [INFO] [BACKEND] Médicaments rechargés pour génération du calendrier.
+2025-04-16 11:08:27,432 [DEBUG] [BACKEND] Date de départ du calendrier reçue : 2025-04-16
+2025-04-16 11:08:27,432 [DEBUG] [BACKEND] Nombre de jours à traiter : 14
+2025-04-16 11:08:27,432 [DEBUG] [BACKEND] Date de début : 2025-04-16
+2025-04-16 11:08:27,433 [DEBUG] [BACKEND] Date de fin : 2025-04-30
+2025-04-16 11:08:27,433 [DEBUG] [BACKEND] Lundi de début : 2025-04-14
+2025-04-16 11:08:27,513 [INFO] [BACKEND] Calendrier généré avec succès.
+2025-04-16 11:08:27,655 [INFO] [BACKEND] Médicaments rechargés pour l'obtention des médicaments.
+2025-04-16 11:08:27,858 [INFO] [FRONTEND] Calendrier récupéré avec succès - None
+2025-04-16 11:08:27,858 [INFO] [FRONTEND] Calendrier récupéré avec succès - None
+2025-04-16 11:08:28,075 [INFO] [FRONTEND] Médicaments récupérés avec succès - None
+2025-04-16 11:08:28,195 [INFO] [FRONTEND] Médicaments récupérés avec succès - None
+2025-04-16 11:08:41,596 [INFO] [BACKEND] Médicaments mis à jour avec succès.
+2025-04-16 11:08:41,668 [INFO] [BACKEND] Médicaments rechargés pour l'obtention des médicaments.
+2025-04-16 11:08:41,970 [INFO] [BACKEND] Médicaments rechargés pour génération du calendrier.
+2025-04-16 11:08:41,971 [DEBUG] [BACKEND] Date de départ du calendrier reçue : 2025-04-16
+2025-04-16 11:08:41,971 [DEBUG] [BACKEND] Nombre de jours à traiter : 14
+2025-04-16 11:08:41,971 [DEBUG] [BACKEND] Date de début : 2025-04-16
+2025-04-16 11:08:41,971 [DEBUG] [BACKEND] Date de fin : 2025-04-30
+2025-04-16 11:08:41,971 [DEBUG] [BACKEND] Lundi de début : 2025-04-14
+2025-04-16 11:08:42,050 [INFO] [FRONTEND] Médicaments récupérés avec succès - None
+2025-04-16 11:08:42,128 [INFO] [BACKEND] Calendrier généré avec succès.
+2025-04-16 11:08:42,314 [INFO] [FRONTEND] Calendrier récupéré avec succès - None
+2025-04-16 11:08:42,315 [INFO] [FRONTEND] Médicaments mis à jour avec succès - None
+2025-04-16 11:09:29,123 [INFO] [BACKEND] Médicaments rechargés pour génération du calendrier.
+2025-04-16 11:09:29,123 [DEBUG] [BACKEND] Date de départ du calendrier reçue : 2025-04-16
+2025-04-16 11:09:29,123 [DEBUG] [BACKEND] Nombre de jours à traiter : 14
+2025-04-16 11:09:29,123 [DEBUG] [BACKEND] Date de début : 2025-04-16
+2025-04-16 11:09:29,123 [DEBUG] [BACKEND] Date de fin : 2025-04-30
+2025-04-16 11:09:29,124 [DEBUG] [BACKEND] Lundi de début : 2025-04-14
+2025-04-16 11:09:29,259 [INFO] [BACKEND] Calendrier généré avec succès.
+2025-04-16 11:09:29,586 [INFO] [BACKEND] Médicaments rechargés pour génération du calendrier.
+2025-04-16 11:09:29,587 [DEBUG] [BACKEND] Date de départ du calendrier reçue : 2025-04-16
+2025-04-16 11:09:29,587 [DEBUG] [BACKEND] Nombre de jours à traiter : 14
+2025-04-16 11:09:29,587 [DEBUG] [BACKEND] Date de début : 2025-04-16
+2025-04-16 11:09:29,587 [DEBUG] [BACKEND] Date de fin : 2025-04-30
+2025-04-16 11:09:29,587 [DEBUG] [BACKEND] Lundi de début : 2025-04-14
+2025-04-16 11:09:29,715 [INFO] [BACKEND] Calendrier généré avec succès.
+2025-04-16 11:09:30,041 [INFO] [FRONTEND] Calendrier récupéré avec succès - None
+2025-04-16 11:09:30,063 [INFO] [FRONTEND] Calendrier récupéré avec succès - None
