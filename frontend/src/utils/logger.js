@@ -1,40 +1,42 @@
-const isDev = process.env.MODE === "development"; // ou NODE_ENV si tu n’utilises pas Vite
+const isDev = process.env.NODE_ENV === "development";
+const forceLog = true; // ← AJOUT : active pour test local
 const API_URL = process.env.REACT_APP_API_URL;
 
-const fetchLog = (msg, error, data, type) => {
-  let fullMessage = msg;
-  if (data !== undefined && data !== null) {
-    fullMessage += ` ${JSON.stringify(data)}`;
-  }
+if (!API_URL) console.error("API_URL is not defined");
 
-  if (!isDev) {
+const fetchLog = (msg, error, context, type) => {
+  const structuredMessage = {
+    message: msg,
+    context: context ?? null,
+    error: error?.message ?? (typeof error === "string" ? error : null),
+    stack: error?.stack ?? null,
+    type,
+  };
+
+  if ((forceLog || !isDev) && API_URL) {
     fetch(`${API_URL}/api/log`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        message: fullMessage,
-        error: error ?? null,
-        type,
-        time: new Date().toISOString(),
-      }),
+      body: JSON.stringify(structuredMessage),
     }).catch((err) => {
       if (isDev) console.warn("Échec de l'envoi du log au backend :", err);
     });
   }
+
+  if (isDev) {
+    console.groupCollapsed(`[${type.toUpperCase()}] ${msg}`);
+    console.log("Message:", msg);
+    if (context) console.log("Contexte:", context);
+    if (error) {
+      console.error("Erreur:", error);
+      if (error.stack) console.log("Stack:", error.stack);
+    }
+    console.groupEnd();
+  }
 };
 
-
 export const log = {
-  info: (msg, data) => {
-    if (isDev) console.info(`[INFO] ${msg}`, data ?? "");
-    fetchLog(msg, null, data, "info");
-  },
-  warn: (msg, data) => {
-    if (isDev) console.warn(`[WARN] ${msg}`, data ?? "");
-    fetchLog(msg, null, data, "warning");
-  },
-  error: (msg, error) => {
-    if (isDev) console.error(`[ERROR] ${msg}`, error ?? "");
-    fetchLog(msg, error, null, "error");
-  },
+  info: (msg, context) => fetchLog(msg, null, context, "info"),
+  warn: (msg, context) => fetchLog(msg, null, context, "warning"),
+  error: (msg, error, context) => fetchLog(msg, error, context, "error"),
 };

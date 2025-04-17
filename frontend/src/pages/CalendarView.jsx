@@ -4,6 +4,11 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import frLocale from '@fullcalendar/core/locales/fr';
 import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
+import { log } from '../utils/logger';
+import { useContext } from "react";
+import { AuthContext } from "../contexts/LoginContext";
 
 function CalendarPage({
   rawEvents,
@@ -19,6 +24,12 @@ function CalendarPage({
   modalRef,
   getCalendar
 }) {
+
+  const { nameCalendar } = useParams();
+  const { authReady } = useContext(AuthContext);
+
+  const navigate = useNavigate();
+
   const handleDateClick = (info) => {
     const clickedDate = info.dateStr;
     setSelectedDate(clickedDate);
@@ -35,11 +46,22 @@ function CalendarPage({
   };
 
   useEffect(() => {
-    getCalendar();
-  }, []);
+    if (authReady && nameCalendar) {
+      log.info("Calendrier à charger :", nameCalendar);
+      getCalendar(nameCalendar);
+    }
+  }, [authReady, nameCalendar]);
+  
+  
 
   return (
     <div>
+      <div className="d-flex justify-content-end mb-3">
+        <button className="btn btn-outline-primary" onClick={() => navigate('/calendars')}>
+          🔁 Changer de calendrier
+        </button>
+      </div>
+
       <div className="card shadow-sm mb-4">
         <div className="card-body">
           <div className="row align-items-center">

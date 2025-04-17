@@ -1,5 +1,4 @@
-from flask import Blueprint, jsonify
-from flask import request
+from flask import Blueprint, jsonify, request
 from logger import frontend_logger
 from logger import backend_logger as logger
 import firebase_admin_init
@@ -14,71 +13,154 @@ db = firestore.client()
 @api.route('/api/status', methods=['GET', 'HEAD'])
 def status():
     if request.method == 'HEAD':
-        logger.info("Requête uptimerobot reçue sur /api/status")
+        logger.info("[STATUS] Requête HEAD reçue sur /api/status")
         return '', 200
-    logger.info("Requête reçue sur /api/status")
+    logger.info("[STATUS] Requête GET reçue sur /api/status")
     return jsonify({"status": "ok"}), 200
 
 @api.route("/api/do-something")
 def do_something():
-    logger.info("Requête reçue sur /api/do-something")
+    logger.info("[DO_SOMETHING] Requête reçue sur /api/do-something")
     try:
         # Ton traitement ici
         pass
     except Exception as e:
-        logger.exception("Erreur dans /api/do-something")
+        logger.exception("[DO_SOMETHING] Erreur lors du traitement de /api/do-something")
         return {"error": str(e)}, 500
 
 @api.route("/api/log", methods=["POST"])
 def log_frontend_error():
     data = request.get_json()
+
     msg = data.get("message", "Message vide")
     error = data.get("error")
+    stack = data.get("stack")
+    context = data.get("context", {})
     log_type = data.get("type", "info").lower()
 
-    # Choisir la bonne fonction de log
+    parts = [msg]
+    if context:
+        parts.append(f"Context: {context}")
+    if error:
+        parts.append(f"Error: {error}")
+    if stack:
+        parts.append(f"Stack: {stack}")
+
+    full_msg = " | ".join(parts)
+
     log_func = {
         "info": frontend_logger.info,
         "warning": frontend_logger.warning,
         "error": frontend_logger.error
     }.get(log_type, frontend_logger.debug)
 
-    # Formatage du message
-    full_msg = f"{msg} - {error}" if error else msg
     log_func(full_msg)
-
     return "", 204
 
-
-# 📅 Route pour générer le calendrier
-@api.route("/api/calendar", methods=["GET"])
-def get_calendar():
+@api.route("/api/calendars", methods=["GET", "POST", "DELETE", "PUT"])
+def handle_calendars():
     try:
         user = verify_firebase_token()
         uid = user["uid"]
 
-        doc = db.collection("users").document(uid).get()
+        if request.method == "GET":
+            calendars_ref = db.collection("users").document(uid).collection("calendars")
+            calendars = [doc.id for doc in calendars_ref.stream()]
+            logger.info(f"[CALENDAR_GET] {len(calendars)} calendriers récupérés pour {uid}.")
+            return jsonify({"calendars": calendars}), 200
+
+        elif request.method == "POST":
+            calendar_name = request.json.get("calendarName")
+            db.collection("users").document(uid).collection("calendars").document(calendar_name).set({
+                "medicines": "",
+                "last_updated": datetime.utcnow().isoformat()
+            }, merge=True)
+            logger.info(f"[CALENDAR_CREATE] Calendrier '{calendar_name}' créé pour {uid}.")
+            return jsonify({"message": "Calendrier mis à jour", "status": "ok"})
+
+        elif request.method == "DELETE":
+            calendar_name = request.json.get("calendarName")
+            db.collection("users").document(uid).collection("calendars").document(calendar_name).delete()
+            logger.info(f"[CALENDAR_DELETE] Calendrier '{calendar_name}' supprimé pour {uid}.")
+            return jsonify({"message": "Calendrier supprimé", "status": "ok"})
+
+        elif request.method == "PUT":
+            data = request.get_json(force=True)
+            old_calendar_name = data.get("oldCalendarName")
+            new_calendar_name = data.get("newCalendarName")
+
+            if not old_calendar_name or not new_calendar_name:
+                logger.warning(f"[CALENDAR_RENAME] Noms invalides reçus pour {uid}.")
+                return jsonify({"error": "Nom de calendrier invalide"}), 400
+
+            if old_calendar_name == new_calendar_name:
+                logger.warning(f"[CALENDAR_RENAME] Nom inchangé pour {uid} : {old_calendar_name}.")
+                return jsonify({"error": "Le nom du calendrier n'a pas changé"}), 400
+
+            doc_ref = db.collection("users").document(uid).collection("calendars").document(old_calendar_name).get()
+
+            if doc_ref.exists:
+                db.collection("users").document(uid).collection("calendars").document(new_calendar_name).set(doc_ref.to_dict())
+                db.collection("users").document(uid).collection("calendars").document(old_calendar_name).delete()
+                logger.info(f"[CALENDAR_RENAME] Renommé {old_calendar_name} -> {new_calendar_name} pour {uid}.")
+                return jsonify({"message": "Calendrier renommé avec succès"}), 200
+            else:
+                logger.warning(f"[CALENDAR_RENAME] Calendrier '{old_calendar_name}' introuvable pour {uid}.")
+                return jsonify({"error": "Calendrier introuvable"}), 404
+
+    except Exception as e:
+        logger.exception("[CALENDAR_ERROR] Erreur dans /api/calendars")
+        return jsonify({"error": "Erreur interne"}), 500
+
+@api.route("/api/countmedicines", methods=["GET"])
+def count_medicines():
+    try:
+        user = verify_firebase_token()
+        uid = user["uid"]
+        name_calendar = request.args.get("calendarName")
+
+        doc = db.collection("users").document(uid).collection("calendars").document(name_calendar).get()
         if doc.exists:
             data = doc.to_dict()
             medicines = data.get("medicines", [])
-            logger.info(f"Médicaments récupérés pour {uid}.")
+            count = len(medicines)
+            logger.info(f"[MED_COUNT] {count} médicaments récupérés pour {uid}.")
+            return jsonify({"count": count}), 200
         else:
-            logger.warning(f"Document introuvable pour l'utilisateur {uid}.")
+            logger.warning(f"[MED_COUNT] Document introuvable pour l'utilisateur {uid}.")
+            return jsonify({"error": "Calendrier introuvable"}), 404
+
+    except Exception as e:
+        logger.exception("[MED_COUNT_ERROR] Erreur dans /api/countmedicines")
+        return jsonify({"error": "Erreur lors du comptage des médicaments."}), 500
+
+@api.route("/api/getcalendar", methods=["GET"])
+def get_calendar():
+    try:
+        user = verify_firebase_token()
+        uid = user["uid"]
+        nameCalendar = request.args.get("name_calendar")
+
+        doc = db.collection("users").document(uid).collection("calendars").document(nameCalendar).get()
+        if doc.exists:
+            data = doc.to_dict()
+            medicines = data.get("medicines", [])
+            logger.info(f"[CALENDAR_LOAD] Médicaments récupérés pour {uid}.")
+        else:
+            logger.warning(f"[CALENDAR_LOAD] Document introuvable pour l'utilisateur {uid}.")
             return jsonify({"medicines": []}), 200
 
         start_str = request.args.get("startTime", default=datetime.today().strftime("%Y-%m-%d"))
         start_date = datetime.strptime(start_str, "%Y-%m-%d").date()
 
         schedule = generate_schedule(start_date, medicines)
-        logger.info("Calendrier généré avec succès.")
+        logger.info("[CALENDAR_GENERATE] Calendrier généré avec succès.")
         return jsonify(schedule)
 
     except Exception as e:
-        logger.exception("Erreur dans /api/calendar")
+        logger.exception("[CALENDAR_GENERATE_ERROR] Erreur dans /api/calendar")
         return jsonify({"error": "Erreur lors de la génération du calendrier."}), 500
 
-
-# 💊 Route pour récupérer ou mettre à jour les médicaments
 @api.route("/api/medicines", methods=["GET", "POST"])
 def handle_medicines():
     try:
@@ -88,29 +170,28 @@ def handle_medicines():
         if request.method == "POST":
             medicines = request.json.get("medicines")
             if not isinstance(medicines, list):
+                logger.warning(f"[MED_UPDATE] Format de médicaments invalide reçu de {uid}.")
                 return jsonify({"error": "Le format des médicaments est invalide."}), 400
 
-            db.collection("users").document(uid).set({
+            db.collection("users").document(uid).collection("calendars").document("andrée").set({
                 "medicines": medicines,
                 "last_updated": datetime.utcnow().isoformat()
             }, merge=True)
 
-            logger.info(f"Médicaments mis à jour pour {uid}.")
+            logger.info(f"[MED_UPDATE] Médicaments mis à jour pour {uid}.")
             return jsonify({"message": "Médicaments mis à jour", "status": "ok"})
 
         elif request.method == "GET":
-            doc = db.collection("users").document(uid).get()
+            doc = db.collection("users").document(uid).collection("calendars").document("andrée").get()
             if doc.exists:
                 data = doc.to_dict()
                 medicines = data.get("medicines", [])
-                logger.info(f"Médicaments récupérés pour {uid}.")
+                logger.info(f"[MED_FETCH] Médicaments récupérés pour {uid}.")
                 return jsonify({"medicines": medicines}), 200
             else:
-                logger.warning(f"Aucun document trouvé pour l'utilisateur {uid}.")
+                logger.warning(f"[MED_FETCH] Aucun document trouvé pour l'utilisateur {uid}.")
                 return jsonify({"medicines": []}), 200
 
     except Exception as e:
-        logger.exception("Erreur dans /api/medicines")
+        logger.exception("[MED_ERROR] Erreur dans /api/medicines")
         return jsonify({"error": "Erreur interne"}), 500
-
-
