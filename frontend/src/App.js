@@ -181,9 +181,8 @@ function App() {
     }
   };
 
-  ///////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  // Fonction pour obtenir le calendrier lier au calendarName
   const getCalendar = async (calendarName, startDate ) => {
     try {
       if (!login) {
@@ -211,7 +210,7 @@ function App() {
           Authorization: `Bearer ${token}`,
         },
       });
-      if (!res.ok) throw new Error("Erreur HTTP GET /api/calendar");
+      if (!res.ok) throw new Error(`Erreur HTTP GET /api/calendars/${calendarName}/calendar`);
       const data = await res.json();
       setRawEvents(data);
       setCalendarEvents(data.map(e => ({ title: e.title, start: e.date, color: e.color })));
@@ -232,34 +231,23 @@ function App() {
     }
   };
 
-
-
-
-
-
-
-
-  const fetchUserMedicines = async () => {
-    const token = await auth.currentUser.getIdToken();
-    const res = await fetch(`${API_URL}/api/medicines`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    if (!res.ok) throw new Error("Erreur HTTP GET /api/medicines");
-    const data = await res.json();
-    return data.medicines ?? [];
-  };
-
-  const getMeds = async () => {
+  // Fonction pour obtenir les différents médicaments
+  const fetchCalendarsMedecines = async (calendarName) => {
     try {
-      const medsFromDB = await fetchUserMedicines();
-      setMeds(medsFromDB);
+      const token = await auth.currentUser.getIdToken();
+      const res = await fetch(`${API_URL}/api/calendars/${calendarName}/medicines`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (!res.ok) throw new Error(`Erreur HTTP GET /api/calendars/${calendarName}/medicines`);
+      const data = await res.json();
+      setMeds(data.medicines)
       log.info("Médicaments récupérés avec succès", {
         id: "MED_FETCH_SUCCESS",
         origin: "App.js",
-        count: medsFromDB?.length,
+        count: meds?.length,
       });
     } catch (err) {
       log.error("Échec de récupération des médicaments", err, {
@@ -269,25 +257,46 @@ function App() {
       });
     }
   };
+    
+
 
 
   const handleMedChange = (index, field, value) => {
-    const updated = [...meds];
-    const numericFields = ['tablet_count', 'interval_days'];
-    if (field === 'time') {
-      updated[index][field] = [value];
-    } else if (numericFields.includes(field)) {
-      updated[index][field] = value === '' ? '' : parseFloat(value);
-    } else {
-      updated[index][field] = value;
+    if (value !== null && field !== null && index !== null) {
+      const updated = [...meds];
+      const numericFields = ['tablet_count', 'interval_days'];
+      if (field === 'time') {
+        updated[index][field] = [value];
+      } else if (numericFields.includes(field)) {
+        updated[index][field] = value === '' ? '' : parseFloat(value);
+      } else {
+        updated[index][field] = value;
+      }
+      setMeds(updated);
     }
-    setMeds(updated);
+    else {
+      log.warn("Valeur indéfinie pour le champ", {
+        id: "MED_CHANGE_UNDEFINED_VALUE",
+        origin: "App.js",
+        field,
+        index,
+      });
+    }
   };
 
-  const handleSubmit = async () => {
+  const updateMeds = async (calendarName) => {
     try {
+      if (meds.length === 0) {
+        log.warn("Aucun médicament à mettre à jour", {
+          id: "MED_UPDATE_NO_MEDS",
+          origin: "App.js",
+          calendarName,
+        });
+        return;
+      };
+
       const token = await auth.currentUser.getIdToken();
-      const res = await fetch(`${API_URL}/api/medicines`, {
+      const res = await fetch(`${API_URL}/api/calendars/${calendarName}/medicines`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -295,10 +304,9 @@ function App() {
         },
         body: JSON.stringify({ medicines: meds }),
       });
-      if (!res.ok) throw new Error("Erreur HTTP POST /api/medicines");
+      if (!res.ok) throw new Error(`Erreur HTTP POST /api/calendars/${calendarName}/medicines`);
       setAlertMessage("✅ Médicaments mis à jour.");
       setAlertType("success");
-      getMeds();
       log.info("Médicaments mis à jour avec succès", {
         id: "MED_UPDATE_SUCCESS",
         origin: "App.js",
@@ -339,7 +347,7 @@ function App() {
     modalRef,
     getCalendar,
     handleMedChange,
-    handleSubmit,
+    updateMeds,
     deleteSelectedMeds,
     addMed,
     fetchCalendars,
@@ -348,12 +356,12 @@ function App() {
     deleteCalendar,
     RenameCalendar,
     getMedicineCount,
+    fetchCalendarsMedecines,
   };
 
   useEffect(() => {
     if (authReady && login) {
       fetchCalendars();
-      getMeds();
     }
   }, [authReady, login]);
 

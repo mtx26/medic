@@ -18,7 +18,7 @@ function AppRoutes({ sharedProps }) {
     <Routes>
       <Route path="/calendars" element={userInfo ? <CalendarList {...sharedProps}/>: <Navigate to="/login" />} />
       <Route path="/calendars/:nameCalendar" element={userInfo ? <CalendarView {...sharedProps} />: <Navigate to="/login" />} />
-      <Route path="/medicaments" element={<CalendarMedicines {...sharedProps} />} />
+      <Route path="/calendars/:nameCalendar/medicines" element={userInfo ? <CalendarMedicines {...sharedProps} />: <Navigate to="/login" />} />
       <Route path="*" element={<NotFound />} />
       <Route path="/login" element={userInfo ? <Navigate to="/calendars" /> : <Auth/>} />
       <Route path="/register" element={userInfo ? <Navigate to="/calendars" /> : <Auth/>} />

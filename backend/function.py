@@ -36,12 +36,6 @@ def generate_schedule(start_date, medications):
 
     if Total_day == 0:
         Total_day = 7
-    
-    logger.debug(f"Nombre de jours à traiter : {Total_day}")
-    logger.debug(f"Date de début : {start_date}")
-    logger.debug(f"Date de fin : {last_day_of_month}")
-    logger.debug(f"Lundi de début : {monday}")
-
     schedule = []
 
     for i in range(Total_day):

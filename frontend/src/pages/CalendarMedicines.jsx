@@ -1,9 +1,12 @@
 // MedicamentsPage.jsx
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import { useContext } from "react";
+import { AuthContext } from "../contexts/LoginContext";
+
 
 function MedicamentsPage({
   meds,
-  setMeds,
   selectedToDelete,
   setSelectedToDelete,
   confirmDeleteVisible,
@@ -12,15 +15,33 @@ function MedicamentsPage({
   setAlertMessage,
   alertType,
   handleMedChange,
-  handleSubmit,
+  updateMeds,
   deleteSelectedMeds,
-  addMed
+  addMed,
+  fetchCalendarsMedecines,
 }) {
+  const { nameCalendar } = useParams();
+
+   const { authReady, login } = useContext(AuthContext);
+
+
   const toggleSelection = (index) => {
     setSelectedToDelete((prev) =>
       prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
     );
   };
+  
+  useEffect(() => {
+    if (authReady && login) {
+      fetchCalendarsMedecines(nameCalendar)
+    }
+  }, [authReady, login]);
+
+  if (!meds) {
+    return <div className="text-center mt-5">⏳ Chargement des médicaments...</div>;
+  };
+  
+
 
   return (
     <div className="container mt-4">
@@ -37,7 +58,7 @@ function MedicamentsPage({
         >
           🗑️ Supprimer sélectionnés
         </button>
-        <button onClick={handleSubmit} className="btn btn-success btn-sm">
+        <button onClick={ () => updateMeds(nameCalendar)} className="btn btn-success btn-sm">
           💾 Modifier les médicaments
         </button>
       </div>

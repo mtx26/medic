@@ -1,798 +1,150 @@
-2025-04-18 08:35:29 [ERROR] [BACKEND] [CALENDAR_ERROR] Erreur dans /api/calendars
-Traceback (most recent call last):
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\grpc_helpers.py", line 170, in error_remapped_callable
-    return _StreamingResponseIterator(
-        result, prefetch_first_result=prefetch_first
-    )
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\grpc_helpers.py", line 92, in __init__
-    self._stored_first_result = next(self._wrapped)
-                                ~~~~^^^^^^^^^^^^^^^
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\grpc\_channel.py", line 543, in __next__
-    return self._next()
-           ~~~~~~~~~~^^
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\grpc\_channel.py", line 952, in _next
-    raise self
-grpc._channel._MultiThreadedRendezvous: <_MultiThreadedRendezvous of RPC that terminated with:
-	status = StatusCode.UNAVAILABLE
-	details = "failed to connect to all addresses; last error: UNKNOWN: ipv4:142.250.179.170:443: tcp handshaker shutdown"
-	debug_error_string = "UNKNOWN:Error received from peer  {grpc_status:14, grpc_message:"failed to connect to all addresses; last error: UNKNOWN: ipv4:142.250.179.170:443: tcp handshaker shutdown"}"
->
-
-The above exception was the direct cause of the following exception:
-
-Traceback (most recent call last):
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\retry\retry_unary.py", line 144, in retry_target
-    result = target()
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\timeout.py", line 130, in func_with_timeout
-    return func(*args, **kwargs)
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\grpc_helpers.py", line 174, in error_remapped_callable
-    raise exceptions.from_grpc_error(exc) from exc
-google.api_core.exceptions.ServiceUnavailable: 503 failed to connect to all addresses; last error: UNKNOWN: ipv4:142.250.179.170:443: tcp handshaker shutdown
-
-The above exception was the direct cause of the following exception:
-
-Traceback (most recent call last):
-  File "c:\Users\mtx_2\Documents\Code\Medic\Medic\backend\routes.py", line 72, in handle_calendars
-    calendars = [doc.id for doc in calendars_ref.stream()]
-                                   ~~~~~~~~~~~~~~~~~~~~^^
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\cloud\firestore_v1\stream_generator.py", line 58, in __next__
-    return self._generator.__next__()
-           ~~~~~~~~~~~~~~~~~~~~~~~~^^
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\cloud\firestore_v1\query.py", line 400, in _make_stream
-    response_iterator, expected_prefix = self._get_stream_iterator(
-                                         ~~~~~~~~~~~~~~~~~~~~~~~~~^
-        transaction,
-        ^^^^^^^^^^^^
-    ...<2 lines>...
-        explain_options,
-        ^^^^^^^^^^^^^^^^
-    )
-    ^
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\cloud\firestore_v1\query.py", line 250, in _get_stream_iterator
-    response_iterator = self._client._firestore_api.run_query(
-        request=request,
-        metadata=self._client._rpc_metadata,
-        **kwargs,
-    )
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\cloud\firestore_v1\services\firestore\client.py", line 1608, in run_query
-    response = rpc(
-        request,
-    ...<2 lines>...
-        metadata=metadata,
-    )
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\gapic_v1\method.py", line 131, in __call__
-    return wrapped_func(*args, **kwargs)
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\retry\retry_unary.py", line 293, in retry_wrapped_func
-    return retry_target(
-        target,
-    ...<3 lines>...
-        on_error=on_error,
-    )
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\retry\retry_unary.py", line 153, in retry_target
-    _retry_error_helper(
-    ~~~~~~~~~~~~~~~~~~~^
-        exc,
-        ^^^^
-    ...<6 lines>...
-        timeout,
-        ^^^^^^^^
-    )
-    ^
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\retry\retry_base.py", line 221, in _retry_error_helper
-    raise final_exc from source_exc
-google.api_core.exceptions.RetryError: Timeout of 300.0s exceeded, last exception: 503 failed to connect to all addresses; last error: UNKNOWN: ipv4:142.250.179.170:443: tcp handshaker shutdown
-2025-04-18 08:35:46 [ERROR] [BACKEND] [CALENDAR_ERROR] Erreur dans /api/calendars
-Traceback (most recent call last):
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\grpc_helpers.py", line 170, in error_remapped_callable
-    return _StreamingResponseIterator(
-        result, prefetch_first_result=prefetch_first
-    )
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\grpc_helpers.py", line 92, in __init__
-    self._stored_first_result = next(self._wrapped)
-                                ~~~~^^^^^^^^^^^^^^^
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\grpc\_channel.py", line 543, in __next__
-    return self._next()
-           ~~~~~~~~~~^^
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\grpc\_channel.py", line 952, in _next
-    raise self
-grpc._channel._MultiThreadedRendezvous: <_MultiThreadedRendezvous of RPC that terminated with:
-	status = StatusCode.UNAVAILABLE
-	details = "failed to connect to all addresses; last error: UNKNOWN: ipv4:142.250.179.170:443: tcp handshaker shutdown"
-	debug_error_string = "UNKNOWN:Error received from peer  {grpc_message:"failed to connect to all addresses; last error: UNKNOWN: ipv4:142.250.179.170:443: tcp handshaker shutdown", grpc_status:14}"
->
-
-The above exception was the direct cause of the following exception:
-
-Traceback (most recent call last):
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\retry\retry_unary.py", line 144, in retry_target
-    result = target()
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\timeout.py", line 130, in func_with_timeout
-    return func(*args, **kwargs)
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\grpc_helpers.py", line 174, in error_remapped_callable
-    raise exceptions.from_grpc_error(exc) from exc
-google.api_core.exceptions.ServiceUnavailable: 503 failed to connect to all addresses; last error: UNKNOWN: ipv4:142.250.179.170:443: tcp handshaker shutdown
-
-The above exception was the direct cause of the following exception:
-
-Traceback (most recent call last):
-  File "c:\Users\mtx_2\Documents\Code\Medic\Medic\backend\routes.py", line 72, in handle_calendars
-    calendars = [doc.id for doc in calendars_ref.stream()]
-                                   ~~~~~~~~~~~~~~~~~~~~^^
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\cloud\firestore_v1\stream_generator.py", line 58, in __next__
-    return self._generator.__next__()
-           ~~~~~~~~~~~~~~~~~~~~~~~~^^
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\cloud\firestore_v1\query.py", line 400, in _make_stream
-    response_iterator, expected_prefix = self._get_stream_iterator(
-                                         ~~~~~~~~~~~~~~~~~~~~~~~~~^
-        transaction,
-        ^^^^^^^^^^^^
-    ...<2 lines>...
-        explain_options,
-        ^^^^^^^^^^^^^^^^
-    )
-    ^
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\cloud\firestore_v1\query.py", line 250, in _get_stream_iterator
-    response_iterator = self._client._firestore_api.run_query(
-        request=request,
-        metadata=self._client._rpc_metadata,
-        **kwargs,
-    )
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\cloud\firestore_v1\services\firestore\client.py", line 1608, in run_query
-    response = rpc(
-        request,
-    ...<2 lines>...
-        metadata=metadata,
-    )
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\gapic_v1\method.py", line 131, in __call__
-    return wrapped_func(*args, **kwargs)
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\retry\retry_unary.py", line 293, in retry_wrapped_func
-    return retry_target(
-        target,
-    ...<3 lines>...
-        on_error=on_error,
-    )
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\retry\retry_unary.py", line 153, in retry_target
-    _retry_error_helper(
-    ~~~~~~~~~~~~~~~~~~~^
-        exc,
-        ^^^^
-    ...<6 lines>...
-        timeout,
-        ^^^^^^^^
-    )
-    ^
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\retry\retry_base.py", line 221, in _retry_error_helper
-    raise final_exc from source_exc
-google.api_core.exceptions.RetryError: Timeout of 300.0s exceeded, last exception: 503 failed to connect to all addresses; last error: UNKNOWN: ipv4:142.250.179.170:443: tcp handshaker shutdown
-2025-04-18 08:35:50 [ERROR] [BACKEND] [MED_ERROR] Erreur dans /api/medicines
-Traceback (most recent call last):
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\grpc_helpers.py", line 170, in error_remapped_callable
-    return _StreamingResponseIterator(
-        result, prefetch_first_result=prefetch_first
-    )
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\grpc_helpers.py", line 92, in __init__
-    self._stored_first_result = next(self._wrapped)
-                                ~~~~^^^^^^^^^^^^^^^
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\grpc\_channel.py", line 543, in __next__
-    return self._next()
-           ~~~~~~~~~~^^
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\grpc\_channel.py", line 952, in _next
-    raise self
-grpc._channel._MultiThreadedRendezvous: <_MultiThreadedRendezvous of RPC that terminated with:
-	status = StatusCode.UNAVAILABLE
-	details = "failed to connect to all addresses; last error: UNKNOWN: ipv4:142.250.179.170:443: tcp handshaker shutdown"
-	debug_error_string = "UNKNOWN:Error received from peer  {grpc_status:14, grpc_message:"failed to connect to all addresses; last error: UNKNOWN: ipv4:142.250.179.170:443: tcp handshaker shutdown"}"
->
-
-The above exception was the direct cause of the following exception:
-
-Traceback (most recent call last):
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\retry\retry_unary.py", line 144, in retry_target
-    result = target()
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\timeout.py", line 130, in func_with_timeout
-    return func(*args, **kwargs)
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\grpc_helpers.py", line 174, in error_remapped_callable
-    raise exceptions.from_grpc_error(exc) from exc
-google.api_core.exceptions.ServiceUnavailable: 503 failed to connect to all addresses; last error: UNKNOWN: ipv4:142.250.179.170:443: tcp handshaker shutdown
-
-The above exception was the direct cause of the following exception:
-
-Traceback (most recent call last):
-  File "c:\Users\mtx_2\Documents\Code\Medic\Medic\backend\routes.py", line 196, in handle_medicines
-    doc = db.collection("users").document(uid).collection("calendars").document("andrée").get()
-          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\cloud\firestore_v1\document.py", line 403, in get
-    response_iter = self._client._firestore_api.batch_get_documents(
-        request=request,
-        metadata=self._client._rpc_metadata,
-        **kwargs,
-    )
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\cloud\firestore_v1\services\firestore\client.py", line 1196, in batch_get_documents
-    response = rpc(
-        request,
-    ...<2 lines>...
-        metadata=metadata,
-    )
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\gapic_v1\method.py", line 131, in __call__
-    return wrapped_func(*args, **kwargs)
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\retry\retry_unary.py", line 293, in retry_wrapped_func
-    return retry_target(
-        target,
-    ...<3 lines>...
-        on_error=on_error,
-    )
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\retry\retry_unary.py", line 153, in retry_target
-    _retry_error_helper(
-    ~~~~~~~~~~~~~~~~~~~^
-        exc,
-        ^^^^
-    ...<6 lines>...
-        timeout,
-        ^^^^^^^^
-    )
-    ^
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\retry\retry_base.py", line 221, in _retry_error_helper
-    raise final_exc from source_exc
-google.api_core.exceptions.RetryError: Timeout of 300.0s exceeded, last exception: 503 failed to connect to all addresses; last error: UNKNOWN: ipv4:142.250.179.170:443: tcp handshaker shutdown
-2025-04-18 08:35:54 [ERROR] [BACKEND] [CALENDAR_ERROR] Erreur dans /api/calendars
-Traceback (most recent call last):
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\grpc_helpers.py", line 170, in error_remapped_callable
-    return _StreamingResponseIterator(
-        result, prefetch_first_result=prefetch_first
-    )
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\grpc_helpers.py", line 92, in __init__
-    self._stored_first_result = next(self._wrapped)
-                                ~~~~^^^^^^^^^^^^^^^
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\grpc\_channel.py", line 543, in __next__
-    return self._next()
-           ~~~~~~~~~~^^
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\grpc\_channel.py", line 952, in _next
-    raise self
-grpc._channel._MultiThreadedRendezvous: <_MultiThreadedRendezvous of RPC that terminated with:
-	status = StatusCode.UNAVAILABLE
-	details = "failed to connect to all addresses; last error: UNKNOWN: ipv4:142.250.179.170:443: tcp handshaker shutdown"
-	debug_error_string = "UNKNOWN:Error received from peer  {grpc_message:"failed to connect to all addresses; last error: UNKNOWN: ipv4:142.250.179.170:443: tcp handshaker shutdown", grpc_status:14}"
->
-
-The above exception was the direct cause of the following exception:
-
-Traceback (most recent call last):
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\retry\retry_unary.py", line 144, in retry_target
-    result = target()
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\timeout.py", line 130, in func_with_timeout
-    return func(*args, **kwargs)
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\grpc_helpers.py", line 174, in error_remapped_callable
-    raise exceptions.from_grpc_error(exc) from exc
-google.api_core.exceptions.ServiceUnavailable: 503 failed to connect to all addresses; last error: UNKNOWN: ipv4:142.250.179.170:443: tcp handshaker shutdown
-
-The above exception was the direct cause of the following exception:
-
-Traceback (most recent call last):
-  File "c:\Users\mtx_2\Documents\Code\Medic\Medic\backend\routes.py", line 72, in handle_calendars
-    calendars = [doc.id for doc in calendars_ref.stream()]
-                                   ~~~~~~~~~~~~~~~~~~~~^^
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\cloud\firestore_v1\stream_generator.py", line 58, in __next__
-    return self._generator.__next__()
-           ~~~~~~~~~~~~~~~~~~~~~~~~^^
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\cloud\firestore_v1\query.py", line 400, in _make_stream
-    response_iterator, expected_prefix = self._get_stream_iterator(
-                                         ~~~~~~~~~~~~~~~~~~~~~~~~~^
-        transaction,
-        ^^^^^^^^^^^^
-    ...<2 lines>...
-        explain_options,
-        ^^^^^^^^^^^^^^^^
-    )
-    ^
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\cloud\firestore_v1\query.py", line 250, in _get_stream_iterator
-    response_iterator = self._client._firestore_api.run_query(
-        request=request,
-        metadata=self._client._rpc_metadata,
-        **kwargs,
-    )
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\cloud\firestore_v1\services\firestore\client.py", line 1608, in run_query
-    response = rpc(
-        request,
-    ...<2 lines>...
-        metadata=metadata,
-    )
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\gapic_v1\method.py", line 131, in __call__
-    return wrapped_func(*args, **kwargs)
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\retry\retry_unary.py", line 293, in retry_wrapped_func
-    return retry_target(
-        target,
-    ...<3 lines>...
-        on_error=on_error,
-    )
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\retry\retry_unary.py", line 153, in retry_target
-    _retry_error_helper(
-    ~~~~~~~~~~~~~~~~~~~^
-        exc,
-        ^^^^
-    ...<6 lines>...
-        timeout,
-        ^^^^^^^^
-    )
-    ^
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\retry\retry_base.py", line 221, in _retry_error_helper
-    raise final_exc from source_exc
-google.api_core.exceptions.RetryError: Timeout of 300.0s exceeded, last exception: 503 failed to connect to all addresses; last error: UNKNOWN: ipv4:142.250.179.170:443: tcp handshaker shutdown
-2025-04-18 08:36:00 [ERROR] [BACKEND] [MED_ERROR] Erreur dans /api/medicines
-Traceback (most recent call last):
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\grpc_helpers.py", line 170, in error_remapped_callable
-    return _StreamingResponseIterator(
-        result, prefetch_first_result=prefetch_first
-    )
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\grpc_helpers.py", line 92, in __init__
-    self._stored_first_result = next(self._wrapped)
-                                ~~~~^^^^^^^^^^^^^^^
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\grpc\_channel.py", line 543, in __next__
-    return self._next()
-           ~~~~~~~~~~^^
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\grpc\_channel.py", line 969, in _next
-    raise self
-grpc._channel._MultiThreadedRendezvous: <_MultiThreadedRendezvous of RPC that terminated with:
-	status = StatusCode.UNAVAILABLE
-	details = "failed to connect to all addresses; last error: UNKNOWN: ipv4:142.250.179.170:443: tcp handshaker shutdown"
-	debug_error_string = "UNKNOWN:Error received from peer  {grpc_status:14, grpc_message:"failed to connect to all addresses; last error: UNKNOWN: ipv4:142.250.179.170:443: tcp handshaker shutdown"}"
->
-
-The above exception was the direct cause of the following exception:
-
-Traceback (most recent call last):
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\retry\retry_unary.py", line 144, in retry_target
-    result = target()
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\timeout.py", line 130, in func_with_timeout
-    return func(*args, **kwargs)
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\grpc_helpers.py", line 174, in error_remapped_callable
-    raise exceptions.from_grpc_error(exc) from exc
-google.api_core.exceptions.ServiceUnavailable: 503 failed to connect to all addresses; last error: UNKNOWN: ipv4:142.250.179.170:443: tcp handshaker shutdown
-
-The above exception was the direct cause of the following exception:
-
-Traceback (most recent call last):
-  File "c:\Users\mtx_2\Documents\Code\Medic\Medic\backend\routes.py", line 196, in handle_medicines
-    doc = db.collection("users").document(uid).collection("calendars").document("andrée").get()
-          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\cloud\firestore_v1\document.py", line 403, in get
-    response_iter = self._client._firestore_api.batch_get_documents(
-        request=request,
-        metadata=self._client._rpc_metadata,
-        **kwargs,
-    )
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\cloud\firestore_v1\services\firestore\client.py", line 1196, in batch_get_documents
-    response = rpc(
-        request,
-    ...<2 lines>...
-        metadata=metadata,
-    )
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\gapic_v1\method.py", line 131, in __call__
-    return wrapped_func(*args, **kwargs)
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\retry\retry_unary.py", line 293, in retry_wrapped_func
-    return retry_target(
-        target,
-    ...<3 lines>...
-        on_error=on_error,
-    )
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\retry\retry_unary.py", line 153, in retry_target
-    _retry_error_helper(
-    ~~~~~~~~~~~~~~~~~~~^
-        exc,
-        ^^^^
-    ...<6 lines>...
-        timeout,
-        ^^^^^^^^
-    )
-    ^
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\retry\retry_base.py", line 221, in _retry_error_helper
-    raise final_exc from source_exc
-google.api_core.exceptions.RetryError: Timeout of 300.0s exceeded, last exception: 503 failed to connect to all addresses; last error: UNKNOWN: ipv4:142.250.179.170:443: tcp handshaker shutdown
-2025-04-18 08:36:04 [ERROR] [BACKEND] [CALENDAR_ERROR] Erreur dans /api/calendars
-Traceback (most recent call last):
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\grpc_helpers.py", line 170, in error_remapped_callable
-    return _StreamingResponseIterator(
-        result, prefetch_first_result=prefetch_first
-    )
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\grpc_helpers.py", line 92, in __init__
-    self._stored_first_result = next(self._wrapped)
-                                ~~~~^^^^^^^^^^^^^^^
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\grpc\_channel.py", line 543, in __next__
-    return self._next()
-           ~~~~~~~~~~^^
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\grpc\_channel.py", line 969, in _next
-    raise self
-grpc._channel._MultiThreadedRendezvous: <_MultiThreadedRendezvous of RPC that terminated with:
-	status = StatusCode.UNAVAILABLE
-	details = "failed to connect to all addresses; last error: UNKNOWN: ipv4:142.250.179.170:443: tcp handshaker shutdown"
-	debug_error_string = "UNKNOWN:Error received from peer  {grpc_message:"failed to connect to all addresses; last error: UNKNOWN: ipv4:142.250.179.170:443: tcp handshaker shutdown", grpc_status:14}"
->
-
-The above exception was the direct cause of the following exception:
-
-Traceback (most recent call last):
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\retry\retry_unary.py", line 144, in retry_target
-    result = target()
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\timeout.py", line 130, in func_with_timeout
-    return func(*args, **kwargs)
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\grpc_helpers.py", line 174, in error_remapped_callable
-    raise exceptions.from_grpc_error(exc) from exc
-google.api_core.exceptions.ServiceUnavailable: 503 failed to connect to all addresses; last error: UNKNOWN: ipv4:142.250.179.170:443: tcp handshaker shutdown
-
-The above exception was the direct cause of the following exception:
-
-Traceback (most recent call last):
-  File "c:\Users\mtx_2\Documents\Code\Medic\Medic\backend\routes.py", line 72, in handle_calendars
-    calendars = [doc.id for doc in calendars_ref.stream()]
-                                   ~~~~~~~~~~~~~~~~~~~~^^
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\cloud\firestore_v1\stream_generator.py", line 58, in __next__
-    return self._generator.__next__()
-           ~~~~~~~~~~~~~~~~~~~~~~~~^^
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\cloud\firestore_v1\query.py", line 400, in _make_stream
-    response_iterator, expected_prefix = self._get_stream_iterator(
-                                         ~~~~~~~~~~~~~~~~~~~~~~~~~^
-        transaction,
-        ^^^^^^^^^^^^
-    ...<2 lines>...
-        explain_options,
-        ^^^^^^^^^^^^^^^^
-    )
-    ^
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\cloud\firestore_v1\query.py", line 250, in _get_stream_iterator
-    response_iterator = self._client._firestore_api.run_query(
-        request=request,
-        metadata=self._client._rpc_metadata,
-        **kwargs,
-    )
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\cloud\firestore_v1\services\firestore\client.py", line 1608, in run_query
-    response = rpc(
-        request,
-    ...<2 lines>...
-        metadata=metadata,
-    )
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\gapic_v1\method.py", line 131, in __call__
-    return wrapped_func(*args, **kwargs)
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\retry\retry_unary.py", line 293, in retry_wrapped_func
-    return retry_target(
-        target,
-    ...<3 lines>...
-        on_error=on_error,
-    )
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\retry\retry_unary.py", line 153, in retry_target
-    _retry_error_helper(
-    ~~~~~~~~~~~~~~~~~~~^
-        exc,
-        ^^^^
-    ...<6 lines>...
-        timeout,
-        ^^^^^^^^
-    )
-    ^
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\retry\retry_base.py", line 221, in _retry_error_helper
-    raise final_exc from source_exc
-google.api_core.exceptions.RetryError: Timeout of 300.0s exceeded, last exception: 503 failed to connect to all addresses; last error: UNKNOWN: ipv4:142.250.179.170:443: tcp handshaker shutdown
-2025-04-18 08:36:21 [ERROR] [BACKEND] [MED_ERROR] Erreur dans /api/medicines
-Traceback (most recent call last):
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\grpc_helpers.py", line 170, in error_remapped_callable
-    return _StreamingResponseIterator(
-        result, prefetch_first_result=prefetch_first
-    )
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\grpc_helpers.py", line 92, in __init__
-    self._stored_first_result = next(self._wrapped)
-                                ~~~~^^^^^^^^^^^^^^^
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\grpc\_channel.py", line 543, in __next__
-    return self._next()
-           ~~~~~~~~~~^^
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\grpc\_channel.py", line 952, in _next
-    raise self
-grpc._channel._MultiThreadedRendezvous: <_MultiThreadedRendezvous of RPC that terminated with:
-	status = StatusCode.UNAVAILABLE
-	details = "failed to connect to all addresses; last error: UNKNOWN: ipv4:142.250.179.170:443: socket is null"
-	debug_error_string = "UNKNOWN:Error received from peer  {grpc_status:14, grpc_message:"failed to connect to all addresses; last error: UNKNOWN: ipv4:142.250.179.170:443: socket is null"}"
->
-
-The above exception was the direct cause of the following exception:
-
-Traceback (most recent call last):
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\retry\retry_unary.py", line 144, in retry_target
-    result = target()
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\timeout.py", line 130, in func_with_timeout
-    return func(*args, **kwargs)
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\grpc_helpers.py", line 174, in error_remapped_callable
-    raise exceptions.from_grpc_error(exc) from exc
-google.api_core.exceptions.ServiceUnavailable: 503 failed to connect to all addresses; last error: UNKNOWN: ipv4:142.250.179.170:443: socket is null
-
-The above exception was the direct cause of the following exception:
-
-Traceback (most recent call last):
-  File "c:\Users\mtx_2\Documents\Code\Medic\Medic\backend\routes.py", line 196, in handle_medicines
-    doc = db.collection("users").document(uid).collection("calendars").document("andrée").get()
-          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\cloud\firestore_v1\document.py", line 403, in get
-    response_iter = self._client._firestore_api.batch_get_documents(
-        request=request,
-        metadata=self._client._rpc_metadata,
-        **kwargs,
-    )
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\cloud\firestore_v1\services\firestore\client.py", line 1196, in batch_get_documents
-    response = rpc(
-        request,
-    ...<2 lines>...
-        metadata=metadata,
-    )
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\gapic_v1\method.py", line 131, in __call__
-    return wrapped_func(*args, **kwargs)
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\retry\retry_unary.py", line 293, in retry_wrapped_func
-    return retry_target(
-        target,
-    ...<3 lines>...
-        on_error=on_error,
-    )
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\retry\retry_unary.py", line 153, in retry_target
-    _retry_error_helper(
-    ~~~~~~~~~~~~~~~~~~~^
-        exc,
-        ^^^^
-    ...<6 lines>...
-        timeout,
-        ^^^^^^^^
-    )
-    ^
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\retry\retry_base.py", line 221, in _retry_error_helper
-    raise final_exc from source_exc
-google.api_core.exceptions.RetryError: Timeout of 300.0s exceeded, last exception: 503 failed to connect to all addresses; last error: UNKNOWN: ipv4:142.250.179.170:443: socket is null
-2025-04-18 08:36:21 [ERROR] [FRONTEND] Échec de récupération des médicaments | Context: {'id': 'MED_FETCH_FAIL', 'origin': 'App.js', 'stack': 'Error: Erreur HTTP GET /api/medicines\n    at fetchUserMedicines (http://localhost:3000/static/js/bundle.js:90511:24)\n    at async getMeds (http://localhost:3000/static/js/bundle.js:90517:26)'} | Error: Erreur HTTP GET /api/medicines | Stack: Error: Erreur HTTP GET /api/medicines
-    at fetchUserMedicines (http://localhost:3000/static/js/bundle.js:90511:24)
-    at async getMeds (http://localhost:3000/static/js/bundle.js:90517:26)
-2025-04-18 08:36:27 [ERROR] [BACKEND] [CALENDAR_ERROR] Erreur dans /api/calendars
-Traceback (most recent call last):
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\grpc_helpers.py", line 170, in error_remapped_callable
-    return _StreamingResponseIterator(
-        result, prefetch_first_result=prefetch_first
-    )
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\grpc_helpers.py", line 92, in __init__
-    self._stored_first_result = next(self._wrapped)
-                                ~~~~^^^^^^^^^^^^^^^
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\grpc\_channel.py", line 543, in __next__
-    return self._next()
-           ~~~~~~~~~~^^
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\grpc\_channel.py", line 952, in _next
-    raise self
-grpc._channel._MultiThreadedRendezvous: <_MultiThreadedRendezvous of RPC that terminated with:
-	status = StatusCode.UNAVAILABLE
-	details = "failed to connect to all addresses; last error: UNKNOWN: ipv4:142.250.179.170:443: socket is null"
-	debug_error_string = "UNKNOWN:Error received from peer  {grpc_status:14, grpc_message:"failed to connect to all addresses; last error: UNKNOWN: ipv4:142.250.179.170:443: socket is null"}"
->
-
-The above exception was the direct cause of the following exception:
-
-Traceback (most recent call last):
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\retry\retry_unary.py", line 144, in retry_target
-    result = target()
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\timeout.py", line 130, in func_with_timeout
-    return func(*args, **kwargs)
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\grpc_helpers.py", line 174, in error_remapped_callable
-    raise exceptions.from_grpc_error(exc) from exc
-google.api_core.exceptions.ServiceUnavailable: 503 failed to connect to all addresses; last error: UNKNOWN: ipv4:142.250.179.170:443: socket is null
-
-The above exception was the direct cause of the following exception:
-
-Traceback (most recent call last):
-  File "c:\Users\mtx_2\Documents\Code\Medic\Medic\backend\routes.py", line 72, in handle_calendars
-    calendars = [doc.id for doc in calendars_ref.stream()]
-                                   ~~~~~~~~~~~~~~~~~~~~^^
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\cloud\firestore_v1\stream_generator.py", line 58, in __next__
-    return self._generator.__next__()
-           ~~~~~~~~~~~~~~~~~~~~~~~~^^
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\cloud\firestore_v1\query.py", line 400, in _make_stream
-    response_iterator, expected_prefix = self._get_stream_iterator(
-                                         ~~~~~~~~~~~~~~~~~~~~~~~~~^
-        transaction,
-        ^^^^^^^^^^^^
-    ...<2 lines>...
-        explain_options,
-        ^^^^^^^^^^^^^^^^
-    )
-    ^
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\cloud\firestore_v1\query.py", line 250, in _get_stream_iterator
-    response_iterator = self._client._firestore_api.run_query(
-        request=request,
-        metadata=self._client._rpc_metadata,
-        **kwargs,
-    )
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\cloud\firestore_v1\services\firestore\client.py", line 1608, in run_query
-    response = rpc(
-        request,
-    ...<2 lines>...
-        metadata=metadata,
-    )
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\gapic_v1\method.py", line 131, in __call__
-    return wrapped_func(*args, **kwargs)
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\retry\retry_unary.py", line 293, in retry_wrapped_func
-    return retry_target(
-        target,
-    ...<3 lines>...
-        on_error=on_error,
-    )
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\retry\retry_unary.py", line 153, in retry_target
-    _retry_error_helper(
-    ~~~~~~~~~~~~~~~~~~~^
-        exc,
-        ^^^^
-    ...<6 lines>...
-        timeout,
-        ^^^^^^^^
-    )
-    ^
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\retry\retry_base.py", line 221, in _retry_error_helper
-    raise final_exc from source_exc
-google.api_core.exceptions.RetryError: Timeout of 300.0s exceeded, last exception: 503 failed to connect to all addresses; last error: UNKNOWN: ipv4:142.250.179.170:443: socket is null
-2025-04-18 08:36:28 [ERROR] [BACKEND] [CALENDAR_ERROR] Erreur dans /api/calendars
-Traceback (most recent call last):
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\grpc_helpers.py", line 170, in error_remapped_callable
-    return _StreamingResponseIterator(
-        result, prefetch_first_result=prefetch_first
-    )
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\grpc_helpers.py", line 92, in __init__
-    self._stored_first_result = next(self._wrapped)
-                                ~~~~^^^^^^^^^^^^^^^
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\grpc\_channel.py", line 543, in __next__
-    return self._next()
-           ~~~~~~~~~~^^
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\grpc\_channel.py", line 969, in _next
-    raise self
-grpc._channel._MultiThreadedRendezvous: <_MultiThreadedRendezvous of RPC that terminated with:
-	status = StatusCode.UNAVAILABLE
-	details = "failed to connect to all addresses; last error: UNKNOWN: ipv4:142.250.179.170:443: socket is null"
-	debug_error_string = "UNKNOWN:Error received from peer  {grpc_message:"failed to connect to all addresses; last error: UNKNOWN: ipv4:142.250.179.170:443: socket is null", grpc_status:14}"
->
-
-The above exception was the direct cause of the following exception:
-
-Traceback (most recent call last):
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\retry\retry_unary.py", line 144, in retry_target
-    result = target()
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\timeout.py", line 130, in func_with_timeout
-    return func(*args, **kwargs)
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\grpc_helpers.py", line 174, in error_remapped_callable
-    raise exceptions.from_grpc_error(exc) from exc
-google.api_core.exceptions.ServiceUnavailable: 503 failed to connect to all addresses; last error: UNKNOWN: ipv4:142.250.179.170:443: socket is null
-
-The above exception was the direct cause of the following exception:
-
-Traceback (most recent call last):
-  File "c:\Users\mtx_2\Documents\Code\Medic\Medic\backend\routes.py", line 72, in handle_calendars
-    calendars = [doc.id for doc in calendars_ref.stream()]
-                                   ~~~~~~~~~~~~~~~~~~~~^^
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\cloud\firestore_v1\stream_generator.py", line 58, in __next__
-    return self._generator.__next__()
-           ~~~~~~~~~~~~~~~~~~~~~~~~^^
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\cloud\firestore_v1\query.py", line 400, in _make_stream
-    response_iterator, expected_prefix = self._get_stream_iterator(
-                                         ~~~~~~~~~~~~~~~~~~~~~~~~~^
-        transaction,
-        ^^^^^^^^^^^^
-    ...<2 lines>...
-        explain_options,
-        ^^^^^^^^^^^^^^^^
-    )
-    ^
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\cloud\firestore_v1\query.py", line 250, in _get_stream_iterator
-    response_iterator = self._client._firestore_api.run_query(
-        request=request,
-        metadata=self._client._rpc_metadata,
-        **kwargs,
-    )
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\cloud\firestore_v1\services\firestore\client.py", line 1608, in run_query
-    response = rpc(
-        request,
-    ...<2 lines>...
-        metadata=metadata,
-    )
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\gapic_v1\method.py", line 131, in __call__
-    return wrapped_func(*args, **kwargs)
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\retry\retry_unary.py", line 293, in retry_wrapped_func
-    return retry_target(
-        target,
-    ...<3 lines>...
-        on_error=on_error,
-    )
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\retry\retry_unary.py", line 153, in retry_target
-    _retry_error_helper(
-    ~~~~~~~~~~~~~~~~~~~^
-        exc,
-        ^^^^
-    ...<6 lines>...
-        timeout,
-        ^^^^^^^^
-    )
-    ^
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\retry\retry_base.py", line 221, in _retry_error_helper
-    raise final_exc from source_exc
-google.api_core.exceptions.RetryError: Timeout of 300.0s exceeded, last exception: 503 failed to connect to all addresses; last error: UNKNOWN: ipv4:142.250.179.170:443: socket is null
-2025-04-18 08:36:28 [ERROR] [FRONTEND] Échec de récupération des calendriers | Context: {'id': 'CALENDARS_FETCH_FAIL', 'origin': 'App.js', 'stack': 'Error: Erreur HTTP GET /api/calendars\n    at fetchCalendars (http://localhost:3000/static/js/bundle.js:90300:26)'} | Error: Erreur HTTP GET /api/calendars | Stack: Error: Erreur HTTP GET /api/calendars
-    at fetchCalendars (http://localhost:3000/static/js/bundle.js:90300:26)
-2025-04-18 08:36:37 [ERROR] [BACKEND] [CALENDAR_ERROR] Erreur dans /api/calendars
-Traceback (most recent call last):
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\grpc_helpers.py", line 170, in error_remapped_callable
-    return _StreamingResponseIterator(
-        result, prefetch_first_result=prefetch_first
-    )
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\grpc_helpers.py", line 92, in __init__
-    self._stored_first_result = next(self._wrapped)
-                                ~~~~^^^^^^^^^^^^^^^
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\grpc\_channel.py", line 543, in __next__
-    return self._next()
-           ~~~~~~~~~~^^
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\grpc\_channel.py", line 952, in _next
-    raise self
-grpc._channel._MultiThreadedRendezvous: <_MultiThreadedRendezvous of RPC that terminated with:
-	status = StatusCode.UNAVAILABLE
-	details = "failed to connect to all addresses; last error: UNKNOWN: ipv4:142.250.179.170:443: tcp handshaker shutdown"
-	debug_error_string = "UNKNOWN:Error received from peer  {grpc_message:"failed to connect to all addresses; last error: UNKNOWN: ipv4:142.250.179.170:443: tcp handshaker shutdown", grpc_status:14}"
->
-
-The above exception was the direct cause of the following exception:
-
-Traceback (most recent call last):
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\retry\retry_unary.py", line 144, in retry_target
-    result = target()
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\timeout.py", line 130, in func_with_timeout
-    return func(*args, **kwargs)
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\grpc_helpers.py", line 174, in error_remapped_callable
-    raise exceptions.from_grpc_error(exc) from exc
-google.api_core.exceptions.ServiceUnavailable: 503 failed to connect to all addresses; last error: UNKNOWN: ipv4:142.250.179.170:443: tcp handshaker shutdown
-
-The above exception was the direct cause of the following exception:
-
-Traceback (most recent call last):
-  File "c:\Users\mtx_2\Documents\Code\Medic\Medic\backend\routes.py", line 72, in handle_calendars
-    calendars = [doc.id for doc in calendars_ref.stream()]
-                                   ~~~~~~~~~~~~~~~~~~~~^^
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\cloud\firestore_v1\stream_generator.py", line 58, in __next__
-    return self._generator.__next__()
-           ~~~~~~~~~~~~~~~~~~~~~~~~^^
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\cloud\firestore_v1\query.py", line 400, in _make_stream
-    response_iterator, expected_prefix = self._get_stream_iterator(
-                                         ~~~~~~~~~~~~~~~~~~~~~~~~~^
-        transaction,
-        ^^^^^^^^^^^^
-    ...<2 lines>...
-        explain_options,
-        ^^^^^^^^^^^^^^^^
-    )
-    ^
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\cloud\firestore_v1\query.py", line 250, in _get_stream_iterator
-    response_iterator = self._client._firestore_api.run_query(
-        request=request,
-        metadata=self._client._rpc_metadata,
-        **kwargs,
-    )
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\cloud\firestore_v1\services\firestore\client.py", line 1608, in run_query
-    response = rpc(
-        request,
-    ...<2 lines>...
-        metadata=metadata,
-    )
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\gapic_v1\method.py", line 131, in __call__
-    return wrapped_func(*args, **kwargs)
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\retry\retry_unary.py", line 293, in retry_wrapped_func
-    return retry_target(
-        target,
-    ...<3 lines>...
-        on_error=on_error,
-    )
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\retry\retry_unary.py", line 153, in retry_target
-    _retry_error_helper(
-    ~~~~~~~~~~~~~~~~~~~^
-        exc,
-        ^^^^
-    ...<6 lines>...
-        timeout,
-        ^^^^^^^^
-    )
-    ^
-  File "C:\Users\mtx_2\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\api_core\retry\retry_base.py", line 221, in _retry_error_helper
-    raise final_exc from source_exc
-google.api_core.exceptions.RetryError: Timeout of 300.0s exceeded, last exception: 503 failed to connect to all addresses; last error: UNKNOWN: ipv4:142.250.179.170:443: tcp handshaker shutdown
-2025-04-18 08:36:38 [ERROR] [FRONTEND] Échec de récupération des calendriers | Context: {'id': 'CALENDARS_FETCH_FAIL', 'origin': 'App.js', 'stack': 'Error: Erreur HTTP GET /api/calendars\n    at fetchCalendars (http://localhost:3000/static/js/bundle.js:90300:26)'} | Error: Erreur HTTP GET /api/calendars | Stack: Error: Erreur HTTP GET /api/calendars
-    at fetchCalendars (http://localhost:3000/static/js/bundle.js:90300:26)
+2025-04-18 20:05:58 [INFO] [BACKEND] [CALENDAR_GET] 2 calendriers récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:05:58 [INFO] [BACKEND] [CALENDAR_GET] 2 calendriers récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:05:58 [INFO] [BACKEND] [CALENDAR_GET] 2 calendriers récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:05:59 [INFO] [FRONTEND] Calendriers récupérés avec succès | Context: {'id': 'CALENDARS_FETCH_SUCCESS', 'origin': 'App.js', 'count': 2}
+2025-04-18 20:05:59 [INFO] [BACKEND] [MED_COUNT] 13 médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:05:59 [INFO] [FRONTEND] Calendriers récupérés avec succès | Context: {'id': 'CALENDARS_FETCH_SUCCESS', 'origin': 'App.js', 'count': 2}
+2025-04-18 20:05:59 [INFO] [FRONTEND] Calendriers récupérés avec succès | Context: {'id': 'CALENDARS_FETCH_SUCCESS', 'origin': 'App.js', 'count': 2}
+2025-04-18 20:05:59 [INFO] [FRONTEND] Nombre de médicaments récupéré avec succès | Context: {'id': 'MED_COUNT_SUCCESS', 'origin': 'App.js', 'calendarName': 'Andrée', 'count': 13}
+2025-04-18 20:05:59 [INFO] [BACKEND] [MED_COUNT] 13 médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:05:59 [INFO] [BACKEND] [MED_COUNT] 0 médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:05:59 [INFO] [FRONTEND] Nombre de médicaments récupéré avec succès | Context: {'id': 'MED_COUNT_SUCCESS', 'origin': 'App.js', 'calendarName': 'Andrée', 'count': 13}
+2025-04-18 20:05:59 [INFO] [BACKEND] [MED_COUNT] 13 médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:06:00 [INFO] [FRONTEND] Nombre de médicaments récupéré avec succès | Context: {'id': 'MED_COUNT_SUCCESS', 'origin': 'App.js', 'calendarName': 'dsfss', 'count': 0}
+2025-04-18 20:06:00 [INFO] [BACKEND] [MED_COUNT] 0 médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:06:00 [INFO] [FRONTEND] Nombre de médicaments récupéré avec succès | Context: {'id': 'MED_COUNT_SUCCESS', 'origin': 'App.js', 'calendarName': 'Andrée', 'count': 13}
+2025-04-18 20:06:00 [INFO] [FRONTEND] Nombre de médicaments récupéré avec succès | Context: {'id': 'MED_COUNT_SUCCESS', 'origin': 'App.js', 'calendarName': 'dsfss', 'count': 0}
+2025-04-18 20:06:00 [INFO] [BACKEND] [MED_COUNT] 0 médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:06:00 [INFO] [FRONTEND] Nombre de médicaments récupéré avec succès | Context: {'id': 'MED_COUNT_SUCCESS', 'origin': 'App.js', 'calendarName': 'dsfss', 'count': 0}
+2025-04-18 20:06:01 [INFO] [BACKEND] [CALENDAR_LOAD] Médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:06:01 [DEBUG] [BACKEND] Nombre de jours à traiter : 14
+2025-04-18 20:06:01 [DEBUG] [BACKEND] Date de début : 2025-04-18
+2025-04-18 20:06:01 [DEBUG] [BACKEND] Date de fin : 2025-04-30
+2025-04-18 20:06:01 [DEBUG] [BACKEND] Lundi de début : 2025-04-14
+2025-04-18 20:06:01 [INFO] [BACKEND] [CALENDAR_GENERATE] Calendrier généré avec succès.
+2025-04-18 20:06:02 [INFO] [FRONTEND] Calendrier récupéré avec succès | Context: {'id': 'CALENDAR_FETCH_SUCCESS', 'origin': 'App.js', 'eventCount': 130, 'calendarName': 'Andrée'}
+2025-04-18 20:06:02 [INFO] [BACKEND] [CALENDAR_LOAD] Médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:06:02 [DEBUG] [BACKEND] Nombre de jours à traiter : 14
+2025-04-18 20:06:02 [DEBUG] [BACKEND] Date de début : 2025-04-18
+2025-04-18 20:06:02 [DEBUG] [BACKEND] Date de fin : 2025-04-30
+2025-04-18 20:06:02 [DEBUG] [BACKEND] Lundi de début : 2025-04-14
+2025-04-18 20:06:02 [INFO] [BACKEND] [CALENDAR_GENERATE] Calendrier généré avec succès.
+2025-04-18 20:06:02 [INFO] [FRONTEND] Calendrier récupéré avec succès | Context: {'id': 'CALENDAR_FETCH_SUCCESS', 'origin': 'App.js', 'eventCount': 130, 'calendarName': 'Andrée'}
+2025-04-18 20:07:07 [INFO] [BACKEND] [MED_FETCH] Médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:07:07 [INFO] [BACKEND] [CALENDAR_GET] 2 calendriers récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:07:07 [INFO] [FRONTEND] Médicaments récupérés avec succès | Context: {'id': 'MED_FETCH_SUCCESS', 'origin': 'App.js', 'count': 0}
+2025-04-18 20:07:07 [INFO] [FRONTEND] Calendriers récupérés avec succès | Context: {'id': 'CALENDARS_FETCH_SUCCESS', 'origin': 'App.js', 'count': 2}
+2025-04-18 20:07:10 [INFO] [BACKEND] [MED_UPDATE] Médicaments mis à jour pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:07:10 [INFO] [FRONTEND] Médicaments mis à jour avec succès | Context: {'id': 'MED_UPDATE_SUCCESS', 'origin': 'App.js', 'count': 13}
+2025-04-18 20:07:26 [INFO] [BACKEND] [MED_COUNT] 13 médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:07:26 [INFO] [BACKEND] [MED_COUNT] 13 médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:07:26 [INFO] [BACKEND] [CALENDAR_GET] 3 calendriers récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:07:27 [INFO] [BACKEND] [CALENDAR_GET] 3 calendriers récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:07:27 [INFO] [BACKEND] [MED_COUNT] 13 médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:07:27 [INFO] [FRONTEND] Nombre de médicaments récupéré avec succès | Context: {'id': 'MED_COUNT_SUCCESS', 'origin': 'App.js', 'calendarName': 'Andrée', 'count': 13}
+2025-04-18 20:07:27 [INFO] [BACKEND] [MED_COUNT] 0 médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:07:27 [INFO] [FRONTEND] Calendriers récupérés avec succès | Context: {'id': 'CALENDARS_FETCH_SUCCESS', 'origin': 'App.js', 'count': 3}
+2025-04-18 20:07:27 [INFO] [FRONTEND] Nombre de médicaments récupéré avec succès | Context: {'id': 'MED_COUNT_SUCCESS', 'origin': 'App.js', 'calendarName': 'Andrée', 'count': 13}
+2025-04-18 20:07:27 [INFO] [BACKEND] [MED_COUNT] 13 médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:07:27 [INFO] [FRONTEND] Nombre de médicaments récupéré avec succès | Context: {'id': 'MED_COUNT_SUCCESS', 'origin': 'App.js', 'calendarName': 'Andrée', 'count': 13}
+2025-04-18 20:07:27 [INFO] [FRONTEND] Calendriers récupérés avec succès | Context: {'id': 'CALENDARS_FETCH_SUCCESS', 'origin': 'App.js', 'count': 3}
+2025-04-18 20:07:27 [INFO] [FRONTEND] Nombre de médicaments récupéré avec succès | Context: {'id': 'MED_COUNT_SUCCESS', 'origin': 'App.js', 'calendarName': 'dsfss', 'count': 0}
+2025-04-18 20:07:27 [INFO] [BACKEND] [MED_COUNT] 0 médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:07:27 [INFO] [FRONTEND] Nombre de médicaments récupéré avec succès | Context: {'id': 'MED_COUNT_SUCCESS', 'origin': 'App.js', 'calendarName': 'Andrée', 'count': 13}
+2025-04-18 20:07:28 [INFO] [BACKEND] [MED_COUNT] 13 médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:07:28 [INFO] [FRONTEND] Nombre de médicaments récupéré avec succès | Context: {'id': 'MED_COUNT_SUCCESS', 'origin': 'App.js', 'calendarName': 'dsfss', 'count': 0}
+2025-04-18 20:07:28 [INFO] [FRONTEND] Nombre de médicaments récupéré avec succès | Context: {'id': 'MED_COUNT_SUCCESS', 'origin': 'App.js', 'calendarName': '[object Object]', 'count': 13}
+2025-04-18 20:07:28 [INFO] [BACKEND] [MED_COUNT] 13 médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:07:28 [INFO] [BACKEND] [MED_COUNT] 0 médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:07:28 [INFO] [FRONTEND] Nombre de médicaments récupéré avec succès | Context: {'id': 'MED_COUNT_SUCCESS', 'origin': 'App.js', 'calendarName': '[object Object]', 'count': 13}
+2025-04-18 20:07:28 [INFO] [FRONTEND] Nombre de médicaments récupéré avec succès | Context: {'id': 'MED_COUNT_SUCCESS', 'origin': 'App.js', 'calendarName': 'dsfss', 'count': 0}
+2025-04-18 20:07:28 [INFO] [BACKEND] [MED_COUNT] 0 médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:07:29 [INFO] [FRONTEND] Nombre de médicaments récupéré avec succès | Context: {'id': 'MED_COUNT_SUCCESS', 'origin': 'App.js', 'calendarName': 'dsfss', 'count': 0}
+2025-04-18 20:07:29 [INFO] [BACKEND] [CALENDAR_LOAD] Médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:07:29 [DEBUG] [BACKEND] Nombre de jours à traiter : 14
+2025-04-18 20:07:29 [DEBUG] [BACKEND] Date de début : 2025-04-18
+2025-04-18 20:07:29 [DEBUG] [BACKEND] Date de fin : 2025-04-30
+2025-04-18 20:07:29 [DEBUG] [BACKEND] Lundi de début : 2025-04-14
+2025-04-18 20:07:29 [INFO] [BACKEND] [CALENDAR_GENERATE] Calendrier généré avec succès.
+2025-04-18 20:07:29 [INFO] [BACKEND] [CALENDAR_LOAD] Médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:07:29 [DEBUG] [BACKEND] Nombre de jours à traiter : 14
+2025-04-18 20:07:29 [DEBUG] [BACKEND] Date de début : 2025-04-18
+2025-04-18 20:07:29 [DEBUG] [BACKEND] Date de fin : 2025-04-30
+2025-04-18 20:07:29 [DEBUG] [BACKEND] Lundi de début : 2025-04-14
+2025-04-18 20:07:29 [INFO] [BACKEND] [CALENDAR_GENERATE] Calendrier généré avec succès.
+2025-04-18 20:07:29 [INFO] [FRONTEND] Calendrier récupéré avec succès | Context: {'id': 'CALENDAR_FETCH_SUCCESS', 'origin': 'App.js', 'eventCount': 130, 'calendarName': 'Andrée'}
+2025-04-18 20:07:30 [INFO] [FRONTEND] Calendrier récupéré avec succès | Context: {'id': 'CALENDAR_FETCH_SUCCESS', 'origin': 'App.js', 'eventCount': 130, 'calendarName': 'Andrée'}
+2025-04-18 20:08:02 [INFO] [BACKEND] [CALENDAR_LOAD] Médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:08:02 [INFO] [BACKEND] [CALENDAR_GENERATE] Calendrier généré avec succès.
+2025-04-18 20:08:02 [INFO] [BACKEND] [CALENDAR_GET] 3 calendriers récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:08:02 [INFO] [FRONTEND] Calendriers récupérés avec succès | Context: {'id': 'CALENDARS_FETCH_SUCCESS', 'origin': 'App.js', 'count': 3}
+2025-04-18 20:08:03 [INFO] [FRONTEND] Calendrier récupéré avec succès | Context: {'id': 'CALENDAR_FETCH_SUCCESS', 'origin': 'App.js', 'eventCount': 130, 'calendarName': 'Andrée'}
+2025-04-18 20:08:16 [INFO] [BACKEND] [MED_FETCH] Médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:08:17 [INFO] [BACKEND] [CALENDAR_GET] 3 calendriers récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:08:17 [INFO] [FRONTEND] Médicaments récupérés avec succès | Context: {'id': 'MED_FETCH_SUCCESS', 'origin': 'App.js', 'count': 0}
+2025-04-18 20:08:17 [INFO] [FRONTEND] Calendriers récupérés avec succès | Context: {'id': 'CALENDARS_FETCH_SUCCESS', 'origin': 'App.js', 'count': 3}
+2025-04-18 20:08:20 [INFO] [BACKEND] [MED_UPDATE] Médicaments mis à jour pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:08:20 [INFO] [FRONTEND] Médicaments mis à jour avec succès | Context: {'id': 'MED_UPDATE_SUCCESS', 'origin': 'App.js', 'count': 13}
+2025-04-18 20:10:30 [INFO] [BACKEND] [CALENDAR_GET] 3 calendriers récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:10:30 [INFO] [BACKEND] [MED_UPDATE] Médicaments mis à jour pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:10:30 [INFO] [BACKEND] [MED_UPDATE] Médicaments mis à jour pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:10:30 [INFO] [BACKEND] [MED_UPDATE] Médicaments mis à jour pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:10:30 [INFO] [BACKEND] [MED_FETCH] Médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:10:30 [INFO] [BACKEND] [MED_UPDATE] Médicaments mis à jour pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:10:30 [INFO] [BACKEND] [MED_UPDATE] Médicaments mis à jour pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:10:30 [INFO] [BACKEND] [MED_UPDATE] Médicaments mis à jour pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:10:30 [INFO] [BACKEND] [MED_UPDATE] Médicaments mis à jour pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:10:30 [INFO] [BACKEND] [MED_UPDATE] Médicaments mis à jour pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:10:31 [INFO] [BACKEND] [MED_UPDATE] Médicaments mis à jour pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:10:31 [INFO] [BACKEND] [MED_UPDATE] Médicaments mis à jour pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:10:31 [INFO] [BACKEND] [MED_UPDATE] Médicaments mis à jour pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:10:31 [INFO] [BACKEND] [MED_UPDATE] Médicaments mis à jour pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:10:31 [INFO] [FRONTEND] Calendriers récupérés avec succès | Context: {'id': 'CALENDARS_FETCH_SUCCESS', 'origin': 'App.js', 'count': 3}
+2025-04-18 20:10:31 [INFO] [FRONTEND] Médicaments mis à jour avec succès | Context: {'id': 'MED_UPDATE_SUCCESS', 'origin': 'App.js', 'count': 0}
+2025-04-18 20:10:31 [INFO] [FRONTEND] Médicaments mis à jour avec succès | Context: {'id': 'MED_UPDATE_SUCCESS', 'origin': 'App.js', 'count': 0}
+2025-04-18 20:10:31 [INFO] [FRONTEND] Médicaments mis à jour avec succès | Context: {'id': 'MED_UPDATE_SUCCESS', 'origin': 'App.js', 'count': 0}
+2025-04-18 20:10:32 [INFO] [FRONTEND] Médicaments mis à jour avec succès | Context: {'id': 'MED_UPDATE_SUCCESS', 'origin': 'App.js', 'count': 0}
+2025-04-18 20:10:32 [INFO] [FRONTEND] Médicaments mis à jour avec succès | Context: {'id': 'MED_UPDATE_SUCCESS', 'origin': 'App.js', 'count': 0}
+2025-04-18 20:10:32 [INFO] [FRONTEND] Médicaments récupérés avec succès | Context: {'id': 'MED_FETCH_SUCCESS', 'origin': 'App.js', 'count': 0}
+2025-04-18 20:10:32 [INFO] [FRONTEND] Médicaments mis à jour avec succès | Context: {'id': 'MED_UPDATE_SUCCESS', 'origin': 'App.js', 'count': 0}
+2025-04-18 20:10:32 [INFO] [FRONTEND] Médicaments mis à jour avec succès | Context: {'id': 'MED_UPDATE_SUCCESS', 'origin': 'App.js', 'count': 0}
+2025-04-18 20:10:32 [INFO] [FRONTEND] Médicaments mis à jour avec succès | Context: {'id': 'MED_UPDATE_SUCCESS', 'origin': 'App.js', 'count': 0}
+2025-04-18 20:10:32 [INFO] [FRONTEND] Médicaments mis à jour avec succès | Context: {'id': 'MED_UPDATE_SUCCESS', 'origin': 'App.js', 'count': 0}
+2025-04-18 20:10:32 [INFO] [FRONTEND] Médicaments mis à jour avec succès | Context: {'id': 'MED_UPDATE_SUCCESS', 'origin': 'App.js', 'count': 0}
+2025-04-18 20:10:32 [INFO] [FRONTEND] Médicaments mis à jour avec succès | Context: {'id': 'MED_UPDATE_SUCCESS', 'origin': 'App.js', 'count': 0}
+2025-04-18 20:10:32 [INFO] [FRONTEND] Médicaments mis à jour avec succès | Context: {'id': 'MED_UPDATE_SUCCESS', 'origin': 'App.js', 'count': 0}
+2025-04-18 20:10:42 [INFO] [BACKEND] [MED_FETCH] Médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:10:42 [INFO] [BACKEND] [CALENDAR_GET] 3 calendriers récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:10:42 [INFO] [FRONTEND] Médicaments récupérés avec succès | Context: {'id': 'MED_FETCH_SUCCESS', 'origin': 'App.js', 'count': 0}
+2025-04-18 20:10:43 [INFO] [FRONTEND] Calendriers récupérés avec succès | Context: {'id': 'CALENDARS_FETCH_SUCCESS', 'origin': 'App.js', 'count': 3}
+2025-04-18 20:10:54 [INFO] [BACKEND] [MED_FETCH] Médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:10:54 [INFO] [BACKEND] [CALENDAR_GET] 3 calendriers récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:10:54 [INFO] [FRONTEND] Calendriers récupérés avec succès | Context: {'id': 'CALENDARS_FETCH_SUCCESS', 'origin': 'App.js', 'count': 3}
+2025-04-18 20:10:54 [INFO] [FRONTEND] Médicaments récupérés avec succès | Context: {'id': 'MED_FETCH_SUCCESS', 'origin': 'App.js', 'count': 0}
+2025-04-18 20:12:16 [INFO] [BACKEND] [CALENDAR_GET] 3 calendriers récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:12:16 [INFO] [BACKEND] [MED_FETCH] Médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:12:16 [INFO] [FRONTEND] Calendriers récupérés avec succès | Context: {'id': 'CALENDARS_FETCH_SUCCESS', 'origin': 'App.js', 'count': 3}
+2025-04-18 20:12:16 [INFO] [FRONTEND] Médicaments récupérés avec succès | Context: {'id': 'MED_FETCH_SUCCESS', 'origin': 'App.js', 'count': 0}
+2025-04-18 20:22:14 [INFO] [BACKEND] [MED_FETCH] Médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:22:14 [INFO] [BACKEND] [CALENDAR_GET] 2 calendriers récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:22:14 [INFO] [BACKEND] [MED_FETCH] Médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:22:15 [INFO] [BACKEND] [CALENDAR_GET] 2 calendriers récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:22:15 [INFO] [FRONTEND] Médicaments récupérés avec succès | Context: {'id': 'MED_FETCH_SUCCESS', 'origin': 'App.js', 'count': 0}
+2025-04-18 20:22:15 [INFO] [FRONTEND] Calendriers récupérés avec succès | Context: {'id': 'CALENDARS_FETCH_SUCCESS', 'origin': 'App.js', 'count': 2}
+2025-04-18 20:22:18 [INFO] [BACKEND] [MED_UPDATE] Médicaments mis à jour pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:22:18 [INFO] [FRONTEND] Médicaments mis à jour avec succès | Context: {'id': 'MED_UPDATE_SUCCESS', 'origin': 'App.js', 'count': 13}
+2025-04-18 20:22:29 [INFO] [BACKEND] [CALENDAR_LOAD] Médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:22:29 [INFO] [BACKEND] [CALENDAR_GENERATE] Calendrier généré avec succès.
+2025-04-18 20:22:29 [INFO] [BACKEND] [CALENDAR_GET] 2 calendriers récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:22:30 [INFO] [FRONTEND] Calendrier récupéré avec succès | Context: {'id': 'CALENDAR_FETCH_SUCCESS', 'origin': 'App.js', 'eventCount': 130, 'calendarName': 'Andrée'}
+2025-04-18 20:22:30 [INFO] [FRONTEND] Calendriers récupérés avec succès | Context: {'id': 'CALENDARS_FETCH_SUCCESS', 'origin': 'App.js', 'count': 2}
+2025-04-18 20:22:33 [INFO] [BACKEND] [CALENDAR_GET] 2 calendriers récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:22:33 [INFO] [FRONTEND] Calendriers récupérés avec succès | Context: {'id': 'CALENDARS_FETCH_SUCCESS', 'origin': 'App.js', 'count': 2}
+2025-04-18 20:22:33 [INFO] [BACKEND] [MED_FETCH] Médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:22:34 [INFO] [FRONTEND] Médicaments récupérés avec succès | Context: {'id': 'MED_FETCH_SUCCESS', 'origin': 'App.js', 'count': 0}
+2025-04-18 20:22:37 [INFO] [BACKEND] [MED_UPDATE] Médicaments mis à jour pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:22:38 [INFO] [FRONTEND] Médicaments mis à jour avec succès | Context: {'id': 'MED_UPDATE_SUCCESS', 'origin': 'App.js', 'count': 13}
+2025-04-18 20:30:34 [INFO] [BACKEND] [MED_FETCH] Médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:30:34 [INFO] [BACKEND] [CALENDAR_GET] 2 calendriers récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-18 20:30:34 [INFO] [FRONTEND] Calendriers récupérés avec succès | Context: {'id': 'CALENDARS_FETCH_SUCCESS', 'origin': 'App.js', 'count': 2}
+2025-04-18 20:30:35 [INFO] [FRONTEND] Médicaments récupérés avec succès | Context: {'id': 'MED_FETCH_SUCCESS', 'origin': 'App.js', 'count': 0}

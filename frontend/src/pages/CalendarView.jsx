@@ -5,6 +5,9 @@ import interactionPlugin from '@fullcalendar/interaction';
 import frLocale from '@fullcalendar/core/locales/fr';
 import { useNavigate } from 'react-router-dom';
 import { useParams } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useContext } from "react";
+import { AuthContext } from "../contexts/LoginContext";
 
 function CalendarPage({
   rawEvents,
@@ -23,6 +26,7 @@ function CalendarPage({
   const { nameCalendar } = useParams();
 
   const navigate = useNavigate();
+  const { authReady, login } = useContext(AuthContext);
 
   const handleDateClick = (info) => {
     const clickedDate = info.dateStr;
@@ -38,10 +42,15 @@ function CalendarPage({
     setSelectedDate(newDate);
     setEventsForDay(rawEvents.filter((event) => event.date.startsWith(newDate)));
   };
+  useEffect(() => {
+    if (authReady && login) {
+      getCalendar(nameCalendar)
+    }
+  }, [authReady, login]);
   
   if (!calendars || calendars.length === 0) {
     return <div className="text-center mt-5">⏳ Chargement du calendrier...</div>;
-  }
+  };
   
   
   

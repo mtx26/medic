@@ -10,6 +10,124 @@ from function import generate_schedule
 api = Blueprint('api', __name__)
 db = firestore.client()
 
+
+"""db.collection("users").document("oR75yI71MoUmYzwgwJ4WX1Birtm1").collection("calendars").document("Andrée").set({
+    "medicines": [
+    {
+        "interval_days": 1,
+        "name": "Asaflow",
+        "tablet_count": 1,
+        "time": [
+            "morning"
+        ]
+    },
+    {
+        "interval_days": 2,
+        "name": "Clopidogrel",
+        "start_date": "2025-04-05",
+        "tablet_count": 1,
+        "time": [
+            "morning"
+        ]
+    },
+    {
+        "interval_days": 1,
+        "name": "Pantomed",
+        "tablet_count": 1,
+        "time": [
+            "morning"
+        ]
+    },
+    {
+        "interval_days": 2,
+        "name": "Burinex",
+        "start_date": "2025-03-30",
+        "tablet_count": 1,
+        "time": [
+            "morning"
+        ]
+    },
+    {
+        "interval_days": 2,
+        "name": "Burinex",
+        "start_date": "2025-03-31",
+        "tablet_count": 0.5,
+        "time": [
+            "morning"
+        ]
+    },
+    {
+        "interval_days": 1,
+        "name": "Medrol",
+        "tablet_count": 0.25,
+        "time": [
+            "morning"
+        ]
+    },
+    {
+        "interval_days": 14,
+        "name": "D-Cure",
+        "start_date": "2025-03-29",
+        "tablet_count": 1,
+        "time": [
+            "morning"
+        ]
+    },
+    {
+        "interval_days": 3,
+        "name": "Colchicine",
+        "start_date": "2025-03-30",
+        "tablet_count": 0.5,
+        "time": [
+            "morning"
+        ]
+    },
+    {
+        "interval_days": 1,
+        "name": "Lipitor",
+        "tablet_count": 1,
+        "time": [
+            "evening"
+        ]
+    },
+    {
+        "interval_days": 1,
+        "name": "Nobiten",
+        "tablet_count": 1,
+        "time": [
+            "evening"
+        ]
+    },
+    {
+        "interval_days": 1,
+        "name": "Entresto",
+        "tablet_count": 1,
+        "time": [
+            "evening"
+        ]
+    },
+    {
+        "interval_days": 3,
+        "name": "Colchicine",
+        "start_date": "2025-03-30",
+        "tablet_count": 0.5,
+        "time": [
+            "evening"
+        ]
+    },
+    {
+        "interval_days": 1,
+        "name": "Zyloric",
+        "start_date": "",
+        "tablet_count": 0.5,
+        "time": [
+            "morning"
+        ]
+    }
+]
+})
+"""
+
 @api.route('/api/status', methods=['GET', 'HEAD'])
 def status():
     if request.method == 'HEAD':
@@ -143,9 +261,6 @@ def count_medicines():
     
 
 
-
-
-
 @api.route("/api/calendars/<calendar_name>/calendar", methods=["GET"])
 def get_calendar(calendar_name):
     try:
@@ -171,9 +286,10 @@ def get_calendar(calendar_name):
     except Exception as e:
         logger.exception("[CALENDAR_GENERATE_ERROR] Erreur dans /api/calendar")
         return jsonify({"error": "Erreur lors de la génération du calendrier."}), 500
+    
 
-@api.route("/api/medicines", methods=["GET", "POST"])
-def handle_medicines():
+@api.route("/api/calendars/<calendar_name>/medicines", methods=["GET", "POST"])
+def handle_medicines(calendar_name):
     try:
         user = verify_firebase_token()
         uid = user["uid"]
@@ -184,7 +300,7 @@ def handle_medicines():
                 logger.warning(f"[MED_UPDATE] Format de médicaments invalide reçu de {uid}.")
                 return jsonify({"error": "Le format des médicaments est invalide."}), 400
 
-            db.collection("users").document(uid).collection("calendars").document("andrée").set({
+            db.collection("users").document(uid).collection("calendars").document(calendar_name).set({
                 "medicines": medicines,
                 "last_updated": datetime.utcnow().isoformat()
             }, merge=True)
@@ -193,7 +309,7 @@ def handle_medicines():
             return jsonify({"message": "Médicaments mis à jour", "status": "ok"})
 
         elif request.method == "GET":
-            doc = db.collection("users").document(uid).collection("calendars").document("andrée").get()
+            doc = db.collection("users").document(uid).collection("calendars").document(calendar_name).get()
             if doc.exists:
                 data = doc.to_dict()
                 medicines = data.get("medicines", [])
