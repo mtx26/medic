@@ -1,7 +1,7 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import CalendarView from '../pages/CalendarView';
-import MedicamentsPage from './../pages/MedicamentsPage';
+import CalendarMedicines from '../pages/CalendarMedicines';
 import NotFound from './../pages/NotFound';
 import Auth from "../pages/Auth";
 import ResetPassword from "../pages/ResetPassword";
@@ -16,13 +16,14 @@ function AppRoutes({ sharedProps }) {
 
   return (
     <Routes>
-      <Route path="/calendars" element={<CalendarList {...sharedProps}/>} />
-      <Route path="/calendar/:nameCalendar" element={<CalendarView {...sharedProps} />} />
-      <Route path="/medicaments" element={<MedicamentsPage {...sharedProps} />} />
+      <Route path="/calendars" element={userInfo ? <CalendarList {...sharedProps}/>: <Navigate to="/login" />} />
+      <Route path="/calendars/:nameCalendar" element={userInfo ? <CalendarView {...sharedProps} />: <Navigate to="/login" />} />
+      <Route path="/medicaments" element={<CalendarMedicines {...sharedProps} />} />
       <Route path="*" element={<NotFound />} />
-      <Route path="/login" element={userInfo ? <Navigate to="/" /> : <Auth/>} />
-      <Route path="/register" element={userInfo ? <Navigate to="/" /> : <Auth/>} />
-      <Route path="/reset-password" element={userInfo ? <Navigate to="/" /> : <ResetPassword/>} />
+      <Route path="/login" element={userInfo ? <Navigate to="/calendars" /> : <Auth/>} />
+      <Route path="/register" element={userInfo ? <Navigate to="/calendars" /> : <Auth/>} />
+      <Route path="/reset-password" element={userInfo ? <Navigate to="/calendars" /> : <ResetPassword/>} />
+      <Route path="/" element={<Navigate to="/calendars" />} />
     </Routes>
   );
 }

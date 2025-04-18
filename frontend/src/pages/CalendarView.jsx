@@ -3,18 +3,12 @@ import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import frLocale from '@fullcalendar/core/locales/fr';
-import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useParams } from 'react-router-dom';
-import { log } from '../utils/logger';
-import { useContext } from "react";
-import { AuthContext } from "../contexts/LoginContext";
 
 function CalendarPage({
   rawEvents,
   calendarEvents,
-  setCalendarEvents,
-  setRawEvents,
   selectedDate,
   setSelectedDate,
   eventsForDay,
@@ -22,11 +16,11 @@ function CalendarPage({
   startDate,
   setStartDate,
   modalRef,
-  getCalendar
+  getCalendar,
+  calendars,
 }) {
 
   const { nameCalendar } = useParams();
-  const { authReady } = useContext(AuthContext);
 
   const navigate = useNavigate();
 
@@ -44,13 +38,11 @@ function CalendarPage({
     setSelectedDate(newDate);
     setEventsForDay(rawEvents.filter((event) => event.date.startsWith(newDate)));
   };
-
-  useEffect(() => {
-    if (authReady && nameCalendar) {
-      log.info("Calendrier à charger :", nameCalendar);
-      getCalendar(nameCalendar);
-    }
-  }, [authReady, nameCalendar]);
+  
+  if (!calendars || calendars.length === 0) {
+    return <div className="text-center mt-5">⏳ Chargement du calendrier...</div>;
+  }
+  
   
   
 
@@ -77,7 +69,7 @@ function CalendarPage({
             </div>
             <div className="col-md-auto">
               <button
-                onClick={getCalendar}
+                onClick={() => getCalendar(nameCalendar, startDate)}
                 className="btn btn-primary w-100"
               >
                 🔄 Charger le calendrier

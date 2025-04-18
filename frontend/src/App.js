@@ -23,9 +23,12 @@ function App() {
   const [alertType, setAlertType] = useState('');
   const [confirmDeleteVisible, setConfirmDeleteVisible] = useState(false);
   const [startDate, setStartDate] = useState(() => new Date().toISOString().slice(0, 10));
+
   const [calendars, setCalendars] = useState([]);
   const modalRef = useRef(null);
   const { authReady, login } = useContext(AuthContext);
+
+  // Fonction pour obtenir les calendriers
 
   const fetchCalendars = async () => {
     try {
@@ -42,6 +45,7 @@ function App() {
         count: data.calendars?.length,
       });
       setCalendars(data.calendars ?? []);
+
     } catch (err) {
       log.error("Échec de récupération des calendriers", err, {
         id: "CALENDARS_FETCH_FAIL",
@@ -50,6 +54,8 @@ function App() {
       });
     }
   };
+
+  // Fonction pour ajouter un calendrier
 
   const addCalendar = async (calendarName) => {
     try {
@@ -79,6 +85,8 @@ function App() {
     }
   };
 
+  // Fonction pour supprimer un calendrier
+
   const deleteCalendar = async (calendarName) => {
     try {
       const token = await auth.currentUser.getIdToken();
@@ -106,6 +114,8 @@ function App() {
       });
     }
   };
+
+  // Fonction pour renommer un calendrier
 
   const RenameCalendar = async (oldCalendarName, newCalendarName) => {
     try {
@@ -136,6 +146,8 @@ function App() {
       });
     }
   };
+
+  // Fonction pour obtenir le nombre de médicaments d'un calendrier 
 
   const getMedicineCount = async (calendarName) => {
     try {
@@ -169,6 +181,64 @@ function App() {
     }
   };
 
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+  const getCalendar = async (calendarName, startDate ) => {
+    try {
+      if (!login) {
+        log.warn("Utilisateur non connecté, calendrier non chargé.", {
+          id: "USER_NOT_AUTHENTICATED",
+          origin: "App.js",
+        });
+        return;
+      }
+      if (!calendarName) {
+        log.warn("Nom de calendrier non fourni, calendrier non chargé.", {
+          id: "CALENDAR_NAME_NOT_PROVIDED",
+          origin: "App.js",
+        });
+        return;
+      }
+      if (!startDate) {
+        startDate = new Date().toISOString().slice(0, 10);
+      }
+
+      const token = await auth.currentUser.getIdToken();
+      const res = await fetch(`${API_URL}/api/calendars/${calendarName}/calendar?startTime=${startDate}`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (!res.ok) throw new Error("Erreur HTTP GET /api/calendar");
+      const data = await res.json();
+      setRawEvents(data);
+      setCalendarEvents(data.map(e => ({ title: e.title, start: e.date, color: e.color })));
+      log.info("Calendrier récupéré avec succès", {
+        id: "CALENDAR_FETCH_SUCCESS",
+        origin: "App.js",
+        eventCount: data?.length,
+        calendarName: calendarName,
+      });
+    } catch (err) {
+      log.error("Échec de récupération du calendrier", err, {
+        id: "CALENDAR_FETCH_FAIL",
+        origin: "App.js",
+        calendarName: calendarName,
+        startDate,
+        stack: err.stack,
+      });
+    }
+  };
+
+
+
+
+
+
+
+
   const fetchUserMedicines = async () => {
     const token = await auth.currentUser.getIdToken();
     const res = await fetch(`${API_URL}/api/medicines`, {
@@ -200,42 +270,6 @@ function App() {
     }
   };
 
-  const getCalendar = async (nameCalendar) => {
-    try {
-      const user = auth.currentUser;
-      if (!user) {
-        log.warn("Utilisateur non connecté, calendrier non chargé.", {
-          id: "USER_NOT_AUTHENTICATED",
-          origin: "App.js",
-        });
-        return;
-      }
-      const token = await user.getIdToken();
-      const res = await fetch(`${API_URL}/api/getcalendar?startTime=${startDate}&nameCalendar=${nameCalendar}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (!res.ok) throw new Error("Erreur HTTP GET /api/calendar");
-      const data = await res.json();
-      setRawEvents(data);
-      setCalendarEvents(data.map(e => ({ title: e.title, start: e.date, color: e.color })));
-      log.info("Calendrier récupéré avec succès", {
-        id: "CALENDAR_FETCH_SUCCESS",
-        origin: "App.js",
-        eventCount: data?.length,
-        calendarName: nameCalendar,
-      });
-    } catch (err) {
-      log.error("Échec de récupération du calendrier", err, {
-        id: "CALENDAR_FETCH_FAIL",
-        origin: "App.js",
-        calendarName: nameCalendar,
-        startDate,
-        stack: err.stack,
-      });
-    }
-  };
 
   const handleMedChange = (index, field, value) => {
     const updated = [...meds];
@@ -318,8 +352,8 @@ function App() {
 
   useEffect(() => {
     if (authReady && login) {
+      fetchCalendars();
       getMeds();
-      getCalendar();
     }
   }, [authReady, login]);
 

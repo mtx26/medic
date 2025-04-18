@@ -57,6 +57,10 @@ def log_frontend_error():
     log_func(full_msg)
     return "", 204
 
+
+
+
+
 @api.route("/api/calendars", methods=["GET", "POST", "DELETE", "PUT"])
 def handle_calendars():
     try:
@@ -111,6 +115,9 @@ def handle_calendars():
     except Exception as e:
         logger.exception("[CALENDAR_ERROR] Erreur dans /api/calendars")
         return jsonify({"error": "Erreur interne"}), 500
+    
+
+
 
 @api.route("/api/countmedicines", methods=["GET"])
 def count_medicines():
@@ -133,15 +140,19 @@ def count_medicines():
     except Exception as e:
         logger.exception("[MED_COUNT_ERROR] Erreur dans /api/countmedicines")
         return jsonify({"error": "Erreur lors du comptage des médicaments."}), 500
+    
 
-@api.route("/api/getcalendar", methods=["GET"])
-def get_calendar():
+
+
+
+
+@api.route("/api/calendars/<calendar_name>/calendar", methods=["GET"])
+def get_calendar(calendar_name):
     try:
         user = verify_firebase_token()
         uid = user["uid"]
-        nameCalendar = request.args.get("name_calendar")
 
-        doc = db.collection("users").document(uid).collection("calendars").document(nameCalendar).get()
+        doc = db.collection("users").document(uid).collection("calendars").document(calendar_name).get()
         if doc.exists:
             data = doc.to_dict()
             medicines = data.get("medicines", [])
@@ -150,7 +161,7 @@ def get_calendar():
             logger.warning(f"[CALENDAR_LOAD] Document introuvable pour l'utilisateur {uid}.")
             return jsonify({"medicines": []}), 200
 
-        start_str = request.args.get("startTime", default=datetime.today().strftime("%Y-%m-%d"))
+        start_str = request.args.get("startTime")
         start_date = datetime.strptime(start_str, "%Y-%m-%d").date()
 
         schedule = generate_schedule(start_date, medicines)
