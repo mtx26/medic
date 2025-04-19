@@ -19,9 +19,7 @@ function App() {
   const [eventsForDay, setEventsForDay] = useState([]);
   const [meds, setMeds] = useState([]);
   const [selectedToDelete, setSelectedToDelete] = useState([]);
-  const [alertMessage, setAlertMessage] = useState('');
-  const [alertType, setAlertType] = useState('');
-  const [confirmDeleteVisible, setConfirmDeleteVisible] = useState(false);
+
   const [startDate, setStartDate] = useState(() => new Date().toISOString().slice(0, 10));
 
   const [calendars, setCalendars] = useState([]);
@@ -292,7 +290,7 @@ function App() {
           origin: "App.js",
           calendarName,
         });
-        return;
+        return false;
       };
 
       const token = await auth.currentUser.getIdToken();
@@ -305,31 +303,38 @@ function App() {
         body: JSON.stringify({ medicines: meds }),
       });
       if (!res.ok) throw new Error(`Erreur HTTP POST /api/calendars/${calendarName}/medicines`);
-      setAlertMessage("✅ Médicaments mis à jour.");
-      setAlertType("success");
       log.info("Médicaments mis à jour avec succès", {
         id: "MED_UPDATE_SUCCESS",
         origin: "App.js",
         count: meds?.length,
       });
+      return true;
     } catch (err) {
       log.error("Échec de mise à jour des médicaments", err, {
         id: "MED_UPDATE_FAIL",
         origin: "App.js",
         stack: err.stack,
       });
+      return false;
     }
   };
 
-  const deleteSelectedMeds = () => {
-    setMeds(meds.filter((_, i) => !selectedToDelete.includes(i)));
+  const deleteSelectedMeds = async (nameCalendar) => {
+    if (selectedToDelete.length === 0) return false;
+  
+    const updatedMeds = meds.filter((_, i) => !selectedToDelete.includes(i));
+    setMeds(updatedMeds);
     setSelectedToDelete([]);
+  
+    const success = await updateMeds(nameCalendar);
+    return success;
   };
+  
 
   const addMed = () => {
     setMeds([
       ...meds,
-      { name: '', tablet_count: 1, time: [''], interval_days: 1, start_date: '' },
+      { name: '', tablet_count: 1, time: ['morning'], interval_days: 1, start_date: '' },
     ]);
   };
 
@@ -340,9 +345,6 @@ function App() {
     eventsForDay, setEventsForDay,
     meds, setMeds,
     selectedToDelete, setSelectedToDelete,
-    alertMessage, setAlertMessage,
-    alertType, setAlertType,
-    confirmDeleteVisible, setConfirmDeleteVisible,
     startDate, setStartDate,
     modalRef,
     getCalendar,

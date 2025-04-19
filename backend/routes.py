@@ -4,7 +4,8 @@ from logger import backend_logger as logger
 import firebase_admin_init
 from auth import verify_firebase_token
 from firebase_admin import firestore
-from datetime import datetime
+from datetime import datetime, timezone
+
 from function import generate_schedule
 
 api = Blueprint('api', __name__)
@@ -195,7 +196,7 @@ def handle_calendars():
             calendar_name = request.json.get("calendarName")
             db.collection("users").document(uid).collection("calendars").document(calendar_name.lower()).set({
                 "medicines": "",
-                "last_updated": datetime.now(datetime.timezone.utc).isoformat()
+                "last_updated": datetime.now(timezone.utc).isoformat()
             }, merge=True)
             logger.info(f"[CALENDAR_CREATE] Calendrier '{calendar_name}' créé pour {uid}.")
             return jsonify({"message": "Calendrier mis à jour", "status": "ok"})
@@ -278,7 +279,7 @@ def get_calendar(calendar_name):
         
         start_str = request.args.get("startTime")
         if not start_str:
-            start_date = datetime.now(datetime.timezone.utc).date()
+            start_date = datetime.now(timezone.utc).date()
         else:
             start_date = datetime.strptime(start_str, "%Y-%m-%d").date()
 
@@ -305,7 +306,7 @@ def handle_medicines(calendar_name):
 
             db.collection("users").document(uid).collection("calendars").document(calendar_name).set({
                 "medicines": medicines,
-                "last_updated": datetime.now(datetime.timezone.utc).isoformat()
+                "last_updated": datetime.now(timezone.utc).isoformat()
             }, merge=True)
 
             logger.info(f"[MED_UPDATE] Médicaments mis à jour pour {uid}.")

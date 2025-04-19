@@ -30,6 +30,7 @@ function MedicamentsPage({
 
 
 
+
   const toggleSelection = (index) => {
     setSelectedToDelete((prev) =>
       prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
@@ -88,7 +89,9 @@ if (!calendars.includes(nameCalendar)) {
           onClick={() => {
             setAlertType("confirm-danger");
             setAlertMessage("❌ Confirmez-vous la suppression des médicaments sélectionnés ?");
-            setOnConfirmAction(() => deleteSelectedMeds);
+            setOnConfirmAction(() => {
+              deleteSelectedMeds(nameCalendar);
+            });
           }}
           className="btn btn-danger btn-sm"
           disabled={selectedToDelete.length === 0}
@@ -100,7 +103,21 @@ if (!calendars.includes(nameCalendar)) {
           onClick={() => {
             setAlertType("confirm-safe");
             setAlertMessage("✅ Enregistrer les modifications de médicaments ?");
-            setOnConfirmAction(() => () => updateMeds(nameCalendar) );
+            setOnConfirmAction(() => {
+              const success = updateMeds(nameCalendar);
+              if (success) {
+                setAlertMessage("✅ Modifications enregistrées.");
+                setAlertType("success");
+              } else {
+                setAlertMessage("❌ Erreur lors de l'enregistrement des modifications.");
+                setAlertType("danger");
+              }
+              setTimeout(() => {
+                setAlertMessage("");
+                setAlertType("");
+              }, 2000);
+              setOnConfirmAction(null);
+            });
           }}
           className="btn btn-success btn-sm"
           disabled={!allMedsValid}
