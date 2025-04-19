@@ -12,7 +12,7 @@ class ContextualAdapter(logging.LoggerAdapter):
 base_logger = logging.getLogger("medic_logger")
 base_logger.setLevel(logging.DEBUG)
 
-file_handler = RotatingFileHandler("./logs/app.log", maxBytes=1_000_000, backupCount=5)
+file_handler = RotatingFileHandler("logs/app.log", maxBytes=1_000_000, backupCount=5)
 file_formatter = logging.Formatter("%(asctime)s [%(levelname)s] %(message)s", "%Y-%m-%d %H:%M:%S")
 file_handler.setFormatter(file_formatter)
 

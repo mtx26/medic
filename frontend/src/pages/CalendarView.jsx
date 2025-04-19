@@ -47,49 +47,72 @@ function CalendarPage({
       getCalendar(nameCalendar)
     }
   }, [authReady, login]);
+
   
   if (!calendars || calendars.length === 0) {
     return <div className="text-center mt-5">⏳ Chargement du calendrier...</div>;
-  };
+  }
+  
+  if (!calendars.includes(nameCalendar)) {
+    return <div className="text-center mt-5 text-danger">❌ Ce calendrier n'existe pas.</div>;
+  }
+  
   
   
   
 
   return (
     <div>
-      <div className="d-flex justify-content-end mb-3">
-        <button className="btn btn-outline-primary" onClick={() => navigate('/calendars')}>
-          🔁 Changer de calendrier
-        </button>
+
+<div className="card shadow-sm mb-4">
+  <div className="card-body">
+    {/* Ligne 1 : Boutons d'action */}
+    <div className="d-flex flex-wrap  align-items-left gap-2 mb-3">
+      <button
+        className="btn btn-outline-primary"
+        onClick={() => navigate('/calendars')}
+      >
+        🗂 List des calendriers
+      </button>
+      <button
+        className="btn btn-outline-secondary"
+        onClick={() => navigate(`/calendars/${nameCalendar}/medicines`)}
+      >
+        🧪 List des médicaments
+      </button>
+    </div>
+
+    {/* Ligne 2 : Sélection date + bouton charger */}
+    <div className="d-flex flex-wrap align-items-end  gap-3">
+      <div style={{ minWidth: "220px" }}>
+        <label htmlFor="datePicker" className="form-label fw-semibold">
+          📅 Date de début :
+        </label>
+        <input
+          id="datePicker"
+          type="date"
+          className="form-control"
+          value={startDate}
+          onChange={(e) => setStartDate(e.target.value)}
+        />
       </div>
 
-      <div className="card shadow-sm mb-4">
-        <div className="card-body">
-          <div className="row align-items-center">
-            <label htmlFor="datePicker" className="form-label fw-semibold">📅 Date de début :</label>
-            <div className="col-md-6">
-              <input
-                id="datePicker"
-                type="date"
-                className="form-control"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-              />
-            </div>
-            <div className="col-md-auto">
-              <button
-                onClick={() => getCalendar(nameCalendar, startDate)}
-                className="btn btn-primary w-100"
-              >
-                🔄 Charger le calendrier
-              </button>
-            </div>
-          </div>
-          <div className="alert alert-info mt-3 mb-0" role="alert">
-            📌 Cliquez sur un jour du calendrier pour voir les médicaments associés dans une fenêtre.
-          </div>
-        </div>
+      <div>
+        <button
+          onClick={() => getCalendar(nameCalendar, startDate)}
+          className="btn btn-outline-primary"
+        >
+          🔄 Charger le calendrier
+        </button>
       </div>
+    </div>
+
+    <div className="alert alert-info mt-4 mb-0" role="alert">
+      📌 Cliquez sur un jour du calendrier pour voir les médicaments associés dans une fenêtre.
+    </div>
+  </div>
+</div>
+
 
       <FullCalendar
         plugins={[dayGridPlugin, interactionPlugin]}

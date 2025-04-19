@@ -193,9 +193,9 @@ def handle_calendars():
 
         elif request.method == "POST":
             calendar_name = request.json.get("calendarName")
-            db.collection("users").document(uid).collection("calendars").document(calendar_name).set({
+            db.collection("users").document(uid).collection("calendars").document(calendar_name.lower()).set({
                 "medicines": "",
-                "last_updated": datetime.utcnow().isoformat()
+                "last_updated": datetime.now(datetime.timezone.utc).isoformat()
             }, merge=True)
             logger.info(f"[CALENDAR_CREATE] Calendrier '{calendar_name}' créé pour {uid}.")
             return jsonify({"message": "Calendrier mis à jour", "status": "ok"})
@@ -275,16 +275,19 @@ def get_calendar(calendar_name):
         else:
             logger.warning(f"[CALENDAR_LOAD] Document introuvable pour l'utilisateur {uid}.")
             return jsonify({"medicines": []}), 200
-
+        
         start_str = request.args.get("startTime")
-        start_date = datetime.strptime(start_str, "%Y-%m-%d").date()
+        if not start_str:
+            start_date = datetime.now(datetime.timezone.utc).date()
+        else:
+            start_date = datetime.strptime(start_str, "%Y-%m-%d").date()
 
         schedule = generate_schedule(start_date, medicines)
         logger.info("[CALENDAR_GENERATE] Calendrier généré avec succès.")
         return jsonify(schedule)
 
     except Exception as e:
-        logger.exception("[CALENDAR_GENERATE_ERROR] Erreur dans /api/calendar")
+        logger.exception(f"[CALENDAR_GENERATE_ERROR] Erreur dans /api/calendars/${calendar_name}/calendar")
         return jsonify({"error": "Erreur lors de la génération du calendrier."}), 500
     
 
@@ -302,7 +305,7 @@ def handle_medicines(calendar_name):
 
             db.collection("users").document(uid).collection("calendars").document(calendar_name).set({
                 "medicines": medicines,
-                "last_updated": datetime.utcnow().isoformat()
+                "last_updated": datetime.now(datetime.timezone.utc).isoformat()
             }, merge=True)
 
             logger.info(f"[MED_UPDATE] Médicaments mis à jour pour {uid}.")
@@ -320,5 +323,5 @@ def handle_medicines(calendar_name):
                 return jsonify({"medicines": []}), 200
 
     except Exception as e:
-        logger.exception("[MED_ERROR] Erreur dans /api/medicines")
+        logger.exception(f"[MED_ERROR] Erreur dans /api/calendars/${calendar_name}/medicines")
         return jsonify({"error": "Erreur interne"}), 500
