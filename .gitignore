@@ -24,9 +24,7 @@ yarn-error.log*
 
 node_modules
 backend/__pycache__
-frontend/.env
+.env
 serviceAccountKey.json
 .venv/
-logs/
 *.log
-logs/*.log
