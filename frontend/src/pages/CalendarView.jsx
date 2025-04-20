@@ -5,24 +5,23 @@ import interactionPlugin from '@fullcalendar/interaction';
 import frLocale from '@fullcalendar/core/locales/fr';
 import { useNavigate } from 'react-router-dom';
 import { useParams } from 'react-router-dom';
-import { useEffect } from 'react';
-import { useContext } from "react";
+import { use, useEffect } from 'react';
+import { useContext, useRef } from "react";
 import { AuthContext } from "../contexts/LoginContext";
 
 function CalendarPage({
-  rawEvents,
-  calendarEvents,
+  rawEvents, setRawEvents,
+  calendarEvents, setCalendarEvents,
   selectedDate,
   setSelectedDate,
   eventsForDay,
   setEventsForDay,
   startDate,
   setStartDate,
-  modalRef,
   getCalendar,
   calendars,
 }) {
-
+  const modalRef = useRef(null);
   const { nameCalendar } = useParams();
 
   const navigate = useNavigate();
@@ -42,6 +41,10 @@ function CalendarPage({
     setSelectedDate(newDate);
     setEventsForDay(rawEvents.filter((event) => event.date.startsWith(newDate)));
   };
+  useEffect(() => {
+    setRawEvents([]);
+    setCalendarEvents([]);
+  }, [nameCalendar, setRawEvents, setCalendarEvents]);
   
   useEffect(() => {
     if (authReady && login) {

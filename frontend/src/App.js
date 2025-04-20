@@ -18,12 +18,11 @@ function App() {
   const [selectedDate, setSelectedDate] = useState('');
   const [eventsForDay, setEventsForDay] = useState([]);
   const [meds, setMeds] = useState([]);
-  const [selectedToDelete, setSelectedToDelete] = useState([]);
+  const [selectedToDelete, setChecked] = useState([]);
 
   const [startDate, setStartDate] = useState(() => new Date().toISOString().slice(0, 10));
 
   const [calendars, setCalendars] = useState([]);
-  const modalRef = useRef(null);
   const { authReady, login } = useContext(AuthContext);
 
   // Fonction pour obtenir les calendriers
@@ -326,7 +325,7 @@ function App() {
   
     const updatedMeds = meds.filter((_, i) => !selectedToDelete.includes(i));
     setMeds(updatedMeds);
-    setSelectedToDelete([]);
+    setChecked([]);
   
     const success = await updateMeds(nameCalendar);
     return success;
@@ -346,16 +345,15 @@ function App() {
     selectedDate, setSelectedDate,
     eventsForDay, setEventsForDay,
     meds, setMeds,
-    selectedToDelete, setSelectedToDelete,
+    selectedToDelete, setChecked,
     startDate, setStartDate,
-    modalRef,
+    calendars, setCalendars,
     getCalendar,
     handleMedChange,
     updateMeds,
     deleteSelectedMeds,
     addMed,
     fetchCalendars,
-    calendars,
     addCalendar,
     deleteCalendar,
     RenameCalendar,

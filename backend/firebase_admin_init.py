@@ -3,6 +3,7 @@ import json
 from dotenv import load_dotenv
 import firebase_admin
 from firebase_admin import credentials
+from logger import backend_logger as logger
 
 # Charge le .env
 env_loaded = load_dotenv()
@@ -11,17 +12,17 @@ if not env_loaded:
     print("⚠️ Aucun fichier .env trouvé")
 
 service_account_str = os.environ.get("FIREBASE_SERVICE_ACCOUNT")
-print("DEBUG: FIREBASE_SERVICE_ACCOUNT = ", service_account_str[:50], "...")
+logger.info(f"[FIREBASE] Chargement de la clé de service Firebase depuis le fichier .env : {service_account_str}")
 
 if not service_account_str:
-    raise ValueError("❌ FIREBASE_SERVICE_ACCOUNT is missing")
+    logger.error("[FIREBASE] Aucune clé de service Firebase trouvée dans le fichier .env")
 
 # JSON parsing
 try:
     service_account_info = json.loads(service_account_str)
 except json.JSONDecodeError as e:
-    raise ValueError(f"❌ Erreur de JSON : {e}")
+    logger.error(f"[FIREBASE] Erreur lors de l'analyse de la clé de service Firebase : {e}")
 
 cred = credentials.Certificate(service_account_info)
 firebase_admin.initialize_app(cred)
-print("✅ Firebase initialized")
+logger.info("[FIREBASE] Initialisation de l'application Firebase terminée")

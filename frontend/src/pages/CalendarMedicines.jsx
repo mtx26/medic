@@ -1,6 +1,6 @@
 // MedicamentsPage.jsx
-import React, { useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import React, { use, useEffect } from 'react';
+import { redirect, useParams } from 'react-router-dom';
 import { useContext } from "react";
 import { AuthContext } from "../contexts/LoginContext";
 import { useNavigate } from 'react-router-dom';
@@ -10,15 +10,16 @@ import { useState } from 'react';
 
 
 function MedicamentsPage({
-  meds,
+  meds, setMeds,
   selectedToDelete,
-  setSelectedToDelete,
+  setChecked,
   handleMedChange,
   updateMeds,
   deleteSelectedMeds,
   addMed,
   fetchCalendarsMedecines,
   calendars,
+  setCalendars,
 }) {
   const { nameCalendar } = useParams();
   const { authReady, login } = useContext(AuthContext);
@@ -27,12 +28,13 @@ function MedicamentsPage({
   const [alertType, setAlertType] = useState("");
   const [alertMessage, setAlertMessage] = useState("");
   const [onConfirmAction, setOnConfirmAction] = useState(null);
+  const [loading, setLoading] = useState(true);
 
 
 
 
   const toggleSelection = (index) => {
-    setSelectedToDelete((prev) =>
+    setChecked((prev) =>
       prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
     );
   };
@@ -51,21 +53,29 @@ function MedicamentsPage({
 
   const allMedsValid = meds.length > 0 && meds.every(isMedValid);
   
-  
   useEffect(() => {
+    setMeds([]);
+  }, [nameCalendar, setMeds]);
+
+
+  useEffect(() => {
+    setMeds([]);
+    setLoading(true);
     if (authReady && login) {
-      fetchCalendarsMedecines(nameCalendar)
+      fetchCalendarsMedecines(nameCalendar).finally(() => {
+        setLoading(false);
+      });
     }
   }, [authReady, login]);
 
 
 if (calendars.length === 0) {
-  return <div className="text-center mt-5">⏳ Chargement du calendrier...</div>;
+  return <div className="text-center mt-5">⏳ Chargement des médicaments...</div>;
 }
 
 
 if (!calendars.includes(nameCalendar)) {
-  return <div className="text-center mt-5 text-danger">❌ Ce calendrier n'existe pas.</div>;
+  navigate("/calendars");
 };
 
   
@@ -140,8 +150,10 @@ if (!calendars.includes(nameCalendar)) {
 
 
       <ul className="list-group">
-        {meds.length === 0 ? (
+        {loading ? (
           <div className="text-center mt-5">⏳ Chargement des médicaments...</div>
+        ) : meds.length === 0 ? (
+          <div className="text-center mt-5 text-muted">❌ Aucun médicament n’a encore été ajouté pour ce calendrier.</div>
         ) : (
           meds.map((med, index) => (
             <li key={index} className="list-group-item px-2 py-3">

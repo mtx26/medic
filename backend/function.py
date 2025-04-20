@@ -23,7 +23,7 @@ def generate_schedule(start_date, medications):
     # Trouver le lundi de la semaine contenant start_date
     monday = start_date - timedelta(days=start_date.weekday())
 
-    Total_day = 70 # Nombre de jours à afficher (10 semaines)
+    Total_day = 45 # Nombre de jours à afficher (5 semaines)
 
     """
     # Dernier jour du mois
