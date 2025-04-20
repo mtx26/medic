@@ -27,3 +27,6 @@ backend/__pycache__
 frontend/.env
 serviceAccountKey.json
 .venv/
+logs/
+*.log
+logs/*.log

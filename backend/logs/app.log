@@ -539,3 +539,65 @@ AttributeError: type object 'datetime.datetime' has no attribute 'timezone'. Did
 2025-04-19 12:40:35 [ERROR] [FRONTEND] Échec de création du calendrier | Context: {'id': 'CALENDAR_CREATE_FAIL', 'origin': 'App.js', 'calendarName': 'test2', 'stack': 'Error: Erreur HTTP POST /api/calendars\n    at addCalendar (http://localhost:3000/static/js/bundle.js:90329:26)\n    at async onClick (http://localhost:3000/static/js/bundle.js:91961:29)'} | Error: Erreur HTTP POST /api/calendars | Stack: Error: Erreur HTTP POST /api/calendars
     at addCalendar (http://localhost:3000/static/js/bundle.js:90329:26)
     at async onClick (http://localhost:3000/static/js/bundle.js:91961:29)
+2025-04-20 17:02:28 [INFO] [BACKEND] [CALENDAR_GET] 3 calendriers récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-20 17:02:28 [INFO] [BACKEND] [CALENDAR_GET] 3 calendriers récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-20 17:02:28 [INFO] [BACKEND] [CALENDAR_GET] 3 calendriers récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-20 17:02:29 [INFO] [FRONTEND] Calendriers récupérés avec succès | Context: {'id': 'CALENDARS_FETCH_SUCCESS', 'origin': 'App.js', 'count': 3}
+2025-04-20 17:02:29 [INFO] [BACKEND] [MED_COUNT] 14 médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-20 17:02:29 [INFO] [FRONTEND] Calendriers récupérés avec succès | Context: {'id': 'CALENDARS_FETCH_SUCCESS', 'origin': 'App.js', 'count': 3}
+2025-04-20 17:02:29 [INFO] [FRONTEND] Calendriers récupérés avec succès | Context: {'id': 'CALENDARS_FETCH_SUCCESS', 'origin': 'App.js', 'count': 3}
+2025-04-20 17:02:29 [INFO] [FRONTEND] Nombre de médicaments récupéré avec succès | Context: {'id': 'MED_COUNT_SUCCESS', 'origin': 'App.js', 'calendarName': 'gg', 'count': 14}
+2025-04-20 17:02:29 [INFO] [BACKEND] [MED_COUNT] 14 médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-20 17:02:29 [INFO] [FRONTEND] Nombre de médicaments récupéré avec succès | Context: {'id': 'MED_COUNT_SUCCESS', 'origin': 'App.js', 'calendarName': 'gg', 'count': 14}
+2025-04-20 17:02:29 [INFO] [BACKEND] [MED_COUNT] 0 médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-20 17:02:29 [INFO] [BACKEND] [MED_COUNT] 14 médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-20 17:02:30 [INFO] [BACKEND] [MED_COUNT] 0 médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-20 17:02:30 [INFO] [FRONTEND] Nombre de médicaments récupéré avec succès | Context: {'id': 'MED_COUNT_SUCCESS', 'origin': 'App.js', 'calendarName': 'gg', 'count': 14}
+2025-04-20 17:02:30 [INFO] [FRONTEND] Nombre de médicaments récupéré avec succès | Context: {'id': 'MED_COUNT_SUCCESS', 'origin': 'App.js', 'calendarName': 'test', 'count': 0}
+2025-04-20 17:02:30 [INFO] [FRONTEND] Nombre de médicaments récupéré avec succès | Context: {'id': 'MED_COUNT_SUCCESS', 'origin': 'App.js', 'calendarName': 'test', 'count': 0}
+2025-04-20 17:02:30 [INFO] [BACKEND] [MED_COUNT] 0 médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-20 17:02:30 [INFO] [BACKEND] [MED_COUNT] 0 médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-20 17:02:30 [INFO] [FRONTEND] Nombre de médicaments récupéré avec succès | Context: {'id': 'MED_COUNT_SUCCESS', 'origin': 'App.js', 'calendarName': 'test', 'count': 0}
+2025-04-20 17:02:30 [INFO] [FRONTEND] Nombre de médicaments récupéré avec succès | Context: {'id': 'MED_COUNT_SUCCESS', 'origin': 'App.js', 'calendarName': 'test2', 'count': 0}
+2025-04-20 17:02:30 [INFO] [BACKEND] [MED_COUNT] 0 médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-20 17:02:31 [INFO] [FRONTEND] Nombre de médicaments récupéré avec succès | Context: {'id': 'MED_COUNT_SUCCESS', 'origin': 'App.js', 'calendarName': 'test2', 'count': 0}
+2025-04-20 17:02:31 [INFO] [BACKEND] [MED_COUNT] 0 médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-20 17:02:31 [INFO] [FRONTEND] Nombre de médicaments récupéré avec succès | Context: {'id': 'MED_COUNT_SUCCESS', 'origin': 'App.js', 'calendarName': 'test2', 'count': 0}
+2025-04-20 17:02:33 [INFO] [BACKEND] [CALENDAR_LOAD] Médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-20 17:02:33 [INFO] [BACKEND] [CALENDAR_GENERATE] Calendrier généré avec succès.
+2025-04-20 17:02:33 [INFO] [FRONTEND] Calendrier récupéré avec succès | Context: {'id': 'CALENDAR_FETCH_SUCCESS', 'origin': 'App.js', 'eventCount': 134, 'calendarName': 'gg'}
+2025-04-20 17:02:33 [INFO] [BACKEND] [CALENDAR_LOAD] Médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-20 17:02:33 [INFO] [BACKEND] [CALENDAR_GENERATE] Calendrier généré avec succès.
+2025-04-20 17:02:34 [INFO] [FRONTEND] Calendrier récupéré avec succès | Context: {'id': 'CALENDAR_FETCH_SUCCESS', 'origin': 'App.js', 'eventCount': 134, 'calendarName': 'gg'}
+2025-04-20 17:02:38 [INFO] [BACKEND] [MED_FETCH] Médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-20 17:02:39 [INFO] [FRONTEND] Médicaments récupérés avec succès | Context: {'id': 'MED_FETCH_SUCCESS', 'origin': 'App.js', 'count': 0}
+2025-04-20 17:02:39 [INFO] [BACKEND] [MED_FETCH] Médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-20 17:02:39 [INFO] [FRONTEND] Médicaments récupérés avec succès | Context: {'id': 'MED_FETCH_SUCCESS', 'origin': 'App.js', 'count': 0}
+2025-04-20 17:02:45 [INFO] [BACKEND] [MED_UPDATE] Médicaments mis à jour pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-20 17:02:45 [INFO] [BACKEND] [MED_UPDATE] Médicaments mis à jour pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-20 17:02:45 [INFO] [FRONTEND] Médicaments mis à jour avec succès | Context: {'id': 'MED_UPDATE_SUCCESS', 'origin': 'App.js', 'count': 14}
+2025-04-20 17:02:46 [INFO] [FRONTEND] Médicaments mis à jour avec succès | Context: {'id': 'MED_UPDATE_SUCCESS', 'origin': 'App.js', 'count': 14}
+2025-04-20 17:03:00 [INFO] [BACKEND] [MED_UPDATE] Médicaments mis à jour pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-20 17:03:01 [INFO] [BACKEND] [MED_UPDATE] Médicaments mis à jour pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-20 17:03:01 [INFO] [FRONTEND] Médicaments mis à jour avec succès | Context: {'id': 'MED_UPDATE_SUCCESS', 'origin': 'App.js', 'count': 13}
+2025-04-20 17:03:01 [INFO] [FRONTEND] Médicaments mis à jour avec succès | Context: {'id': 'MED_UPDATE_SUCCESS', 'origin': 'App.js', 'count': 13}
+2025-04-20 17:03:04 [INFO] [BACKEND] [CALENDAR_LOAD] Médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-20 17:03:04 [INFO] [BACKEND] [CALENDAR_GENERATE] Calendrier généré avec succès.
+2025-04-20 17:03:04 [INFO] [BACKEND] [CALENDAR_LOAD] Médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-20 17:03:04 [INFO] [BACKEND] [CALENDAR_GENERATE] Calendrier généré avec succès.
+2025-04-20 17:03:04 [INFO] [FRONTEND] Calendrier récupéré avec succès | Context: {'id': 'CALENDAR_FETCH_SUCCESS', 'origin': 'App.js', 'eventCount': 130, 'calendarName': 'gg'}
+2025-04-20 17:03:04 [INFO] [FRONTEND] Calendrier récupéré avec succès | Context: {'id': 'CALENDAR_FETCH_SUCCESS', 'origin': 'App.js', 'eventCount': 130, 'calendarName': 'gg'}
+2025-04-20 17:03:10 [INFO] [BACKEND] [MED_FETCH] Médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-20 17:03:10 [INFO] [BACKEND] [MED_FETCH] Médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-20 17:03:10 [INFO] [FRONTEND] Médicaments récupérés avec succès | Context: {'id': 'MED_FETCH_SUCCESS', 'origin': 'App.js', 'count': 13}
+2025-04-20 17:03:11 [INFO] [FRONTEND] Médicaments récupérés avec succès | Context: {'id': 'MED_FETCH_SUCCESS', 'origin': 'App.js', 'count': 13}
+2025-04-20 17:03:15 [INFO] [BACKEND] [MED_UPDATE] Médicaments mis à jour pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-20 17:03:15 [INFO] [FRONTEND] Médicaments mis à jour avec succès | Context: {'id': 'MED_UPDATE_SUCCESS', 'origin': 'App.js', 'count': 13}
+2025-04-20 17:03:15 [INFO] [BACKEND] [MED_UPDATE] Médicaments mis à jour pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-20 17:03:15 [INFO] [FRONTEND] Médicaments mis à jour avec succès | Context: {'id': 'MED_UPDATE_SUCCESS', 'origin': 'App.js', 'count': 13}
+2025-04-20 17:03:17 [INFO] [BACKEND] [CALENDAR_LOAD] Médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-20 17:03:17 [INFO] [BACKEND] [CALENDAR_GENERATE] Calendrier généré avec succès.
+2025-04-20 17:03:17 [INFO] [BACKEND] [CALENDAR_LOAD] Médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-20 17:03:17 [INFO] [BACKEND] [CALENDAR_GENERATE] Calendrier généré avec succès.
+2025-04-20 17:03:17 [INFO] [FRONTEND] Calendrier récupéré avec succès | Context: {'id': 'CALENDAR_FETCH_SUCCESS', 'origin': 'App.js', 'eventCount': 130, 'calendarName': 'gg'}
+2025-04-20 17:03:18 [INFO] [FRONTEND] Calendrier récupéré avec succès | Context: {'id': 'CALENDAR_FETCH_SUCCESS', 'origin': 'App.js', 'eventCount': 130, 'calendarName': 'gg'}
