@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { GoogleHandleLogin, registerWithEmail, loginWithEmail } from "../services/authService";
+import AlertSystem from "../components/AlertSystem";
+import { getFirebaseAuthErrorMessage } from "../utils/getFirebaseAuthErrorMessage";
+import { log } from "../utils/logger";
+
 
 function Auth() {
   const [email, setEmail] = useState("");
@@ -8,6 +12,10 @@ function Auth() {
   const [name, setName] = useState("");
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [activeTab, setActiveTab] = useState("login");
+
+  const [alertMessage, setAlertMessage] = useState(null);
+  const [alertType, setAlertType] = useState("info");
+
 
   const location = useLocation();
 
@@ -52,12 +60,35 @@ function Auth() {
             <p className="text-center mt-3 mb-0 text-muted">ou avec email :</p>
           </div>
 
+          <AlertSystem
+            type={alertType}
+            message={alertMessage}
+            onClose={() => setAlertMessage(null)}
+          />
+
+
           <form
-            onSubmit={(e) => {
+            onSubmit={async (e) => {
               e.preventDefault();
-              activeTab === "login"
-                ? loginWithEmail(email, password)
-                : registerWithEmail(email, password, name);
+              try {
+                if (activeTab === "login") {
+                  await loginWithEmail(email, password);
+                  setAlertMessage("Connexion réussie !");
+                  setAlertType("success");
+                } else {
+                  await registerWithEmail(email, password, name);
+                  setAlertMessage("Inscription réussie !");
+                  setAlertType("success");
+                }
+              } catch (err) {
+                log.error("Firebase auth error", {
+                  id: "AUTH-ERROR",
+                  origin: "App.js",
+                  stack: err.stack,
+                });
+                setAlertMessage(getFirebaseAuthErrorMessage(err.code));
+                setAlertType("danger");
+              }
             }}
           >
             {activeTab === "register" && (

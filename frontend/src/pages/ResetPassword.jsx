@@ -14,13 +14,13 @@ function ResetPassword() {
       <div className="card shadow" style={{ maxWidth: "500px", width: "100%", borderRadius: "1rem" }}>
         <div className="card-body p-4">
           <div className="text-center mb-4">
-            <h5>Reset Password</h5>
-            <p>Enter your email address to receive a reset link.</p>
+            <h5>Réinitialiser le mot de passe</h5>
+            <p>Entrez votre adresse email pour recevoir un lien de réinitialisation.</p>
           </div>
 
           <form onSubmit={handleReset}>
             <div className="mb-3">
-              <label htmlFor="emailInput" className="form-label">Email address</label>
+              <label htmlFor="emailInput" className="form-label">Email</label>
               <input
                 type="email"
                 className="form-control"
@@ -32,7 +32,7 @@ function ResetPassword() {
             </div>
 
             <button type="submit" className="btn btn-primary w-100">
-              Send Reset Link
+              Envoyer le lien
             </button>
           </form>
         </div>

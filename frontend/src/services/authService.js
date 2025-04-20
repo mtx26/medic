@@ -58,55 +58,41 @@ export const GoogleHandleLogin = async () => {
  * Inscription avec email et mot de passe
  */
 export const registerWithEmail = async (email, password, name) => {
-  try {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
+  const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+  const user = userCredential.user;
 
-    await setDoc(doc(db, "users", user.uid), {
-      displayName: name,
-      photoURL: "",
-      role: "user",
-      email: user.email
-    });
+  await setDoc(doc(db, "users", user.uid), {
+    displayName: name,
+    photoURL: "",
+    role: "user",
+    email: user.email
+  });
 
-    getGlobalReloadUser()(); // Rafraîchir les infos utilisateur
-    loginWithEmail(email, password); // Connexion après inscription
+  getGlobalReloadUser()(); // Rafraîchir les infos utilisateur
+  loginWithEmail(email, password); // Connexion après inscription
 
-    log.info("Utilisateur inscrit et connecté :", {
-      id: "REGISTERWITHEMAIL",
-      origin: "authService.js",
-      user: user.uid,
-    });
-  } catch (error) {
-    log.error("Erreur d'inscription :", error.message, {
-      id: "REGISTERWITHEMAIL",
-      origin: "authService.js",
-      stack: error.stack,
-    });
-  }
+  log.info("Utilisateur inscrit et connecté :", {
+    id: "REGISTERWITHEMAIL",
+    origin: "authService.js",
+    user: user.uid,
+  });
+  return user;
 };
 
 /**
  * Connexion avec email et mot de passe
  */
 export const loginWithEmail = async (email, password) => {
-  try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+  const userCredential = await signInWithEmailAndPassword(auth, email, password);
 
-    getGlobalReloadUser()(); // Rafraîchir les infos utilisateur
+  getGlobalReloadUser()(); // Rafraîchir les infos utilisateur
 
-    log.info("Utilisateur connecté avec email :", {
-      id: "LOGINWITHEMAIL",
-      origin: "authService.js",
-      user: userCredential.user.uid,
-    });
-  } catch (error) {
-    log.error("Erreur de connexion avec email :", error.message, {
-      id: "LOGINWITHEMAIL",
-      origin: "authService.js",
-      stack: error.stack,
-    });
-  }
+  log.info("Utilisateur connecté avec email :", {
+    id: "LOGINWITHEMAIL",
+    origin: "authService.js",
+    user: userCredential.user.uid,
+  });
+  return userCredential.user;
 };
 
 /**
