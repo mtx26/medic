@@ -73,6 +73,7 @@ function App() {
         origin: "App.js",
         calendarName,
       });
+      return true;
     } catch (err) {
       log.error("Échec de création du calendrier", err, {
         id: "CALENDAR_CREATE_FAIL",
@@ -80,6 +81,7 @@ function App() {
         calendarName,
         stack: err.stack,
       });
+      return false;
     }
   };
 

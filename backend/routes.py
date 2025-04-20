@@ -194,10 +194,22 @@ def handle_calendars():
 
         elif request.method == "POST":
             calendar_name = request.json.get("calendarName")
-            db.collection("users").document(uid).collection("calendars").document(calendar_name.lower()).set({
+            if not calendar_name:
+                logger.warning(f"[CALENDAR_CREATE] Nom de calendrier manquant pour {uid}.")
+                return jsonify({"error": "Nom de calendrier manquant"}), 400
+            calendar_id = calendar_name.lower()
+            doc = db.collection("users").document(uid).collection("calendars").document(calendar_id).get()
+
+            if doc.exists:
+                logger.warning(f"[CALENDAR_EXISTS] Tentative de création d'un calendrier déjà existant : '{calendar_name}' pour {uid}.")
+                return jsonify({"message": "Ce calendrier existe déjà", "status": "error"}), 409
+            
+
+            db.collection("users").document(uid).collection("calendars").document(calendar_id).set({
                 "medicines": "",
                 "last_updated": datetime.now(timezone.utc).isoformat()
             }, merge=True)
+            
             logger.info(f"[CALENDAR_CREATE] Calendrier '{calendar_name}' créé pour {uid}.")
             return jsonify({"message": "Calendrier mis à jour", "status": "ok"})
 

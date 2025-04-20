@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useContext } from "react";
 import { AuthContext } from "../contexts/LoginContext";
+import AlertSystem from "../components/AlertSystem";
 
 function SelectCalendar({ calendars, fetchCalendars, addCalendar, deleteCalendar, RenameCalendar, getMedicineCount }) {
 
@@ -10,6 +11,9 @@ function SelectCalendar({ calendars, fetchCalendars, addCalendar, deleteCalendar
   const [newCalendarName, setNewCalendarName] = useState(''); // État pour le nom du nouveau calendrier
   const [renameValues, setRenameValues] = useState({}); // État pour les valeurs de renommage
   const [count, setCount] = useState({}); // État pour stocker le nombre de médicaments par calendrier
+  const [alertType, setAlertType] = useState("");
+  const [alertMessage, setAlertMessage] = useState("");
+  const [onConfirmAction, setOnConfirmAction] = useState(null);
 
   // Chargement des calendriers lorsque l'utilisateur est authentifié
   useEffect(() => {
@@ -45,15 +49,43 @@ function SelectCalendar({ calendars, fetchCalendars, addCalendar, deleteCalendar
     type="text"
     className="form-control"
     placeholder="Nom du calendrier"
+    value={newCalendarName}
     onChange={(e) => setNewCalendarName(e.target.value)} // Mise à jour du nom du nouveau calendrier
     />
     <button
-    onClick={() => addCalendar(newCalendarName)} // Ajout d'un nouveau calendrier
+    onClick={async() => {
+      const success = await addCalendar(newCalendarName);
+      if (success) {
+        setAlertMessage("✅ Calendrier ajouté avec succès !");
+        setAlertType("success");
+      } else {
+        setAlertMessage("❌ Erreur lors de l'ajout du calendrier.");
+        setAlertType("danger");
+      }
+      setOnConfirmAction(null);
+      setTimeout(() => {
+        setAlertMessage("");
+        setAlertType("");
+      }, 3000);
+      setNewCalendarName("");
+    }} // Ajout d'un nouveau calendrier
     className="btn btn-outline-primary"
     >
     ➕ Ajouter
     </button>
   </div>
+
+  <AlertSystem
+    type={alertType}
+    message={alertMessage}
+    onClose={() => {
+      setAlertMessage("");
+      setOnConfirmAction(null);
+    }}
+    onConfirm={() => {
+      if (onConfirmAction) onConfirmAction();
+    }}
+  />
 
   {/* Liste des calendriers */}
   <div className="list-group">
@@ -111,7 +143,13 @@ function SelectCalendar({ calendars, fetchCalendars, addCalendar, deleteCalendar
         type="button"
         className="btn btn-outline-danger"
         title="Supprimer"
-        onClick={() => deleteCalendar(calendarName)} // Suppression du calendrier
+        onClick={() => {
+          setAlertType("confirm-danger");
+          setAlertMessage("❌ Confirmez-vous la suppression du calendrier ?");
+          setOnConfirmAction(() => () => {
+            deleteCalendar(calendarName);
+          });
+        }}
         >
         🗑
         </button>

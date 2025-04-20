@@ -31,7 +31,7 @@ function Navbar() {
           <ul className="navbar-nav align-items-center gap-2">
             <li className="nav-item">
               <Link to="/" className="nav-link px-3 py-2 rounded">
-                📅 List des calendrier
+                📅 List des calendriers
               </Link>
             </li>
             {userInfo?.role === "admin" && (

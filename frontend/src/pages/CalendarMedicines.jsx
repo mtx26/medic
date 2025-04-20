@@ -77,7 +77,7 @@ if (!calendars.includes(nameCalendar)) {
         className="btn btn-outline-primary"
         onClick={() => navigate(`/calendars/${nameCalendar}`)}
       >
-        🗂 List des calendriers
+        📅 Calendrier
       </button>
       <h3>💊 Liste des médicaments</h3>
 
