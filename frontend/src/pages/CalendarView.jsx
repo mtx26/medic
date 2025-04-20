@@ -42,6 +42,7 @@ function CalendarPage({
     setSelectedDate(newDate);
     setEventsForDay(rawEvents.filter((event) => event.date.startsWith(newDate)));
   };
+  
   useEffect(() => {
     if (authReady && login) {
       getCalendar(nameCalendar)
@@ -64,54 +65,54 @@ function CalendarPage({
   return (
     <div>
 
-<div className="card shadow-sm mb-4">
-  <div className="card-body">
-    {/* Ligne 1 : Boutons d'action */}
-    <div className="d-flex flex-wrap  align-items-left gap-2 mb-3">
-      <button
-        className="btn btn-outline-primary"
-        onClick={() => navigate('/calendars')}
-      >
-        🗂 List des calendriers
-      </button>
-      <button
-        className="btn btn-outline-secondary"
-        onClick={() => navigate(`/calendars/${nameCalendar}/medicines`)}
-      >
-        🧪 List des médicaments
-      </button>
-    </div>
+      <div className="card shadow-sm mb-4">
+        <div className="card-body">
+          {/* Ligne 1 : Boutons d'action */}
+          <div className="d-flex flex-wrap  align-items-left gap-2 mb-3">
+            <button
+              className="btn btn-outline-primary"
+              onClick={() => navigate('/calendars')}
+            >
+              🗂 Liste des calendriers
+            </button>
+            <button
+              className="btn btn-outline-secondary"
+              onClick={() => navigate(`/calendars/${nameCalendar}/medicines`)}
+            >
+              🧪 Liste des médicaments
+            </button>
+          </div>
 
-    {/* Ligne 2 : Sélection date + bouton charger */}
-    <div className="d-flex flex-wrap align-items-end  gap-3">
-      <div style={{ minWidth: "220px" }}>
-        <label htmlFor="datePicker" className="form-label fw-semibold">
-          📅 Date de début :
-        </label>
-        <input
-          id="datePicker"
-          type="date"
-          className="form-control"
-          value={startDate}
-          onChange={(e) => setStartDate(e.target.value)}
-        />
+          {/* Ligne 2 : Sélection date + bouton charger */}
+          <div className="d-flex flex-wrap align-items-end  gap-3">
+            <div style={{ minWidth: "220px" }}>
+              <label htmlFor="datePicker" className="form-label fw-semibold">
+                📅 Date de début :
+              </label>
+              <input
+                id="datePicker"
+                type="date"
+                className="form-control"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <button
+                onClick={() => getCalendar(nameCalendar, startDate)}
+                className="btn btn-outline-primary"
+              >
+                🔄 Charger le calendrier
+              </button>
+            </div>
+          </div>
+
+          <div className="alert alert-info mt-4 mb-0" role="alert">
+            📌 Cliquez sur un jour du calendrier pour voir les médicaments associés dans une fenêtre.
+          </div>
+        </div>
       </div>
-
-      <div>
-        <button
-          onClick={() => getCalendar(nameCalendar, startDate)}
-          className="btn btn-outline-primary"
-        >
-          🔄 Charger le calendrier
-        </button>
-      </div>
-    </div>
-
-    <div className="alert alert-info mt-4 mb-0" role="alert">
-      📌 Cliquez sur un jour du calendrier pour voir les médicaments associés dans une fenêtre.
-    </div>
-  </div>
-</div>
 
 
       <FullCalendar
@@ -122,6 +123,39 @@ function CalendarPage({
         firstDay={1}
         dateClick={handleDateClick}
         height="auto"
+
+        // click sur les événements
+        eventClick={(info) => {
+          const clickedDate = info.event.startStr.slice(0, 10); // format YYYY-MM-DD
+          handleDateClick({ dateStr: clickedDate });
+        }}
+
+        // semaine actuelle en vert clair
+        dayCellDidMount={(info) => {
+          const today = new Date();
+      
+          // Trouver le lundi (début de la semaine)
+          const startOfWeek = new Date(today);
+          startOfWeek.setDate(today.getDate() - ((today.getDay() + 6) % 7) - 1);
+      
+          // Trouver le dimanche (fin de la semaine)
+          const endOfWeek = new Date(startOfWeek);
+          endOfWeek.setDate(startOfWeek.getDate() + 7);
+      
+          // Comparer avec la date de la cellule
+          const cellDate = new Date(info.date.toDateString()); // nettoyage heure
+      
+          const isToday =
+          cellDate.getFullYear() === today.getFullYear() &&
+          cellDate.getMonth() === today.getMonth() &&
+          cellDate.getDate() === today.getDate();
+    
+          if (!isToday && cellDate >= startOfWeek && cellDate <= endOfWeek) {
+            info.el.style.backgroundColor = '#d0f5d8'; // vert clair
+          }
+        }}
+
+        
       />
 
       <div className="modal fade" ref={modalRef} tabIndex="-1" id="dateModal">

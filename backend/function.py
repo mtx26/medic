@@ -23,6 +23,9 @@ def generate_schedule(start_date, medications):
     # Trouver le lundi de la semaine contenant start_date
     monday = start_date - timedelta(days=start_date.weekday())
 
+    Total_day = 70 # Nombre de jours à afficher (10 semaines)
+
+    """
     # Dernier jour du mois
     last_day_of_month = date(start_date.year, start_date.month, calendar.monthrange(start_date.year, start_date.month)[1])
 
@@ -30,12 +33,13 @@ def generate_schedule(start_date, medications):
     delta = (last_day_of_month - monday).days + 1  # +1 pour inclure le dernier jour
 
     # Nombre de semaines complètes (multiples de 7)
-    total_full_weeks = delta // 7
+    total_full_weeks = delta // 7 + 1  # +1 pour inclure la semaine partielle
     # Nombre de jours restants après les semaines complètes
     Total_day = total_full_weeks * 7
 
     if Total_day == 0:
         Total_day = 7
+    """
     schedule = []
 
     for i in range(Total_day):

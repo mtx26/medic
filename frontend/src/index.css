@@ -11,3 +11,12 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+.fc-daygrid-day {
+  cursor: pointer;
+}
+
+.fc-daygrid-day-frame {
+  height: 100%;
+  width: 100%;
+}
+

@@ -601,3 +601,66 @@ AttributeError: type object 'datetime.datetime' has no attribute 'timezone'. Did
 2025-04-20 17:03:17 [INFO] [BACKEND] [CALENDAR_GENERATE] Calendrier généré avec succès.
 2025-04-20 17:03:17 [INFO] [FRONTEND] Calendrier récupéré avec succès | Context: {'id': 'CALENDAR_FETCH_SUCCESS', 'origin': 'App.js', 'eventCount': 130, 'calendarName': 'gg'}
 2025-04-20 17:03:18 [INFO] [FRONTEND] Calendrier récupéré avec succès | Context: {'id': 'CALENDAR_FETCH_SUCCESS', 'origin': 'App.js', 'eventCount': 130, 'calendarName': 'gg'}
+2025-04-20 17:09:42 [INFO] [BACKEND] [CALENDAR_LOAD] Médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-20 17:09:42 [INFO] [BACKEND] [CALENDAR_GENERATE] Calendrier généré avec succès.
+2025-04-20 17:09:42 [INFO] [FRONTEND] Calendrier récupéré avec succès | Context: {'id': 'CALENDAR_FETCH_SUCCESS', 'origin': 'App.js', 'eventCount': 258, 'calendarName': 'gg'}
+2025-04-20 17:09:53 [INFO] [BACKEND] [CALENDAR_LOAD] Médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-20 17:09:53 [INFO] [BACKEND] [CALENDAR_GENERATE] Calendrier généré avec succès.
+2025-04-20 17:09:53 [INFO] [FRONTEND] Calendrier récupéré avec succès | Context: {'id': 'CALENDAR_FETCH_SUCCESS', 'origin': 'App.js', 'eventCount': 258, 'calendarName': 'gg'}
+2025-04-20 17:09:56 [INFO] [BACKEND] [CALENDAR_LOAD] Médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-20 17:09:56 [INFO] [BACKEND] [CALENDAR_GENERATE] Calendrier généré avec succès.
+2025-04-20 17:09:56 [INFO] [FRONTEND] Calendrier récupéré avec succès | Context: {'id': 'CALENDAR_FETCH_SUCCESS', 'origin': 'App.js', 'eventCount': 258, 'calendarName': 'gg'}
+2025-04-20 17:10:15 [INFO] [BACKEND] [CALENDAR_LOAD] Médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-20 17:10:15 [INFO] [BACKEND] [CALENDAR_GENERATE] Calendrier généré avec succès.
+2025-04-20 17:10:15 [INFO] [FRONTEND] Calendrier récupéré avec succès | Context: {'id': 'CALENDAR_FETCH_SUCCESS', 'origin': 'App.js', 'eventCount': 130, 'calendarName': 'gg'}
+2025-04-20 17:10:18 [INFO] [BACKEND] [CALENDAR_LOAD] Médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-20 17:10:18 [INFO] [BACKEND] [CALENDAR_GENERATE] Calendrier généré avec succès.
+2025-04-20 17:10:19 [INFO] [FRONTEND] Calendrier récupéré avec succès | Context: {'id': 'CALENDAR_FETCH_SUCCESS', 'origin': 'App.js', 'eventCount': 130, 'calendarName': 'gg'}
+2025-04-20 17:11:21 [INFO] [BACKEND] [CALENDAR_LOAD] Médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-20 17:11:21 [INFO] [BACKEND] [CALENDAR_GENERATE] Calendrier généré avec succès.
+2025-04-20 17:11:21 [INFO] [BACKEND] [CALENDAR_GET] 3 calendriers récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-20 17:11:21 [INFO] [FRONTEND] Calendriers récupérés avec succès | Context: {'id': 'CALENDARS_FETCH_SUCCESS', 'origin': 'App.js', 'count': 3}
+2025-04-20 17:11:21 [INFO] [FRONTEND] Calendrier récupéré avec succès | Context: {'id': 'CALENDAR_FETCH_SUCCESS', 'origin': 'App.js', 'eventCount': 193, 'calendarName': 'gg'}
+2025-04-20 17:11:43 [INFO] [BACKEND] [CALENDAR_LOAD] Médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-20 17:11:43 [INFO] [BACKEND] [CALENDAR_GENERATE] Calendrier généré avec succès.
+2025-04-20 17:11:43 [INFO] [FRONTEND] Calendrier récupéré avec succès | Context: {'id': 'CALENDAR_FETCH_SUCCESS', 'origin': 'App.js', 'eventCount': 323, 'calendarName': 'gg'}
+2025-04-20 17:15:09 [INFO] [BACKEND] [CALENDAR_LOAD] Médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-20 17:15:09 [INFO] [BACKEND] [CALENDAR_GET] 3 calendriers récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-20 17:15:09 [INFO] [FRONTEND] Calendriers récupérés avec succès | Context: {'id': 'CALENDARS_FETCH_SUCCESS', 'origin': 'App.js', 'count': 3}
+2025-04-20 17:15:09 [INFO] [BACKEND] [CALENDAR_GENERATE] Calendrier généré avec succès.
+2025-04-20 17:15:10 [INFO] [FRONTEND] Calendrier récupéré avec succès | Context: {'id': 'CALENDAR_FETCH_SUCCESS', 'origin': 'App.js', 'eventCount': 648, 'calendarName': 'gg'}
+2025-04-20 17:19:56 [INFO] [BACKEND] [CALENDAR_GET] 3 calendriers récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-20 17:19:56 [INFO] [BACKEND] [CALENDAR_LOAD] Médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-20 17:19:56 [INFO] [FRONTEND] Calendriers récupérés avec succès | Context: {'id': 'CALENDARS_FETCH_SUCCESS', 'origin': 'App.js', 'count': 3}
+2025-04-20 17:19:57 [INFO] [BACKEND] [CALENDAR_GENERATE] Calendrier généré avec succès.
+2025-04-20 17:19:57 [INFO] [FRONTEND] Calendrier récupéré avec succès | Context: {'id': 'CALENDAR_FETCH_SUCCESS', 'origin': 'App.js', 'eventCount': 648, 'calendarName': 'gg'}
+2025-04-20 17:20:13 [INFO] [BACKEND] [CALENDAR_LOAD] Médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-20 17:20:14 [INFO] [BACKEND] [CALENDAR_GET] 3 calendriers récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-20 17:20:14 [INFO] [BACKEND] [CALENDAR_GENERATE] Calendrier généré avec succès.
+2025-04-20 17:20:15 [INFO] [FRONTEND] Calendriers récupérés avec succès | Context: {'id': 'CALENDARS_FETCH_SUCCESS', 'origin': 'App.js', 'count': 3}
+2025-04-20 17:20:15 [INFO] [FRONTEND] Calendrier récupéré avec succès | Context: {'id': 'CALENDAR_FETCH_SUCCESS', 'origin': 'App.js', 'eventCount': 648, 'calendarName': 'gg'}
+2025-04-20 17:22:08 [INFO] [BACKEND] [CALENDAR_LOAD] Médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-20 17:22:08 [INFO] [BACKEND] [CALENDAR_GET] 3 calendriers récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-20 17:22:09 [INFO] [FRONTEND] Calendriers récupérés avec succès | Context: {'id': 'CALENDARS_FETCH_SUCCESS', 'origin': 'App.js', 'count': 3}
+2025-04-20 17:22:09 [INFO] [BACKEND] [CALENDAR_GENERATE] Calendrier généré avec succès.
+2025-04-20 17:22:09 [INFO] [FRONTEND] Calendrier récupéré avec succès | Context: {'id': 'CALENDAR_FETCH_SUCCESS', 'origin': 'App.js', 'eventCount': 648, 'calendarName': 'gg'}
+2025-04-20 17:26:15 [INFO] [BACKEND] [CALENDAR_LOAD] Médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-20 17:26:15 [INFO] [BACKEND] [CALENDAR_GET] 3 calendriers récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-20 17:26:16 [INFO] [FRONTEND] Calendriers récupérés avec succès | Context: {'id': 'CALENDARS_FETCH_SUCCESS', 'origin': 'App.js', 'count': 3}
+2025-04-20 17:26:16 [INFO] [BACKEND] [CALENDAR_GENERATE] Calendrier généré avec succès.
+2025-04-20 17:26:17 [INFO] [FRONTEND] Calendrier récupéré avec succès | Context: {'id': 'CALENDAR_FETCH_SUCCESS', 'origin': 'App.js', 'eventCount': 648, 'calendarName': 'gg'}
+2025-04-20 17:27:27 [INFO] [BACKEND] [CALENDAR_GET] 3 calendriers récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-20 17:27:27 [INFO] [BACKEND] [CALENDAR_LOAD] Médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-20 17:27:27 [INFO] [FRONTEND] Calendriers récupérés avec succès | Context: {'id': 'CALENDARS_FETCH_SUCCESS', 'origin': 'App.js', 'count': 3}
+2025-04-20 17:27:28 [INFO] [BACKEND] [CALENDAR_GENERATE] Calendrier généré avec succès.
+2025-04-20 17:27:28 [INFO] [FRONTEND] Calendrier récupéré avec succès | Context: {'id': 'CALENDAR_FETCH_SUCCESS', 'origin': 'App.js', 'eventCount': 648, 'calendarName': 'gg'}
+2025-04-20 17:27:45 [INFO] [BACKEND] [CALENDAR_LOAD] Médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-20 17:27:46 [INFO] [BACKEND] [CALENDAR_GET] 3 calendriers récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-20 17:27:46 [INFO] [BACKEND] [CALENDAR_GENERATE] Calendrier généré avec succès.
+2025-04-20 17:27:47 [INFO] [FRONTEND] Calendriers récupérés avec succès | Context: {'id': 'CALENDARS_FETCH_SUCCESS', 'origin': 'App.js', 'count': 3}
+2025-04-20 17:27:47 [INFO] [FRONTEND] Calendrier récupéré avec succès | Context: {'id': 'CALENDAR_FETCH_SUCCESS', 'origin': 'App.js', 'eventCount': 648, 'calendarName': 'gg'}
+2025-04-20 17:29:31 [INFO] [BACKEND] [CALENDAR_LOAD] Médicaments récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-20 17:29:32 [INFO] [BACKEND] [CALENDAR_GET] 3 calendriers récupérés pour oR75yI71MoUmYzwgwJ4WX1Birtm1.
+2025-04-20 17:29:32 [INFO] [FRONTEND] Calendriers récupérés avec succès | Context: {'id': 'CALENDARS_FETCH_SUCCESS', 'origin': 'App.js', 'count': 3}
+2025-04-20 17:29:32 [INFO] [BACKEND] [CALENDAR_GENERATE] Calendrier généré avec succès.
+2025-04-20 17:29:33 [INFO] [FRONTEND] Calendrier récupéré avec succès | Context: {'id': 'CALENDAR_FETCH_SUCCESS', 'origin': 'App.js', 'eventCount': 648, 'calendarName': 'gg'}
