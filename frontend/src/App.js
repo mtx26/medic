@@ -1,14 +1,13 @@
 // App.js
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { BrowserRouter as Router } from 'react-router-dom';
 import Navbar from './components/Header';
+import Footer from './components/Footer';
 import AppRoutes from './routes/AppRouter';
 import { log } from './utils/logger';
-import { UserProvider } from "./contexts/UserContext";
-import { AuthProvider } from "./contexts/LoginContext";
-import { auth } from "./services/firebase";
-import { useContext } from "react";
-import { AuthContext } from "./contexts/LoginContext";
+import { auth } from './services/firebase';
+import { AuthContext } from './contexts/LoginContext';
+
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -283,7 +282,7 @@ function App() {
     }
   };
 
-  const updateMeds = async (calendarName) => {
+  const updateMeds = async (calendarName, newMeds = meds) => {
     try {
       if (meds.length === 0) {
         log.warn("Aucun médicament à mettre à jour", {
@@ -301,13 +300,13 @@ function App() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ medicines: meds }),
+        body: JSON.stringify({ medicines: newMeds  }),
       });
       if (!res.ok) throw new Error(`Erreur HTTP POST /api/calendars/${calendarName}/medicines`);
       log.info("Médicaments mis à jour avec succès", {
         id: "MED_UPDATE_SUCCESS",
         origin: "App.js",
-        count: meds?.length,
+        count: newMeds?.length,
       });
       return true;
     } catch (err) {
@@ -327,7 +326,21 @@ function App() {
     setMeds(updatedMeds);
     setChecked([]);
   
-    const success = await updateMeds(nameCalendar);
+    const success = await updateMeds(nameCalendar, updatedMeds);
+  
+    if (success) {
+      log.info("Médicaments supprimés avec succès", {
+        id: "MED_DELETE_SUCCESS",
+        origin: "App.js",
+        count: selectedToDelete.length,
+      });
+    } else {
+      log.error("Échec de suppression des médicaments", {
+        id: "MED_DELETE_FAIL",
+        origin: "App.js",
+        count: selectedToDelete.length,
+      });
+    }
     return success;
   };
   
@@ -368,16 +381,13 @@ function App() {
   }, [authReady, login]);
 
   return (
-    <AuthProvider>
-      <UserProvider>
-        <Router>
-          <Navbar />
-          <div className="container mt-4">
-            <AppRoutes sharedProps={sharedProps} />
-          </div>
-        </Router>
-      </UserProvider>
-    </AuthProvider>
+    <Router>
+      <Navbar />
+      <div className="container mt-4">
+        <AppRoutes sharedProps={sharedProps} />
+      </div>
+      <Footer />
+    </Router>
   );
 }
 

@@ -9,7 +9,7 @@ from logger import backend_logger as logger
 env_loaded = load_dotenv()
 
 if not env_loaded:
-    print("⚠️ Aucun fichier .env trouvé")
+    logger.error("[FIREBASE] Impossible de charger le fichier .env")
 
 service_account_str = os.environ.get("FIREBASE_SERVICE_ACCOUNT")
 logger.info(f"[FIREBASE] Chargement de la clé de service Firebase depuis le fichier .env : {service_account_str}")

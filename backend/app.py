@@ -16,4 +16,4 @@ app.register_blueprint(api)
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
-    logger.info(f"Application démarrée sur le port {port}.")
+    logger.info("[FLASK] Lancement de l'application Flask en local sur le port %d", port)

@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useContext } from "react";
-import { AuthContext } from "../contexts/LoginContext";
-import AlertSystem from "../components/AlertSystem";
+import { AuthContext } from '../contexts/LoginContext';
+import AlertSystem from '../components/AlertSystem';
 
 function SelectCalendar({ calendars, fetchCalendars, addCalendar, deleteCalendar, RenameCalendar, getMedicineCount }) {
 
@@ -14,13 +13,6 @@ function SelectCalendar({ calendars, fetchCalendars, addCalendar, deleteCalendar
   const [alertType, setAlertType] = useState("");
   const [alertMessage, setAlertMessage] = useState("");
   const [onConfirmAction, setOnConfirmAction] = useState(null);
-
-  // Chargement des calendriers lorsque l'utilisateur est authentifié
-  useEffect(() => {
-    if (authReady && login) {
-    fetchCalendars(); // Appel de la fonction pour récupérer les calendriers
-    }
-  }, [authReady, login]);
   
   // Chargement du nombre de médicaments pour chaque calendrier
   useEffect(() => {
@@ -101,7 +93,7 @@ function SelectCalendar({ calendars, fetchCalendars, addCalendar, deleteCalendar
         <div className="text-muted small">
         Nombre de médicaments :
         <span className="fw-semibold ms-1">
-          {count[calendarName] ?? "Chargement..."} {/* Affichage du nombre ou "Chargement..." */}
+          {count[calendarName] ?? "..."} {/* Affichage du nombre ou "..." */}
         </span>
         </div>
       </div>

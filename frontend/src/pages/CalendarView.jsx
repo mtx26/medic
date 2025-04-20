@@ -1,13 +1,11 @@
 // CalendarPage.jsx
+import React, { useEffect, useContext, useRef } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import frLocale from '@fullcalendar/core/locales/fr';
-import { useNavigate } from 'react-router-dom';
-import { useParams } from 'react-router-dom';
-import { use, useEffect } from 'react';
-import { useContext, useRef } from "react";
-import { AuthContext } from "../contexts/LoginContext";
+import { AuthContext } from '../contexts/LoginContext';
 
 function CalendarPage({
   rawEvents, setRawEvents,
@@ -47,10 +45,10 @@ function CalendarPage({
   }, [nameCalendar, setRawEvents, setCalendarEvents]);
   
   useEffect(() => {
-    if (authReady && login) {
+    if (authReady && login && nameCalendar) {
       getCalendar(nameCalendar)
     }
-  }, [authReady, login]);
+  }, [authReady, login, nameCalendar]);
 
   
   if (!calendars || calendars.length === 0) {
@@ -58,7 +56,7 @@ function CalendarPage({
   }
   
   if (!calendars.includes(nameCalendar)) {
-    return <div className="text-center mt-5 text-danger">❌ Ce calendrier n'existe pas.</div>;
+    navigate("/calendars");
   }
   
   

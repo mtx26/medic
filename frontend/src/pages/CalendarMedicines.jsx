@@ -1,11 +1,9 @@
 // MedicamentsPage.jsx
-import React, { use, useEffect } from 'react';
-import { redirect, useParams } from 'react-router-dom';
-import { useContext } from "react";
-import { AuthContext } from "../contexts/LoginContext";
-import { useNavigate } from 'react-router-dom';
-import AlertSystem from "../components/AlertSystem";
-import { useState } from 'react';
+import React, { useEffect, useState, useContext, useRef } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { AuthContext } from '../contexts/LoginContext';
+import AlertSystem from '../components/AlertSystem';
+
 
 
 
@@ -29,6 +27,9 @@ function MedicamentsPage({
   const [alertMessage, setAlertMessage] = useState("");
   const [onConfirmAction, setOnConfirmAction] = useState(null);
   const [loading, setLoading] = useState(true);
+  const lastMedRef = useRef(null);
+  const [highlightedIndex, setHighlightedIndex] = useState(null);
+
 
 
 
@@ -67,6 +68,7 @@ function MedicamentsPage({
       });
     }
   }, [authReady, login]);
+  
 
 
 if (calendars.length === 0) {
@@ -92,15 +94,42 @@ if (!calendars.includes(nameCalendar)) {
       <h3>💊 Liste des médicaments</h3>
 
       <div className="d-flex flex-wrap gap-2 my-3">
-        <button onClick={addMed} className="btn btn-primary btn-sm">
+        <button 
+        onClick={() => {
+          addMed();
+          setHighlightedIndex(meds.length);
+          setTimeout(() => {
+            setHighlightedIndex(null);
+          }, 2000)
+          setTimeout(() => {
+            lastMedRef.current?.scrollIntoView({ behavior: 'smooth' });
+          }, 100);
+        }} className="btn btn-primary btn-sm">
           ➕ Ajouter un médicament
         </button>
+
+
+
         <button
           onClick={() => {
             setAlertType("confirm-danger");
             setAlertMessage("❌ Confirmez-vous la suppression des médicaments sélectionnés ?");
-            setOnConfirmAction(() => {
-              deleteSelectedMeds(nameCalendar);
+            setOnConfirmAction(() => async () => {
+              const success = await deleteSelectedMeds(nameCalendar);
+              if (success) {
+                setAlertMessage("✅ Médicaments supprimés.");
+                setAlertType("success");
+              } else {
+                setAlertMessage("❌ Erreur lors de la suppression.");
+                setAlertType("danger");
+              }
+
+              setTimeout(() => {
+                setAlertMessage("");
+                setAlertType("");
+              }, 2000);
+
+              setOnConfirmAction(null);
             });
           }}
           className="btn btn-danger btn-sm"
@@ -108,6 +137,7 @@ if (!calendars.includes(nameCalendar)) {
         >
           🗑️ Supprimer sélectionnés
         </button>
+
 
         <button
           onClick={() => {
@@ -156,7 +186,11 @@ if (!calendars.includes(nameCalendar)) {
           <div className="text-center mt-5 text-muted">❌ Aucun médicament n’a encore été ajouté pour ce calendrier.</div>
         ) : (
           meds.map((med, index) => (
-            <li key={index} className="list-group-item px-2 py-3">
+            <li 
+            key={index} 
+            ref={index === meds.length - 1 ? lastMedRef : null} 
+            className={`list-group-item px-2 py-3 ${index === highlightedIndex ? 'highlighted-med' : ''}`}
+            >
               <div className="d-flex flex-wrap align-items-center gap-2">
                 <div className="form-check" style={{ width: '40px' }}>
                   <input

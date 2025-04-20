@@ -20,3 +20,18 @@ code {
   width: 100%;
 }
 
+.highlighted-med {
+  animation: fade-highlight 1s ease-in-out;
+  background-color: #d1e7dd !important; /* vert clair Bootstrap */
+}
+
+@keyframes fade-highlight {
+  from {
+    background-color: #0f5132;
+    color: white;
+  }
+  to {
+    background-color: #d1e7dd;
+    color: inherit;
+  }
+}

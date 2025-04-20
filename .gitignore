@@ -28,3 +28,4 @@ backend/__pycache__
 serviceAccountKey.json
 .venv/
 *.log
+backend/pils.json

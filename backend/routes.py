@@ -262,10 +262,10 @@ def count_medicines():
             data = doc.to_dict()
             medicines = data.get("medicines", [])
             count = len(medicines)
-            logger.info(f"[MED_COUNT] {count} médicaments récupérés pour {uid}.")
+            logger.info(f"[MED_COUNT] {count} médicaments récupérés de {name_calendar} pour {uid}.")
             return jsonify({"count": count}), 200
         else:
-            logger.warning(f"[MED_COUNT] Document introuvable pour l'utilisateur {uid}.")
+            logger.warning(f"[MED_COUNT] médicaments introuvables de {name_calendar} pour {uid}.")
             return jsonify({"error": "Calendrier introuvable"}), 404
 
     except Exception as e:

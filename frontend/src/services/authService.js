@@ -38,11 +38,19 @@ export const GoogleHandleLogin = async () => {
 
     }
 
-    getGlobalReloadUser()(); // ✅ Rafraîchir les infos utilisateur
-    log.info("Utilisateur connecté avec Google :", user.uid);
+    getGlobalReloadUser()(); // Rafraîchir les infos utilisateur
+    log.info("Utilisateur connecté avec Google", {
+      id: "GOOGLEHANDLELOGIN",
+      origin: "authService.js",
+      user: user.uid,
+    });
 
   } catch (error) {
-    log.error("Erreur de connexion avec Google :", error.message);
+    log.error("Erreur de connexion avec Google", error, {
+      id: "GOOGLEHANDLELOGIN",
+      origin: "authService.js",
+      stack: error.stack,
+    });
   }
 };
 
@@ -61,12 +69,20 @@ export const registerWithEmail = async (email, password, name) => {
       email: user.email
     });
 
-    getGlobalReloadUser()(); // ✅ Rafraîchir les infos utilisateur
-    loginWithEmail(email, password); // ✅ Connexion après inscription
+    getGlobalReloadUser()(); // Rafraîchir les infos utilisateur
+    loginWithEmail(email, password); // Connexion après inscription
 
-    log.info("Utilisateur inscrit et ajouté à Firestore :", user.uid);
+    log.info("Utilisateur inscrit et connecté :", {
+      id: "REGISTERWITHEMAIL",
+      origin: "authService.js",
+      user: user.uid,
+    });
   } catch (error) {
-    log.error("Erreur d'inscription :", error.message);
+    log.error("Erreur d'inscription :", error.message, {
+      id: "REGISTERWITHEMAIL",
+      origin: "authService.js",
+      stack: error.stack,
+    });
   }
 };
 
@@ -77,11 +93,19 @@ export const loginWithEmail = async (email, password) => {
   try {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
 
-    getGlobalReloadUser()(); // ✅ Rafraîchir les infos utilisateur
+    getGlobalReloadUser()(); // Rafraîchir les infos utilisateur
 
-    log.info("Utilisateur connecté :", userCredential.user.uid);
+    log.info("Utilisateur connecté avec email :", {
+      id: "LOGINWITHEMAIL",
+      origin: "authService.js",
+      user: userCredential.user.uid,
+    });
   } catch (error) {
-    log.error("Erreur de connexion :", error.message);
+    log.error("Erreur de connexion avec email :", error.message, {
+      id: "LOGINWITHEMAIL",
+      origin: "authService.js",
+      stack: error.stack,
+    });
   }
 };
 
@@ -91,9 +115,16 @@ export const loginWithEmail = async (email, password) => {
 export const resetPassword = async (email) => {
   try {
     await sendPasswordResetEmail(auth, email);
-    log.info("Email de réinitialisation envoyé à :", email);
+    log.info("Email de réinitialisation envoyé à :", email, {
+      id: "RESETPASSWORD",
+      origin: "authService.js",
+    });
   } catch (error) {
-    log.error("Erreur lors de l'envoi de l'email de réinitialisation :", error.message);
+    log.error("Erreur lors de l'envoi de l'email de réinitialisation :", error.message, {
+      id: "RESETPASSWORD",
+      origin: "authService.js",
+      stack: error.stack,
+    });
   }
 };
 
@@ -104,10 +135,17 @@ export const handleLogout = async () => {
   try {
     await signOut(auth);
 
-    getGlobalReloadUser()(); // ✅ Réinitialiser l'état utilisateur après la déconnexion
+    getGlobalReloadUser()(); // Réinitialiser l'état utilisateur après la déconnexion
 
-    log.info("Utilisateur déconnecté");
+    log.info("Utilisateur déconnecté", {
+      id: "HANDLELOGOUT",
+      origin: "authService.js",
+    });
   } catch (error) {
-    log.error("Erreur de déconnexion :", error.message);
+    log.error("Erreur de déconnexion :", error.message, {
+      id: "HANDLELOGOUT",
+      origin: "authService.js",
+      stack: error.stack,
+    });
   }
 };
