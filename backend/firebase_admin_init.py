@@ -9,13 +9,14 @@ from logger import backend_logger as logger
 env_loaded = load_dotenv()
 
 if not env_loaded:
-    logger.error("[FIREBASE] Impossible de charger le fichier .env")
+    logger.warning("[FIREBASE] Impossible de charger le fichier .env")
 
 service_account_str = os.environ.get("FIREBASE_SERVICE_ACCOUNT")
-logger.info(f"[FIREBASE] Chargement de la clé de service Firebase depuis le fichier .env : {service_account_str}")
 
 if not service_account_str:
     logger.error("[FIREBASE] Aucune clé de service Firebase trouvée dans le fichier .env")
+else:
+    logger.info("[FIREBASE] Clé de service Firebase trouvée")
 
 # JSON parsing
 try:
