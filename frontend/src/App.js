@@ -179,6 +179,7 @@ function App() {
   };
 
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  
   // Fonction pour obtenir le calendrier lier au calendarName
   const getCalendar = async (calendarName, startDate ) => {
     try {
@@ -226,6 +227,8 @@ function App() {
       });
     }
   };
+
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   // Fonction pour obtenir les différents médicaments
   const fetchCalendarsMedecines = async (calendarName) => {
@@ -354,6 +357,38 @@ function App() {
     ]);
   };
 
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+  // Fonction pour recupérer un calendrier partagé par sharedTokens
+  const getSharedCalendar = async (sharedToken, startDate) => {
+    try {
+      if (!startDate) {
+        startDate = new Date().toISOString().slice(0, 10);
+      }
+      
+      const res = await fetch(`${API_URL}/api/shared/${sharedToken}?startTime=${startDate}`, {
+        method: "GET",
+      });
+      if (!res.ok) throw new Error(`Erreur HTTP GET /api/shared/${sharedToken}`);
+      const data = await res.json();
+      setCalendarEvents(data.map(e => ({ title: e.title, start: e.date, color: e.color })));
+      log.info("Calendrier partagé recuperé avec succès", {
+        id: "SHARED_CALENDAR_FETCH_SUCCESS",
+        origin: "App.js",
+        count: data?.length,
+      });
+      return true;
+    } catch (err) {
+      log.error("Échec de récupération du calendrier partagé", err, {
+        id: "SHARED_CALENDAR_FETCH_FAIL",
+        origin: "App.js",
+        stack: err.stack,
+      });
+      return false;
+    }
+  }
+
 
 
   const sharedProps = {
@@ -385,6 +420,9 @@ function App() {
       deleteCalendar,                         // Suppression d’un calendrier existant
       RenameCalendar,                         // Renommage d’un calendrier
       getMedicineCount,                       // Nombre de médicaments dans un calendrier
+    },
+    shared: {
+      getSharedCalendar,                    // Récupération d’un calendrier partagé
     },
   }  
 

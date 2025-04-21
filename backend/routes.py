@@ -346,6 +346,9 @@ def handle_shared(token):
     try:
         if request.method == "GET":
             doc = db.collection("shared_tokens").document(token).get()
+            if not doc.exists:
+                logger.warning(f"[CALENDAR_SHARED_LOAD] Token introuvable : {token}.")
+                return jsonify({"error": "Token introuvable"}), 404
             data = doc.to_dict()
             calendar_name = data.get("calendar_name")
             uid = data.get("calendar_owner_uid")
@@ -391,7 +394,7 @@ def handle_shared(token):
 
             schedule = generate_schedule(start_date, medicines)
             logger.info("[CALENDAR_GENERATE] Calendrier généré avec succès.")
-            return jsonify(data), 200
+            return jsonify(schedule), 200
     except Exception as e:
         logger.exception(f"[CALENDAR_GENERATE_ERROR] Erreur dans /api/shared/${token}")
         return jsonify({"error": "Erreur lors de la génération du calendrier."}), 500
