@@ -71,12 +71,6 @@ function CalendarPage({ events, shared }) {
         <div className="card-body">
           {/* Ligne 1 : Boutons d'action */}
           <div className="d-flex flex-wrap  align-items-left gap-2 mb-3">
-            <button
-              className="btn btn-outline-primary"
-              onClick={() => navigate('/calendars')}
-            >
-              🗂 Liste des calendriers
-            </button>
             {/*}
             <button
               className="btn btn-outline-secondary"
