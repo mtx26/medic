@@ -7,18 +7,8 @@ import AlertSystem from '../components/AlertSystem';
 
 
 
-function MedicamentsPage({
-  meds, setMeds,
-  selectedToDelete,
-  setChecked,
-  handleMedChange,
-  updateMeds,
-  deleteSelectedMeds,
-  addMed,
-  fetchCalendarsMedecines,
-  calendars,
-  setCalendars,
-}) {
+function MedicamentsPage({ meds }) {
+  
   const { nameCalendar } = useParams();
   const { authReady, login } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -35,7 +25,7 @@ function MedicamentsPage({
 
 
   const toggleSelection = (index) => {
-    setChecked((prev) =>
+    meds.setChecked((prev) =>
       prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
     );
   };
@@ -52,18 +42,18 @@ function MedicamentsPage({
     );
   };
 
-  const allMedsValid = meds.length > 0 && meds.every(isMedValid);
+  const allMedsValid = meds.medsData.length > 0 && meds.medsData.every(isMedValid);
   
   useEffect(() => {
-    setMeds([]);
-  }, [nameCalendar, setMeds]);
+    meds.setMedsData([]);
+  }, [nameCalendar, meds.setMedsData]);
 
 
   useEffect(() => {
-    setMeds([]);
+    meds.setMedsData([]);
     setLoading(true);
     if (authReady && login) {
-      fetchCalendarsMedecines(nameCalendar).finally(() => {
+      meds.fetchCalendarsMedecines(nameCalendar).finally(() => {
         setLoading(false);
       });
     }
@@ -71,12 +61,12 @@ function MedicamentsPage({
   
 
 
-if (calendars.length === 0) {
+if (meds.calendarsData.length === 0) {
   return <div className="text-center mt-5">⏳ Chargement des médicaments...</div>;
 }
 
 
-if (!calendars.includes(nameCalendar)) {
+if (!meds.calendarsData.includes(nameCalendar)) {
   navigate("/calendars");
 };
 
@@ -96,8 +86,8 @@ if (!calendars.includes(nameCalendar)) {
       <div className="d-flex flex-wrap gap-2 my-3">
         <button 
         onClick={() => {
-          addMed();
-          setHighlightedIndex(meds.length);
+          meds.addMed();
+          setHighlightedIndex(meds.medsData.length);
           setTimeout(() => {
             setHighlightedIndex(null);
           }, 2000)
@@ -115,7 +105,7 @@ if (!calendars.includes(nameCalendar)) {
             setAlertType("confirm-danger");
             setAlertMessage("❌ Confirmez-vous la suppression des médicaments sélectionnés ?");
             setOnConfirmAction(() => async () => {
-              const success = await deleteSelectedMeds(nameCalendar);
+              const success = await meds.deleteSelectedMeds(nameCalendar);
               if (success) {
                 setAlertMessage("✅ Médicaments supprimés.");
                 setAlertType("success");
@@ -133,7 +123,7 @@ if (!calendars.includes(nameCalendar)) {
             });
           }}
           className="btn btn-danger btn-sm"
-          disabled={selectedToDelete.length === 0}
+          disabled={meds.checked.length === 0}
         >
           🗑️ Supprimer sélectionnés
         </button>
@@ -144,7 +134,7 @@ if (!calendars.includes(nameCalendar)) {
             setAlertType("confirm-safe");
             setAlertMessage("✅ Enregistrer les modifications de médicaments ?");
             setOnConfirmAction(() => {
-              const success = updateMeds(nameCalendar);
+              const success = meds.updateMeds(nameCalendar);
               if (success) {
                 setAlertMessage("✅ Modifications enregistrées.");
                 setAlertType("success");
@@ -182,13 +172,13 @@ if (!calendars.includes(nameCalendar)) {
       <ul className="list-group">
         {loading ? (
           <div className="text-center mt-5">⏳ Chargement des médicaments...</div>
-        ) : meds.length === 0 ? (
+        ) : meds.medsData.length === 0 ? (
           <div className="text-center mt-5 text-muted">❌ Aucun médicament n’a encore été ajouté pour ce calendrier.</div>
         ) : (
-          meds.map((med, index) => (
+          meds.medsData.map((med, index) => (
             <li 
             key={index} 
-            ref={index === meds.length - 1 ? lastMedRef : null} 
+            ref={index === meds.medsData.length - 1 ? lastMedRef : null} 
             className={`list-group-item px-2 py-3 ${index === highlightedIndex ? 'highlighted-med' : ''}`}
             >
               <div className="d-flex flex-wrap align-items-center gap-2">
@@ -196,7 +186,7 @@ if (!calendars.includes(nameCalendar)) {
                   <input
                     className="form-check-input mt-2"
                     type="checkbox"
-                    checked={selectedToDelete.includes(index)}
+                    checked={meds.checked.includes(index)}
                     onChange={() => toggleSelection(index)}
                     id={`check-${index}`}
                   />
@@ -209,7 +199,7 @@ if (!calendars.includes(nameCalendar)) {
                     id={`name-${index}`}
                     placeholder="Nom"
                     value={med.name}
-                    onChange={(e) => handleMedChange(index, 'name', e.target.value)}
+                    onChange={(e) => meds.handleMedChange(index, 'name', e.target.value)}
                   />
                   <label htmlFor={`name-${index}`}>Nom</label>
                 </div>
@@ -222,7 +212,7 @@ if (!calendars.includes(nameCalendar)) {
                     id={`comps-${index}`}
                     placeholder="Comprimés"
                     value={med.tablet_count ?? ''}
-                    onChange={(e) => handleMedChange(index, 'tablet_count', e.target.value)}
+                    onChange={(e) => meds.handleMedChange(index, 'tablet_count', e.target.value)}
                   />
                   <label htmlFor={`comps-${index}`}>Comprimés</label>
                 </div>
@@ -232,7 +222,7 @@ if (!calendars.includes(nameCalendar)) {
                     className="form-select form-select-sm"
                     id={`moment-${index}`}
                     value={med.time[0]}
-                    onChange={(e) => handleMedChange(index, 'time', e.target.value)}
+                    onChange={(e) => meds.handleMedChange(index, 'time', e.target.value)}
                   >
                     <option value="" disabled hidden>Choisir</option>
                     <option value="morning">Matin</option>
@@ -248,7 +238,7 @@ if (!calendars.includes(nameCalendar)) {
                     id={`interval-${index}`}
                     placeholder="Intervalle"
                     value={med.interval_days ?? ''}
-                    onChange={(e) => handleMedChange(index, 'interval_days', e.target.value)}
+                    onChange={(e) => meds.handleMedChange(index, 'interval_days', e.target.value)}
                   />
                   <label htmlFor={`interval-${index}`}>Intervalle</label>
                 </div>
@@ -260,7 +250,7 @@ if (!calendars.includes(nameCalendar)) {
                     id={`start-${index}`}
                     placeholder="Date de début"
                     value={med.start_date || ''}
-                    onChange={(e) => handleMedChange(index, 'start_date', e.target.value)}
+                    onChange={(e) => meds.handleMedChange(index, 'start_date', e.target.value)}
                   />
                   <label htmlFor={`start-${index}`}>Date de début</label>
                 </div>

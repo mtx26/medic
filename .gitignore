@@ -29,3 +29,4 @@ serviceAccountKey.json
 .venv/
 *.log
 backend/pils.json
+frontend/src/pages/SharedCalendar.jsx

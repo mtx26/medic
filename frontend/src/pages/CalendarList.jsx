@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../contexts/LoginContext';
 import AlertSystem from '../components/AlertSystem';
 
-function SelectCalendar({ calendars, fetchCalendars, addCalendar, deleteCalendar, RenameCalendar, getMedicineCount }) {
+function SelectCalendar({ calendars }) {
 
   const navigate = useNavigate();
   const { authReady, login } = useContext(AuthContext); // Récupération du contexte d'authentification
@@ -16,18 +16,18 @@ function SelectCalendar({ calendars, fetchCalendars, addCalendar, deleteCalendar
   
   // Chargement du nombre de médicaments pour chaque calendrier
   useEffect(() => {
-    if (authReady && login && calendars.length > 0) {
+    if (authReady && login && calendars.calendarsData.length > 0) {
     const loadCounts = async () => {
       const counts = {};
-      for (const calendarName of calendars) {
-      const c = await getMedicineCount(calendarName); // Récupération du nombre de médicaments
+      for (const calendarName of calendars.calendarsData) {
+      const c = await calendars.getMedicineCount(calendarName); // Récupération du nombre de médicaments
       counts[calendarName] = c;
       }
       setCount(counts); // Mise à jour de l'état avec les nombres
     };
     loadCounts();
     }
-  }, [calendars]);
+  }, [calendars.calendarsData]);
   
 
   return (
@@ -46,7 +46,7 @@ function SelectCalendar({ calendars, fetchCalendars, addCalendar, deleteCalendar
     />
     <button
     onClick={async() => {
-      const success = await addCalendar(newCalendarName);
+      const success = await calendars.addCalendar(newCalendarName);
       if (success) {
         setAlertMessage("✅ Calendrier ajouté avec succès !");
         setAlertType("success");
@@ -81,7 +81,7 @@ function SelectCalendar({ calendars, fetchCalendars, addCalendar, deleteCalendar
 
   {/* Liste des calendriers */}
   <div className="list-group">
-    {calendars.map((calendarName, index) => (
+    {calendars.calendarsData.map((calendarName, index) => (
     <div
       key={index}
       className="list-group-item"
@@ -113,7 +113,7 @@ function SelectCalendar({ calendars, fetchCalendars, addCalendar, deleteCalendar
         className="btn btn-outline-warning"
         title="Renommer"
         onClick={() => {
-          RenameCalendar(calendarName, renameValues[calendarName]); // Renommage du calendrier
+          calendars.RenameCalendar(calendarName, renameValues[calendarName]); // Renommage du calendrier
           setRenameValues({ ...renameValues, [calendarName]: "" }); // Réinitialisation du champ
         }}
         >
@@ -131,6 +131,15 @@ function SelectCalendar({ calendars, fetchCalendars, addCalendar, deleteCalendar
         >
         Ouvrir
         </button>
+
+        <button
+        type="button"
+        className="btn btn-outline-warning"
+        title="Partager"
+        >
+          Partager
+        </button>
+
         <button
         type="button"
         className="btn btn-outline-danger"
@@ -139,7 +148,7 @@ function SelectCalendar({ calendars, fetchCalendars, addCalendar, deleteCalendar
           setAlertType("confirm-danger");
           setAlertMessage("❌ Confirmez-vous la suppression du calendrier ?");
           setOnConfirmAction(() => () => {
-            deleteCalendar(calendarName);
+            calendars.deleteCalendar(calendarName);
           });
         }}
         >

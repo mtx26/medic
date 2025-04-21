@@ -6,9 +6,11 @@ import NotFound from './../pages/NotFound';
 import Auth from "../pages/Auth";
 import ResetPassword from "../pages/ResetPassword";
 import CalendarList from '../pages/CalendarList';
+import SharedCalendar from '../pages/SharedCalendar';
 // import Token from "../test/pages/Token";
 import { useContext } from "react";
 import { UserContext } from "../contexts/UserContext";
+
 
 function AppRoutes({ sharedProps }) {
 
@@ -19,6 +21,7 @@ function AppRoutes({ sharedProps }) {
       <Route path="/calendars" element={userInfo ? <CalendarList {...sharedProps}/>: <Navigate to="/login" />} />
       <Route path="/calendars/:nameCalendar" element={userInfo ? <CalendarView {...sharedProps} />: <Navigate to="/login" />} />
       <Route path="/calendars/:nameCalendar/medicines" element={userInfo ? <CalendarMedicines {...sharedProps} />: <Navigate to="/login" />} />
+
       <Route path="*" element={<NotFound />} />
       <Route path="/login" element={userInfo ? <Navigate to="/calendars" /> : <Auth/>} />
       <Route path="/register" element={userInfo ? <Navigate to="/calendars" /> : <Auth/>} />
@@ -29,3 +32,4 @@ function AppRoutes({ sharedProps }) {
 }
 
 export default AppRoutes;
+//       <Route path="/shared-calendar/:sharedTokens" element={userInfo ? <SharedCalendar {...sharedProps} />: <Navigate to="/login" />} />

@@ -12,16 +12,15 @@ import { AuthContext } from './contexts/LoginContext';
 const API_URL = process.env.REACT_APP_API_URL;
 
 function App() {
-  const [rawEvents, setRawEvents] = useState([]);
   const [calendarEvents, setCalendarEvents] = useState([]);
   const [selectedDate, setSelectedDate] = useState('');
   const [eventsForDay, setEventsForDay] = useState([]);
-  const [meds, setMeds] = useState([]);
-  const [selectedToDelete, setChecked] = useState([]);
+  const [medsData, setMedsData] = useState([]);
+  const [checked, setChecked] = useState([]);
 
   const [startDate, setStartDate] = useState(() => new Date().toISOString().slice(0, 10));
 
-  const [calendars, setCalendars] = useState([]);
+  const [calendarsData, setCalendarsData] = useState([]);
   const { authReady, login } = useContext(AuthContext);
 
   // Fonction pour obtenir les calendriers
@@ -40,7 +39,7 @@ function App() {
         origin: "App.js",
         count: data.calendars?.length,
       });
-      setCalendars(data.calendars ?? []);
+      setCalendarsData(data.calendars ?? []);
 
     } catch (err) {
       log.error("Échec de récupération des calendriers", err, {
@@ -210,7 +209,6 @@ function App() {
       });
       if (!res.ok) throw new Error(`Erreur HTTP GET /api/calendars/${calendarName}/calendar`);
       const data = await res.json();
-      setRawEvents(data);
       setCalendarEvents(data.map(e => ({ title: e.title, start: e.date, color: e.color })));
       log.info("Calendrier récupéré avec succès", {
         id: "CALENDAR_FETCH_SUCCESS",
@@ -241,11 +239,11 @@ function App() {
       });
       if (!res.ok) throw new Error(`Erreur HTTP GET /api/calendars/${calendarName}/medicines`);
       const data = await res.json();
-      setMeds(data.medicines)
+      setMedsData(data.medicines)
       log.info("Médicaments récupérés avec succès", {
         id: "MED_FETCH_SUCCESS",
         origin: "App.js",
-        count: meds?.length,
+        count: medsData?.length,
       });
     } catch (err) {
       log.error("Échec de récupération des médicaments", err, {
@@ -258,10 +256,10 @@ function App() {
     
 
 
-
+  // Fonction pour mettre à jour un médicament dans la variable meds
   const handleMedChange = (index, field, value) => {
     if (value !== null && field !== null && index !== null) {
-      const updated = [...meds];
+      const updated = [...medsData];
       const numericFields = ['tablet_count', 'interval_days'];
       if (field === 'time') {
         updated[index][field] = [value];
@@ -270,7 +268,7 @@ function App() {
       } else {
         updated[index][field] = value;
       }
-      setMeds(updated);
+      setMedsData(updated);
     }
     else {
       log.warn("Valeur indéfinie pour le champ", {
@@ -282,9 +280,10 @@ function App() {
     }
   };
 
-  const updateMeds = async (calendarName, newMeds = meds) => {
+    // Fonction pour mettre à jour les médicaments
+  const updateMeds = async (calendarName, newMeds = medsData) => {
     try {
-      if (meds.length === 0) {
+      if (medsData.length === 0) {
         log.warn("Aucun médicament à mettre à jour", {
           id: "MED_UPDATE_NO_MEDS",
           origin: "App.js",
@@ -319,11 +318,13 @@ function App() {
     }
   };
 
+
+  // Fonction pour supprimer des médicaments 
   const deleteSelectedMeds = async (nameCalendar) => {
-    if (selectedToDelete.length === 0) return false;
+    if (checked.length === 0) return false;
   
-    const updatedMeds = meds.filter((_, i) => !selectedToDelete.includes(i));
-    setMeds(updatedMeds);
+    const updatedMeds = medsData.filter((_, i) => !checked.includes(i));
+    setMedsData(updatedMeds);
     setChecked([]);
   
     const success = await updateMeds(nameCalendar, updatedMeds);
@@ -332,47 +333,60 @@ function App() {
       log.info("Médicaments supprimés avec succès", {
         id: "MED_DELETE_SUCCESS",
         origin: "App.js",
-        count: selectedToDelete.length,
+        count: checked.length,
       });
     } else {
       log.error("Échec de suppression des médicaments", {
         id: "MED_DELETE_FAIL",
         origin: "App.js",
-        count: selectedToDelete.length,
+        count: checked.length,
       });
     }
     return success;
   };
   
 
+  // Fonction pour ajouter un nouveau médicament sanq la variable meds
   const addMed = () => {
-    setMeds([
-      ...meds,
+    setMedsData([
+      ...medsData,
       { name: '', tablet_count: 1, time: ['morning'], interval_days: 1, start_date: '' },
     ]);
   };
 
+
+
   const sharedProps = {
-    rawEvents, setRawEvents,
-    calendarEvents, setCalendarEvents,
-    selectedDate, setSelectedDate,
-    eventsForDay, setEventsForDay,
-    meds, setMeds,
-    selectedToDelete, setChecked,
-    startDate, setStartDate,
-    calendars, setCalendars,
-    getCalendar,
-    handleMedChange,
-    updateMeds,
-    deleteSelectedMeds,
-    addMed,
-    fetchCalendars,
-    addCalendar,
-    deleteCalendar,
-    RenameCalendar,
-    getMedicineCount,
-    fetchCalendarsMedecines,
-  };
+    // 🗓️ ÉVÉNEMENTS DU CALENDRIER
+    events: {
+      calendarEvents, setCalendarEvents,      // Événements affichés dans le calendrier
+      selectedDate, setSelectedDate,          // Date actuellement sélectionnée
+      eventsForDay, setEventsForDay,          // Événements filtrés pour un jour spécifique
+      startDate, setStartDate,                // Date de début pour affichage du calendrier
+      calendarsData, setCalendarsData,                // Liste des calendriers de l’utilisateur
+      getCalendar,                            // Chargement des données d’un calendrier
+    },
+    meds: {
+      // 💊 MÉDICAMENTS
+      medsData, setMedsData,                          // Liste des médicaments du calendrier actif
+      checked, setChecked,                    // Médicaments cochés pour suppression
+      calendarsData, setCalendarsData,                // Liste des calendriers de l’utilisateur
+      handleMedChange,                        // Fonction pour modifier un médicament
+      updateMeds,                             // Mise à jour des médicaments dans Firestore
+      deleteSelectedMeds,                     // Suppression des médicaments sélectionnés
+      addMed,                                 // Ajout d’un nouveau médicament
+      fetchCalendarsMedecines,                // Récupération des médicaments d’un calendrier
+    },
+    calendars: {
+      // 📅 CALENDRIERS
+      calendarsData, setCalendarsData,                // Liste des calendriers de l’utilisateur
+      fetchCalendars,                         // Récupération des calendriers (Firestore)
+      addCalendar,                            // Création d’un nouveau calendrier
+      deleteCalendar,                         // Suppression d’un calendrier existant
+      RenameCalendar,                         // Renommage d’un calendrier
+      getMedicineCount,                       // Nombre de médicaments dans un calendrier
+    },
+  }  
 
   useEffect(() => {
     if (authReady && login) {

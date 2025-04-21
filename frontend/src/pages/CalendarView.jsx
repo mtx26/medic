@@ -6,56 +6,50 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import frLocale from '@fullcalendar/core/locales/fr';
 import { AuthContext } from '../contexts/LoginContext';
+function CalendarPage({ events }) {
 
-function CalendarPage({
-  rawEvents, setRawEvents,
-  calendarEvents, setCalendarEvents,
-  selectedDate,
-  setSelectedDate,
-  eventsForDay,
-  setEventsForDay,
-  startDate,
-  setStartDate,
-  getCalendar,
-  calendars,
-}) {
   const modalRef = useRef(null);
   const { nameCalendar } = useParams();
 
   const navigate = useNavigate();
   const { authReady, login } = useContext(AuthContext);
 
+  // Fonction pour gérer le clic sur une date
   const handleDateClick = (info) => {
     const clickedDate = info.dateStr;
-    setSelectedDate(clickedDate);
-    setEventsForDay(rawEvents.filter((event) => event.date.startsWith(clickedDate)));
+    events.setSelectedDate(clickedDate);
+    events.setEventsForDay(events.calendarEvents.filter((event) => event.start.startsWith(clickedDate)));
     new window.bootstrap.Modal(modalRef.current).show();
   };
 
+  // Fonction pour naviguer vers la date suivante ou precedente
   const navigateDay = (direction) => {
-    const current = new Date(selectedDate);
+    const current = new Date(events.selectedDate);
     current.setDate(current.getDate() + direction);
     const newDate = current.toISOString().slice(0, 10);
-    setSelectedDate(newDate);
-    setEventsForDay(rawEvents.filter((event) => event.date.startsWith(newDate)));
+    events.setSelectedDate(newDate);
+    events.setEventsForDay(events.calendarEvents.filter((event) => event.start.startsWith(newDate)));
   };
+
+  // Fonction pour réinitialiser les données lorsque le calendrier change
   useEffect(() => {
-    setRawEvents([]);
-    setCalendarEvents([]);
-  }, [nameCalendar, setRawEvents, setCalendarEvents]);
+    events.setCalendarEvents([]);
+  }, [nameCalendar, events.setCalendarEvents]);
   
+  // Fonction pour charger le calendrier lorsque l'utilisateur est connecté
   useEffect(() => {
     if (authReady && login && nameCalendar) {
-      getCalendar(nameCalendar)
+      events.getCalendar(nameCalendar)
     }
   }, [authReady, login, nameCalendar]);
 
-  
-  if (!calendars || calendars.length === 0) {
+  // Si le calendrier n'est pas chargé, afficher un message de chargement
+  if (!events.calendarsData || events.calendarsData.length === 0) {
     return <div className="text-center mt-5">⏳ Chargement du calendrier...</div>;
   }
   
-  if (!calendars.includes(nameCalendar)) {
+  // Si le calendrier n'est pas trouvé, rediriger vers la liste des calendriers
+  if (!events.calendarsData.includes(nameCalendar)) {
     navigate("/calendars");
   }
   
@@ -94,14 +88,14 @@ function CalendarPage({
                 id="datePicker"
                 type="date"
                 className="form-control"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
+                value={events.startDate}
+                onChange={(e) => events.setStartDate(e.target.value)}
               />
             </div>
 
             <div>
               <button
-                onClick={() => getCalendar(nameCalendar, startDate)}
+                onClick={() => events.getCalendar(nameCalendar, events.startDate)}
                 className="btn btn-outline-primary"
               >
                 🔄 Charger le calendrier
@@ -119,7 +113,7 @@ function CalendarPage({
       <FullCalendar
         plugins={[dayGridPlugin, interactionPlugin]}
         initialView="dayGridMonth"
-        events={calendarEvents}
+        events={events.calendarEvents}
         locale={frLocale}
         firstDay={1}
         dateClick={handleDateClick}
@@ -164,7 +158,7 @@ function CalendarPage({
           <div className="modal-content">
             <div className="modal-header">
               <h5 className="modal-title">
-                📅 {new Date(selectedDate).toLocaleDateString('fr-FR', {
+                📅 {new Date(events.selectedDate).toLocaleDateString('fr-FR', {
                   weekday: 'long',
                   year: 'numeric',
                   month: 'long',
@@ -177,9 +171,9 @@ function CalendarPage({
               <div className="d-flex justify-content-between align-items-center">
                 <button className="btn btn-outline-secondary btn-sm" onClick={() => navigateDay(-1)}>⬅</button>
                 <div className="flex-grow-1 mx-3">
-                  {eventsForDay.length > 0 ? (
+                  {events.eventsForDay.length > 0 ? (
                     <ul className="list-group">
-                      {eventsForDay.map((event, index) => (
+                      {events.eventsForDay.map((event, index) => (
                         <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
                           {event.title}
                           <span className="badge" style={{ backgroundColor: event.color, color: 'white' }}>
