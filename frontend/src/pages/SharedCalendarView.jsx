@@ -49,6 +49,10 @@ function CalendarPage({ events, shared }) {
     fetchShared();
   }, [sharedTokens]);
 
+  if (!successGetSharedCalendar && sharedTokens) {
+    return <div className="text-center mt-5">⏳ Chargement du calendrier partagé...</div>;
+  }
+  
   if (sharedTokens && successGetSharedCalendar === false) {
     return (
       <div className="alert alert-danger text-center mt-5" role="alert">
@@ -56,11 +60,7 @@ function CalendarPage({ events, shared }) {
       </div>
     );
   }
-  
-  if (!successGetSharedCalendar && sharedTokens) {
-    return <div className="text-center mt-5">⏳ Chargement du calendrier partagé...</div>;
-  }
-  
+
   
   
 
