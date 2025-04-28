@@ -8,8 +8,6 @@ function Navbar() {
   const { userInfo } = useContext(UserContext);
   const { setLogin } = useContext(AuthContext);
 
-  console.log(userInfo);
-
   return (
     <nav className="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm py-2">
       <div className="container">
@@ -75,6 +73,7 @@ function Navbar() {
                   <>
                     <li><Link className="dropdown-item" to="/profile"><i class="bi bi-person"></i><span> Mon profil</span></Link></li>
                     <li><Link className="dropdown-item" to="/settings"><i class="bi bi-gear"></i><span> Paramètres</span></Link></li>
+                    <li><Link className="dropdown-item" to="/shares"><i class="bi bi-box-arrow-up"></i><span> Calendriers partagés</span></Link></li>
                     <li><hr className="dropdown-divider" /></li>
                     <li>
                       <button className="dropdown-item" onClick={() => handleLogout(setLogin)}>

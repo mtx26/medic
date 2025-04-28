@@ -4,8 +4,8 @@ from logger import backend_logger as logger
 import firebase_admin_init
 from auth import verify_firebase_token
 from firebase_admin import firestore
-from datetime import datetime, timezone
-
+from datetime import datetime, timezone, timedelta
+import secrets
 from function import generate_schedule
 
 api = Blueprint('api', __name__)
@@ -187,12 +187,14 @@ def handle_calendars():
         user = verify_firebase_token()
         uid = user["uid"]
 
+        # Route pour récupérer tous les calendriers
         if request.method == "GET":
             calendars_ref = db.collection("users").document(uid).collection("calendars")
             calendars = [doc.id for doc in calendars_ref.stream()]
             logger.info(f"[CALENDAR_GET] {len(calendars)} calendriers récupérés pour {uid}.")
             return jsonify({"calendars": calendars}), 200
 
+        # Route pour créer un calendrier
         elif request.method == "POST":
             calendar_name = request.json.get("calendarName")
             if not calendar_name:
@@ -214,16 +216,27 @@ def handle_calendars():
             logger.info(f"[CALENDAR_CREATE] Calendrier '{calendar_name}' créé pour {uid}.")
             return jsonify({"message": "Calendrier mis à jour", "status": "ok"})
 
+        # Route pour supprimer un calendrier
         elif request.method == "DELETE":
             calendar_name = request.json.get("calendarName")
             db.collection("users").document(uid).collection("calendars").document(calendar_name).delete()
             logger.info(f"[CALENDAR_DELETE] Calendrier '{calendar_name}' supprimé pour {uid}.")
+            # pour le calendrier partagé
+            shared_tokens_ref = db.collection("shared_tokens").get()
+            for doc in shared_tokens_ref:
+                if doc.to_dict().get("calendar_owner_uid") == uid:
+                    if doc.to_dict().get("calendar_name") == calendar_name:
+                        db.collection("shared_tokens").document(doc.id).delete()
             return jsonify({"message": "Calendrier supprimé", "status": "ok"})
+            
 
+        # Route pour renommer un calendrier
         elif request.method == "PUT":
+            # pour le calendrier personnel
             data = request.get_json(force=True)
             old_calendar_name = data.get("oldCalendarName")
             new_calendar_name = data.get("newCalendarName")
+            new_calendar_name = new_calendar_name.lower()
 
             if not old_calendar_name or not new_calendar_name:
                 logger.warning(f"[CALENDAR_RENAME] Noms invalides reçus pour {uid}.")
@@ -232,6 +245,15 @@ def handle_calendars():
             if old_calendar_name == new_calendar_name:
                 logger.warning(f"[CALENDAR_RENAME] Nom inchangé pour {uid} : {old_calendar_name}.")
                 return jsonify({"error": "Le nom du calendrier n'a pas changé"}), 400
+            
+            # pour le calendrier partagé
+            shared_tokens_ref = db.collection("shared_tokens").get()
+            for doc in shared_tokens_ref:
+                if doc.to_dict().get("calendar_owner_uid") == uid:
+                    if doc.to_dict().get("calendar_name") == old_calendar_name:
+                        db.collection("shared_tokens").document(doc.id).update({
+                            "calendar_name": new_calendar_name
+                        })
 
             doc_ref = db.collection("users").document(uid).collection("calendars").document(old_calendar_name).get()
 
@@ -243,6 +265,9 @@ def handle_calendars():
             else:
                 logger.warning(f"[CALENDAR_RENAME] Calendrier '{old_calendar_name}' introuvable pour {uid}.")
                 return jsonify({"error": "Calendrier introuvable"}), 404
+            
+            
+
 
     except Exception as e:
         logger.exception("[CALENDAR_ERROR] Erreur dans /api/calendars")
@@ -369,10 +394,13 @@ def handle_shared(token):
                 logger.warning(f"[CALENDAR_SHARED_LOAD] Médicaments introuvable de {calendar_name} chez {uid} pour le token {token}.")
                 return jsonify({"error": "Calendrier introuvable"}), 404
 
-            # Verifier si le token est expiré
-            if datetime.now(timezone.utc) > expires_at.replace(tzinfo=timezone.utc):
-                logger.warning(f"[CALENDAR_SHARED_LOAD] Token expiré : {token}.")
-                return jsonify({"error": "Token expiré"}), 404
+
+            # Verifier si le token est expiré ou si = a never
+            if expires_at != "never":
+                now_utc = datetime.now(timezone.utc).date()
+                if now_utc > expires_at:
+                    logger.warning(f"[MEDECINES_SHARED_LOAD] Token expiré : {token}.")
+                    return jsonify({"error": "Token expiré"}), 404
 
             # Verifier si le token est revoké
             if revoked:
@@ -393,6 +421,8 @@ def handle_shared(token):
             schedule = generate_schedule(start_date, medicines)
             logger.info("[CALENDAR_GENERATE] Calendrier généré avec succès.")
             return jsonify(schedule), 200
+            
+
     except Exception as e:
         logger.exception(f"[CALENDAR_GENERATE_ERROR] Erreur dans /api/shared/${token}")
         return jsonify({"error": "Erreur lors de la génération du calendrier."}), 500
@@ -426,10 +456,12 @@ def handle_shared_medecines(token):
                 logger.warning(f"[MEDECINES_SHARED_LOAD] Médicaments introuvable de {calendar_name} chez {uid} pour le token {token}.")
                 return jsonify({"error": "Calendrier introuvable"}), 404
 
-            # Verifier si le token est expiré
-            if datetime.now(timezone.utc) > expires_at.replace(tzinfo=timezone.utc):
-                logger.warning(f"[MEDECINES_SHARED_LOAD] Token expiré : {token}.")
-                return jsonify({"error": "Token expiré"}), 404
+            # Verifier si le token est expiré ou si = a never
+            if expires_at != "never":
+                now_utc = datetime.now(timezone.utc).date()
+                if now_utc > expires_at:
+                    logger.warning(f"[MEDECINES_SHARED_LOAD] Token expiré : {token}.")
+                    return jsonify({"error": "Token expiré"}), 404
 
             # Verifier si le token est revoké
             if revoked:
@@ -443,5 +475,77 @@ def handle_shared_medecines(token):
 
             return jsonify({"medicines": medicines}), 200
     except Exception as e:
-        logger.exception(f"[MEDECINES_SHARED_ERROR] Erreur dans /api/shared/${token}")
-        return jsonify({"error": "Erreur lors de la génération du calendrier."}), 500
+        logger.exception(f"[MEDECINES_SHARED_ERROR] Erreur dans /api/shared/${token}/medecines")
+        return jsonify({"error": "Erreur lors de la récupération des médicaments."}), 500
+
+# Route pour récupérer tous les tokens
+@api.route("/api/tokens", methods=["GET"])
+def handle_tokens():
+    try:
+        if request.method == "GET":
+            user = verify_firebase_token()
+            uid = user["uid"]
+
+            tokens_ref = db.collection("shared_tokens").get()
+            tokens = []
+            for doc in tokens_ref:
+                if doc.to_dict().get("calendar_owner_uid") == uid:
+                    tokens.append(doc.id)
+            logger.info(f"[TOKENS_FETCH] {len(tokens)} tokens récupérés pour {uid}.")
+            return jsonify({"tokens": tokens}), 200
+        
+    except Exception as e:
+        logger.exception("[TOKENS_ERROR] Erreur dans /api/tokens")
+        return jsonify({"error": "Erreur lors de la récupération des tokens."}), 500
+
+
+# Route pour créer un lien de partage
+@api.route("/api/shared/<calendar_name>", methods=["POST"])
+def handle_shared_create(calendar_name):
+    try:
+        user = verify_firebase_token()
+        uid = user["uid"]
+
+        data = request.get_json(force=True)
+
+        expires_at = data.get("expiresAt")
+        permissions = data.get("permissions")
+        if not expires_at:
+            expires_at = "never"
+        else:
+            expires_at = datetime.strptime(expires_at, "%Y-%m-%dT%H:%M")
+
+        
+        if not permissions:
+            permissions = ["read"]
+
+        # Verifier si le calendrier existe
+        doc = db.collection("users").document(uid).collection("calendars").document(calendar_name).get()
+        if not doc.exists:
+            logger.warning(f"[CALENDAR_SHARED_CREATE] Calendrier introuvable : {calendar_name} pour {uid}.")
+            return jsonify({"error": "Calendrier introuvable"}), 404
+
+        # Verifier si le calendrier est déjà partagé
+        doc_2 = db.collection("shared_tokens").get()
+        for doc in doc_2:
+            if doc.to_dict().get("calendar_name") == calendar_name:
+                logger.warning(f"[CALENDAR_SHARED_CREATE] Calendrier déjà partagé : {calendar_name} pour {uid}.")
+                return jsonify({"error": "Calendrier déjà partagé"}), 400
+        
+        # Créer un nouveau lien de partage
+        token = secrets.token_hex(16)
+        db.collection("shared_tokens").document(token).set({
+            "calendar_name": calendar_name,
+            "calendar_owner_uid": uid,
+            "expires_at": expires_at,
+            "permissions": permissions,
+            "revoked": False
+        })
+
+        logger.info(f"[CALENDAR_SHARED_CREATE] Calendrier partagé : {calendar_name} pour {uid}.")
+        return jsonify({"message": "Calendrier partagé avec succès", "token": token}), 200
+
+    except Exception as e:
+        logger.exception(f"[CALENDAR_SHARED_CREATE_ERROR] Erreur dans /api/shared/{calendar_name}")
+        return jsonify({"error": "Erreur lors de la création du lien de partage."}), 500
+

@@ -50,7 +50,7 @@ function CalendarPage({ events }) {
   
   // Si le calendrier n'est pas trouvé, rediriger vers la liste des calendriers
   if (!events.calendarsData.includes(nameCalendar)) {
-    navigate("/calendars");
+    return <div className="text-center mt-5">❌ Calendrier non trouvé</div>;
   }
   
   
@@ -158,6 +158,7 @@ function CalendarPage({ events }) {
         
       />
 
+      {/* Modal pour afficher les médicaments d'une date */}
       <div className="modal fade" ref={modalRef} tabIndex="-1" id="dateModal">
         <div className="modal-dialog modal-dialog-centered">
           <div className="modal-content">

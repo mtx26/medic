@@ -17,12 +17,12 @@ function App() {
   const [eventsForDay, setEventsForDay] = useState([]);
   const [medsData, setMedsData] = useState([]);
   const [checked, setChecked] = useState([]);
+  const [tokensList, setTokensList] = useState([]);
+  const [calendarsData, setCalendarsData] = useState([]);
 
   const [startDate, setStartDate] = useState(() => new Date().toISOString().slice(0, 10));
 
-  const [calendarsData, setCalendarsData] = useState([]);
   const { authReady, login } = useContext(AuthContext);
-
   // Fonction pour obtenir les calendriers
 
   const fetchCalendars = async () => {
@@ -389,6 +389,7 @@ function App() {
     }
   }
 
+  // Fonction pour récupérer les médicaments d'un calendrier partagé
   const getSharedMedecines = async (sharedToken) => {
     try {
       const  res = await fetch(`${API_URL}/api/shared/${sharedToken}/medecines`, {
@@ -412,8 +413,66 @@ function App() {
       return false;
     }
   }
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+  // Fonction pour récupérer les tokens
+  const fetchTokens = async () => {
+    try {
+      const token = await auth.currentUser.getIdToken();
+      const res = await fetch(`${API_URL}/api/tokens`, {
+        method: "GET",
+      headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error(`Erreur HTTP GET /api/tokens`);
+      const data = await res.json();
+      setTokensList(data.tokens);
+      log.info("Tokens récupérés avec succès", {
+        id: "TOKENS_FETCH_SUCCESS",
+        origin: "App.js",
+        count: data?.length,
+      });
+      return true;
+    } catch (err) {
+      log.error("Échec de récupération des tokens", err, {
+        id: "TOKENS_FETCH_FAIL",
+        origin: "App.js",
+        stack: err.stack,
+      });
+      return false;
+    }
+  }
 
+  // Fonction pour créer un lien de partage
+  const createSharedCalendar = async (calendarName, expiresAt, permissions) => {
+    try {
+      const token = await auth.currentUser.getIdToken();
+      const res = await fetch(`${API_URL}/api/shared/${calendarName}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ expiresAt, permissions }),
+      });
+      if (!res.ok) throw new Error(`Erreur HTTP POST /api/shared/${calendarName}`);
+      const data = await res.json();
+      log.info("Lien de partage créé avec succès", {
+        id: "SHARED_CALENDAR_CREATE_SUCCESS",
+        origin: "App.js",
+        calendarName,
+        token: data.token,
+      });
+      return {token: data.token, success: true};
+    } catch (err) {
+      log.error("Échec de création du lien de partage", err, {
+        id: "SHARED_CALENDAR_CREATE_FAIL",
+        origin: "App.js",
+        stack: err.stack,
+      });
+      return {token: null, success: false};
+    }
+  }
+  
 
   const sharedProps = {
     // 🗓️ ÉVÉNEMENTS DU CALENDRIER
@@ -451,7 +510,12 @@ function App() {
       getSharedMedecines,                     // Récupération des médicaments partagé
 
     },
-  }  
+    tokens: {
+      tokensList, setTokensList,              // Liste des tokens
+      fetchTokens,                            // Récupération des tokens
+      createSharedCalendar,                   // Création d’un lien de partage
+    }
+  }
 
   useEffect(() => {
     if (authReady && login) {
