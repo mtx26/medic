@@ -28,7 +28,7 @@ function AppRoutes({ sharedProps }) {
       <Route path="/register" element={userInfo ? <Navigate to="/calendars" /> : <Auth/>} />
       <Route path="/reset-password" element={userInfo ? <Navigate to="/calendars" /> : <ResetPassword/>} />
       <Route path="/" element={<Navigate to="/calendars" />} />
-      <Route path="/tokens" element={<TokensList {...sharedProps} />} />
+      <Route path="/shared-calendar" element={userInfo ? <TokensList {...sharedProps} /> : <Navigate to="/login" />} />
     </Routes>
   );
 }

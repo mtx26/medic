@@ -425,7 +425,8 @@ function App() {
       });
       if (!res.ok) throw new Error(`Erreur HTTP GET /api/tokens`);
       const data = await res.json();
-      setTokensList(data.tokens);
+      const sortedTokens = data.tokens.sort((a, b) => a.calendar_name.localeCompare(b.calendar_name));
+      setTokensList(sortedTokens);
       log.info("Tokens récupérés avec succès", {
         id: "TOKENS_FETCH_SUCCESS",
         origin: "App.js",
@@ -446,7 +447,7 @@ function App() {
   const createSharedCalendar = async (calendarName, expiresAt, permissions) => {
     try {
       const token = await auth.currentUser.getIdToken();
-      const res = await fetch(`${API_URL}/api/shared/${calendarName}`, {
+      const res = await fetch(`${API_URL}/api/set-shared/${calendarName}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -454,7 +455,7 @@ function App() {
         },
         body: JSON.stringify({ expiresAt, permissions }),
       });
-      if (!res.ok) throw new Error(`Erreur HTTP POST /api/shared/${calendarName}`);
+      if (!res.ok) throw new Error(`Erreur HTTP POST /api/set-shared/${calendarName}`);
       const data = await res.json();
       log.info("Lien de partage créé avec succès", {
         id: "SHARED_CALENDAR_CREATE_SUCCESS",
@@ -477,11 +478,11 @@ function App() {
   // Fonction pour supprimer un lien de partage
   const deleteSharedCalendar = async (token) => {
     try {
-      const token = await auth.currentUser.getIdToken();
+      const tokenFirebase = await auth.currentUser.getIdToken();
       const res = await fetch(`${API_URL}/api/shared/${token}`, {
         method: "DELETE",
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${tokenFirebase}`,
         },
       });
       if (!res.ok) throw new Error(`Erreur HTTP DELETE /api/shared/${token}`);
@@ -501,6 +502,95 @@ function App() {
       return false;
     }
   }
+  
+  // Fonction pour revoker un token
+  const revokeToken = async (token) => {
+    try {
+      const tokenFirebase = await auth.currentUser.getIdToken();
+      const res = await fetch(`${API_URL}/api/revoke-token/${token}`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${tokenFirebase}`,
+        },
+      });
+      if (!res.ok) throw new Error(`Erreur HTTP POST /api/revoke-token/${token}`);
+      fetchTokens();
+      log.info("Token révoqué avec succès", {
+        id: "TOKEN_REVOKE_SUCCESS",
+        origin: "App.js",
+        token,
+      });
+      return true;
+    } catch (err) {
+      log.error("Échec de révoquer le token", err, {
+        id: "TOKEN_REVOKE_FAIL",
+        origin: "App.js",
+        stack: err.stack,
+      });
+      return false;
+    }
+  }
+
+  // Fonction pour mettre à jour l'expiration d'un token
+  const updateTokenExpiration = async (token, expiresAt) => {
+    try {
+      const tokenFirebase = await auth.currentUser.getIdToken();
+      const res = await fetch(`${API_URL}/api/update-token-expiration/${token}`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${tokenFirebase}`,
+        },
+        body: JSON.stringify({ expiresAt }),
+      });
+      if (!res.ok) throw new Error(`Erreur HTTP POST /api/update-token-expiration/${token}`);
+      fetchTokens();
+      log.info("Expiration du token mise à jour avec succès", {
+        id: "TOKEN_EXPIRATION_UPDATE_SUCCESS",
+        origin: "App.js",
+        token,
+        expiresAt,
+      });
+      return true;
+    } catch (err) {
+      log.error("Échec de mise à jour de l'expiration du token", err, {
+        id: "TOKEN_EXPIRATION_UPDATE_FAIL",
+        origin: "App.js",
+        stack: err.stack,
+      });
+      return false;
+    }
+  }
+
+  // Fonction pour mettre à jour les permissions d'un token
+  const updateTokenPermissions = async (token, permissions) => {
+    try {
+      const tokenFirebase = await auth.currentUser.getIdToken();
+      const res = await fetch(`${API_URL}/api/update-token-permissions/${token}`, {
+        method: "POST",
+          headers: {
+          Authorization: `Bearer ${tokenFirebase}`,
+        },
+        body: JSON.stringify({ permissions }),
+      });
+      if (!res.ok) throw new Error(`Erreur HTTP POST /api/update-token-permissions/${token}`);
+      fetchTokens();
+      log.info("Permissions du token mises à jour avec succès", {
+        id: "TOKEN_PERMISSIONS_UPDATE_SUCCESS",
+        origin: "App.js",
+        token,
+        permissions,
+      });
+      return true;
+    } catch (err) {
+      log.error("Échec de mise à jour des permissions du token", err, {
+        id: "TOKEN_PERMISSIONS_UPDATE_FAIL",
+        origin: "App.js",
+        stack: err.stack,
+      });
+      return false;
+    }
+  }
+  
 
   const sharedProps = {
     // 🗓️ ÉVÉNEMENTS DU CALENDRIER
@@ -542,6 +632,10 @@ function App() {
       tokensList, setTokensList,              // Liste des tokens
       fetchTokens,                            // Récupération des tokens
       createSharedCalendar,                   // Création d’un lien de partage
+      deleteSharedCalendar,                   // Suppression d’un lien de partage
+      revokeToken,                            // Révoquer un token ou le réactiver
+      updateTokenExpiration,                  // Mettre à jour l'expiration d'un token
+      updateTokenPermissions,                 // Mettre à jour les permissions d'un token
     }
   }
 
@@ -564,7 +658,7 @@ function App() {
   };
 
   useEffect(() => {
-    if (authReady) {
+    if (authReady && currentUser === null) {
       resetAppData(); // 🔥 Reset tout
     }
   }, [authReady, currentUser]);

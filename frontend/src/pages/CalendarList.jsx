@@ -18,7 +18,7 @@ function SelectCalendar({ calendars, tokens }) {
   const [showShareModal, setShowShareModal] = useState(false);
   const [calendarToShare, setCalendarToShare] = useState('');
   const [shareMethod, setShareMethod] = useState('link'); 
-  const [expiresAt, setExpiresAt] = useState(''); // Date d'expiration
+  const [expiresAt, setExpiresAt] = useState(null); // Date d'expiration
   const [permissions, setPermissions] = useState('read'); // Par défaut : lecture seule
   const [existingShareToken, setExistingShareToken] = useState(null);
 
@@ -90,6 +90,7 @@ function SelectCalendar({ calendars, tokens }) {
                 id="shareToggle"
                 checked={shareMethod === 'link'}
                 onChange={() => setShareMethod(shareMethod === 'link' ? 'account' : 'link')}
+                title="Partager via un lien ou avec un compte"
               />
               <label className="form-check-label" htmlFor="shareToggle">
                 {shareMethod === 'link' ? "Partager via un lien" : "Partager avec un compte"}
@@ -142,6 +143,7 @@ function SelectCalendar({ calendars, tokens }) {
                             setExpiresAt(''); // L'utilisateur choisira la date
                           }
                         }}
+                        title="Date d'expiration"
                       >
                         <option value="never">Jamais</option>
                         <option value="date">Choisir une date</option>
@@ -153,6 +155,7 @@ function SelectCalendar({ calendars, tokens }) {
                           className="form-control"
                           value={expiresAt}
                           onChange={(e) => setExpiresAt(e.target.value)}
+                          title="Date d'expiration"
                         />
                       )}
                     </div>
@@ -163,6 +166,7 @@ function SelectCalendar({ calendars, tokens }) {
                         className="form-select"
                         value={permissions}
                         onChange={(e) => setPermissions(e.target.value)}
+                        title="Permissions"
                       >
                         <option value="read">Lecture seule</option>
                         {/* <option value="edit">Lecture + Édition</option> */}

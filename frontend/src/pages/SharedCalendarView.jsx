@@ -31,11 +31,6 @@ function CalendarPage({ events, shared }) {
     events.setSelectedDate(newDate);
     events.setEventsForDay(events.calendarEvents.filter((event) => event.start.startsWith(newDate)));
   };
-
-  // Fonction pour réinitialiser les données lorsque le calendrier change
-  useEffect(() => {
-    events.setCalendarEvents([]);
-  }, [events.setCalendarEvents]);
   
   // Fonction pour charger le calendrier lorsque l'utilisateur est connecté
   useEffect(() => {

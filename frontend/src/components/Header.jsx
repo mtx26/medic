@@ -71,7 +71,7 @@ function Navbar() {
                   <>
                     <li><Link className="dropdown-item" to="/profile"><i class="bi bi-person"></i><span> Mon profil</span></Link></li>
                     <li><Link className="dropdown-item" to="/settings"><i class="bi bi-gear"></i><span> Paramètres</span></Link></li>
-                    <li><Link className="dropdown-item" to="/shares"><i class="bi bi-box-arrow-up"></i><span> Calendriers partagés</span></Link></li>
+                    <li><Link className="dropdown-item" to="/shared-calendar"><i class="bi bi-box-arrow-up"></i><span> Calendriers partagés</span></Link></li>
                     <li><hr className="dropdown-divider" /></li>
                     <li>
                       <button className="dropdown-item" onClick={() => handleLogout()}>
