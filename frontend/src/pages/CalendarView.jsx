@@ -1,18 +1,19 @@
 // CalendarPage.jsx
-import React, { useEffect, useContext, useRef } from 'react';
+import React, { useEffect, useContext, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import frLocale from '@fullcalendar/core/locales/fr';
 import { AuthContext } from '../contexts/LoginContext';
-function CalendarPage({ events }) {
+function CalendarPage({ events, calendars }) {
 
   const modalRef = useRef(null);
   const { nameCalendar } = useParams();
 
   const navigate = useNavigate();
-  const { authReady, login } = useContext(AuthContext);
+  const { authReady, currentUser } = useContext(AuthContext);
+  const [loadingCalendars, setLoadingCalendars] = useState(true);
 
   // Fonction pour gérer le clic sur une date
   const handleDateClick = (info) => {
@@ -33,19 +34,37 @@ function CalendarPage({ events }) {
 
   // Fonction pour réinitialiser les données lorsque le calendrier change
   useEffect(() => {
-    events.setCalendarEvents([]);
-  }, [nameCalendar, events.setCalendarEvents]);
+    const load = async () => {
+      if (authReady) { // authReady doit être prêt
+        if (currentUser) {
+          calendars.setCalendarsData([]); // Bien vider l'ancien
+          setLoadingCalendars(true);
+          await calendars.fetchCalendars(); // Recharger pour le nouvel utilisateur
+          setLoadingCalendars(false);
+        } else {
+          setLoadingCalendars(false);
+        }
+      }
+    };
+    load();
+  }, [authReady, currentUser]); // 🔥 écouter authReady ET currentUser
   
   // Fonction pour charger le calendrier lorsque l'utilisateur est connecté
   useEffect(() => {
-    if (authReady && login && nameCalendar) {
+    if (authReady && currentUser && nameCalendar) {
       events.getCalendar(nameCalendar)
     }
-  }, [authReady, login, nameCalendar]);
+  }, [authReady, currentUser, nameCalendar]);
 
   // Si le calendrier n'est pas chargé, afficher un message de chargement
-  if (!events.calendarsData || events.calendarsData.length === 0) {
-    return <div className="text-center mt-5">⏳ Chargement du calendrier...</div>;
+  if (loadingCalendars) {
+    return (
+      <div className="d-flex justify-content-center align-items-center" style={{ height: '60vh' }}>
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Chargement des calendriers...</span>
+        </div>
+      </div>
+    );
   }
   
   // Si le calendrier n'est pas trouvé, rediriger vers la liste des calendriers

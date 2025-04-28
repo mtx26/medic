@@ -8,7 +8,7 @@ import AlertSystem from '../components/AlertSystem';
 function SelectCalendar({ calendars, tokens }) {
 
   const navigate = useNavigate();
-  const { authReady, login } = useContext(AuthContext); // Récupération du contexte d'authentification
+  const { authReady, currentUser } = useContext(AuthContext); // Récupération du contexte d'authentification
   const [newCalendarName, setNewCalendarName] = useState(''); // État pour le nom du nouveau calendrier
   const [renameValues, setRenameValues] = useState({}); // État pour les valeurs de renommage
   const [count, setCount] = useState({}); // État pour stocker le nombre de médicaments par calendrier
@@ -20,14 +20,30 @@ function SelectCalendar({ calendars, tokens }) {
   const [shareMethod, setShareMethod] = useState('link'); 
   const [expiresAt, setExpiresAt] = useState(''); // Date d'expiration
   const [permissions, setPermissions] = useState('read'); // Par défaut : lecture seule
+  
+  const [loadingCalendars, setLoadingCalendars] = useState(true);
   const REACT_URL = process.env.REACT_APP_REACT_URL
 
-  console.log(REACT_URL);
-
+  useEffect(() => {
+    const load = async () => {
+      if (authReady) { // authReady doit être prêt
+        if (currentUser) {
+          calendars.setCalendarsData([]); // Bien vider l'ancien
+          setLoadingCalendars(true);
+          await calendars.fetchCalendars(); // Recharger pour le nouvel utilisateur
+          setLoadingCalendars(false);
+        } else {
+          setLoadingCalendars(false);
+        }
+      }
+    };
+    load();
+  }, [authReady, currentUser]); // 🔥 écouter authReady ET currentUser
+  
   
   // Chargement du nombre de médicaments pour chaque calendrier
   useEffect(() => {
-    if (authReady && login && calendars.calendarsData.length > 0) {
+    if (authReady && currentUser && calendars.calendarsData.length > 0) {
     const loadCounts = async () => {
       const counts = {};
       for (const calendarName of calendars.calendarsData) {
@@ -38,7 +54,18 @@ function SelectCalendar({ calendars, tokens }) {
     };
     loadCounts();
     }
-  }, [calendars.calendarsData]);
+  }, [calendars.calendarsData, authReady, currentUser]);
+
+  if (loadingCalendars) {
+    return (
+      <div className="d-flex justify-content-center align-items-center" style={{ height: '60vh' }}>
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Chargement des calendriers...</span>
+        </div>
+      </div>
+    );
+  }
+  
   
 
   return (

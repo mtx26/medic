@@ -6,7 +6,6 @@ import { handleLogout } from "../services/authService";
 
 function Navbar() {
   const { userInfo } = useContext(UserContext);
-  const { setLogin } = useContext(AuthContext);
 
   return (
     <nav className="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm py-2">
@@ -76,7 +75,7 @@ function Navbar() {
                     <li><Link className="dropdown-item" to="/shares"><i class="bi bi-box-arrow-up"></i><span> Calendriers partagés</span></Link></li>
                     <li><hr className="dropdown-divider" /></li>
                     <li>
-                      <button className="dropdown-item" onClick={() => handleLogout(setLogin)}>
+                      <button className="dropdown-item" onClick={() => handleLogout()}>
                       <i class="bi bi-unlock"></i>
                       <span> Déconnexion</span>
                       </button>

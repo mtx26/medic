@@ -478,7 +478,7 @@ def handle_shared_medecines(token):
         logger.exception(f"[MEDECINES_SHARED_ERROR] Erreur dans /api/shared/${token}/medecines")
         return jsonify({"error": "Erreur lors de la récupération des médicaments."}), 500
 
-# Route pour récupérer tous les tokens
+# Route pour récupérer tous les tokens et les informations associées
 @api.route("/api/tokens", methods=["GET"])
 def handle_tokens():
     try:
@@ -490,7 +490,7 @@ def handle_tokens():
             tokens = []
             for doc in tokens_ref:
                 if doc.to_dict().get("calendar_owner_uid") == uid:
-                    tokens.append(doc.id)
+                    tokens.append(doc.to_dict())
             logger.info(f"[TOKENS_FETCH] {len(tokens)} tokens récupérés pour {uid}.")
             return jsonify({"tokens": tokens}), 200
         

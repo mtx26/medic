@@ -26,7 +26,13 @@ function SharedCalendarMedicines({ shared }) {
   }, [sharedTokens]);
 
   if (successGetSharedMedecines === undefined && sharedTokens) {
-    return <div className="text-center mt-5">⏳ Chargement du calendrier partagé...</div>;
+    return (
+      <div className="d-flex justify-content-center align-items-center" style={{ height: '60vh' }}>
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Chargement des médicaments...</span>
+        </div>
+      </div>
+    );
   }
   
   if (sharedTokens && successGetSharedMedecines === false) {

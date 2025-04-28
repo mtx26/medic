@@ -22,7 +22,7 @@ function App() {
 
   const [startDate, setStartDate] = useState(() => new Date().toISOString().slice(0, 10));
 
-  const { authReady, login } = useContext(AuthContext);
+  const { authReady, currentUser } = useContext(AuthContext);
   // Fonction pour obtenir les calendriers
 
   const fetchCalendars = async () => {
@@ -183,7 +183,7 @@ function App() {
   // Fonction pour obtenir le calendrier lier au calendarName
   const getCalendar = async (calendarName, startDate ) => {
     try {
-      if (!login) {
+      if (!currentUser) {
         log.warn("Utilisateur non connecté, calendrier non chargé.", {
           id: "USER_NOT_AUTHENTICATED",
           origin: "App.js",
@@ -429,7 +429,7 @@ function App() {
       log.info("Tokens récupérés avec succès", {
         id: "TOKENS_FETCH_SUCCESS",
         origin: "App.js",
-        count: data?.length,
+        count: data
       });
       return true;
     } catch (err) {
@@ -517,11 +517,31 @@ function App() {
     }
   }
 
+  const resetAppData = () => {
+    // EVENTS
+    setCalendarEvents([]);
+    setSelectedDate(null);
+    setEventsForDay([]);
+    setStartDate(null);
+  
+    // MEDS
+    setMedsData([]);
+    setChecked([]);
+    
+    // CALENDARS
+    setCalendarsData([]);
+    
+    // TOKENS
+    setTokensList([]);
+  };
+
   useEffect(() => {
-    if (authReady && login) {
-      fetchCalendars();
+    if (authReady) {
+      resetAppData(); // 🔥 Reset tout
     }
-  }, [authReady, login]);
+  }, [authReady, currentUser]);
+  
+  
 
   return (
     <Router>

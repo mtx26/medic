@@ -50,7 +50,13 @@ function CalendarPage({ events, shared }) {
   }, [sharedTokens]);
 
   if (successGetSharedCalendar === undefined  && sharedTokens) {
-    return <div className="text-center mt-5">⏳ Chargement du calendrier partagé...</div>;
+    return (
+      <div className="d-flex justify-content-center align-items-center" style={{ height: '60vh' }}>
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Chargement du calendrier partagé...</span>
+        </div>
+      </div>
+    );
   }
   
   if (sharedTokens && successGetSharedCalendar === false) {

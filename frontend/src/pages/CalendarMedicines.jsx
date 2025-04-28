@@ -7,18 +7,18 @@ import AlertSystem from '../components/AlertSystem';
 
 
 
-function MedicamentsPage({ meds }) {
+function MedicamentsPage({ meds, calendars }) {
   
   const { nameCalendar } = useParams();
-  const { authReady, login } = useContext(AuthContext);
+  const { authReady, currentUser } = useContext(AuthContext);
   const navigate = useNavigate();
   
   const [alertType, setAlertType] = useState("");
   const [alertMessage, setAlertMessage] = useState("");
   const [onConfirmAction, setOnConfirmAction] = useState(null);
-  const [loading, setLoading] = useState(true);
   const lastMedRef = useRef(null);
   const [highlightedIndex, setHighlightedIndex] = useState(null);
+  const [loadingCalendars, setLoadingCalendars] = useState(true);
 
 
 
@@ -44,30 +44,40 @@ function MedicamentsPage({ meds }) {
 
   const allMedsValid = meds.medsData.length > 0 && meds.medsData.every(isMedValid);
   
-  useEffect(() => {
-    meds.setMedsData([]);
-  }, [nameCalendar, meds.setMedsData]);
-
 
   useEffect(() => {
-    meds.setMedsData([]);
-    setLoading(true);
-    if (authReady && login) {
-      meds.fetchCalendarsMedecines(nameCalendar).finally(() => {
-        setLoading(false);
-      });
-    }
-  }, [authReady, login]);
-  
+    const load = async () => {
+      if (authReady) { // authReady doit être prêt
+        if (currentUser) {
+          calendars.setCalendarsData([]); // Bien vider l'ancien
+          setLoadingCalendars(true);
+          await calendars.fetchCalendars(); // Recharger pour le nouvel utilisateur
+          await meds.fetchCalendarsMedecines(nameCalendar);
+          setLoadingCalendars(false);
+        } else {
+          setLoadingCalendars(false);
+        }
+      }
+    };
+    load();
+  }, [authReady, currentUser]); // 🔥 écouter authReady ET currentUser
 
 
-if (meds.calendarsData.length === 0) {
-  return <div className="text-center mt-5">⏳ Chargement des médicaments...</div>;
-}
+
+
+  if (loadingCalendars) {
+    return (
+      <div className="d-flex justify-content-center align-items-center" style={{ height: '60vh' }}>
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Chargement des médicaments...</span>
+        </div>
+      </div>
+    );
+  }
 
 
 if (!meds.calendarsData.includes(nameCalendar)) {
-  navigate("/calendars");
+  return <div className="text-center mt-5">❌ Calendrier non trouvé</div>;
 };
 
   
@@ -177,9 +187,7 @@ if (!meds.calendarsData.includes(nameCalendar)) {
 
 
       <ul className="list-group">
-        {loading ? (
-          <div className="text-center mt-5">⏳ Chargement des médicaments...</div>
-        ) : meds.medsData.length === 0 ? (
+        {meds.medsData.length === 0 ? (
           <div className="text-center mt-5 text-muted">❌ Aucun médicament n’a encore été ajouté pour ce calendrier.</div>
         ) : (
           meds.medsData.map((med, index) => (
