@@ -429,7 +429,7 @@ function App() {
       log.info("Tokens récupérés avec succès", {
         id: "TOKENS_FETCH_SUCCESS",
         origin: "App.js",
-        count: data
+        count: data.tokens?.length,
       });
       return true;
     } catch (err) {
@@ -462,6 +462,7 @@ function App() {
         calendarName,
         token: data.token,
       });
+      fetchTokens();
       return {token: data.token, success: true};
     } catch (err) {
       log.error("Échec de création du lien de partage", err, {
@@ -472,7 +473,34 @@ function App() {
       return {token: null, success: false};
     }
   }
-  
+
+  // Fonction pour supprimer un lien de partage
+  const deleteSharedCalendar = async (token) => {
+    try {
+      const token = await auth.currentUser.getIdToken();
+      const res = await fetch(`${API_URL}/api/shared/${token}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (!res.ok) throw new Error(`Erreur HTTP DELETE /api/shared/${token}`);
+      fetchTokens();
+      log.info("Lien de partage supprimé avec succès", {
+        id: "SHARED_CALENDAR_DELETE_SUCCESS",
+        origin: "App.js",
+        token,
+      });
+      return true;
+    } catch (err) {
+      log.error("Échec de suppression du lien de partage", err, {
+        id: "SHARED_CALENDAR_DELETE_FAIL",
+        origin: "App.js",
+        stack: err.stack,
+      });
+      return false;
+    }
+  }
 
   const sharedProps = {
     // 🗓️ ÉVÉNEMENTS DU CALENDRIER

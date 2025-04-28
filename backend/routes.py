@@ -535,6 +535,7 @@ def handle_shared_create(calendar_name):
         # Créer un nouveau lien de partage
         token = secrets.token_hex(16)
         db.collection("shared_tokens").document(token).set({
+            "token": token,
             "calendar_name": calendar_name,
             "calendar_owner_uid": uid,
             "expires_at": expires_at,

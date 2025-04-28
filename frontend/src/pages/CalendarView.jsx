@@ -84,13 +84,6 @@ function CalendarPage({ events, calendars }) {
           {/* Ligne 1 : Boutons d'action */}
           <div className="d-flex flex-wrap  align-items-left gap-2 mb-3">
             <button
-              className="btn btn-outline-primary"
-              onClick={() => navigate('/calendars')}
-            >
-              <i class="bi bi-calendar-date"></i>
-              <span> Liste des calendriers</span>
-            </button>
-            <button
               className="btn btn-outline-secondary"
               onClick={() => navigate(`/calendars/${nameCalendar}/medicines`)}
             >

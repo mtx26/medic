@@ -10,7 +10,7 @@ import SharedCalendar from '../pages/SharedCalendarView';
 import SharedCalendarMedicines from '../pages/SharedCalendarMedicines.jsx'
 import { useContext } from "react";
 import { UserContext } from "../contexts/UserContext";
-
+import TokensList from '../pages/TokensList';
 
 function AppRoutes({ sharedProps }) {
 
@@ -28,9 +28,9 @@ function AppRoutes({ sharedProps }) {
       <Route path="/register" element={userInfo ? <Navigate to="/calendars" /> : <Auth/>} />
       <Route path="/reset-password" element={userInfo ? <Navigate to="/calendars" /> : <ResetPassword/>} />
       <Route path="/" element={<Navigate to="/calendars" />} />
+      <Route path="/tokens" element={<TokensList {...sharedProps} />} />
     </Routes>
   );
 }
 
 export default AppRoutes;
-//       <Route path="/shared-calendar/:sharedTokens" element={userInfo ? <SharedCalendar {...sharedProps} />: <Navigate to="/login" />} />
