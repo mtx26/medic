@@ -389,6 +389,30 @@ function App() {
     }
   }
 
+  const getSharedMedecines = async (sharedToken) => {
+    try {
+      const  res = await fetch(`${API_URL}/api/shared/${sharedToken}/medecines`, {
+        method: "GET",
+      });
+      if (!res.ok) throw new Error(`Erreur HTTP GET /api/shared/${sharedToken}/medecines`);
+      const data = await res.json();
+      setMedsData(data.medicines)
+      log.info("Médicaments récupérés avec succès", {
+        id: "SHARED_MED_FETCH_SUCCESS",
+        origin: "App.js",
+        count: medsData?.length,
+      });
+      return true;
+    } catch (err) {
+      log.error("Échec de récupération des médicaments partagé", err, {
+        id: "SHARED_MED_FETCH_FAIL",
+        origin: "App.js",
+        stack: err.stack,
+      });
+      return false;
+    }
+  }
+
 
 
   const sharedProps = {
@@ -398,14 +422,14 @@ function App() {
       selectedDate, setSelectedDate,          // Date actuellement sélectionnée
       eventsForDay, setEventsForDay,          // Événements filtrés pour un jour spécifique
       startDate, setStartDate,                // Date de début pour affichage du calendrier
-      calendarsData, setCalendarsData,                // Liste des calendriers de l’utilisateur
+      calendarsData, setCalendarsData,        // Liste des calendriers de l’utilisateur
       getCalendar,                            // Chargement des données d’un calendrier
     },
     meds: {
       // 💊 MÉDICAMENTS
-      medsData, setMedsData,                          // Liste des médicaments du calendrier actif
+      medsData, setMedsData,                  // Liste des médicaments du calendrier actif
       checked, setChecked,                    // Médicaments cochés pour suppression
-      calendarsData, setCalendarsData,                // Liste des calendriers de l’utilisateur
+      calendarsData, setCalendarsData,        // Liste des calendriers de l’utilisateur
       handleMedChange,                        // Fonction pour modifier un médicament
       updateMeds,                             // Mise à jour des médicaments dans Firestore
       deleteSelectedMeds,                     // Suppression des médicaments sélectionnés
@@ -414,7 +438,7 @@ function App() {
     },
     calendars: {
       // 📅 CALENDRIERS
-      calendarsData, setCalendarsData,                // Liste des calendriers de l’utilisateur
+      calendarsData, setCalendarsData,        // Liste des calendriers de l’utilisateur
       fetchCalendars,                         // Récupération des calendriers (Firestore)
       addCalendar,                            // Création d’un nouveau calendrier
       deleteCalendar,                         // Suppression d’un calendrier existant
@@ -422,7 +446,10 @@ function App() {
       getMedicineCount,                       // Nombre de médicaments dans un calendrier
     },
     shared: {
-      getSharedCalendar,                    // Récupération d’un calendrier partagé
+      medsData, setMedsData,                  // Liste des médicaments du calendrier actif      
+      getSharedCalendar,                      // Récupération d’un calendrier partagé
+      getSharedMedecines,                     // Récupération des médicaments partagé
+
     },
   }  
 

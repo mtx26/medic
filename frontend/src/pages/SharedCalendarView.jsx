@@ -11,7 +11,7 @@ function CalendarPage({ events, shared }) {
   const { sharedTokens } = useParams();
 
   const navigate = useNavigate();
-  const [successGetSharedCalendar, setSuccessGetSharedCalendar] = useState(false);
+  const [successGetSharedCalendar, setSuccessGetSharedCalendar] = useState();
 
 
 
@@ -49,7 +49,7 @@ function CalendarPage({ events, shared }) {
     fetchShared();
   }, [sharedTokens]);
 
-  if (!successGetSharedCalendar && sharedTokens) {
+  if (successGetSharedCalendar === undefined  && sharedTokens) {
     return <div className="text-center mt-5">⏳ Chargement du calendrier partagé...</div>;
   }
   
@@ -71,14 +71,12 @@ function CalendarPage({ events, shared }) {
         <div className="card-body">
           {/* Ligne 1 : Boutons d'action */}
           <div className="d-flex flex-wrap  align-items-left gap-2 mb-3">
-            {/*}
             <button
               className="btn btn-outline-secondary"
-              onClick={() => navigate(`/calendars/${nameCalendar}/medicines`)}
+              onClick={() => navigate(`/shared-calendar/${sharedTokens}/medicines`)}
             >
               🧪 Liste des médicaments
             </button>
-            */}
           </div>
 
           {/* Ligne 2 : Sélection date + bouton charger */}

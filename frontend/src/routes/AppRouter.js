@@ -7,7 +7,7 @@ import Auth from "../pages/Auth";
 import ResetPassword from "../pages/ResetPassword";
 import CalendarList from '../pages/CalendarList';
 import SharedCalendar from '../pages/SharedCalendarView';
-// import Token from "../test/pages/Token";
+import SharedCalendarMedicines from '../pages/SharedCalendarMedicines.jsx'
 import { useContext } from "react";
 import { UserContext } from "../contexts/UserContext";
 
@@ -22,6 +22,7 @@ function AppRoutes({ sharedProps }) {
       <Route path="/calendars/:nameCalendar" element={userInfo ? <CalendarView {...sharedProps} />: <Navigate to="/login" />} />
       <Route path="/calendars/:nameCalendar/medicines" element={userInfo ? <CalendarMedicines {...sharedProps} />: <Navigate to="/login" />} />
       <Route path="/shared-calendar/:sharedTokens" element={<SharedCalendar {...sharedProps} />} />
+      <Route path="/shared-calendar/:sharedTokens/medicines" element={<SharedCalendarMedicines {...sharedProps} />} />
       <Route path="*" element={<NotFound />} />
       <Route path="/login" element={userInfo ? <Navigate to="/calendars" /> : <Auth/>} />
       <Route path="/register" element={userInfo ? <Navigate to="/calendars" /> : <Auth/>} />

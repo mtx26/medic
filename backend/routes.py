@@ -341,14 +341,12 @@ def handle_medicines(calendar_name):
         logger.exception(f"[MED_ERROR] Erreur dans /api/calendars/${calendar_name}/medicines")
         return jsonify({"error": "Erreur interne"}), 500
 
+
 @api.route("/api/shared/<token>", methods=["GET"])
 def handle_shared(token):
     try:
         if request.method == "GET":
             doc = db.collection("shared_tokens").document(token).get()
-            if not doc.exists:
-                logger.warning(f"[CALENDAR_SHARED_LOAD] Token introuvable : {token}.")
-                return jsonify({"error": "Token introuvable"}), 404
             data = doc.to_dict()
             calendar_name = data.get("calendar_name")
             uid = data.get("calendar_owner_uid")
@@ -395,6 +393,58 @@ def handle_shared(token):
             schedule = generate_schedule(start_date, medicines)
             logger.info("[CALENDAR_GENERATE] Calendrier généré avec succès.")
             return jsonify(schedule), 200
+    except Exception as e:
+        logger.exception(f"[CALENDAR_GENERATE_ERROR] Erreur dans /api/shared/${token}")
+        return jsonify({"error": "Erreur lors de la génération du calendrier."}), 500
+    
+
+
+
+@api.route("/api/shared/<token>/medecines", methods=["GET"])
+def handle_shared_medecines(token):
+    try:
+        if request.method == "GET":
+            doc = db.collection("shared_tokens").document(token).get()
+            data = doc.to_dict()
+            calendar_name = data.get("calendar_name")
+            uid = data.get("calendar_owner_uid")
+            expires_at = data.get("expires_at")
+            revoked = data.get("revoked")
+            permissions = data.get("permissions")
+
+            # Verifier si le token est valide
+            if doc.exists:
+                doc_2 = db.collection("users").document(uid).collection("calendars").document(calendar_name).get()
+            else:
+                logger.warning(f"[CALENDAR_SHARED_LOAD] Token invalide : {token}.")
+                return jsonify({"error": "Token invalide"}), 404
+            
+            # Recuperer les médicaments
+            if doc_2.exists:
+                data_2 = doc_2.to_dict()
+                medicines = data_2.get("medicines", [])
+                logger.info(f"[CALENDAR_SHARED_LOAD] Médicaments  récupérés de {calendar_name} chez {uid} pour le token {token}.")
+            else:
+                logger.warning(f"[CALENDAR_SHARED_LOAD] Médicaments introuvable de {calendar_name} chez {uid} pour le token {token}.")
+                return jsonify({"error": "Calendrier introuvable"}), 404
+
+            # Verifier si le token est expiré
+            if datetime.now(timezone.utc) > expires_at.replace(tzinfo=timezone.utc):
+                logger.warning(f"[CALENDAR_SHARED_LOAD] Token expiré : {token}.")
+                return jsonify({"error": "Token expiré"}), 404
+
+            # Verifier si le token est revoké
+            if revoked:
+                logger.warning(f"[CALENDAR_SHARED_LOAD] Token revoké : {token}.")
+                return jsonify({"error": "Token revoké"}), 404
+
+            # Verifier si le token a les permissions appropriées
+            if "read" not in permissions:
+                logger.warning(f"[CALENDAR_SHARED_LOAD] Token sans permission de lecture : {token}.")
+                return jsonify({"error": "Token sans permission de lecture"}), 403
+
+            logger.info("[CALENDAR_GENERATE] Calendrier généré avec succès.")
+            return jsonify({"medicines": medicines}), 200
     except Exception as e:
         logger.exception(f"[CALENDAR_GENERATE_ERROR] Erreur dans /api/shared/${token}")
         return jsonify({"error": "Erreur lors de la génération du calendrier."}), 500
