@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import { GoogleHandleLogin, registerWithEmail, loginWithEmail } from "../services/authService";
+import { GoogleHandleLogin, registerWithEmail, loginWithEmail, handleLogout } from "../services/authService";
 import AlertSystem from "../components/AlertSystem";
 import { getFirebaseAuthErrorMessage } from "../utils/getFirebaseAuthErrorMessage";
 import { log } from "../utils/logger";
+import { useNavigate } from "react-router-dom";
+
 
 
 function Auth() {
@@ -18,6 +20,7 @@ function Auth() {
 
 
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     setActiveTab(location.pathname === "/register" ? "register" : "login");
@@ -75,12 +78,9 @@ function Auth() {
               try {
                 if (activeTab === "login") {
                   await loginWithEmail(email, password);
-                  setAlertMessage("Connexion réussie !");
-                  setAlertType("success");
+                  
                 } else {
                   await registerWithEmail(email, password, name);
-                  setAlertMessage("Inscription réussie !");
-                  setAlertType("success");
                 }
               } catch (err) {
                 log.error("Firebase auth error", {

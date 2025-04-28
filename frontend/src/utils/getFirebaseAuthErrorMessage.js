@@ -1,5 +1,3 @@
-// utils/firebaseErrors.js
-
 export function getFirebaseAuthErrorMessage(code) {
   switch (code) {
     case "auth/email-already-in-use":
@@ -20,6 +18,10 @@ export function getFirebaseAuthErrorMessage(code) {
       return "Problème de connexion réseau.";
     case "auth/invalid-credential":
       return "Identifiants invalides.";
+    case "auth/missing-email":
+      return "Aucun e-mail fourni.";
+    case "auth/too-many-requests":
+      return "Trop de tentatives. Veuillez réessayer plus tard.";
     default:
       return "Une erreur est survenue. Veuillez réessayer.";
   }

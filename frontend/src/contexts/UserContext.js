@@ -23,6 +23,7 @@ export const UserProvider = ({ children }) => {
       photoURL: userSnap.exists() ? userSnap.data().photoURL || user.photoURL || "https://www.w3schools.com/howto/img_avatar.png" : user.photoURL || "https://www.w3schools.com/howto/img_avatar.png",
       role: userSnap.exists() ? userSnap.data().role || "user" : "user",
       uid: user.uid,
+      emailVerified: user.emailVerified,
     };
 
     setUserInfo(newUserInfo);

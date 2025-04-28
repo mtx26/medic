@@ -1,13 +1,17 @@
 import { auth, db } from "./firebase";
-import { doc, setDoc, getDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
 import { getGlobalReloadUser } from "../contexts/UserContext";
+
 import { 
   signInWithPopup, 
   GoogleAuthProvider, 
   signOut,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  sendPasswordResetEmail
+  sendPasswordResetEmail,
+  updateEmail as firebaseUpdateEmail, 
+  updatePassword as firebaseUpdatePassword,
+  sendEmailVerification
 } from "firebase/auth";
 import { log } from "../utils/logger";
 
@@ -68,14 +72,16 @@ export const registerWithEmail = async (email, password, name) => {
     email: user.email
   });
 
+  await sendEmailVerification(user);
+
   getGlobalReloadUser()(); // Rafraîchir les infos utilisateur
-  loginWithEmail(email, password); // Connexion après inscription
 
   log.info("Utilisateur inscrit et connecté :", {
     id: "REGISTERWITHEMAIL",
     origin: "authService.js",
     user: user.uid,
   });
+
   return user;
 };
 
@@ -133,5 +139,60 @@ export const handleLogout = async () => {
       origin: "authService.js",
       stack: error.stack,
     });
+  }
+};
+
+/**
+ * Mise à jour de l'email utilisateur
+ */
+export const updateUserEmail = async (newEmail) => {
+  try {
+    const user = auth.currentUser;
+    if (!user) throw new Error("Aucun utilisateur connecté.");
+    
+    await firebaseUpdateEmail(user, newEmail);
+
+    // Mettre aussi à jour Firestore
+    const userRef = doc(db, "users", user.uid);
+    await updateDoc(userRef, { email: newEmail });
+
+    getGlobalReloadUser()(); // Rafraîchir le contexte utilisateur
+    log.info("Email utilisateur mis à jour", {
+      id: "UPDATEUSEREMAIL",
+      origin: "authService.js",
+      user: user.uid,
+    });
+  } catch (error) {
+    log.error("Erreur lors de la mise à jour de l'email", error.message, {
+      id: "UPDATEUSEREMAIL",
+      origin: "authService.js",
+      stack: error.stack,
+    });
+    throw error;
+  }
+};
+
+/**
+ * Mise à jour du mot de passe utilisateur
+ */
+export const updateUserPassword = async (newPassword) => {
+  try {
+    const user = auth.currentUser;
+    if (!user) throw new Error("Aucun utilisateur connecté.");
+
+    await firebaseUpdatePassword(user, newPassword);
+
+    log.info("Mot de passe utilisateur mis à jour", {
+      id: "UPDATEUSERPASSWORD",
+      origin: "authService.js",
+      user: user.uid,
+    });
+  } catch (error) {
+    log.error("Erreur lors de la mise à jour du mot de passe", error.message, {
+      id: "UPDATEUSERPASSWORD",
+      origin: "authService.js",
+      stack: error.stack,
+    });
+    throw error;
   }
 };
