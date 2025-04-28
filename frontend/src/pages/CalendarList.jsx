@@ -63,7 +63,8 @@ function SelectCalendar({ calendars }) {
     }} // Ajout d'un nouveau calendrier
     className="btn btn-outline-primary"
     >
-    ➕ Ajouter
+    <i class="bi bi-plus-lg"></i>
+    <span> Ajouter</span>
     </button>
   </div>
 
@@ -117,7 +118,7 @@ function SelectCalendar({ calendars }) {
           setRenameValues({ ...renameValues, [calendarName]: "" }); // Réinitialisation du champ
         }}
         >
-        ✏️
+        <i class="bi bi-pencil"></i>
         </button>
       </div>
 
@@ -137,7 +138,7 @@ function SelectCalendar({ calendars }) {
         className="btn btn-outline-warning"
         title="Partager"
         >
-          Partager
+          <i className="bi bi-box-arrow-up"></i>
         </button>
 
         <button
@@ -152,7 +153,7 @@ function SelectCalendar({ calendars }) {
           });
         }}
         >
-        🗑
+        <i class="bi bi-trash3"></i>
         </button>
       </div>
       </div>

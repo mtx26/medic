@@ -68,13 +68,15 @@ function CalendarPage({ events }) {
               className="btn btn-outline-primary"
               onClick={() => navigate('/calendars')}
             >
-              🗂 Liste des calendriers
+              <i class="bi bi-calendar-date"></i>
+              <span> Liste des calendriers</span>
             </button>
             <button
               className="btn btn-outline-secondary"
               onClick={() => navigate(`/calendars/${nameCalendar}/medicines`)}
             >
-              🧪 Liste des médicaments
+              <i class="bi bi-capsule"></i>
+              <span> Liste des médicaments</span>
             </button>
           </div>
 
@@ -82,7 +84,8 @@ function CalendarPage({ events }) {
           <div className="d-flex flex-wrap align-items-end  gap-3">
             <div style={{ minWidth: "220px" }}>
               <label htmlFor="datePicker" className="form-label fw-semibold">
-                📅 Date de début :
+                <i class="bi bi-calendar-date"></i>
+                <span> Date de début :</span>
               </label>
               <input
                 id="datePicker"
@@ -98,13 +101,15 @@ function CalendarPage({ events }) {
                 onClick={() => events.getCalendar(nameCalendar, events.startDate)}
                 className="btn btn-outline-primary"
               >
-                🔄 Charger le calendrier
+                <i class="bi bi-arrow-repeat"></i>
+                <span> Charger le calendrier</span>
               </button>
             </div>
           </div>
 
           <div className="alert alert-info mt-4 mb-0" role="alert">
-            📌 Cliquez sur un jour du calendrier pour voir les médicaments associés dans une fenêtre.
+            <i class="bi bi-pin-angle-fill"></i>
+            <span> Cliquez sur un jour du calendrier pour voir les médicaments associés dans une fenêtre.</span>
           </div>
         </div>
       </div>
@@ -158,12 +163,14 @@ function CalendarPage({ events }) {
           <div className="modal-content">
             <div className="modal-header">
               <h5 className="modal-title">
-                📅 {new Date(events.selectedDate).toLocaleDateString('fr-FR', {
+                <i class="bi bi-calendar-date"></i>
+                <span> {new Date(events.selectedDate).toLocaleDateString('fr-FR', {
                   weekday: 'long',
                   year: 'numeric',
                   month: 'long',
                   day: 'numeric',
                 })}
+                </span>
               </h5>
               <button type="button" className="btn-close" data-bs-dismiss="modal"></button>
             </div>

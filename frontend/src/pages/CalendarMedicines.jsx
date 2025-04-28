@@ -79,9 +79,13 @@ if (!meds.calendarsData.includes(nameCalendar)) {
         className="btn btn-outline-primary"
         onClick={() => navigate(`/calendars/${nameCalendar}`)}
       >
-        📅 Calendrier
+        <i class="bi bi-calendar-date"></i>
+        <span> Calendrier</span>
       </button>
-      <h3>💊 Liste des médicaments</h3>
+      <h4 className="mt-3">
+        <i class="bi bi-capsule"></i>
+        <span> Liste des médicaments</span>
+      </h4>
 
       <div className="d-flex flex-wrap gap-2 my-3">
         <button 
@@ -95,7 +99,8 @@ if (!meds.calendarsData.includes(nameCalendar)) {
             lastMedRef.current?.scrollIntoView({ behavior: 'smooth' });
           }, 100);
         }} className="btn btn-primary btn-sm">
-          ➕ Ajouter un médicament
+          <i class="bi bi-plus-lg"></i>
+          <span> Ajouter un médicament</span>
         </button>
 
 
@@ -125,7 +130,8 @@ if (!meds.calendarsData.includes(nameCalendar)) {
           className="btn btn-danger btn-sm"
           disabled={meds.checked.length === 0}
         >
-          🗑️ Supprimer sélectionnés
+          <i class="bi bi-trash3"></i>
+          <span> Supprimer sélectionnés</span>
         </button>
 
 
@@ -152,7 +158,8 @@ if (!meds.calendarsData.includes(nameCalendar)) {
           className="btn btn-success btn-sm"
           disabled={!allMedsValid}
         >
-          💾 Modifier les médicaments
+          <i class="bi bi-pencil"></i>
+          <span> Modifier les médicaments</span>
         </button>
       </div>
 

@@ -38,7 +38,8 @@ function Auth() {
                 className={`nav-link ${activeTab === "login" ? "active" : ""}`}
                 onClick={() => switchTab("login")}
               >
-                Connexion
+                <i class="bi bi-box-arrow-in-right"></i>
+                <span> Connexion</span>
               </button>
             </li>
             <li className="nav-item">
@@ -46,7 +47,8 @@ function Auth() {
                 className={`nav-link ${activeTab === "register" ? "active" : ""}`}
                 onClick={() => switchTab("register")}
               >
-                Inscription
+                <i class="bi bi-person-plus"></i>
+                <span> Inscription</span>
               </button>
             </li>
           </ul>
@@ -54,8 +56,8 @@ function Auth() {
           {/* Auth Form */}
           <div className="text-center mb-3">
             <p>{activeTab === "login" ? "Se connecter avec :" : "S'inscrire avec :"}</p>
-            <button className="btn btn-outline-danger rounded-pill px-4 py-2" onClick={GoogleHandleLogin}>
-              <i className="fab fa-google me-2"></i> Google
+            <button className="btn btn-outline-danger rounded-pill px-3 py-2" onClick={GoogleHandleLogin}>
+              <i class="bi bi-google"></i>
             </button>
             <p className="text-center mt-3 mb-0 text-muted">ou avec email :</p>
           </div>
@@ -125,7 +127,7 @@ function Auth() {
                 onChange={(e) => setPassword(e.target.value)}
               />
               <i
-                className={`fas fa-${passwordVisible ? "eye-slash" : "eye"} position-absolute`}
+                className={`bi bi-${passwordVisible ? "eye-slash" : "eye"} position-absolute`}
                 style={{ top: "38px", right: "15px", cursor: "pointer", color: "#6c757d" }}
                 onClick={() => setPasswordVisible(!passwordVisible)}
               ></i>
@@ -146,8 +148,8 @@ function Auth() {
               </div>
             )}
 
-            <button type="submit" className="btn btn-primary w-100">
-              {activeTab === "login" ? "Se connecter" : "S'inscrire"}
+            <button type="submit" className="btn btn-outline-primary w-100">
+              {activeTab === "login" ? "Connexion" : "Inscription"}
             </button>
           </form>
         </div>
