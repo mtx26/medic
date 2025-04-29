@@ -1,10 +1,7 @@
-import React, { useContext, useEffect } from 'react';
-import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
-import { onAuthStateChanged } from 'firebase/auth';
+import React, { useContext } from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
 
-import { auth } from '../services/firebase';
 import { UserContext } from '../contexts/UserContext';
-import { log } from '../utils/logger';
 
 import CalendarView from '../pages/CalendarView';
 import CalendarMedicines from '../pages/CalendarMedicines';

@@ -24,6 +24,8 @@ export const UserProvider = ({ children }) => {
       role: userSnap.exists() ? userSnap.data().role || "user" : "user",
       uid: user.uid,
       emailVerified: user.emailVerified,
+      email: user.email,
+      providerData: user.providerData,
     };
 
     setUserInfo(newUserInfo);

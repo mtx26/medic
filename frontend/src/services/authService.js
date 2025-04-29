@@ -143,36 +143,6 @@ export const handleLogout = async () => {
 };
 
 /**
- * Mise à jour de l'email utilisateur
- */
-export const updateUserEmail = async (newEmail) => {
-  try {
-    const user = auth.currentUser;
-    if (!user) throw new Error("Aucun utilisateur connecté.");
-    
-    await firebaseUpdateEmail(user, newEmail);
-
-    // Mettre aussi à jour Firestore
-    const userRef = doc(db, "users", user.uid);
-    await updateDoc(userRef, { email: newEmail });
-
-    getGlobalReloadUser()(); // Rafraîchir le contexte utilisateur
-    log.info("Email utilisateur mis à jour", {
-      id: "UPDATEUSEREMAIL",
-      origin: "authService.js",
-      user: user.uid,
-    });
-  } catch (error) {
-    log.error("Erreur lors de la mise à jour de l'email", error.message, {
-      id: "UPDATEUSEREMAIL",
-      origin: "authService.js",
-      stack: error.stack,
-    });
-    throw error;
-  }
-};
-
-/**
  * Mise à jour du mot de passe utilisateur
  */
 export const updateUserPassword = async (newPassword) => {
