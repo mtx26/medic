@@ -3,13 +3,14 @@ from logger import frontend_logger
 from logger import backend_logger as logger
 import firebase_admin_init
 from auth import verify_firebase_token
-from firebase_admin import firestore
+from firebase_admin import firestore, auth
 from datetime import datetime, timezone, timedelta
 import secrets
 from function import generate_schedule
 
 api = Blueprint('api', __name__)
 db = firestore.client()
+
 
 
 """db.collection("users").document("oR75yI71MoUmYzwgwJ4WX1Birtm1").collection("calendars").document("Andrée").set({
@@ -661,4 +662,37 @@ def handle_update_token_permissions(token):
         logger.exception(f"[TOKEN_UPDATE_PERMISSIONS_ERROR] Erreur dans /api/update-token-permissions/{token}")
         return jsonify({"error": "Erreur lors de la mise à jour des permissions du token."}), 500
 
+
+# Route pour envoyer une invitation à un utilisateur, envoyer dans la base de donne du mec, une notif pour rejoindre le calendrier
+@api.route("/api/send-invitation/<calendar_name>", methods=["POST"])
+def handle_send_invitation(calendar_name):
+    try:
+        sender_user = verify_firebase_token()
+        sender_uid = sender_user["uid"]
+        email = request.get_json(force=True).get("email")
+
+        receiver_user = auth.get_user_by_email(email)
+        receiver_uid = receiver_user.uid
+
+        # Vérifier si l'utilisateur existe  
+        doc = db.collection("users").document(receiver_uid).get()
+        if not doc.exists:
+            logger.warning(f"[INVITATION_SEND] Utilisateur introuvable : {email}.")
+            return jsonify({"error": "Utilisateur introuvable"}), 404
+
+        # Créer une notification dans la base de données
+        db.collection("users").document(receiver_uid).collection("notifications").document().set({
+            "sender_uid": sender_uid,
+            "calendar_name": calendar_name,
+            "type": "calendar_invitation",
+            "timestamp": firestore.SERVER_TIMESTAMP,
+            "read": False
+        })
+
+        logger.info(f"[INVITATION_SEND] Invitation envoyée à {email} pour le calendrier {calendar_name}.")
+        return jsonify({"message": "Invitation envoyée avec succès"}), 200
+
+    except Exception as e:
+        logger.exception(f"[INVITATION_SEND_ERROR] Erreur dans /api/send-invitation/{calendar_name}")
+        return jsonify({"error": "Erreur lors de l'envoi de l'invitation."}), 500
 

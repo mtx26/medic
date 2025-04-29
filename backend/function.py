@@ -57,6 +57,12 @@ def generate_schedule(start_date, medications):
                         "date" : current_date.strftime("%Y-%m-%dT08:00:00"),
                         "color" : "#f87171" # rouge clair
                     }
+                elif med["time"] == ["noon"]:
+                    pils_data = {
+                        "title" : name,
+                        "date" : current_date.strftime("%Y-%m-%dT12:00:00"),
+                        "color" : "#34d399" # vert clair
+                    }
                 elif med["time"] == ["evening"]:
                     pils_data = {
                         "title" : name,

@@ -30,3 +30,4 @@ serviceAccountKey.json
 *.log
 backend/pils.json
 frontend/src/pages/SharedCalendar.jsx
+frontend/src/styles/test.scss

@@ -1,0 +1,22 @@
+// ============================
+// Medic Bootstrap Custom Theme (propre, pas de changement de structure)
+// ============================
+
+// --- Palette de couleurs ---
+
+
+// --- Import complet de Bootstrap ---
+@import "bootstrap/scss/bootstrap";
+
+// --- Custom Checkbox Medic (sans changer la taille) ---
+.form-check-input {
+  &:checked {
+    background-color: $primary;
+    border-color: $primary;
+  }
+
+  &:focus {
+    border-color: $primary;
+    box-shadow: 0 0 0 0.25rem rgba(74, 144, 226, 0.4);
+  }
+}

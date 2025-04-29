@@ -5,7 +5,7 @@ import AlertSystem from '../components/AlertSystem';
 
 
 
-function SelectCalendar({ calendars, tokens }) {
+function SelectCalendar({ calendars, tokens, invitations }) {
 
   const navigate = useNavigate();
   const { authReady, currentUser } = useContext(AuthContext); // Récupération du contexte d'authentification
@@ -21,7 +21,7 @@ function SelectCalendar({ calendars, tokens }) {
   const [expiresAt, setExpiresAt] = useState(null); // Date d'expiration
   const [permissions, setPermissions] = useState('read'); // Par défaut : lecture seule
   const [existingShareToken, setExistingShareToken] = useState(null);
-
+  const [emailToInvite, setEmailToInvite] = useState('');
   
   const [loadingCalendars, setLoadingCalendars] = useState(true);
   const REACT_URL = process.env.REACT_APP_REACT_URL
@@ -111,6 +111,13 @@ function SelectCalendar({ calendars, tokens }) {
                         readOnly
                       />
                       <button
+                        className="btn btn-outline-warning"
+                        onClick={() => navigate(`/shared-calendar`)}
+                        title="Gérer le lien"
+                      >
+                        <i className="bi bi-gear"></i>
+                      </button>
+                      <button
                         className="btn btn-outline-primary"
                         onClick={async () => {
                           try {
@@ -122,8 +129,9 @@ function SelectCalendar({ calendars, tokens }) {
                             setAlertMessage("❌ Erreur lors de la copie du lien.");
                           }
                         }}
+                        title="Copier le lien"
                       >
-                        Copier
+                        <i className="bi bi-clipboard"></i>
                       </button>
                     </div>
                   </>
@@ -140,7 +148,7 @@ function SelectCalendar({ calendars, tokens }) {
                           if (e.target.value === 'never') {
                             setExpiresAt(null);
                           } else {
-                            setExpiresAt(''); // L'utilisateur choisira la date
+                            setExpiresAt('');
                           }
                         }}
                         title="Date d'expiration"
@@ -169,7 +177,7 @@ function SelectCalendar({ calendars, tokens }) {
                         title="Permissions"
                       >
                         <option value="read">Lecture seule</option>
-                        {/* <option value="edit">Lecture + Édition</option> */}
+                        <option value="edit">Lecture + Édition</option>
                       </select>
                     </div>
                   </>
@@ -178,7 +186,12 @@ function SelectCalendar({ calendars, tokens }) {
             ) : (
               <div>
                 <p>Envoyer une invitation pour accéder à <strong>{calendarToShare}</strong>.</p>
-                <input type="email" className="form-control" placeholder="Email du compte" />
+                <input 
+                  type="email" 
+                  className="form-control"
+                  placeholder="Email du compte"
+                  onChange={(e) => setEmailToInvite(e.target.value)}
+                />
               </div>
             )}
 
@@ -206,7 +219,14 @@ function SelectCalendar({ calendars, tokens }) {
                     setAlertMessage("❌ Erreur lors de la création du lien.");
                   }
                 } else {
-                  // Ici tu pourras envoyer l'invitation à l'email saisi
+                  const success = await invitations.sendInvitation(emailToInvite, calendarToShare);
+                  if (success) {
+                    setAlertType("success");
+                    setAlertMessage("✅ Invitation envoyée avec succès !");
+                  } else {
+                    setAlertType("danger");
+                    setAlertMessage("❌ Erreur lors de l'envoi de l'invitation.");
+                  }
                 }
                 setShowShareModal(false);
               }}
@@ -220,7 +240,7 @@ function SelectCalendar({ calendars, tokens }) {
   )}
 
   <div className="card p-3 shadow-sm w-100" style={{ maxWidth: '700px' }}>
-    <h5 className="mb-3">Choisir un calendrier</h5>
+    <h5 className="mb-3">Mes calendriers</h5>
 
     {/* Champ pour ajouter un nouveau calendrier */}
     <div className="input-group mb-4">

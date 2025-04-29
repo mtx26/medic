@@ -19,6 +19,7 @@ function App() {
   const [checked, setChecked] = useState([]);
   const [tokensList, setTokensList] = useState([]);
   const [calendarsData, setCalendarsData] = useState([]);
+  const [originalMedsData, setOriginalMedsData] = useState([]);
 
   const [startDate, setStartDate] = useState(() => new Date().toISOString().slice(0, 10));
 
@@ -243,6 +244,7 @@ function App() {
       if (!res.ok) throw new Error(`Erreur HTTP GET /api/calendars/${calendarName}/medicines`);
       const data = await res.json();
       setMedsData(data.medicines)
+      setOriginalMedsData(JSON.parse(JSON.stringify(data.medicines)));
       log.info("Médicaments récupérés avec succès", {
         id: "MED_FETCH_SUCCESS",
         origin: "App.js",
@@ -590,7 +592,37 @@ function App() {
       return false;
     }
   }
-  
+
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  // Fonction pour envoyer une invitation à un utilisateur
+  const sendInvitation = async (email, calendarName) => {
+    try {
+      const token = await auth.currentUser.getIdToken();
+      const res = await fetch(`${API_URL}/api/send-invitation/${calendarName}`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ email }),
+      });
+      if (!res.ok) throw new Error(`Erreur HTTP POST /api/send-invitation/${calendarName}`);
+      log.info("Invitation envoyée avec succès", {
+        id: "INVITATION_SEND_SUCCESS",
+        origin: "App.js",
+        email,
+        calendarName,
+      });
+      return true;
+    } catch (err) {
+      log.error("Échec d'envoi de l'invitation", err, {
+        id: "INVITATION_SEND_FAIL",
+        origin: "App.js",
+        stack: err.stack,
+      });
+      return false;
+    }
+  }
 
   const sharedProps = {
     // 🗓️ ÉVÉNEMENTS DU CALENDRIER
@@ -607,6 +639,7 @@ function App() {
       medsData, setMedsData,                  // Liste des médicaments du calendrier actif
       checked, setChecked,                    // Médicaments cochés pour suppression
       calendarsData, setCalendarsData,        // Liste des calendriers de l’utilisateur
+      originalMedsData, setOriginalMedsData,  // Liste des médicaments d’origine
       handleMedChange,                        // Fonction pour modifier un médicament
       updateMeds,                             // Mise à jour des médicaments dans Firestore
       deleteSelectedMeds,                     // Suppression des médicaments sélectionnés
@@ -636,6 +669,9 @@ function App() {
       revokeToken,                            // Révoquer un token ou le réactiver
       updateTokenExpiration,                  // Mettre à jour l'expiration d'un token
       updateTokenPermissions,                 // Mettre à jour les permissions d'un token
+    },
+    invitations: {
+      sendInvitation,                         // Envoyer une invitation à un utilisateur
     }
   }
 
