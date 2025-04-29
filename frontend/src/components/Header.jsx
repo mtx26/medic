@@ -1,13 +1,25 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { UserContext } from "../contexts/UserContext";
+import { AuthContext } from "../contexts/LoginContext";
 import { handleLogout } from "../services/authService";
 import { useNavigate } from "react-router-dom";
 
-function Navbar() {
+function Navbar({ sharedProps }) {
   const { userInfo } = useContext(UserContext);
+  const { authReady, currentUser } = useContext(AuthContext);
   const navigate = useNavigate();
-  const [notifications, setNotifications] = useState([]);
+
+  const { notificationsData, fetchNotifications, readNotification } = sharedProps.notifications;
+  const { acceptInvitation, rejectInvitation } = sharedProps.invitations;
+  
+  useEffect(() => {
+    if (authReady && currentUser) {
+      fetchNotifications();
+    }
+  }, [authReady, currentUser]);
+
+
   return (
     <>
       {/* NAVBAR PC */}
@@ -21,18 +33,18 @@ function Navbar() {
             <ul className="navbar-nav align-items-center gap-2">
               <li className="nav-item">
                 <Link to="/" className="nav-link">
-                  <i className="bi bi-calendar-date"></i> Calendriers
+                  <i className="bi bi-calendar-date fs-5"></i> Calendriers
                 </Link>
               </li>
               <li className="nav-item">
                 <Link to="/shared-calendar" className="nav-link">
-                  <i className="bi bi-box-arrow-up"></i> Partagés
+                  <i className="bi bi-box-arrow-up fs-5"></i> Partagés
                 </Link>
               </li>
               {userInfo?.role === "admin" && (
                 <li className="nav-item">
                   <Link to="/admin" className="nav-link">
-                    <i className="bi bi-lock"></i> Admin
+                    <i className="bi bi-lock fs-5"></i> Admin
                   </Link>
                 </li>
               )}
@@ -46,24 +58,101 @@ function Navbar() {
                   title="Notifications"
                 >
                   <i className="bi bi-bell fs-5"></i>
-                  {notifications.length > 0 && (
-                    <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                      {notifications.length}
+                  {notificationsData.filter(notif => !notif.read).length > 0 && (
+                    <span className="position-absolute top-1 start-100 translate-middle badge rounded-pill bg-danger">
+                      {notificationsData.filter(notif => !notif.read).length}
                     </span>
                   )}
                 </button>
-                <ul className="dropdown-menu dropdown-menu-end" aria-labelledby="notifDropdown" style={{ minWidth: "250px" }}>
-                  {notifications.length === 0 ? (
-                    <li className="dropdown-item text-muted">Aucune notification</li>
+
+                <ul className="dropdown-menu dropdown-menu-end p-2" aria-labelledby="notifDropdown" style={{ minWidth: "320px", maxHeight: "400px", overflowY: "auto" }}>
+                  {notificationsData.filter(notif => !notif.read).length === 0 ? (
+                    <li className="dropdown-item text-muted fs-6">Aucune nouvelle notification</li>
                   ) : (
-                    notifications.map((notif) => (
-                      <li key={notif.id} className="dropdown-item small">
-                        {notif.message}
-                      </li>
-                    ))
+                    <>
+                    {/* TODO: max 5 notifications est unread */}
+                      {notificationsData.filter(notif => !notif.read).slice(0, 5).map((notif) => (
+                        <li 
+                          key={notif.notification_token} 
+                          className="dropdown-item py-2 fs-6 bg-light border-start border-4 border-primary p-2 rounded"
+                        >
+                          <div className="d-flex flex-column">
+                            <div>
+                              {notif.type === "calendar_invitation" && (
+                                <>
+                                <div>
+                                  <i className="bi bi-person-plus-fill me-2 text-primary"></i>
+                                    <strong>{notif.sender_email}</strong> vous invite à rejoindre son calendrier <strong>{notif.calendar_name}</strong>
+                                    <button className="btn btn-sm btn-outline-primary ms-2" onClick={() => acceptInvitation(notif.notification_token)}>Accepter</button>
+                                    <button className="btn btn-sm btn-outline-danger ms-2" onClick={() => rejectInvitation(notif.notification_token)}>Rejeter</button>
+                                  </div>
+                                  <small 
+                                    className="text-muted"
+                                  >
+                                    {new Date(notif.timestamp).toLocaleString('fr-FR', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                  </small>
+                                </>
+                              )}
+                              {notif.type === "calendar_invitation_accepted" && (
+                                <>
+                                  <div
+                                    onClick={() => readNotification(notif.notification_token)}
+                                    title="Marquer comme lu"
+                                    style={{
+                                      cursor: "pointer",
+                                    }}
+                                  >
+                                    <div>
+                                      <i className="bi bi-check-circle-fill me-2 text-success"></i>
+                                      <strong>{notif.receiver_email}</strong> a accepté votre invitation pour rejoindre le calendrier <strong>{notif.calendar_name}</strong>
+                                    </div>
+                                    <small 
+                                      className="text-muted"
+                                    >
+                                      {new Date(notif.timestamp).toLocaleString('fr-FR', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                    </small>
+                                  </div>
+                                </>
+                              )}
+                              {notif.type === "calendar_invitation_rejected" && (
+                                <>
+                                  <div
+                                    onClick={() => readNotification(notif.notification_token)}
+                                    title="Marquer comme lu"
+                                    style={{
+                                      cursor: "pointer",
+                                    }}
+                                  >
+                                    <div>
+                                      <i className="bi bi-x-circle-fill me-2 text-danger"></i>
+                                      <strong>{notif.receiver_email}</strong> a rejeté votre invitation pour rejoindre le calendrier <strong>{notif.calendar_name}</strong>
+                                    </div>
+                                    <small 
+                                      className="text-muted"
+                                    >
+                                      {new Date(notif.timestamp).toLocaleString('fr-FR', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                    </small>
+                                  </div>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        </li>
+                      ))}
+                    </>
                   )}
+                  <li><hr className="dropdown-divider" /></li>
+                  <li className="text-center">
+                    <button
+                      className="btn btn-sm btn-outline-primary w-100"
+                      onClick={() => navigate("/notifications")}
+                    >
+                      <i className="bi bi-bell"></i> Ouvrir les notifications
+                    </button>
+                  </li>
                 </ul>
               </li>
+
 
               {/* Dropdown utilisateur */}
               <li className="nav-item dropdown">
@@ -91,15 +180,15 @@ function Navbar() {
                 <ul className="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                   {userInfo ? (
                     <>
-                      <li><Link className="dropdown-item" to="/profile"><i className="bi bi-person"></i> Mon profil</Link></li>
-                      <li><Link className="dropdown-item" to="/account"><i className="bi bi-gear"></i> Paramètres</Link></li>
+                      <li><Link className="dropdown-item" to="/profile"><i className="bi bi-person fs-5 me-2"></i> Mon profil</Link></li>
+                      <li><Link className="dropdown-item" to="/account"><i className="bi bi-gear fs-5 me-2"></i> Paramètres</Link></li>
                       <li><hr className="dropdown-divider" /></li>
-                      <li><button className="dropdown-item" onClick={handleLogout}><i className="bi bi-unlock"></i> Déconnexion</button></li>
+                      <li><button className="dropdown-item" onClick={handleLogout}><i className="bi bi-unlock fs-5 me-2"></i> Déconnexion</button></li>
                     </>
                   ) : (
                     <>
-                      <li><Link className="dropdown-item" to="/login"><i className="bi bi-box-arrow-in-right"></i> Connexion</Link></li>
-                      <li><Link className="dropdown-item" to="/register"><i className="bi bi-person-plus"></i> Inscription</Link></li>
+                      <li><Link className="dropdown-item" to="/login"><i className="bi bi-box-arrow-in-right fs-5 me-2"></i> Connexion</Link></li>
+                      <li><Link className="dropdown-item" to="/register"><i className="bi bi-person-plus fs-5 me-2"></i> Inscription</Link></li>
                     </>
                   )}
                 </ul>
@@ -148,38 +237,56 @@ function Navbar() {
                 {/* Navigation */}
                 <li className="nav-item">
                   <button onClick={() => navigate("/")} className="nav-link" data-bs-dismiss="offcanvas">
-                    <i className="bi bi-calendar-date"></i> Calendriers
+                    <i className="bi bi-calendar-date fs-5 me-2"></i> Calendriers
                   </button>
                 </li>
                 <li className="nav-item">
                   <button onClick={() => navigate("/shared-calendar")} className="nav-link" data-bs-dismiss="offcanvas">
-                    <i className="bi bi-box-arrow-up"></i> Partagés
+                    <i className="bi bi-box-arrow-up fs-5 me-2"></i> Partagés
                   </button>
                 </li>
                 {userInfo?.role === "admin" && (
                   <li className="nav-item">
                     <button onClick={() => navigate("/admin")} className="nav-link" data-bs-dismiss="offcanvas">
-                      <i className="bi bi-lock"></i> Admin
+                      <i className="bi bi-lock fs-5 me-2"></i> Admin
                     </button>
                   </li>
                 )}
+                <li className="nav-item">
+                  <button
+                    onClick={() => navigate("/notifications")}
+                    className="nav-link btn btn-link p-0 text-start"
+                    data-bs-dismiss="offcanvas"
+                    style={{ textDecoration: "none" }}
+                  >
+                    <div className="position-relative d-inline-block me-2">
+                      <i className="bi bi-bell fs-5"></i>
+                      {notificationsData.filter(notif => !notif.read).length > 0 && (
+                        <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger fs-14">
+                          {notificationsData.filter(notif => !notif.read).length}
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-muted">Notifications</span>
+                  </button>
+                </li>
 
                 {userInfo && (
                   <>
                     <hr />
                     <li className="nav-item">
                       <button onClick={() => navigate("/profile")} className="nav-link" data-bs-dismiss="offcanvas">
-                        <i className="bi bi-person"></i> Mon profil
+                        <i className="bi bi-person fs-5 me-2"></i> Mon profil
                       </button>
                     </li>
                     <li className="nav-item">
                       <button onClick={() => navigate("/account")} className="nav-link" data-bs-dismiss="offcanvas">
-                        <i className="bi bi-gear"></i> Paramètres
+                        <i className="bi bi-gear fs-5 me-2"></i> Paramètres
                       </button>
                     </li>
                     <li className="nav-item">
                       <button className="nav-link btn btn-link text-start" onClick={handleLogout} data-bs-dismiss="offcanvas">
-                        <i className="bi bi-unlock"></i> Déconnexion
+                        <i className="bi bi-unlock fs-5 me-2"></i> Déconnexion
                       </button>
                     </li>
                   </>
@@ -190,12 +297,12 @@ function Navbar() {
                     <hr />
                     <li className="nav-item">
                       <button onClick={() => navigate("/login")} className="nav-link" data-bs-dismiss="offcanvas">
-                        <i className="bi bi-box-arrow-in-right"></i> Connexion
+                        <i className="bi bi-box-arrow-in-right fs-5 me-2"></i> Connexion
                       </button>
                     </li>
                     <li className="nav-item">
                       <button onClick={() => navigate("/register")} className="nav-link" data-bs-dismiss="offcanvas">
-                        <i className="bi bi-person-plus"></i> Inscription
+                        <i className="bi bi-person-plus fs-5 me-2"></i> Inscription
                       </button>
                     </li>
                   </>

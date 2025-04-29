@@ -35,3 +35,7 @@ code {
     color: inherit;
   }
 }
+
+.bg-unread {
+  background-color: #eaf4ff !important;
+}

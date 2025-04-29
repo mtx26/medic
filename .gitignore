@@ -31,3 +31,6 @@ serviceAccountKey.json
 backend/pils.json
 frontend/src/pages/SharedCalendar.jsx
 frontend/src/styles/test.scss
+
+__pycache__/
+backend/test/

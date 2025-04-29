@@ -14,7 +14,7 @@ import Auth from '../pages/Auth';
 import ResetPassword from '../pages/ResetPassword';
 import VerifyEmail from '../pages/VerifyEmail';
 import NotFound from '../pages/NotFound';
-
+import NotificationsPage from '../pages/NotificationsPage';
 
 function PrivateRoute({ element }) {
   const { userInfo } = useContext(UserContext);
@@ -46,6 +46,7 @@ function AppRoutes({ sharedProps }) {
       <Route path="/shared-calendar" element={userInfo ? <TokensList {...sharedProps} /> : <Navigate to="/login" />} />
       <Route path="/account" element={userInfo ? <AccountPage {...sharedProps} /> : <Navigate to="/login" />} />
       <Route path="/verify-email" element={userInfo ? <VerifyEmail/> : <Navigate to="/login"/>} />
+      <Route path="/notifications" element={userInfo ? <NotificationsPage {...sharedProps} /> : <Navigate to="/login" />} />
     </Routes>
   );
 }

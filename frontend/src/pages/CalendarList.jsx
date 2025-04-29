@@ -83,18 +83,25 @@ function SelectCalendar({ calendars, tokens, invitations }) {
             <button type="button" className="btn-close" onClick={() => setShowShareModal(false)}></button>
           </div>
           <div className="modal-body">
-            <div className="form-check form-switch mb-3">
-              <input
-                className="form-check-input"
-                type="checkbox"
-                id="shareToggle"
-                checked={shareMethod === 'link'}
-                onChange={() => setShareMethod(shareMethod === 'link' ? 'account' : 'link')}
-                title="Partager via un lien ou avec un compte"
-              />
-              <label className="form-check-label" htmlFor="shareToggle">
-                {shareMethod === 'link' ? "Partager via un lien" : "Partager avec un compte"}
-              </label>
+            <div className="mb-3">
+              <div className="d-flex justify-content-center gap-3" role="group" aria-label="Méthode de partage">
+                <button
+                  type="button"
+                  className={`btn btn-outline-primary ${shareMethod === 'link' ? 'active' : ''}`}
+                  onClick={() => setShareMethod('link')}
+                  title="Partager via un lien"
+                >
+                  <i className="bi bi-link"></i> Lien
+                </button>
+                <button
+                  type="button"
+                  className={`btn btn-outline-primary ${shareMethod === 'account' ? 'active' : ''}`}
+                  onClick={() => setShareMethod('account')}
+                  title="Partager avec un compte"
+                >
+                  <i className="bi bi-person-plus-fill"></i> Compte
+                </button>
+              </div>
             </div>
 
 

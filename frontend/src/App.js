@@ -20,6 +20,7 @@ function App() {
   const [tokensList, setTokensList] = useState([]);
   const [calendarsData, setCalendarsData] = useState([]);
   const [originalMedsData, setOriginalMedsData] = useState([]);
+  const [notificationsData, setNotificationsData] = useState([]);
 
   const [startDate, setStartDate] = useState(() => new Date().toISOString().slice(0, 10));
 
@@ -624,6 +625,121 @@ function App() {
     }
   }
 
+  // Fonction pour récupérer les notifications
+  const fetchNotifications = async () => {
+    try {
+      const token = await auth.currentUser.getIdToken();
+      const res = await fetch(`${API_URL}/api/notifications`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (!res.ok) throw new Error(`Erreur HTTP GET /api/notifications`);
+      const data = await res.json();
+      const sortedNotifications = data.notifications.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+      setNotificationsData(sortedNotifications);
+      log.info("Notifications récupérées avec succès", {
+        id: "NOTIFICATIONS_FETCH_SUCCESS",
+        origin: "App.js",
+        count: data?.notifications?.length,
+      });
+      return true;
+    } catch (err) {
+      log.error("Échec de récupération des notifications", err, {
+        id: "NOTIFICATIONS_FETCH_FAIL",
+        origin: "App.js",
+        stack: err.stack,
+      });
+      return false;
+    }
+  }
+
+  // Fonction pour accepter une invitation
+  const acceptInvitation = async (notificationToken) => {
+    try {
+      const token = await auth.currentUser.getIdToken();
+      const res = await fetch(`${API_URL}/api/accept-invitation/${notificationToken}`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (!res.ok) throw new Error(`Erreur HTTP POST /api/accept-invitation/${notificationToken}`);
+      fetchNotifications(); 
+      log.info("Invitation acceptée avec succès", {
+        id: "INVITATION_ACCEPT_SUCCESS",
+        origin: "App.js",
+        notificationToken,
+      });
+      return true;
+    } catch (err) {
+      log.error("Échec d'acceptation de l'invitation", err, {
+        id: "INVITATION_ACCEPT_FAIL",
+        origin: "App.js",
+        stack: err.stack,
+      });
+      return false;
+    }
+  }
+
+  // Fonction pour rejeter une invitation
+  const rejectInvitation = async (notificationToken) => {
+    try {
+      const token = await auth.currentUser.getIdToken();
+      const res = await fetch(`${API_URL}/api/reject-invitation/${notificationToken}`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (!res.ok) throw new Error(`Erreur HTTP POST /api/reject-invitation/${notificationToken}`);
+      fetchNotifications();
+      log.info("Invitation rejetée avec succès", {
+        id: "INVITATION_REJECT_SUCCESS",
+        origin: "App.js",
+        notificationToken,
+      });
+      return true;
+    } catch (err) {
+      log.error("Échec de rejet de l'invitation", err, {
+        id: "INVITATION_REJECT_FAIL",
+        origin: "App.js",
+        stack: err.stack,
+      });
+      return false;
+    }
+  }
+
+  // Fonction pour marquer une notification comme lue
+  const readNotification = async (notificationToken) => {
+    try {
+      const token = await auth.currentUser.getIdToken();
+      const res = await fetch(`${API_URL}/api/read-notification/${notificationToken}`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (!res.ok) throw new Error(`Erreur HTTP POST /api/read-notification/${notificationToken}`);
+      fetchNotifications();
+      log.info("Notification marquée comme lue avec succès", {
+        id: "NOTIFICATION_READ_SUCCESS",
+        origin: "App.js",
+        notificationToken,
+      });
+      return true;
+    } catch (err) {
+      log.error("Échec de marquer la notification comme lue", err, {
+        id: "NOTIFICATION_READ_FAIL",
+        origin: "App.js",
+        stack: err.stack,
+      });
+      return false;
+    }
+  }
+  
+
   const sharedProps = {
     // 🗓️ ÉVÉNEMENTS DU CALENDRIER
     events: {
@@ -672,6 +788,13 @@ function App() {
     },
     invitations: {
       sendInvitation,                         // Envoyer une invitation à un utilisateur
+      acceptInvitation,                       // Accepter une invitation
+      rejectInvitation,                       // Rejeter une invitation
+    },
+    notifications: {
+      notificationsData, setNotificationsData,        // Liste des notifications
+      fetchNotifications,                     // Récupération des notifications
+      readNotification,                       // Marquer une notification comme lue
     }
   }
 
@@ -685,12 +808,17 @@ function App() {
     // MEDS
     setMedsData([]);
     setChecked([]);
+    setOriginalMedsData([]);
     
     // CALENDARS
     setCalendarsData([]);
     
+    
     // TOKENS
     setTokensList([]);
+
+    // NOTIFICATIONS
+    setNotificationsData([]);
   };
 
   useEffect(() => {
@@ -703,7 +831,7 @@ function App() {
 
   return (
     <Router>
-      <Navbar />
+      <Navbar sharedProps={sharedProps}/>
       <div className="container mt-4">
         <AppRoutes sharedProps={sharedProps} />
       </div>

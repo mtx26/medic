@@ -7,6 +7,7 @@ from firebase_admin import firestore, auth
 from datetime import datetime, timezone, timedelta
 import secrets
 from function import generate_schedule
+from google.cloud.firestore import ArrayUnion
 
 api = Blueprint('api', __name__)
 db = firestore.client()
@@ -663,12 +664,16 @@ def handle_update_token_permissions(token):
         return jsonify({"error": "Erreur lors de la mise à jour des permissions du token."}), 500
 
 
+
+
+
 # Route pour envoyer une invitation à un utilisateur, envoyer dans la base de donne du mec, une notif pour rejoindre le calendrier
 @api.route("/api/send-invitation/<calendar_name>", methods=["POST"])
 def handle_send_invitation(calendar_name):
     try:
         sender_user = verify_firebase_token()
         sender_uid = sender_user["uid"]
+        sender_email = sender_user["email"]
         email = request.get_json(force=True).get("email")
 
         receiver_user = auth.get_user_by_email(email)
@@ -679,14 +684,26 @@ def handle_send_invitation(calendar_name):
         if not doc.exists:
             logger.warning(f"[INVITATION_SEND] Utilisateur introuvable : {email}.")
             return jsonify({"error": "Utilisateur introuvable"}), 404
+        
+        # Créer un token unique pour la notification
+        notification_token = secrets.token_hex(16)
 
-        # Créer une notification dans la base de données
-        db.collection("users").document(receiver_uid).collection("notifications").document().set({
+        # Créer une notif pour l'utilisateur receveur
+        db.collection("users").document(receiver_uid).collection("notifications").document(notification_token).set({
             "sender_uid": sender_uid,
+            "sender_email": sender_email,
             "calendar_name": calendar_name,
             "type": "calendar_invitation",
             "timestamp": firestore.SERVER_TIMESTAMP,
-            "read": False
+            "read": False,
+            "notification_token": notification_token
+        })
+
+        # Sauvegarder l'invitation dans la collection "shared_calendars" dans le calendrier de l'utilisateur expéditeur
+        db.collection("users").document(sender_uid).collection("calendars").document(calendar_name).collection("shared_with").document(receiver_uid).set({
+            "uid": receiver_uid,
+            "accepted": False,
+            "access": "read"
         })
 
         logger.info(f"[INVITATION_SEND] Invitation envoyée à {email} pour le calendrier {calendar_name}.")
@@ -695,4 +712,143 @@ def handle_send_invitation(calendar_name):
     except Exception as e:
         logger.exception(f"[INVITATION_SEND_ERROR] Erreur dans /api/send-invitation/{calendar_name}")
         return jsonify({"error": "Erreur lors de l'envoi de l'invitation."}), 500
+
+
+# Route pour récupérer les notifications d'un utilisateur
+@api.route("/api/notifications", methods=["GET"])
+def handle_notifications():
+    try:
+        user = verify_firebase_token()
+        uid = user["uid"]
+
+        notifications_ref = db.collection("users").document(uid).collection("notifications").get()
+        notifications = []
+        for doc in notifications_ref:
+            notifications.append(doc.to_dict())
+        logger.info(f"[NOTIFICATIONS_FETCH] {len(notifications)} notifications récupérées pour {uid}.")
+        print(notifications)
+        return jsonify({"notifications": notifications}), 200
+
+    except Exception as e:
+        logger.exception("[NOTIFICATIONS_ERROR] Erreur dans /api/notifications")
+        return jsonify({"error": "Erreur lors de la récupération des notifications."}), 500
+
+
+
+# Route pour accepter une invitation
+@api.route("/api/accept-invitation/<notification_token>", methods=["POST"])
+def handle_accept_invitation(notification_token):
+    try:
+        user = verify_firebase_token()
+        uid = user["uid"]
+
+        doc = db.collection("users").document(uid).collection("notifications").document(notification_token).get()
+        if not doc.exists:
+            logger.warning(f"[INVITATION_ACCEPT] Notification introuvable : {notification_token}.")
+            return jsonify({"error": "Notification introuvable"}), 404
+        
+        # Vérifier si la notification est une invitation
+        if doc.to_dict().get("type") != "calendar_invitation":
+            logger.warning(f"[INVITATION_ACCEPT] Notification non valide : {notification_token}.")
+            return jsonify({"error": "Notification non valide"}), 400
+        
+        calendar_name = doc.to_dict().get("calendar_name")
+        sender_uid = doc.to_dict().get("sender_uid")
+        
+        # Créer une entrée dans la collection "shared_calendars" pour le calendrier partagé
+        db.collection("users").document(uid).collection("shared_calendars").document(calendar_name).set({
+            "calendar_name": calendar_name,
+            "calendar_owner_uid": sender_uid,
+            "accepted": True,
+            "access": "read"
+        })
+
+        # Dire que l'utilisateur receveur a accepté l'invitation
+        db.collection("users").document(sender_uid).collection("calendars").document(calendar_name).collection("shared_with").document(uid).set({
+            "accepted": True,
+            "accepted_at": firestore.SERVER_TIMESTAMP
+        }, merge=True)
+
+        # Dire que la notif a été lue
+        db.collection("users").document(uid).collection("notifications").document(notification_token).update({
+            "read": True,
+        })
+
+        # Créer une notif pour l'utilisateur expéditeur
+        db.collection("users").document(sender_uid).collection("notifications").document(notification_token).set({
+            "receiver_uid": uid,
+            "receiver_email": user["email"],
+            "calendar_name": calendar_name,
+            "type": "calendar_invitation_accepted",
+            "timestamp": firestore.SERVER_TIMESTAMP,
+            "read": False,
+            "notification_token": notification_token
+        })
+
+        logger.info(f"[INVITATION_ACCEPT] Invitation acceptée : {notification_token}.")
+        return jsonify({"message": "Invitation acceptée avec succès"}), 200
+
+    except Exception as e:
+        logger.exception(f"[INVITATION_ACCEPT_ERROR] Erreur dans /api/accept-invitation/{notification_token}")
+        return jsonify({"error": "Erreur lors de l'acceptation de l'invitation."}), 500
+
+# Route pour rejeter une invitation
+@api.route("/api/reject-invitation/<notification_token>", methods=["POST"])
+def handle_reject_invitation(notification_token):
+    try:
+        user = verify_firebase_token()
+        uid = user["uid"]
+
+        doc = db.collection("users").document(uid).collection("notifications").document(notification_token).get()
+        if not doc.exists:
+            logger.warning(f"[INVITATION_REJECT] Notification introuvable : {notification_token}.")
+            return jsonify({"error": "Notification introuvable"}), 404
+
+        # Vérifier si la notification est une invitation
+        if doc.to_dict().get("type") != "calendar_invitation":
+            logger.warning(f"[INVITATION_REJECT] Notification non valide : {notification_token}.")
+            return jsonify({"error": "Notification non valide"}), 400
+
+        calendar_name = doc.to_dict().get("calendar_name")
+        sender_uid = doc.to_dict().get("sender_uid")
+
+        # Supprimer la notif
+        db.collection("users").document(uid).collection("notifications").document(notification_token).delete()
+
+        # Créer une notif pour l'utilisateur expéditeur
+        db.collection("users").document(sender_uid).collection("notifications").document(notification_token).set({
+            "receiver_uid": uid,
+            "receiver_email": user["email"],
+            "calendar_name": calendar_name,
+            "type": "calendar_invitation_rejected",
+            "timestamp": firestore.SERVER_TIMESTAMP,
+            "read": False,
+            "notification_token": notification_token
+        })
+
+        logger.info(f"[INVITATION_REJECT] Invitation rejetée : {notification_token}.")
+        return jsonify({"message": "Invitation rejetée avec succès"}), 200
+
+    except Exception as e:
+        logger.exception(f"[INVITATION_REJECT_ERROR] Erreur dans /api/reject-invitation/{notification_token}")
+        return jsonify({"error": "Erreur lors de la réjection de l'invitation."}), 500
+
+
+# Route pour marquer une notification comme lue
+@api.route("/api/read-notification/<notification_token>", methods=["POST"])
+def handle_read_notification(notification_token):
+    try:
+        user = verify_firebase_token()
+        uid = user["uid"]
+
+        db.collection("users").document(uid).collection("notifications").document(notification_token).update({
+            "read": True
+        })
+
+        logger.info(f"[NOTIFICATION_READ] Notification marquée comme lue : {notification_token}.")
+        return jsonify({"message": "Notification marquée comme lue avec succès"}), 200
+
+    except Exception as e:
+        logger.exception(f"[NOTIFICATION_READ_ERROR] Erreur dans /api/read-notification/{notification_token}")
+        return jsonify({"error": "Erreur lors de la lecture de la notification."}), 500
 
