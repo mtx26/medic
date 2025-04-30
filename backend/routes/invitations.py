@@ -14,15 +14,15 @@ def handle_send_invitation(calendar_name):
         sender_user = verify_firebase_token()
         sender_uid = sender_user["uid"]
         sender_email = sender_user["email"]
-        email = request.get_json(force=True).get("email")
-
-        receiver_user = auth.get_user_by_email(email)
+        
+        receiver_email = request.get_json(force=True).get("email")
+        receiver_user = auth.get_user_by_email(receiver_email)
         receiver_uid = receiver_user.uid
 
         # Vérifier si l'utilisateur existe  
         doc = db.collection("users").document(receiver_uid).get()
         if not doc.exists:
-            logger.warning(f"[INVITATION_SEND] Utilisateur introuvable : {email}.")
+            logger.warning(f"[INVITATION_SEND] Utilisateur introuvable : {receiver_email}.")
             return jsonify({"error": "Utilisateur introuvable"}), 404
         
         # Créer un token unique pour la notification
@@ -42,11 +42,12 @@ def handle_send_invitation(calendar_name):
         # Sauvegarder l'invitation dans la collection "shared_calendars" dans le calendrier de l'utilisateur expéditeur
         db.collection("users").document(sender_uid).collection("calendars").document(calendar_name).collection("shared_with").document(receiver_uid).set({
             "receiver_uid": receiver_uid,
+            "receiver_email": receiver_email,
             "accepted": False,
             "access": "edit"
         })
 
-        logger.info(f"[INVITATION_SEND] Invitation envoyée à {email} pour le calendrier {calendar_name}.")
+        logger.info(f"[INVITATION_SEND] Invitation envoyée à {receiver_email} pour le calendrier {calendar_name}.")
         return jsonify({"message": "Invitation envoyée avec succès"}), 200
 
     except Exception as e:

@@ -22,6 +22,7 @@ function App() {
   const [originalMedsData, setOriginalMedsData] = useState([]);
   const [notificationsData, setNotificationsData] = useState([]);
   const [sharedCalendarsData, setSharedCalendarsData] = useState([]);
+  const [sharedUsersData, setSharedUsersData] = useState([]);
 
   const [startDate, setStartDate] = useState(() => new Date().toISOString().slice(0, 10));
 
@@ -827,6 +828,36 @@ function App() {
       return false;
     }
   }
+
+  // Fonction pour récupérer les différentes utilisateurs ayant accès à un calendrier
+  const fetchSharedUsers = async (calendarName) => {
+    try {
+      const token = await auth.currentUser.getIdToken();
+      const res = await fetch(`${API_URL}/api/shared/users/${calendarName}`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (!res.ok) throw new Error(`Erreur HTTP GET /api/shared/users/${calendarName}`);
+      const data = await res.json();
+      setSharedUsersData(data.users);
+      log.info("Utilisateurs partagés récupérés avec succès", {
+        id: "SHARED_USERS_FETCH_SUCCESS",
+        origin: "App.js",
+        count: data?.users?.length,
+      });
+      return true;
+    } catch (err) {
+      log.error("Échec de récupération des utilisateurs partagés", err, {
+        id: "SHARED_USERS_FETCH_FAIL",
+        origin: "App.js",
+        stack: err.stack,
+      });
+      return false;
+    }
+  }
+  
   
   const sharedProps = {
     // 🗓️ ÉVÉNEMENTS DU CALENDRIER
@@ -887,6 +918,10 @@ function App() {
       notificationsData, setNotificationsData,        // Liste des notifications
       fetchNotifications,                     // Récupération des notifications
       readNotification,                       // Marquer une notification comme lue
+    },
+    sharedUsers: {
+      sharedUsersData, setSharedUsersData,      // Liste des utilisateurs partagés
+      fetchSharedUsers,                       // Récupération des utilisateurs partagés
     },
   }
 

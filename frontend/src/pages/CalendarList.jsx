@@ -5,7 +5,7 @@ import AlertSystem from '../components/AlertSystem';
 
 
 
-function SelectCalendar({ calendars, tokens, invitations }) {
+function SelectCalendar({ calendars, tokens, invitations, sharedUsers }) {
 
   const navigate = useNavigate();
   const { authReady, currentUser } = useContext(AuthContext); // Récupération du contexte d'authentification
@@ -93,35 +93,35 @@ function SelectCalendar({ calendars, tokens, invitations }) {
             <button type="button" className="btn-close" onClick={() => setShowShareModal(false)}></button>
           </div>
           <div className="modal-body">
-            <div className="mb-3">
-              <div className="d-flex justify-content-center gap-3" role="group" aria-label="Méthode de partage">
+
+            {/* Choix du mode */}
+            <div className="mb-4 text-center">
+              <div className="btn-group" role="group" aria-label="Méthode de partage">
                 <button
                   type="button"
-                  className={`btn btn-outline-primary ${shareMethod === 'link' ? 'active' : ''}`}
+                  className={`btn ${shareMethod === 'link' ? 'btn-primary' : 'btn-outline-primary'}`}
                   onClick={() => setShareMethod('link')}
-                  title="Partager via un lien"
                 >
                   <i className="bi bi-link"></i> Lien
                 </button>
                 <button
                   type="button"
-                  className={`btn btn-outline-primary ${shareMethod === 'account' ? 'active' : ''}`}
+                  className={`btn ${shareMethod === 'account' ? 'btn-primary' : 'btn-outline-primary'}`}
                   onClick={() => setShareMethod('account')}
-                  title="Partager avec un compte"
                 >
                   <i className="bi bi-person-plus-fill"></i> Compte
                 </button>
               </div>
             </div>
 
-
+            {/* PARTAGE PAR LIEN */}
             {shareMethod === 'link' ? (
               <div className="d-flex flex-column gap-3">
                 {existingShareToken ? (
                   <>
                     <p>Un lien existe déjà pour ce calendrier.</p>
                     <div className="input-group">
-                      <input 
+                      <input
                         type="text"
                         className="form-control"
                         value={`${REACT_URL}/shared-calendar/${existingShareToken.token}`}
@@ -155,18 +155,13 @@ function SelectCalendar({ calendars, tokens, invitations }) {
                 ) : (
                   <>
                     <p>Un lien sera généré pour <strong>{calendarToShare}</strong>.</p>
-
                     <div>
                       <label className="form-label">Expiration du lien</label>
                       <select
                         className="form-select mb-2"
                         value={expiresAt === null ? 'never' : 'date'}
                         onChange={(e) => {
-                          if (e.target.value === 'never') {
-                            setExpiresAt(null);
-                          } else {
-                            setExpiresAt('');
-                          }
+                          setExpiresAt(e.target.value === 'never' ? null : '');
                         }}
                         title="Date d'expiration"
                       >
@@ -201,60 +196,101 @@ function SelectCalendar({ calendars, tokens, invitations }) {
                 )}
               </div>
             ) : (
+              // PARTAGE PAR COMPTE
               <div>
+                {sharedUsers.sharedUsersData.length > 0 && (
+                  <>
+                    <div className="d-flex align-items-center gap-2 mb-2">
+                      <h5 className="mb-0">Utilisateurs partagés</h5>
+                      <button
+                        className="btn btn-sm btn-outline-warning"
+                        title="Gérer les utilisateurs partagés"
+                        onClick={() => navigate('/shared-calendar')}
+                      >
+                        <i className="bi bi-gear"></i>
+                      </button>
+                    </div>
+
+                    <ul className="list-group mb-3">
+                      {sharedUsers.sharedUsersData.map((user) => (
+                        <li key={user.email} className="list-group-item d-flex justify-content-between align-items-center">
+                          <span>
+                            <strong>{user.email}</strong><br />
+                            Accès : {user.access}
+                          </span>
+                          <span className={`badge ${user.accepted ? "bg-success" : "bg-warning text-dark"}`}>
+                            {user.accepted ? "Accepté" : "En attente"}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                )}
                 <p>Envoyer une invitation pour accéder à <strong>{calendarToShare}</strong>.</p>
-                <input 
-                  type="email" 
-                  className="form-control"
-                  placeholder="Email du compte"
-                  onChange={(e) => setEmailToInvite(e.target.value)}
-                />
+                <div className="input-group">
+                  <input
+                    type="email"
+                    className="form-control"
+                    placeholder="Email du compte"
+                    onChange={(e) => setEmailToInvite(e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    className="btn btn-outline-primary"
+                    onClick={async () => {
+                      const success = await invitations.sendInvitation(emailToInvite, calendarToShare);
+                      if (success) {
+                        setAlertType("success");
+                        setAlertMessage("✅ Invitation envoyée avec succès !");
+                      } else {
+                        setAlertType("danger");
+                        setAlertMessage("❌ Erreur lors de l'envoi de l'invitation.");
+                      }
+                      setShowShareModal(false);
+                    }}
+                  >
+                    Partager
+                  </button>
+                </div>
               </div>
             )}
 
-
           </div>
+
+          {/* Footer seulement si nécessaire */}
           <div className="modal-footer">
             <button type="button" className="btn btn-outline-secondary" onClick={() => setShowShareModal(false)}>Fermer</button>
-            <button 
-              type="button" 
-              className="btn btn-outline-primary" 
-              onClick={async () => {
-                if (shareMethod === 'link') {
-                  const {token, success} = await tokens.createSharedTokenCalendar(calendarToShare, expiresAt, permissions);
+            {!existingShareToken && shareMethod === 'link' && (
+              <button
+                type="button"
+                className="btn btn-outline-primary"
+                onClick={async () => {
+                  const { token, success } = await tokens.createSharedTokenCalendar(calendarToShare, expiresAt, permissions);
                   if (success) {
                     try {
-                      await navigator.clipboard.writeText(`${REACT_URL}/shared-calendar/${token}`); // Copier dans presse-papier
+                      await navigator.clipboard.writeText(`${REACT_URL}/shared-calendar/${token}`);
                       setAlertType("success");
-                    setAlertMessage("🔗 Lien copié dans le presse-papiers !");
-                  } catch (error) {
-                    setAlertType("danger");
+                      setAlertMessage("🔗 Lien copié dans le presse-papiers !");
+                    } catch (error) {
+                      setAlertType("danger");
                       setAlertMessage("❌ Erreur lors de la copie du lien.");
                     }
                   } else {
                     setAlertType("danger");
                     setAlertMessage("❌ Erreur lors de la création du lien.");
                   }
-                } else {
-                  const success = await invitations.sendInvitation(emailToInvite, calendarToShare);
-                  if (success) {
-                    setAlertType("success");
-                    setAlertMessage("✅ Invitation envoyée avec succès !");
-                  } else {
-                    setAlertType("danger");
-                    setAlertMessage("❌ Erreur lors de l'envoi de l'invitation.");
-                  }
-                }
-                setShowShareModal(false);
-              }}
-            >
-              Partager
-            </button>
+                  setShowShareModal(false);
+                }}
+              >
+                Partager
+              </button>
+            )}
           </div>
         </div>
       </div>
     </div>
   )}
+
 
   <div className="card p-3 shadow-sm w-100" style={{ maxWidth: '800px' }}>
     <h5 className="mb-3">Mes calendriers</h5>
@@ -372,6 +408,7 @@ function SelectCalendar({ calendars, tokens, invitations }) {
               const token = await tokens.tokensList.find(
                 (t) => t.calendar_name === calendarName && !t.revoked && t.calendar_owner_uid === currentUser.uid
               );
+              await sharedUsers.fetchSharedUsers(calendarName);
               setExistingShareToken(token || null);
               setShowShareModal(true);           // On affiche la modal
             }}

@@ -77,3 +77,30 @@ def handle_delete_shared_calendar(calendar_name):
         return jsonify({"error": "Erreur interne lors de la suppression du calendrier partagé."}), 500
 
 
+# Route pour récupérer les utilisateurs ayant accès à un calendrier
+@api.route("/api/shared/users/<calendar_name>", methods=["GET"])
+def handle_shared_users(calendar_name):
+    try:
+        user = verify_firebase_token()
+        uid = user["uid"]
+
+        shared_users_ref = db.collection("users").document(uid).collection("calendars").document(calendar_name).collection("shared_with")
+        shared_users_docs = list(shared_users_ref.stream())
+
+        shared_users_list = []
+        for doc in shared_users_docs:
+            data = doc.to_dict()
+            shared_users_list.append({
+                "uid": data.get("uid"),
+                "email": data.get("receiver_email"),
+                "access": data.get("access", "read"),
+                "accepted": data.get("accepted", False)
+            })
+
+        logger.info(f"[SHARED_USERS_LOAD] {len(shared_users_list)} utilisateur(s) récupéré(s) pour {calendar_name}.")
+        return jsonify({"users": shared_users_list}), 200
+
+    except Exception as e:
+        logger.exception("[SHARED_USERS_ERROR] Erreur lors de la récupération des utilisateurs partagés.")
+        return jsonify({"error": "Erreur interne lors de la récupération des utilisateurs partagés."}), 500
+
