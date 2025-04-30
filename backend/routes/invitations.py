@@ -41,9 +41,9 @@ def handle_send_invitation(calendar_name):
 
         # Sauvegarder l'invitation dans la collection "shared_calendars" dans le calendrier de l'utilisateur expéditeur
         db.collection("users").document(sender_uid).collection("calendars").document(calendar_name).collection("shared_with").document(receiver_uid).set({
-            "uid": receiver_uid,
+            "receiver_uid": receiver_uid,
             "accepted": False,
-            "access": "read"
+            "access": "edit"
         })
 
         logger.info(f"[INVITATION_SEND] Invitation envoyée à {email} pour le calendrier {calendar_name}.")
@@ -73,13 +73,14 @@ def handle_accept_invitation(notification_token):
         
         calendar_name = doc.to_dict().get("calendar_name")
         sender_uid = doc.to_dict().get("sender_uid")
-        
-        # Créer une entrée dans la collection "shared_calendars" pour le calendrier partagé
+        sender_email = doc.to_dict().get("sender_email")
+
+        # Créer une entrée dans sa collection "shared_calendars" pour le calendrier partagé
         db.collection("users").document(uid).collection("shared_calendars").document(calendar_name).set({
             "calendar_name": calendar_name,
             "calendar_owner_uid": sender_uid,
-            "accepted": True,
-            "access": "read"
+            "calendar_owner_email": sender_email,
+            "access": "edit"
         })
 
         # Dire que l'utilisateur receveur a accepté l'invitation

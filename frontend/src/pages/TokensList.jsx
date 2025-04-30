@@ -168,7 +168,7 @@ function TokensList({ tokens }) {
                         onClick={() => {
                           setAlertType("confirm-danger");
                           setAlertMessage("❌ Confirmez-vous la suppression du lien de partage ?");
-                          setOnConfirmAction(() => () => tokens.deleteSharedCalendar(token.token));
+                          setOnConfirmAction(() => () => tokens.deleteSharedTokenCalendar(token.token));
                           setAlertTokenId(token.token);
                         }}
                         title="Supprimer"

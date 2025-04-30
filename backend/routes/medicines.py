@@ -4,7 +4,11 @@ from auth import verify_firebase_token
 from datetime import datetime, timezone, timedelta
 from . import api
 from firebase_admin import firestore
+from function import verify_calendar_share
+
 db = firestore.client()
+
+
 # Route pour gérer les médicaments d'un calendrier spécifique
 @api.route("/api/calendars/<calendar_name>/medicines", methods=["GET", "POST"])
 def handle_medicines(calendar_name):
@@ -40,3 +44,58 @@ def handle_medicines(calendar_name):
     except Exception as e:
         logger.exception(f"[MED_ERROR] Erreur dans /api/calendars/${calendar_name}/medicines")
         return jsonify({"error": "Erreur interne"}), 500
+
+
+# Route pour compter les médicaments
+@api.route("/api/countmedicines", methods=["GET"])
+def count_medicines():
+    try:
+        user = verify_firebase_token()
+        uid = user["uid"]
+        name_calendar = request.args.get("calendarName")
+
+        doc = db.collection("users").document(uid).collection("calendars").document(name_calendar).get()
+        if not doc.exists:
+            logger.warning(f"[MED_COUNT] Calendrier introuvable : {name_calendar} pour {uid}.")
+            return jsonify({"error": "Calendrier introuvable"}), 404
+
+        data = doc.to_dict()
+        medicines = data.get("medicines", [])
+        count = len(medicines)
+        logger.info(f"[MED_COUNT] {count} médicaments récupérés de {name_calendar} pour {uid}.")
+        return jsonify({"count": count}), 200
+
+    except Exception as e:
+        logger.exception("[MED_COUNT_ERROR] Erreur dans /api/countmedicines")
+        return jsonify({"error": "Erreur lors du comptage des médicaments."}), 500
+ 
+
+# Route pour compter les médicaments d'un calendrier partagé
+@api.route("/api/shared/countmedicines", methods=["GET"])
+def count_shared_medicines():
+    try:
+        user = verify_firebase_token()
+        uid = user["uid"]
+
+        calendar_name = request.args.get("calendarName")
+        calendar_owner_uid = request.args.get("calendarOwnerUid")
+
+        doc = db.collection("users").document(calendar_owner_uid).collection("calendars").document(calendar_name).get()
+        if not doc.exists:
+            logger.warning(f"[MED_COUNT] Calendrier introuvable : {calendar_name} pour {uid}.")
+            return jsonify({"error": "Calendrier introuvable"}), 404
+
+
+        if not verify_calendar_share(calendar_name, calendar_owner_uid, uid):
+            logger.warning(f"[MED_COUNT] Accès non autorisé à {calendar_name} partagé par {calendar_owner_uid}")
+            return jsonify({"error": "Accès non autorisé"}), 403
+
+        data = doc.to_dict()
+        medicines = data.get("medicines", [])
+        count = len(medicines)
+        logger.info(f"[MED_COUNT] {count} médicaments récupérés de {calendar_name} pour {uid}.")
+        return jsonify({"count": count}), 200
+
+    except Exception as e:
+        logger.exception("[MED_COUNT_ERROR] Erreur dans /api/shared/countmedicines")
+        return jsonify({"error": "Erreur lors du comptage des médicaments."}), 500

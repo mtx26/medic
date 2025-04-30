@@ -27,7 +27,7 @@ def handle_notifications():
 
 
 # Route pour marquer une notification comme lue
-@api.route("/api/read-notification/<notification_token>", methods=["POST"])
+@api.route("/api/notifications/<notification_token>", methods=["POST"])
 def handle_read_notification(notification_token):
     try:
         user = verify_firebase_token()

@@ -26,6 +26,10 @@ function SelectCalendar({ calendars, tokens, invitations }) {
   const [loadingCalendars, setLoadingCalendars] = useState(true);
   const REACT_URL = process.env.REACT_APP_REACT_URL
 
+  const deleteSharedCalendar = (calendarName) => {
+    console.log(calendarName);
+  }
+
   useEffect(() => {
     const load = async () => {
       if (authReady) { // authReady doit être prêt
@@ -33,6 +37,7 @@ function SelectCalendar({ calendars, tokens, invitations }) {
           calendars.setCalendarsData([]); // Bien vider l'ancien
           setLoadingCalendars(true);
           await calendars.fetchCalendars(); // Recharger pour le nouvel utilisateur
+          await calendars.fetchSharedCalendars(); // Recharger pour le nouvel utilisateur
           await tokens.fetchTokens();
           setLoadingCalendars(false);
         } else {
@@ -50,14 +55,19 @@ function SelectCalendar({ calendars, tokens, invitations }) {
     const loadCounts = async () => {
       const counts = {};
       for (const calendarName of calendars.calendarsData) {
-      const c = await calendars.getMedicineCount(calendarName); // Récupération du nombre de médicaments
-      counts[calendarName] = c;
+        const c = await calendars.getMedicineCount(calendarName); // Récupération du nombre de médicaments
+        counts[calendarName] = c;
+      }
+      console.log("Calendriers partagés récupérés :", calendars.sharedCalendarsData);
+      for (const calendarName of calendars.sharedCalendarsData) {
+        const c = await calendars.getSharedMedicineCount(calendarName.calendar_name, calendarName.calendar_owner_uid); // Récupération du nombre de médicaments
+        counts[calendarName.calendar_name] = c;
       }
       setCount(counts); // Mise à jour de l'état avec les nombres
     };
     loadCounts();
     }
-  }, [calendars.calendarsData, authReady, currentUser]);
+  }, [calendars.calendarsData, calendars.sharedCalendarsData, authReady, currentUser]);
 
   if (loadingCalendars) {
     return (
@@ -72,7 +82,7 @@ function SelectCalendar({ calendars, tokens, invitations }) {
   
 
   return (
-<div className="container d-flex justify-content-center">
+<div className="container align-items-center d-flex flex-column gap-3">
   {/* Modal pour partager un calendrier */}
   {showShareModal && (
     <div className="modal d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
@@ -211,7 +221,7 @@ function SelectCalendar({ calendars, tokens, invitations }) {
               className="btn btn-outline-primary" 
               onClick={async () => {
                 if (shareMethod === 'link') {
-                  const {token, success} = await tokens.createSharedCalendar(calendarToShare, expiresAt, permissions);
+                  const {token, success} = await tokens.createSharedTokenCalendar(calendarToShare, expiresAt, permissions);
                   if (success) {
                     try {
                       await navigator.clipboard.writeText(`${REACT_URL}/shared-calendar/${token}`); // Copier dans presse-papier
@@ -246,7 +256,7 @@ function SelectCalendar({ calendars, tokens, invitations }) {
     </div>
   )}
 
-  <div className="card p-3 shadow-sm w-100" style={{ maxWidth: '700px' }}>
+  <div className="card p-3 shadow-sm w-100" style={{ maxWidth: '800px' }}>
     <h5 className="mb-3">Mes calendriers</h5>
 
     {/* Champ pour ajouter un nouveau calendrier */}
@@ -390,8 +400,63 @@ function SelectCalendar({ calendars, tokens, invitations }) {
       ))}
     </div>
   </div>
-</div>
+  
+  <div className="card p-3 shadow-sm w-100" style={{ maxWidth: '800px' }}>
+    <h5 className="mb-3">Calendriers partagés</h5>
+      {/* Liste des calendriers partagés */}
+      <div className="list-group">
+        {calendars.sharedCalendarsData.map((calendarName, index) => (
+        <div key={index} className="list-group-item">
+          <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+            <div className="flex-grow-1">
+              <strong>
+                {calendarName.calendar_name}{" "}
+              </strong>
+              <div className="text-muted small">
+                Nombre de médicaments :
+                <span className="fw-semibold ms-1">
+                  {count[calendarName.calendar_name] ?? "..."}
+                </span>
+              </div>
+              <div className="text-muted small">
+                Propriétaire :
+                <span className="fw-semibold ms-1">
+                  {calendarName.calendar_owner_email ?? "Propriétaire inconnu"}
+                </span>
+              </div>
+            </div>
 
+
+            <div className="btn-group btn-group">
+              <button
+                type="button"
+                className="btn btn-outline-success"
+                title="Ouvrir"
+                onClick={() => navigate('/calendars/' + calendarName.calendar_name)}
+              >
+                Ouvrir
+              </button>
+              <button
+                type="button"
+                className="btn btn-outline-danger"
+                title="Supprimer"
+                onClick={() => {
+                  setAlertType("confirm-danger");
+                  setAlertMessage("❌ Confirmez-vous la suppression du calendrier partagé ?");
+                  setOnConfirmAction(() => () => {
+                    deleteSharedCalendar(calendarName.calendar_name);
+                  });
+                }}
+              >
+                <i className="bi bi-trash3"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+        ))}
+      </div>
+    </div>
+  </div>
   );
 }
 

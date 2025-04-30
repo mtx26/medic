@@ -100,32 +100,7 @@ def handle_calendars():
     except Exception as e:
         logger.exception("[CALENDAR_ERROR] Erreur dans /api/calendars")
         return jsonify({"error": "Erreur lors de la gestion des calendriers."}), 500
-    
-
-
-# Route pour compter les médicaments
-@api.route("/api/countmedicines", methods=["GET"])
-def count_medicines():
-    try:
-        user = verify_firebase_token()
-        uid = user["uid"]
-        name_calendar = request.args.get("calendarName")
-
-        doc = db.collection("users").document(uid).collection("calendars").document(name_calendar).get()
-        if doc.exists:
-            data = doc.to_dict()
-            medicines = data.get("medicines", [])
-            count = len(medicines)
-            logger.info(f"[MED_COUNT] {count} médicaments récupérés de {name_calendar} pour {uid}.")
-            return jsonify({"count": count}), 200
-        else:
-            logger.warning(f"[MED_COUNT] médicaments introuvables de {name_calendar} pour {uid}.")
-            return jsonify({"error": "Calendrier introuvable"}), 404
-
-    except Exception as e:
-        logger.exception("[MED_COUNT_ERROR] Erreur dans /api/countmedicines")
-        return jsonify({"error": "Erreur lors du comptage des médicaments."}), 500
-    
+   
 
 # Route pour générer le calendrier 
 @api.route("/api/calendars/<calendar_name>/calendar", methods=["GET"])
