@@ -1,3 +1,4 @@
+import firebase_admin_init 
 from firebase_admin import auth
 from flask import request, abort
 from logger import backend_logger as logger
