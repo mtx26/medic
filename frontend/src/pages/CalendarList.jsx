@@ -15,6 +15,7 @@ function SelectCalendar({ calendars, tokens, invitations, sharedUsers }) {
   const [alertType, setAlertType] = useState("");
   const [alertMessage, setAlertMessage] = useState("");
   const [onConfirmAction, setOnConfirmAction] = useState(null);
+  const [selectedAlert, setSelectedAlert] = useState(null);
   const [showShareModal, setShowShareModal] = useState(false);
   const [calendarToShare, setCalendarToShare] = useState('');
   const [shareMethod, setShareMethod] = useState('link'); 
@@ -58,7 +59,6 @@ function SelectCalendar({ calendars, tokens, invitations, sharedUsers }) {
         const c = await calendars.getMedicineCount(calendarName); // Récupération du nombre de médicaments
         counts[calendarName] = c;
       }
-      console.log("Calendriers partagés récupérés :", calendars.sharedCalendarsData);
       for (const calendarName of calendars.sharedCalendarsData) {
         const c = await calendars.getSharedMedicineCount(calendarName.calendar_name, calendarName.calendar_owner_uid); // Récupération du nombre de médicaments
         counts[calendarName.calendar_name] = c;
@@ -215,7 +215,7 @@ function SelectCalendar({ calendars, tokens, invitations, sharedUsers }) {
                       {sharedUsers.sharedUsersData.map((user) => (
                         <li key={user.email} className="list-group-item d-flex justify-content-between align-items-center">
                           <span>
-                            <strong>{user.email}</strong><br />
+                            <strong>{user.receiver_email}</strong><br />
                             Accès : {user.access}
                           </span>
                           <span className={`badge ${user.accepted ? "bg-success" : "bg-warning text-dark"}`}>
@@ -329,17 +329,20 @@ function SelectCalendar({ calendars, tokens, invitations, sharedUsers }) {
       </button>
     </div>
 
-    <AlertSystem
+    {selectedAlert === "calendar" && (
+      <AlertSystem
       type={alertType}
       message={alertMessage}
       onClose={() => {
         setAlertMessage("");
         setOnConfirmAction(null);
+        setSelectedAlert(null);
       }}
       onConfirm={() => {
         if (onConfirmAction) onConfirmAction();
       }}
     />
+    )}
 
     {/* Liste des calendriers */}
     <div className="list-group">
@@ -376,6 +379,7 @@ function SelectCalendar({ calendars, tokens, invitations, sharedUsers }) {
           title="Renommer"
           onClick={() => {
             setAlertType("confirm-safe");
+            setSelectedAlert("calendar");
             setAlertMessage("✅ Confirmez-vous le renommage du calendrier ?");
             setOnConfirmAction(() => () => {
               calendars.RenameCalendar(calendarName, renameValues[calendarName]); // Renommage du calendrier
@@ -423,6 +427,7 @@ function SelectCalendar({ calendars, tokens, invitations, sharedUsers }) {
           title="Supprimer"
           onClick={() => {
             setAlertType("confirm-danger");
+            setSelectedAlert("calendar");
             setAlertMessage("❌ Confirmez-vous la suppression du calendrier ?");
             setOnConfirmAction(() => () => {
               calendars.deleteCalendar(calendarName);
@@ -437,63 +442,83 @@ function SelectCalendar({ calendars, tokens, invitations, sharedUsers }) {
       ))}
     </div>
   </div>
-  
+
+
   <div className="card p-3 shadow-sm w-100" style={{ maxWidth: '800px' }}>
     <h5 className="mb-3">Calendriers partagés</h5>
-      {/* Liste des calendriers partagés */}
-      <div className="list-group">
-        {calendars.sharedCalendarsData.map((calendarName, index) => (
-        <div key={index} className="list-group-item">
-          <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
-            <div className="flex-grow-1">
-              <strong>
-                {calendarName.calendar_name}{" "}
-              </strong>
-              <div className="text-muted small">
-                Nombre de médicaments :
-                <span className="fw-semibold ms-1">
-                  {count[calendarName.calendar_name] ?? "..."}
-                </span>
-              </div>
-              <div className="text-muted small">
-                Propriétaire :
-                <span className="fw-semibold ms-1">
-                  {calendarName.calendar_owner_email ?? "Propriétaire inconnu"}
-                </span>
-              </div>
+
+    {selectedAlert === "sharedCalendar" && (
+      <AlertSystem
+      type={alertType}
+      message={alertMessage}
+      onClose={() => {
+        setAlertMessage("");
+        setOnConfirmAction(null);
+        setSelectedAlert(null);
+      }}
+      onConfirm={() => {
+        if (onConfirmAction) onConfirmAction();
+      }}
+    />
+    )}
+
+    {/* Liste des calendriers partagés */}  
+    <div className="list-group">
+      {calendars.sharedCalendarsData.map((calendarName, index) => (
+      <div key={index} className="list-group-item">
+        <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+          <div className="flex-grow-1">
+            <strong>
+              {calendarName.calendar_name}{" "}
+            </strong>
+            <div className="text-muted small">
+              Nombre de médicaments :
+              <span className="fw-semibold ms-1">
+                {count[calendarName.calendar_name] ?? "..."}
+              </span>
             </div>
-
-
-            <div className="btn-group btn-group">
-              <button
-                type="button"
-                className="btn btn-outline-success"
-                title="Ouvrir"
-                onClick={() => navigate('/calendars/' + calendarName.calendar_name)}
-              >
-                Ouvrir
-              </button>
-              <button
-                type="button"
-                className="btn btn-outline-danger"
-                title="Supprimer"
-                onClick={() => {
-                  setAlertType("confirm-danger");
-                  setAlertMessage("❌ Confirmez-vous la suppression du calendrier partagé ?");
-                  setOnConfirmAction(() => () => {
-                    deleteSharedCalendar(calendarName.calendar_name);
-                  });
-                }}
-              >
-                <i className="bi bi-trash3"></i>
-              </button>
+            <div className="text-muted small">
+              Propriétaire :
+              <span className="fw-semibold ms-1">
+                {calendarName.calendar_owner_email ?? "Propriétaire inconnu"}
+              </span>
             </div>
           </div>
+
+
+          <div className="btn-group btn-group">
+            <button
+              type="button"
+              className="btn btn-outline-success"
+              title="Ouvrir"
+              onClick={() => navigate('/calendars/' + calendarName.calendar_name)}
+            >
+              Ouvrir
+            </button>
+            <button
+              type="button"
+              className="btn btn-outline-danger"
+              title="Supprimer"
+              onClick={() => {
+                setAlertType("confirm-danger");
+                setSelectedAlert("sharedCalendar");
+                setAlertMessage("❌ Confirmez-vous la suppression du calendrier partagé ?");
+                setOnConfirmAction(() => () => {
+                  deleteSharedCalendar(calendarName.calendar_name);
+                });
+              }}
+            >
+              <i className="bi bi-trash3"></i>
+            </button>
+          </div>
         </div>
-        ))}
       </div>
+      ))}
     </div>
   </div>
+
+</div>
+
   );
 }
 

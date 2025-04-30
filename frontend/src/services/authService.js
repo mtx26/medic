@@ -1,5 +1,5 @@
 import { auth, db } from "./firebase";
-import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc } from "firebase/firestore";
 import { getGlobalReloadUser } from "../contexts/UserContext";
 
 import { 
@@ -9,7 +9,6 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
-  updateEmail as firebaseUpdateEmail, 
   updatePassword as firebaseUpdatePassword,
   sendEmailVerification
 } from "firebase/auth";

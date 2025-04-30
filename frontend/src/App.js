@@ -7,7 +7,7 @@ import AppRoutes from './routes/AppRouter';
 import { log } from './utils/logger';
 import { auth } from './services/firebase';
 import { AuthContext } from './contexts/LoginContext';
-
+import { useCallback } from 'react';
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -30,7 +30,7 @@ function App() {
 
 
   // Fonction pour obtenir les calendriers
-  const fetchCalendars = async () => {
+  const fetchCalendars = useCallback(async () => {
     try {
       const token = await auth.currentUser.getIdToken();
       const res = await fetch(`${API_URL}/api/calendars`, {
@@ -53,11 +53,11 @@ function App() {
         stack: err.stack,
       });
     }
-  };
+  }, []);
 
   // Fonction pour ajouter un calendrier
 
-  const addCalendar = async (calendarName) => {
+  const addCalendar = useCallback(async (calendarName) => {
     try {
       const token = await auth.currentUser.getIdToken();
       const res = await fetch(`${API_URL}/api/calendars`, {
@@ -85,11 +85,11 @@ function App() {
       });
       return false;
     }
-  };
+  }, []);
 
   // Fonction pour supprimer un calendrier
 
-  const deleteCalendar = async (calendarName) => {
+  const deleteCalendar = useCallback(async (calendarName) => {
     try {
       const token = await auth.currentUser.getIdToken();
       const res = await fetch(`${API_URL}/api/calendars`, {
@@ -115,11 +115,11 @@ function App() {
         stack: err.stack,
       });
     }
-  };
+  }, []);
 
   // Fonction pour renommer un calendrier
 
-  const RenameCalendar = async (oldCalendarName, newCalendarName) => {
+  const RenameCalendar = useCallback(async (oldCalendarName, newCalendarName) => {
     try {
       const token = await auth.currentUser.getIdToken();
       const res = await fetch(`${API_URL}/api/calendars`, {
@@ -147,11 +147,11 @@ function App() {
         stack: err.stack,
       });
     }
-  };
+  }, []);
 
   // Fonction pour obtenir le nombre de médicaments d'un calendrier 
 
-  const getMedicineCount = async (calendarName) => {
+  const getMedicineCount = useCallback(async (calendarName) => {
     try {
       const token = await auth.currentUser.getIdToken();
       const res = await fetch(`${API_URL}/api/countmedicines?calendarName=${calendarName}`, {
@@ -181,10 +181,10 @@ function App() {
       });
       return 0;
     }
-  };
+  }, []);
 
   // Fonction pour obtenir le nombre de médicaments d'un calendrier partagé
-  const getSharedMedicineCount = async (calendarName, calendarOwnerUid) => {
+  const getSharedMedicineCount = useCallback(async (calendarName, calendarOwnerUid) => {
     try {
       const token = await auth.currentUser.getIdToken();
       const res = await fetch(`${API_URL}/api/shared/countmedicines?calendarName=${calendarName}&calendarOwnerUid=${calendarOwnerUid}`, {
@@ -211,12 +211,12 @@ function App() {
       });
       return 0;
     }
-  };
+  }, []);
 
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
   // Fonction pour obtenir le calendrier lier au calendarName
-  const getCalendar = async (calendarName, startDate ) => {
+  const getCalendar = useCallback(async (calendarName, startDate ) => {
     try {
       if (!currentUser) {
         log.warn("Utilisateur non connecté, calendrier non chargé.", {
@@ -261,12 +261,12 @@ function App() {
         stack: err.stack,
       });
     }
-  };
+  }, []);
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   // Fonction pour obtenir les différents médicaments
-  const fetchCalendarsMedecines = async (calendarName) => {
+  const fetchCalendarsMedecines = useCallback(async (calendarName) => {
     try {
       const token = await auth.currentUser.getIdToken();
       const res = await fetch(`${API_URL}/api/calendars/${calendarName}/medicines`, {
@@ -291,12 +291,12 @@ function App() {
         stack: err.stack,
       });
     }
-  };
+  }, [medsData]);
     
 
 
   // Fonction pour mettre à jour un médicament dans la variable meds
-  const handleMedChange = (index, field, value) => {
+  const handleMedChange = useCallback((index, field, value) => {
     if (value !== null && field !== null && index !== null) {
       const updated = [...medsData];
       const numericFields = ['tablet_count', 'interval_days'];
@@ -317,10 +317,10 @@ function App() {
         index,
       });
     }
-  };
+  }, [medsData]);
 
     // Fonction pour mettre à jour les médicaments
-  const updateMeds = async (calendarName, newMeds = medsData) => {
+  const updateMeds = useCallback(async (calendarName, newMeds = medsData) => {
     try {
       if (medsData.length === 0) {
         log.warn("Aucun médicament à mettre à jour", {
@@ -355,11 +355,11 @@ function App() {
       });
       return false;
     }
-  };
+  }, [medsData]);
 
 
   // Fonction pour supprimer des médicaments 
-  const deleteSelectedMeds = async (nameCalendar) => {
+  const deleteSelectedMeds = useCallback(async (nameCalendar) => {
     if (checked.length === 0) return false;
   
     const updatedMeds = medsData.filter((_, i) => !checked.includes(i));
@@ -382,22 +382,22 @@ function App() {
       });
     }
     return success;
-  };
+  }, [checked, medsData, updateMeds]);
   
 
   // Fonction pour ajouter un nouveau médicament sanq la variable meds
-  const addMed = () => {
+  const addMed = useCallback(() => {
     setMedsData([
       ...medsData,
       { name: '', tablet_count: 1, time: ['morning'], interval_days: 1, start_date: '' },
     ]);
-  };
+  }, [medsData]);
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 
   // Fonction pour recupérer un calendrier partagé par sharedTokens
-  const getSharedCalendar = async (sharedToken, startDate) => {
+  const getSharedCalendar = useCallback(async (sharedToken, startDate) => {
     try {
       if (!startDate) {
         startDate = new Date().toISOString().slice(0, 10);
@@ -423,10 +423,10 @@ function App() {
       });
       return false;
     }
-  }
+  }, []);
 
   // Fonction pour récupérer les médicaments d'un calendrier partagé
-  const getSharedMedecines = async (sharedToken) => {
+  const getSharedMedecines = useCallback(async (sharedToken) => {
     try {
       const  res = await fetch(`${API_URL}/api/shared/${sharedToken}/medecines`, {
         method: "GET",
@@ -448,11 +448,11 @@ function App() {
       });
       return false;
     }
-  }
+  }, []);
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   // Fonction pour récupérer les tokens
-  const fetchTokens = async () => {
+  const fetchTokens = useCallback(async () => {
     try {
       const token = await auth.currentUser.getIdToken();
       const res = await fetch(`${API_URL}/api/tokens`, {
@@ -477,10 +477,10 @@ function App() {
       });
       return false;
     }
-  }
+  }, []);
 
   // Fonction pour créer un lien de partage
-  const createSharedTokenCalendar = async (calendarName, expiresAt, permissions) => {
+  const createSharedTokenCalendar = useCallback(async (calendarName, expiresAt, permissions) => {
     try {
       const token = await auth.currentUser.getIdToken();
       const res = await fetch(`${API_URL}/api/set-shared/${calendarName}`, {
@@ -509,10 +509,10 @@ function App() {
       });
       return {token: null, success: false};
     }
-  }
+  }, []);
 
   // Fonction pour supprimer un lien de partage
-  const deleteSharedTokenCalendar = async (token) => {
+  const deleteSharedTokenCalendar = useCallback(async (token) => {
     try {
       const tokenFirebase = await auth.currentUser.getIdToken();
       const res = await fetch(`${API_URL}/api/shared/${token}`, {
@@ -537,10 +537,10 @@ function App() {
       });
       return false;
     }
-  }
+  }, []);
   
   // Fonction pour revoker un token
-  const revokeToken = async (token) => {
+  const revokeToken = useCallback(async (token) => {
     try {
       const tokenFirebase = await auth.currentUser.getIdToken();
       const res = await fetch(`${API_URL}/api/revoke-token/${token}`, {
@@ -565,10 +565,10 @@ function App() {
       });
       return false;
     }
-  }
+  }, []);
 
   // Fonction pour mettre à jour l'expiration d'un token
-  const updateTokenExpiration = async (token, expiresAt) => {
+  const updateTokenExpiration = useCallback(async (token, expiresAt) => {
     try {
       const tokenFirebase = await auth.currentUser.getIdToken();
       const res = await fetch(`${API_URL}/api/update-token-expiration/${token}`, {
@@ -595,10 +595,10 @@ function App() {
       });
       return false;
     }
-  }
+  }, []);
 
   // Fonction pour mettre à jour les permissions d'un token
-  const updateTokenPermissions = async (token, permissions) => {
+  const updateTokenPermissions = useCallback(async (token, permissions) => {
     try {
       const tokenFirebase = await auth.currentUser.getIdToken();
       const res = await fetch(`${API_URL}/api/update-token-permissions/${token}`, {
@@ -625,12 +625,12 @@ function App() {
       });
       return false;
     }
-  }
+  }, []);
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   // Fonction pour envoyer une invitation à un utilisateur
-  const sendInvitation = async (email, calendarName) => {
+  const sendInvitation = useCallback(async (email, calendarName) => {
     try {
       const token = await auth.currentUser.getIdToken();
       const res = await fetch(`${API_URL}/api/send-invitation/${calendarName}`, {
@@ -656,10 +656,10 @@ function App() {
       });
       return false;
     }
-  }
+  }, []);
 
   // Fonction pour récupérer les notifications
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     try {
       const token = await auth.currentUser.getIdToken();
       const res = await fetch(`${API_URL}/api/notifications`, {
@@ -686,10 +686,10 @@ function App() {
       });
       return false;
     }
-  }
+  }, []);
 
   // Fonction pour accepter une invitation
-  const acceptInvitation = async (notificationToken) => {
+  const acceptInvitation = useCallback(async (notificationToken) => {
     try {
       const token = await auth.currentUser.getIdToken();
       const res = await fetch(`${API_URL}/api/accept-invitation/${notificationToken}`, {
@@ -714,10 +714,10 @@ function App() {
       });
       return false;
     }
-  }
+  }, []);
 
   // Fonction pour rejeter une invitation
-  const rejectInvitation = async (notificationToken) => {
+  const rejectInvitation = useCallback(async (notificationToken) => {
     try {
       const token = await auth.currentUser.getIdToken();
       const res = await fetch(`${API_URL}/api/reject-invitation/${notificationToken}`, {
@@ -742,10 +742,10 @@ function App() {
       });
       return false;
     }
-  }
+  }, []);
 
   // Fonction pour marquer une notification comme lue
-  const readNotification = async (notificationToken) => {
+  const readNotification = useCallback(async (notificationToken) => {
     try {
       const token = await auth.currentUser.getIdToken();
       const res = await fetch(`${API_URL}/api/notifications/${notificationToken}`, {
@@ -770,10 +770,10 @@ function App() {
       });
       return false;
     }
-  }
+  }, []);
 
   // Fonction pour récupérer les calendriers partagés
-  const fetchSharedCalendars = async () => {
+  const fetchSharedCalendars = useCallback(async () => {
     try {
       const token = await auth.currentUser.getIdToken();
       const res = await fetch(`${API_URL}/api/shared/calendars`, {
@@ -799,10 +799,10 @@ function App() {
       });
       return false;
     }
-  }
+  }, []);
 
   // Fonction pour supprimer un calendrier partagé
-  const deleteSharedCalendar = async (calendarName) => {
+  const deleteSharedCalendar = useCallback(async (calendarName) => {
     try {
       const token = await auth.currentUser.getIdToken();
       const res = await fetch(`${API_URL}/api/shared/calendars/${calendarName}`, {
@@ -827,10 +827,10 @@ function App() {
       });
       return false;
     }
-  }
+  }, []);
 
   // Fonction pour récupérer les différentes utilisateurs ayant accès à un calendrier
-  const fetchSharedUsers = async (calendarName) => {
+  const fetchSharedUsers = useCallback(async (calendarName) => {
     try {
       const token = await auth.currentUser.getIdToken();
       const res = await fetch(`${API_URL}/api/shared/users/${calendarName}`, {
@@ -847,16 +847,46 @@ function App() {
         origin: "App.js",
         count: data?.users?.length,
       });
-      return true;
+      return data.users;
     } catch (err) {
       log.error("Échec de récupération des utilisateurs partagés", err, {
         id: "SHARED_USERS_FETCH_FAIL",
         origin: "App.js",
         stack: err.stack,
       });
+      return [];
+    }
+  }, []);
+
+  // Fonction pour supprimer un utilisateur partagé
+  const deleteSharedUser = useCallback(async (calendarName, userId) => {
+    try {
+      const token = await auth.currentUser.getIdToken();
+      const res = await fetch(`${API_URL}/api/shared/users/${calendarName}/${userId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (!res.ok) throw new Error(`Erreur HTTP DELETE /api/shared/users/${calendarName}/${userId}`);
+      log.info("Utilisateur partagé supprimé avec succès", {
+        id: "SHARED_USER_DELETE_SUCCESS",
+        origin: "App.js",
+        calendarName,
+        userId,
+      });
+      return true;
+    } catch (err) {
+      log.error("Échec de suppression de l'utilisateur partagé", err, {
+        id: "SHARED_USER_DELETE_FAIL",
+        origin: "App.js",
+        stack: err.stack,
+        calendarName,
+        userId,
+      });
       return false;
     }
-  }
+  }, []);
   
   
   const sharedProps = {
@@ -922,6 +952,7 @@ function App() {
     sharedUsers: {
       sharedUsersData, setSharedUsersData,      // Liste des utilisateurs partagés
       fetchSharedUsers,                       // Récupération des utilisateurs partagés
+      deleteSharedUser,                       // Suppression d’un utilisateur partagé
     },
   }
 

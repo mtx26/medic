@@ -64,7 +64,6 @@ def handle_calendars():
             data = request.get_json(force=True)
             old_calendar_name = data.get("oldCalendarName")
             new_calendar_name = data.get("newCalendarName")
-            new_calendar_name = new_calendar_name.lower()
 
             if not old_calendar_name or not new_calendar_name:
                 logger.warning(f"[CALENDAR_RENAME] Noms invalides reçus pour {uid}.")
@@ -73,6 +72,8 @@ def handle_calendars():
             if old_calendar_name == new_calendar_name:
                 logger.warning(f"[CALENDAR_RENAME] Nom inchangé pour {uid} : {old_calendar_name}.")
                 return jsonify({"error": "Le nom du calendrier n'a pas changé"}), 400
+
+            new_calendar_name = new_calendar_name.lower()
             
             # pour le calendrier partagé
             shared_tokens_ref = db.collection("shared_tokens").get()
