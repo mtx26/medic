@@ -49,12 +49,12 @@ function SharedCalendarMedicines({ shared }) {
         className="btn btn-outline-primary mb-3"
         onClick={() => navigate(`/shared-calendar/${sharedTokens}`)}
       >
-        <i class="bi bi-calendar-date"></i>
+        <i className="bi bi-calendar-date"></i>
         <span> Retour au calendrier</span>
       </button>
 
       <h4>
-        <i class="bi bi-capsule"></i>
+        <i className="bi bi-capsule"></i>
         <span> Liste des médicaments</span>
       </h4>
 

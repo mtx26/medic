@@ -20,7 +20,13 @@ function CalendarPage({ events, calendars }) {
     const clickedDate = info.dateStr;
     events.setSelectedDate(clickedDate);
     events.setEventsForDay(events.calendarEvents.filter((event) => event.start.startsWith(clickedDate)));
-    new window.bootstrap.Modal(modalRef.current).show();
+    const modal = new window.bootstrap.Modal(modalRef.current);
+    modal.show();
+    
+    modalRef.current.addEventListener('shown.bs.modal', () => {
+      modalRef.current.querySelector('button')?.focus();
+    }, { once: true });
+    
   };
 
   // Fonction pour naviguer vers la date suivante ou precedente
@@ -87,7 +93,7 @@ function CalendarPage({ events, calendars }) {
               className="btn btn-outline-secondary"
               onClick={() => navigate(`/calendars/${nameCalendar}/medicines`)}
             >
-              <i class="bi bi-capsule"></i>
+              <i className="bi bi-capsule"></i>
               <span> Liste des médicaments</span>
             </button>
           </div>
@@ -96,7 +102,7 @@ function CalendarPage({ events, calendars }) {
           <div className="d-flex flex-wrap align-items-end  gap-3">
             <div style={{ minWidth: "220px" }}>
               <label htmlFor="datePicker" className="form-label fw-semibold">
-                <i class="bi bi-calendar-date"></i>
+                <i className="bi bi-calendar-date"></i>
                 <span> Date de début :</span>
               </label>
               <input
@@ -113,14 +119,14 @@ function CalendarPage({ events, calendars }) {
                 onClick={() => events.getCalendar(nameCalendar, events.startDate)}
                 className="btn btn-outline-primary"
               >
-                <i class="bi bi-arrow-repeat"></i>
+                <i className="bi bi-arrow-repeat"></i>
                 <span> Charger le calendrier</span>
               </button>
             </div>
           </div>
 
           <div className="alert alert-info mt-4 mb-0" role="alert">
-            <i class="bi bi-pin-angle-fill"></i>
+            <i className="bi bi-pin-angle-fill"></i>
             <span> Cliquez sur un jour du calendrier pour voir les médicaments associés dans une fenêtre.</span>
           </div>
         </div>
@@ -176,7 +182,7 @@ function CalendarPage({ events, calendars }) {
           <div className="modal-content">
             <div className="modal-header">
               <h5 className="modal-title">
-                <i class="bi bi-calendar-date"></i>
+                <i className="bi bi-calendar-date"></i>
                 <span> {new Date(events.selectedDate).toLocaleDateString('fr-FR', {
                   weekday: 'long',
                   year: 'numeric',
@@ -197,7 +203,7 @@ function CalendarPage({ events, calendars }) {
                         <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
                           {event.title}
                           <span className="badge" style={{ backgroundColor: event.color, color: 'white' }}>
-                            {new Date(event.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            {new Date(event.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </span>
                         </li>
                       ))}

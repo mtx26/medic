@@ -324,7 +324,7 @@ function SelectCalendar({ calendars, tokens, invitations, sharedUsers }) {
       className="btn btn-outline-primary"
       title="Ajouter un calendrier"
       >
-      <i class="bi bi-plus-lg"></i>
+      <i className="bi bi-plus-lg"></i>
       <span> Ajouter</span>
       </button>
     </div>
@@ -387,7 +387,7 @@ function SelectCalendar({ calendars, tokens, invitations, sharedUsers }) {
             });
           }}
           >
-          <i class="bi bi-pencil"></i>
+          <i className="bi bi-pencil"></i>
           </button>
         </div>
 
@@ -434,7 +434,7 @@ function SelectCalendar({ calendars, tokens, invitations, sharedUsers }) {
             });
           }}
           >
-          <i class="bi bi-trash3"></i>
+          <i className="bi bi-trash3"></i>
           </button>
         </div>
         </div>

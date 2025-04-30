@@ -32,7 +32,7 @@ function ResetPassword() {
             </div>
 
             <button type="submit" className="btn btn-outline-primary w-100">
-              <i class="bi bi-envelope-paper"></i>
+              <i className="bi bi-envelope-paper"></i>
               <span> Envoyer le lien</span>
             </button>
           </form>

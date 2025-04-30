@@ -53,10 +53,10 @@ function App() {
         stack: err.stack,
       });
     }
-  }, []);
+  }, [setCalendarsData]);
+
 
   // Fonction pour ajouter un calendrier
-
   const addCalendar = useCallback(async (calendarName) => {
     try {
       const token = await auth.currentUser.getIdToken();
@@ -85,7 +85,7 @@ function App() {
       });
       return false;
     }
-  }, []);
+  }, [fetchCalendars]);
 
   // Fonction pour supprimer un calendrier
 
@@ -115,7 +115,7 @@ function App() {
         stack: err.stack,
       });
     }
-  }, []);
+  }, [fetchCalendars]);
 
   // Fonction pour renommer un calendrier
 
@@ -147,7 +147,7 @@ function App() {
         stack: err.stack,
       });
     }
-  }, []);
+  }, [fetchCalendars]);
 
   // Fonction pour obtenir le nombre de médicaments d'un calendrier 
 
@@ -164,14 +164,13 @@ function App() {
       });
       if (!res.ok) throw new Error("Erreur HTTP GET /api/medicines");
       const data = await res.json();
-      const count = data.count;
       log.info("Nombre de médicaments récupéré avec succès", {
         id: "MED_COUNT_SUCCESS",
         origin: "App.js",
         calendarName,
-        count,
+        count: data.count,
       });
-      return count ?? 0;
+      return data.count ?? 0;
     } catch (err) {
       log.error("Échec de récupération du nombre de médicaments", err, {
         id: "MED_COUNT_FAIL",
@@ -218,13 +217,6 @@ function App() {
   // Fonction pour obtenir le calendrier lier au calendarName
   const getCalendar = useCallback(async (calendarName, startDate ) => {
     try {
-      if (!currentUser) {
-        log.warn("Utilisateur non connecté, calendrier non chargé.", {
-          id: "USER_NOT_AUTHENTICATED",
-          origin: "App.js",
-        });
-        return;
-      }
       if (!calendarName) {
         log.warn("Nom de calendrier non fourni, calendrier non chargé.", {
           id: "CALENDAR_NAME_NOT_PROVIDED",
@@ -261,7 +253,7 @@ function App() {
         stack: err.stack,
       });
     }
-  }, []);
+  }, [setCalendarEvents]);
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -282,7 +274,7 @@ function App() {
       log.info("Médicaments récupérés avec succès", {
         id: "MED_FETCH_SUCCESS",
         origin: "App.js",
-        count: medsData?.length,
+        count: data.medicines?.length,
       });
     } catch (err) {
       log.error("Échec de récupération des médicaments", err, {
@@ -291,7 +283,7 @@ function App() {
         stack: err.stack,
       });
     }
-  }, [medsData]);
+  }, [setMedsData, setOriginalMedsData]);
     
 
 
@@ -317,7 +309,7 @@ function App() {
         index,
       });
     }
-  }, [medsData]);
+  }, [medsData, setMedsData]);
 
     // Fonction pour mettre à jour les médicaments
   const updateMeds = useCallback(async (calendarName, newMeds = medsData) => {
@@ -382,7 +374,7 @@ function App() {
       });
     }
     return success;
-  }, [checked, medsData, updateMeds]);
+  }, [checked, medsData, setMedsData, setChecked, updateMeds]);
   
 
   // Fonction pour ajouter un nouveau médicament sanq la variable meds
@@ -391,7 +383,7 @@ function App() {
       ...medsData,
       { name: '', tablet_count: 1, time: ['morning'], interval_days: 1, start_date: '' },
     ]);
-  }, [medsData]);
+  }, [medsData, setMedsData]);
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -423,7 +415,7 @@ function App() {
       });
       return false;
     }
-  }, []);
+  }, [setCalendarEvents]);
 
   // Fonction pour récupérer les médicaments d'un calendrier partagé
   const getSharedMedecines = useCallback(async (sharedToken) => {
@@ -437,7 +429,7 @@ function App() {
       log.info("Médicaments récupérés avec succès", {
         id: "SHARED_MED_FETCH_SUCCESS",
         origin: "App.js",
-        count: medsData?.length,
+        count: data.medicines?.length,
       });
       return true;
     } catch (err) {
@@ -448,7 +440,7 @@ function App() {
       });
       return false;
     }
-  }, []);
+  }, [setMedsData]);
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   // Fonction pour récupérer les tokens
@@ -477,7 +469,7 @@ function App() {
       });
       return false;
     }
-  }, []);
+  }, [setTokensList]);
 
   // Fonction pour créer un lien de partage
   const createSharedTokenCalendar = useCallback(async (calendarName, expiresAt, permissions) => {
@@ -509,7 +501,7 @@ function App() {
       });
       return {token: null, success: false};
     }
-  }, []);
+  }, [fetchTokens]);
 
   // Fonction pour supprimer un lien de partage
   const deleteSharedTokenCalendar = useCallback(async (token) => {
@@ -537,7 +529,7 @@ function App() {
       });
       return false;
     }
-  }, []);
+  }, [fetchTokens]);
   
   // Fonction pour revoker un token
   const revokeToken = useCallback(async (token) => {
@@ -565,7 +557,7 @@ function App() {
       });
       return false;
     }
-  }, []);
+  }, [fetchTokens]);
 
   // Fonction pour mettre à jour l'expiration d'un token
   const updateTokenExpiration = useCallback(async (token, expiresAt) => {
@@ -595,7 +587,7 @@ function App() {
       });
       return false;
     }
-  }, []);
+  }, [fetchTokens]);
 
   // Fonction pour mettre à jour les permissions d'un token
   const updateTokenPermissions = useCallback(async (token, permissions) => {
@@ -625,7 +617,7 @@ function App() {
       });
       return false;
     }
-  }, []);
+  }, [fetchTokens]);
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -686,7 +678,7 @@ function App() {
       });
       return false;
     }
-  }, []);
+  }, [setNotificationsData]);
 
   // Fonction pour accepter une invitation
   const acceptInvitation = useCallback(async (notificationToken) => {
@@ -714,7 +706,7 @@ function App() {
       });
       return false;
     }
-  }, []);
+  }, [fetchNotifications]);
 
   // Fonction pour rejeter une invitation
   const rejectInvitation = useCallback(async (notificationToken) => {
@@ -742,7 +734,7 @@ function App() {
       });
       return false;
     }
-  }, []);
+  }, [fetchNotifications]);
 
   // Fonction pour marquer une notification comme lue
   const readNotification = useCallback(async (notificationToken) => {
@@ -770,7 +762,10 @@ function App() {
       });
       return false;
     }
-  }, []);
+  }, [fetchNotifications]);
+
+
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   // Fonction pour récupérer les calendriers partagés
   const fetchSharedCalendars = useCallback(async () => {
@@ -799,7 +794,7 @@ function App() {
       });
       return false;
     }
-  }, []);
+  }, [setSharedCalendarsData]);
 
   // Fonction pour supprimer un calendrier partagé
   const deleteSharedCalendar = useCallback(async (calendarName) => {
@@ -811,7 +806,7 @@ function App() {
           Authorization: `Bearer ${token}`,
         },
       });
-      if (!res.ok) throw new Error(`Erreur HTTP DELETE /api/shared/${calendarName}`);
+      if (!res.ok) throw new Error(`Erreur HTTP DELETE /api/shared/calendars/${calendarName}`);
       fetchSharedCalendars();
       log.info("Calendrier partagé supprimé avec succès", {
         id: "SHARED_CALENDAR_DELETE_SUCCESS",
@@ -827,7 +822,7 @@ function App() {
       });
       return false;
     }
-  }, []);
+  }, [fetchSharedCalendars]);
 
   // Fonction pour récupérer les différentes utilisateurs ayant accès à un calendrier
   const fetchSharedUsers = useCallback(async (calendarName) => {
@@ -856,7 +851,7 @@ function App() {
       });
       return [];
     }
-  }, []);
+  }, [setSharedUsersData]);
 
   // Fonction pour supprimer un utilisateur partagé
   const deleteSharedUser = useCallback(async (calendarName, userId) => {

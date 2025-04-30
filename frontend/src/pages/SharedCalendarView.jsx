@@ -76,7 +76,7 @@ function CalendarPage({ events, shared }) {
               className="btn btn-outline-secondary"
               onClick={() => navigate(`/shared-calendar/${sharedTokens}/medicines`)}
             >
-              <i class="bi bi-capsule"></i>
+              <i className="bi bi-capsule"></i>
               <span> Liste des médicaments</span>
             </button>
           </div>
@@ -85,7 +85,7 @@ function CalendarPage({ events, shared }) {
           <div className="d-flex flex-wrap align-items-end  gap-3">
             <div style={{ minWidth: "220px" }}>
               <label htmlFor="datePicker" className="form-label fw-semibold">
-                <i class="bi bi-calendar-date"></i>
+                <i className="bi bi-calendar-date"></i>
                 <span> Date de début :</span>
               </label>
               <input
@@ -102,14 +102,14 @@ function CalendarPage({ events, shared }) {
                 onClick={() => events.getSharedCalendar(sharedTokens, events.startDate)}
                 className="btn btn-outline-primary"
               >
-                <i class="bi bi-arrow-repeat"></i>
+                <i className="bi bi-arrow-repeat"></i>
                 <span> Charger le calendrier</span>
               </button>
             </div>
           </div>
 
           <div className="alert alert-info mt-4 mb-0" role="alert">
-            <i class="bi bi-pin-angle-fill"></i>
+            <i className="bi bi-pin-angle-fill"></i>
             <span> Cliquez sur un jour du calendrier pour voir les médicaments associés dans une fenêtre.</span>
           </div>
         </div>
@@ -157,14 +157,14 @@ function CalendarPage({ events, shared }) {
         }}
 
         
-      />
+      />  
 
       <div className="modal fade" ref={modalRef} tabIndex="-1" id="dateModal">
         <div className="modal-dialog modal-dialog-centered">
           <div className="modal-content">
             <div className="modal-header">
               <h5 className="modal-title">
-                <i class="bi bi-calendar-date"></i>
+                <i className="bi bi-calendar-date"></i>
                 <span> {new Date(events.selectedDate).toLocaleDateString('fr-FR', {
                   weekday: 'long',
                   year: 'numeric',

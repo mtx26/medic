@@ -12,6 +12,7 @@ function SharedList({ tokens, calendars, sharedUsers }) {
   const [alertTokenId, setAlertTokenId] = useState(null);
   const [alertUserId, setAlertUserId] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadingGroupedShared, setLoadingGroupedShared] = useState(true);
   const [groupedShared, setGroupedShared] = useState({});
 
   useEffect(() => {
@@ -49,15 +50,17 @@ function SharedList({ tokens, calendars, sharedUsers }) {
       }
 
       setGroupedShared(grouped);
+      setLoadingGroupedShared(false);
     }
   };
   
   useEffect(() => {
+
     setGroupedSharedFunction();
   }, [loading, tokens.tokensList]);
   
 
-  if (loading) {
+  if (loading || loadingGroupedShared) {
     return (
       <div className="d-flex justify-content-center align-items-center" style={{ height: "60vh" }}>
         <div className="spinner-border text-primary" role="status">
@@ -65,20 +68,21 @@ function SharedList({ tokens, calendars, sharedUsers }) {
         </div>
       </div>
     );
-  }
+  };
+
 
   return (
     <div className="container mt-4">
       <h2 className="mb-4">Gestion des calendriers partagés</h2>
 
       {Object.entries(groupedShared).map(([calendarName, data]) => (
-        <>
-          <div key={calendarName} className="mb-4">
+        <div key={calendarName}>
+          <div className="mb-4">
             <h4>{calendarName} :</h4>
             <ul className="list-group">
               <h6 className="mt-4">Liens de partage :</h6>
               {data.tokens.map((token) => (
-              <div>
+              <div key={token.token}>
                   {alertMessage && alertTokenId === token.token && (
                       <AlertSystem
                       type={alertType}
@@ -180,7 +184,7 @@ function SharedList({ tokens, calendars, sharedUsers }) {
             <ul className="list-group">
               <h6 className="mt-4">Utilisateurs partagés :</h6>
               {data.users.map((user) => (
-                <div>
+                <div key={user.receiver_uid}>
                   {alertMessage && alertUserId === user.receiver_uid && (
                       <AlertSystem
                       type={alertType}
@@ -220,7 +224,7 @@ function SharedList({ tokens, calendars, sharedUsers }) {
                               setAlertUserId(user.receiver_uid);
                             }}
                             title="Accès"
-                            disabled="true"
+                            disabled={true}
                           >
                             <option value="read">Lecture seule</option>
                             <option value="edit">Lecture + Édition</option>
@@ -256,7 +260,7 @@ function SharedList({ tokens, calendars, sharedUsers }) {
           {Object.entries(groupedShared).length > 1 && (
             <hr />
           )}
-        </>
+        </div>
       ))}
     </div>
   );

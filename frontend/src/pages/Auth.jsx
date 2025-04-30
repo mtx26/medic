@@ -41,7 +41,7 @@ function Auth() {
                 className={`nav-link ${activeTab === "login" ? "active" : ""}`}
                 onClick={() => switchTab("login")}
               >
-                <i class="bi bi-box-arrow-in-right"></i>
+                <i className="bi bi-box-arrow-in-right"></i>
                 <span> Connexion</span>
               </button>
             </li>
@@ -50,7 +50,7 @@ function Auth() {
                 className={`nav-link ${activeTab === "register" ? "active" : ""}`}
                 onClick={() => switchTab("register")}
               >
-                <i class="bi bi-person-plus"></i>
+                <i className="bi bi-person-plus"></i>
                 <span> Inscription</span>
               </button>
             </li>
@@ -60,7 +60,7 @@ function Auth() {
           <div className="text-center mb-3">
             <p>{activeTab === "login" ? "Se connecter avec :" : "S'inscrire avec :"}</p>
             <button className="btn btn-outline-danger rounded-pill px-3 py-2" onClick={GoogleHandleLogin}>
-              <i class="bi bi-google"></i>
+              <i className="bi bi-google"></i>
             </button>
             <p className="text-center mt-3 mb-0 text-muted">ou avec email :</p>
           </div>
@@ -113,6 +113,7 @@ function Auth() {
                 className="form-control"
                 required
                 value={email}
+                autoComplete="email"
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
@@ -124,6 +125,7 @@ function Auth() {
                 className="form-control"
                 required
                 value={password}
+                autoComplete="current-password"
                 onChange={(e) => setPassword(e.target.value)}
               />
               <i
@@ -135,7 +137,7 @@ function Auth() {
 
             {activeTab === "login" && (
               <div className="mb-3 text-end">
-                <a href="/reset-password" className="text-decoration-none">Mot de passe oublié ?</a>
+                <a onClick={() => navigate("/reset-password")} className="text-decoration-none">Mot de passe oublié ?</a>
               </div>
             )}
 
@@ -143,7 +145,7 @@ function Auth() {
               <div className="form-check mb-3 text-left">
                 <input className="form-check-input" type="checkbox" required id="terms" />
                 <label className="form-check-label" htmlFor="terms">
-                  J’accepte les <a href="#" className="text-decoration-none">conditions générales</a>
+                  J’accepte les <a onClick={() => navigate("/terms")} className="text-decoration-none">conditions générales</a>
                 </label>
               </div>
             )}
