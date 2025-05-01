@@ -11,13 +11,18 @@ db = firestore.client()
 @api.route("/api/send-invitation/<calendar_name>", methods=["POST"])
 def handle_send_invitation(calendar_name):
     try:
-        sender_user = verify_firebase_token()
-        sender_uid = sender_user["uid"]
-        sender_email = sender_user["email"]
+        owner_user = verify_firebase_token()
+        owner_uid = owner_user["uid"]
+        owner_email = owner_user["email"]
         
         receiver_email = request.get_json(force=True).get("email")
         receiver_user = auth.get_user_by_email(receiver_email)
         receiver_uid = receiver_user.uid
+        
+        # Verif si soit même
+        if owner_uid == receiver_uid:
+            logger.warning(f"[INVITATION_SEND] Tentative de partage avec soi-même : {receiver_email}.")
+            return jsonify({"error": "Impossible de partager avec soi-même."}), 400
 
         # Vérifier si l'utilisateur existe  
         doc = db.collection("users").document(receiver_uid).get()
@@ -30,8 +35,8 @@ def handle_send_invitation(calendar_name):
 
         # Créer une notif pour l'utilisateur receveur
         db.collection("users").document(receiver_uid).collection("notifications").document(notification_token).set({
-            "sender_uid": sender_uid,
-            "sender_email": sender_email,
+            "owner_uid": owner_uid,
+            "owner_email": owner_email,
             "calendar_name": calendar_name,
             "type": "calendar_invitation",
             "timestamp": firestore.SERVER_TIMESTAMP,
@@ -40,7 +45,7 @@ def handle_send_invitation(calendar_name):
         })
 
         # Sauvegarder l'invitation dans la collection "shared_calendars" dans le calendrier de l'utilisateur expéditeur
-        db.collection("users").document(sender_uid).collection("calendars").document(calendar_name).collection("shared_with").document(receiver_uid).set({
+        db.collection("users").document(owner_uid).collection("calendars").document(calendar_name).collection("shared_with").document(receiver_uid).set({
             "receiver_uid": receiver_uid,
             "receiver_email": receiver_email,
             "accepted": False,
@@ -60,9 +65,9 @@ def handle_send_invitation(calendar_name):
 def handle_accept_invitation(notification_token):
     try:
         user = verify_firebase_token()
-        uid = user["uid"]
+        receiver_uid = user["uid"]
 
-        doc = db.collection("users").document(uid).collection("notifications").document(notification_token).get()
+        doc = db.collection("users").document(receiver_uid).collection("notifications").document(notification_token).get()
         if not doc.exists:
             logger.warning(f"[INVITATION_ACCEPT] Notification introuvable : {notification_token}.")
             return jsonify({"error": "Notification introuvable"}), 404
@@ -73,31 +78,31 @@ def handle_accept_invitation(notification_token):
             return jsonify({"error": "Notification non valide"}), 400
         
         calendar_name = doc.to_dict().get("calendar_name")
-        sender_uid = doc.to_dict().get("sender_uid")
-        sender_email = doc.to_dict().get("sender_email")
+        owner_uid = doc.to_dict().get("owner_uid")
+        owner_email = doc.to_dict().get("owner_email")
 
         # Créer une entrée dans sa collection "shared_calendars" pour le calendrier partagé
-        db.collection("users").document(uid).collection("shared_calendars").document(calendar_name).set({
+        db.collection("users").document(receiver_uid).collection("shared_calendars").document(calendar_name).set({
             "calendar_name": calendar_name,
-            "calendar_owner_uid": sender_uid,
-            "calendar_owner_email": sender_email,
+            "owner_uid": owner_uid,
+            "owner_email": owner_email,
             "access": "edit"
         })
 
         # Dire que l'utilisateur receveur a accepté l'invitation
-        db.collection("users").document(sender_uid).collection("calendars").document(calendar_name).collection("shared_with").document(uid).set({
+        db.collection("users").document(owner_uid).collection("calendars").document(calendar_name).collection("shared_with").document(receiver_uid).set({
             "accepted": True,
             "accepted_at": firestore.SERVER_TIMESTAMP
         }, merge=True)
 
         # Dire que la notif a été lue
-        db.collection("users").document(uid).collection("notifications").document(notification_token).update({
+        db.collection("users").document(receiver_uid).collection("notifications").document(notification_token).update({
             "read": True,
         })
 
         # Créer une notif pour l'utilisateur expéditeur
-        db.collection("users").document(sender_uid).collection("notifications").document(notification_token).set({
-            "receiver_uid": uid,
+        db.collection("users").document(owner_uid).collection("notifications").document(notification_token).set({
+            "receiver_uid": receiver_uid,
             "receiver_email": user["email"],
             "calendar_name": calendar_name,
             "type": "calendar_invitation_accepted",
@@ -119,9 +124,9 @@ def handle_accept_invitation(notification_token):
 def handle_reject_invitation(notification_token):
     try:
         user = verify_firebase_token()
-        uid = user["uid"]
+        receiver_uid = user["uid"]
 
-        doc = db.collection("users").document(uid).collection("notifications").document(notification_token).get()
+        doc = db.collection("users").document(receiver_uid).collection("notifications").document(notification_token).get()
         if not doc.exists:
             logger.warning(f"[INVITATION_REJECT] Notification introuvable : {notification_token}.")
             return jsonify({"error": "Notification introuvable"}), 404
@@ -132,14 +137,14 @@ def handle_reject_invitation(notification_token):
             return jsonify({"error": "Notification non valide"}), 400
 
         calendar_name = doc.to_dict().get("calendar_name")
-        sender_uid = doc.to_dict().get("sender_uid")
+        owner_uid = doc.to_dict().get("owner_uid")
 
         # Supprimer la notif
-        db.collection("users").document(uid).collection("notifications").document(notification_token).delete()
+        db.collection("users").document(receiver_uid).collection("notifications").document(notification_token).delete()
 
         # Créer une notif pour l'utilisateur expéditeur
-        db.collection("users").document(sender_uid).collection("notifications").document(notification_token).set({
-            "receiver_uid": uid,
+        db.collection("users").document(owner_uid).collection("notifications").document(notification_token).set({
+            "receiver_uid": receiver_uid,
             "receiver_email": user["email"],
             "calendar_name": calendar_name,
             "type": "calendar_invitation_rejected",

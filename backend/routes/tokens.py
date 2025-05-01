@@ -1,10 +1,11 @@
 from flask import jsonify, request
 from logger import backend_logger as logger
 from auth import verify_firebase_token
-from datetime import datetime
+from datetime import datetime, timezone
 import secrets
 from . import api
 from firebase_admin import firestore
+from function import generate_schedule
 
 db = firestore.client()
 
@@ -19,7 +20,7 @@ def handle_tokens():
             tokens_ref = db.collection("shared_tokens").get()
             tokens = []
             for doc in tokens_ref:
-                if doc.to_dict().get("calendar_owner_uid") == uid:
+                if doc.to_dict().get("owner_uid") == uid:
                     tokens.append(doc.to_dict())
             logger.info(f"[TOKENS_FETCH] {len(tokens)} tokens récupérés pour {uid}.")
             return jsonify({"tokens": tokens}), 200
@@ -34,32 +35,28 @@ def handle_tokens():
 def handle_shared_create(calendar_name):
     try:
         user = verify_firebase_token()
-        uid = user["uid"]
+        owner_uid = user["uid"]
 
         data = request.get_json(force=True)
 
         expires_at = data.get("expiresAt")
         permissions = data.get("permissions")
-        if not expires_at:
-            expires_at = "never"
-        else:
-            expires_at = datetime.strptime(expires_at, "%Y-%m-%dT%H:%M")
 
         
         if not permissions:
             permissions = ["read"]
 
         # Verifier si le calendrier existe
-        doc = db.collection("users").document(uid).collection("calendars").document(calendar_name).get()
+        doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_name).get()
         if not doc.exists:
-            logger.warning(f"[CALENDAR_SHARED_CREATE] Calendrier introuvable : {calendar_name} pour {uid}.")
+            logger.warning(f"[CALENDAR_SHARED_CREATE] Calendrier introuvable : {calendar_name} pour {owner_uid}.")
             return jsonify({"error": "Calendrier introuvable"}), 404
 
         # Verifier si le calendrier est déjà partagé
         doc_2 = db.collection("shared_tokens").get()
         for doc in doc_2:
             if doc.to_dict().get("calendar_name") == calendar_name:
-                logger.warning(f"[CALENDAR_SHARED_CREATE] Calendrier déjà partagé : {calendar_name} pour {uid}.")
+                logger.warning(f"[CALENDAR_SHARED_CREATE] Calendrier déjà partagé : {calendar_name} pour {owner_uid}.")
                 return jsonify({"error": "Calendrier déjà partagé"}), 400
         
         # Créer un nouveau lien de partage
@@ -67,13 +64,13 @@ def handle_shared_create(calendar_name):
         db.collection("shared_tokens").document(token).set({
             "token": token,
             "calendar_name": calendar_name,
-            "calendar_owner_uid": uid,
+            "owner_uid": owner_uid,
             "expires_at": expires_at,
             "permissions": permissions,
             "revoked": False
         })
 
-        logger.info(f"[CALENDAR_SHARED_CREATE] Calendrier partagé : {calendar_name} pour {uid}.")
+        logger.info(f"[CALENDAR_SHARED_CREATE] Calendrier partagé : {calendar_name} pour {owner_uid}.")
         return jsonify({"message": "Calendrier partagé avec succès", "token": token}), 200
 
     except Exception as e:
@@ -86,14 +83,14 @@ def handle_shared_create(calendar_name):
 def handle_revoke_token(token):
     try:
         user = verify_firebase_token()
-        uid = user["uid"]
+        owner_uid = user["uid"]
 
         doc = db.collection("shared_tokens").document(token).get()
         if not doc.exists:
             logger.warning(f"[TOKEN_REVOKE] Token introuvable : {token}.")
             return jsonify({"error": "Token introuvable"}), 404
 
-        if doc.to_dict().get("calendar_owner_uid") != uid:
+        if doc.to_dict().get("owner_uid") != owner_uid:
             logger.warning(f"[TOKEN_REVOKE] Token non autorisé : {token}.")
             return jsonify({"error": "Token non autorisé"}), 403
 
@@ -114,7 +111,7 @@ def handle_revoke_token(token):
 def handle_update_token_expiration(token):
     try:
         user = verify_firebase_token()
-        uid = user["uid"]
+        owner_uid = user["uid"]
 
         data = request.get_json(force=True)
 
@@ -123,14 +120,14 @@ def handle_update_token_expiration(token):
             logger.warning(f"[TOKEN_UPDATE_EXPIRATION] Token introuvable : {token}.")
             return jsonify({"error": "Token introuvable"}), 404
 
-        if doc.to_dict().get("calendar_owner_uid") != uid:
+        if doc.to_dict().get("owner_uid") != owner_uid:
             logger.warning(f"[TOKEN_UPDATE_EXPIRATION] Token non autorisé : {token}.")
             return jsonify({"error": "Token non autorisé"}), 403
 
         expires_at = data.get("expiresAt")
-        if expires_at == "never":
+        if not expires_at:
             db.collection("shared_tokens").document(token).update({
-                "expires_at": "never"
+                "expires_at": ""
             })
         else:
             db.collection("shared_tokens").document(token).update({
@@ -150,7 +147,7 @@ def handle_update_token_expiration(token):
 def handle_update_token_permissions(token):
     try:
         user = verify_firebase_token()
-        uid = user["uid"]
+        owner_uid = user["uid"]
 
         data = request.get_json(force=True)
 
@@ -159,7 +156,7 @@ def handle_update_token_permissions(token):
             logger.warning(f"[TOKEN_UPDATE_PERMISSIONS] Token introuvable : {token}.")
             return jsonify({"error": "Token introuvable"}), 404
 
-        if doc.to_dict().get("calendar_owner_uid") != uid:
+        if doc.to_dict().get("owner_uid") != owner_uid:
             logger.warning(f"[TOKEN_UPDATE_PERMISSIONS] Token non autorisé : {token}.")
             return jsonify({"error": "Token non autorisé"}), 403
 
@@ -185,13 +182,13 @@ def handle_shared(token):
             doc = db.collection("shared_tokens").document(token).get()
             data = doc.to_dict()
             calendar_name = data.get("calendar_name")
-            uid = data.get("calendar_owner_uid")
+            owner_uid = data.get("owner_uid")
             expires_at = data.get("expires_at")
             revoked = data.get("revoked")
             permissions = data.get("permissions")
             # Verifier si le token est valide
             if doc.exists:
-                doc_2 = db.collection("users").document(uid).collection("calendars").document(calendar_name).get()
+                doc_2 = db.collection("users").document(owner_uid).collection("calendars").document(calendar_name).get()
             else:
                 logger.warning(f"[CALENDAR_SHARED_LOAD] Token invalide : {token}.")
                 return jsonify({"error": "Token invalide"}), 404
@@ -200,14 +197,14 @@ def handle_shared(token):
             if doc_2.exists:
                 data_2 = doc_2.to_dict()
                 medicines = data_2.get("medicines", [])
-                logger.info(f"[CALENDAR_SHARED_LOAD] Médicaments  récupérés de {calendar_name} chez {uid} pour le token {token}.")
+                logger.info(f"[CALENDAR_SHARED_LOAD] Médicaments  récupérés de {calendar_name} chez {owner_uid} pour le token {token}.")
             else:
-                logger.warning(f"[CALENDAR_SHARED_LOAD] Médicaments introuvable de {calendar_name} chez {uid} pour le token {token}.")
+                logger.warning(f"[CALENDAR_SHARED_LOAD] Médicaments introuvable de {calendar_name} chez {owner_uid} pour le token {token}.")
                 return jsonify({"error": "Calendrier introuvable"}), 404
 
 
-            # Verifier si le token est expiré ou si = a never
-            if expires_at != "never":
+            # Verifier si le token est expiré ou si vide
+            if expires_at != "":
                 now_utc = datetime.now(timezone.utc).date()
                 if now_utc > expires_at:
                     logger.warning(f"[MEDECINES_SHARED_LOAD] Token expiré : {token}.")
@@ -236,15 +233,15 @@ def handle_shared(token):
         # Supprimer un lien de partage
         if request.method == "DELETE":
             user = verify_firebase_token()
-            uid = user["uid"]
+            owner_uid = user["uid"]
             doc = db.collection("shared_tokens").document(token).get()
 
             if not doc.exists:
                 logger.warning(f"[CALENDAR_SHARED_DELETE] Lien de partage introuvable : {token}.")
                 return jsonify({"error": "Lien de partage introuvable"}), 404
 
-            uid_token = doc.to_dict().get("calendar_owner_uid")
-            if uid != uid_token:
+            owner_uid_token = doc.to_dict().get("owner_uid")
+            if owner_uid != owner_uid_token:
                 logger.warning(f"[CALENDAR_SHARED_DELETE] Lien de partage non autorisé : {token}.")
                 return jsonify({"error": "Lien de partage non autorisé"}), 403
 
@@ -264,14 +261,14 @@ def handle_shared_medecines(token):
             doc = db.collection("shared_tokens").document(token).get()
             data = doc.to_dict()
             calendar_name = data.get("calendar_name")
-            uid = data.get("calendar_owner_uid")
+            owner_uid = data.get("owner_uid")
             expires_at = data.get("expires_at")
             revoked = data.get("revoked")
             permissions = data.get("permissions")
 
             # Verifier si le token est valide
             if doc.exists:
-                doc_2 = db.collection("users").document(uid).collection("calendars").document(calendar_name).get()
+                doc_2 = db.collection("users").document(owner_uid).collection("calendars").document(calendar_name).get()
             else:
                 logger.warning(f"[MEDECINES_SHARED_LOAD] Token invalide : {token}.")
                 return jsonify({"error": "Token invalide"}), 404
@@ -280,13 +277,13 @@ def handle_shared_medecines(token):
             if doc_2.exists:
                 data_2 = doc_2.to_dict()
                 medicines = data_2.get("medicines", [])
-                logger.info(f"[MEDECINES_SHARED_LOAD] Médicaments  récupérés de {calendar_name} chez {uid} pour le token {token}.")
+                logger.info(f"[MEDECINES_SHARED_LOAD] Médicaments  récupérés de {calendar_name} chez {owner_uid} pour le token {token}.")
             else:
-                logger.warning(f"[MEDECINES_SHARED_LOAD] Médicaments introuvable de {calendar_name} chez {uid} pour le token {token}.")
+                logger.warning(f"[MEDECINES_SHARED_LOAD] Médicaments introuvable de {calendar_name} chez {owner_uid} pour le token {token}.")
                 return jsonify({"error": "Calendrier introuvable"}), 404
 
-            # Verifier si le token est expiré ou si = a never
-            if expires_at != "never":
+            # Verifier si le token est expiré ou si vide
+            if expires_at != "":
                 now_utc = datetime.now(timezone.utc).date()
                 if now_utc > expires_at:
                     logger.warning(f"[MEDECINES_SHARED_LOAD] Token expiré : {token}.")

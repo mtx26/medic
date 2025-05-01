@@ -5,15 +5,15 @@ from firebase_admin import firestore
 
 db = firestore.client()
 
-def verify_calendar_share(calendar_name : str, calendar_owner_uid : str, receiver_uid : str) -> bool:
+def verify_calendar_share(calendar_name : str, owner_uid : str, receiver_uid : str) -> bool:
     try:
-        shared_with_ref = db.collection("users").document(calendar_owner_uid) \
+        shared_with_ref = db.collection("users").document(owner_uid) \
             .collection("calendars").document(calendar_name) \
             .collection("shared_with").document(receiver_uid)
         
         shared_with_doc = shared_with_ref.get()
         if not shared_with_doc.exists:
-            logger.warning(f"[SHARED_VERIFY] Pas d'accès : {calendar_name} non partagé par {calendar_owner_uid} à {receiver_uid}")
+            logger.warning(f"[SHARED_VERIFY] Pas d'accès : {calendar_name} non partagé par {owner_uid} à {receiver_uid}")
             return False
         
         shared_data = shared_with_doc.to_dict()

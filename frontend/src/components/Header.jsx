@@ -135,6 +135,32 @@ function Navbar({ sharedProps }) {
                                   </div>
                                 </>
                               )}
+                              {notif.type === "calendar_shared_deleted_by_owner" && (
+                                <>
+                                  <div>
+                                    <i className="bi bi-trash-fill me-2 text-danger"></i>
+                                    <strong>{notif.owner_email}</strong> a arrêté de partager le calendrier <strong>{notif.calendar_name}</strong> avec vous
+                                  </div>
+                                  <small 
+                                    className="text-muted"
+                                  >
+                                    {new Date(notif.timestamp).toLocaleString('fr-FR', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                  </small>
+                                </>
+                              )}
+                              {notif.type === "calendar_shared_deleted_by_receiver" && (
+                                <>
+                                  <div>
+                                    <i className="bi bi-trash-fill me-2 text-danger"></i>
+                                    <strong>{notif.receiver_email}</strong> a retiré le calendrier <strong>{notif.calendar_name}</strong> que vous lui aviez partagé.
+                                  </div>
+                                  <small 
+                                    className="text-muted"
+                                  >
+                                    {new Date(notif.timestamp).toLocaleString('fr-FR', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                  </small>
+                                </>
+                              )}
                             </div>
                           </div>
                         </li>

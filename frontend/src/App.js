@@ -22,7 +22,6 @@ function App() {
   const [originalMedsData, setOriginalMedsData] = useState([]);
   const [notificationsData, setNotificationsData] = useState([]);
   const [sharedCalendarsData, setSharedCalendarsData] = useState([]);
-  const [sharedUsersData, setSharedUsersData] = useState([]);
 
   const [startDate, setStartDate] = useState(() => new Date().toISOString().slice(0, 10));
 
@@ -183,10 +182,10 @@ function App() {
   }, []);
 
   // Fonction pour obtenir le nombre de médicaments d'un calendrier partagé
-  const getSharedMedicineCount = useCallback(async (calendarName, calendarOwnerUid) => {
+  const getSharedMedicineCount = useCallback(async (calendarName, ownerUid) => {
     try {
       const token = await auth.currentUser.getIdToken();
-      const res = await fetch(`${API_URL}/api/shared/countmedicines?calendarName=${calendarName}&calendarOwnerUid=${calendarOwnerUid}`, {
+      const res = await fetch(`${API_URL}/api/shared/countmedicines?calendarName=${calendarName}&ownerUid=${ownerUid}`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -198,7 +197,7 @@ function App() {
         id: "SHARED_MED_COUNT_SUCCESS",
         origin: "App.js",
         calendarName,
-        calendarOwnerUid,
+        ownerUid,
         count: data.count,
       });
       return data.count;
@@ -836,7 +835,6 @@ function App() {
       });
       if (!res.ok) throw new Error(`Erreur HTTP GET /api/shared/users/${calendarName}`);
       const data = await res.json();
-      setSharedUsersData(data.users);
       log.info("Utilisateurs partagés récupérés avec succès", {
         id: "SHARED_USERS_FETCH_SUCCESS",
         origin: "App.js",
@@ -851,7 +849,7 @@ function App() {
       });
       return [];
     }
-  }, [setSharedUsersData]);
+  }, []);
 
   // Fonction pour supprimer un utilisateur partagé
   const deleteSharedUser = useCallback(async (calendarName, userId) => {
@@ -945,7 +943,6 @@ function App() {
       readNotification,                       // Marquer une notification comme lue
     },
     sharedUsers: {
-      sharedUsersData, setSharedUsersData,      // Liste des utilisateurs partagés
       fetchSharedUsers,                       // Récupération des utilisateurs partagés
       deleteSharedUser,                       // Suppression d’un utilisateur partagé
     },

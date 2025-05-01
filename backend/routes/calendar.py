@@ -52,7 +52,7 @@ def handle_calendars():
             # pour le calendrier partagé
             shared_tokens_ref = db.collection("shared_tokens").get()
             for doc in shared_tokens_ref:
-                if doc.to_dict().get("calendar_owner_uid") == uid:
+                if doc.to_dict().get("owner_uid") == uid:
                     if doc.to_dict().get("calendar_name") == calendar_name:
                         db.collection("shared_tokens").document(doc.id).delete()
             return jsonify({"message": "Calendrier supprimé", "status": "ok"})
@@ -78,7 +78,7 @@ def handle_calendars():
             # pour le calendrier partagé
             shared_tokens_ref = db.collection("shared_tokens").get()
             for doc in shared_tokens_ref:
-                if doc.to_dict().get("calendar_owner_uid") == uid:
+                if doc.to_dict().get("owner_uid") == uid:
                     if doc.to_dict().get("calendar_name") == old_calendar_name:
                         db.collection("shared_tokens").document(doc.id).update({
                             "calendar_name": new_calendar_name
@@ -108,15 +108,15 @@ def handle_calendars():
 def get_calendar(calendar_name):
     try:
         user = verify_firebase_token()
-        uid = user["uid"]
+        owner_uid = user["uid"]
 
-        doc = db.collection("users").document(uid).collection("calendars").document(calendar_name).get()
+        doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_name).get()
         if doc.exists:
             data = doc.to_dict()
             medicines = data.get("medicines", [])
-            logger.info(f"[CALENDAR_LOAD] Médicaments récupérés pour {uid}.")
+            logger.info(f"[CALENDAR_LOAD] Médicaments récupérés pour {owner_uid}.")
         else:
-            logger.warning(f"[CALENDAR_LOAD] Document introuvable pour l'utilisateur {uid}.")
+            logger.warning(f"[CALENDAR_LOAD] Document introuvable pour l'utilisateur {owner_uid}.")
             return jsonify({"error": "Calendrier introuvable"}), 404
         
         start_str = request.args.get("startTime")

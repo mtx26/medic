@@ -23,13 +23,11 @@ function SelectCalendar({ calendars, tokens, invitations, sharedUsers }) {
   const [permissions, setPermissions] = useState('read'); // Par défaut : lecture seule
   const [existingShareToken, setExistingShareToken] = useState(null);
   const [emailToInvite, setEmailToInvite] = useState('');
-  
+  const [sharedUsersData, setSharedUsersData] = useState([]);
+
   const [loadingCalendars, setLoadingCalendars] = useState(true);
   const REACT_URL = process.env.REACT_APP_REACT_URL
 
-  const deleteSharedCalendar = (calendarName) => {
-    console.log(calendarName);
-  }
 
   useEffect(() => {
     const load = async () => {
@@ -60,7 +58,7 @@ function SelectCalendar({ calendars, tokens, invitations, sharedUsers }) {
         counts[calendarName] = c;
       }
       for (const calendarName of calendars.sharedCalendarsData) {
-        const c = await calendars.getSharedMedicineCount(calendarName.calendar_name, calendarName.calendar_owner_uid); // Récupération du nombre de médicaments
+        const c = await calendars.getSharedMedicineCount(calendarName.calendar_name, calendarName.owner_uid); // Récupération du nombre de médicaments
         counts[calendarName.calendar_name] = c;
       }
       setCount(counts); // Mise à jour de l'état avec les nombres
@@ -140,9 +138,12 @@ function SelectCalendar({ calendars, tokens, invitations, sharedUsers }) {
                           try {
                             await navigator.clipboard.writeText(`${REACT_URL}/shared-calendar/${existingShareToken.token}`);
                             setAlertType("success");
+                            setSelectedAlert("calendar");
                             setAlertMessage("🔗 Lien existant copié dans le presse-papiers !");
+                            setShowShareModal(false);
                           } catch (error) {
                             setAlertType("danger");
+                            setSelectedAlert("calendar");
                             setAlertMessage("❌ Erreur lors de la copie du lien.");
                           }
                         }}
@@ -159,13 +160,13 @@ function SelectCalendar({ calendars, tokens, invitations, sharedUsers }) {
                       <label className="form-label">Expiration du lien</label>
                       <select
                         className="form-select mb-2"
-                        value={expiresAt === null ? 'never' : 'date'}
+                        value={expiresAt === null ? '' : 'date'}
                         onChange={(e) => {
-                          setExpiresAt(e.target.value === 'never' ? null : '');
+                          setExpiresAt(e.target.value === '' ? null : '');
                         }}
                         title="Date d'expiration"
                       >
-                        <option value="never">Jamais</option>
+                        <option value="">Jamais</option>
                         <option value="date">Choisir une date</option>
                       </select>
 
@@ -198,7 +199,7 @@ function SelectCalendar({ calendars, tokens, invitations, sharedUsers }) {
             ) : (
               // PARTAGE PAR COMPTE
               <div>
-                {sharedUsers.sharedUsersData.length > 0 && (
+                {sharedUsersData.length > 0 && (
                   <>
                     <div className="d-flex align-items-center gap-2 mb-2">
                       <h5 className="mb-0">Utilisateurs partagés</h5>
@@ -212,8 +213,8 @@ function SelectCalendar({ calendars, tokens, invitations, sharedUsers }) {
                     </div>
 
                     <ul className="list-group mb-3">
-                      {sharedUsers.sharedUsersData.map((user) => (
-                        <li key={user.email} className="list-group-item d-flex justify-content-between align-items-center">
+                      {sharedUsersData.map((user) => (
+                        <li key={user.receiver_uid} className="list-group-item d-flex justify-content-between align-items-center">
                           <span>
                             <strong>{user.receiver_email}</strong><br />
                             Accès : {user.access}
@@ -241,9 +242,11 @@ function SelectCalendar({ calendars, tokens, invitations, sharedUsers }) {
                       const success = await invitations.sendInvitation(emailToInvite, calendarToShare);
                       if (success) {
                         setAlertType("success");
+                        setSelectedAlert("calendar");
                         setAlertMessage("✅ Invitation envoyée avec succès !");
                       } else {
                         setAlertType("danger");
+                        setSelectedAlert("calendar");
                         setAlertMessage("❌ Erreur lors de l'envoi de l'invitation.");
                       }
                       setShowShareModal(false);
@@ -270,13 +273,16 @@ function SelectCalendar({ calendars, tokens, invitations, sharedUsers }) {
                     try {
                       await navigator.clipboard.writeText(`${REACT_URL}/shared-calendar/${token}`);
                       setAlertType("success");
+                      setSelectedAlert("calendar");
                       setAlertMessage("🔗 Lien copié dans le presse-papiers !");
                     } catch (error) {
                       setAlertType("danger");
+                      setSelectedAlert("calendar");
                       setAlertMessage("❌ Erreur lors de la copie du lien.");
                     }
                   } else {
                     setAlertType("danger");
+                    setSelectedAlert("calendar");
                     setAlertMessage("❌ Erreur lors de la création du lien.");
                   }
                   setShowShareModal(false);
@@ -310,15 +316,12 @@ function SelectCalendar({ calendars, tokens, invitations, sharedUsers }) {
         if (success) {
           setAlertMessage("✅ Calendrier ajouté avec succès !");
           setAlertType("success");
+          setSelectedAlert("calendar");
         } else {
           setAlertMessage("❌ Erreur lors de l'ajout du calendrier.");
           setAlertType("danger");
+          setSelectedAlert("calendar");
         }
-        setOnConfirmAction(null);
-        setTimeout(() => {
-          setAlertMessage("");
-          setAlertType("");
-        }, 3000);
         setNewCalendarName("");
       }} // Ajout d'un nouveau calendrier
       className="btn btn-outline-primary"
@@ -410,9 +413,9 @@ function SelectCalendar({ calendars, tokens, invitations, sharedUsers }) {
               setCalendarToShare(calendarName);  // On retient quel calendrier partager
               setExistingShareToken(null);
               const token = await tokens.tokensList.find(
-                (t) => t.calendar_name === calendarName && !t.revoked && t.calendar_owner_uid === currentUser.uid
+                (t) => t.calendar_name === calendarName && !t.revoked && t.owner_uid === currentUser.uid
               );
-              await sharedUsers.fetchSharedUsers(calendarName);
+              setSharedUsersData(await sharedUsers.fetchSharedUsers(calendarName));
               setExistingShareToken(token || null);
               setShowShareModal(true);           // On affiche la modal
             }}
@@ -480,7 +483,7 @@ function SelectCalendar({ calendars, tokens, invitations, sharedUsers }) {
             <div className="text-muted small">
               Propriétaire :
               <span className="fw-semibold ms-1">
-                {calendarName.calendar_owner_email ?? "Propriétaire inconnu"}
+                {calendarName.owner_email ?? "Propriétaire inconnu"}
               </span>
             </div>
           </div>
@@ -504,7 +507,7 @@ function SelectCalendar({ calendars, tokens, invitations, sharedUsers }) {
                 setSelectedAlert("sharedCalendar");
                 setAlertMessage("❌ Confirmez-vous la suppression du calendrier partagé ?");
                 setOnConfirmAction(() => () => {
-                  deleteSharedCalendar(calendarName.calendar_name);
+                  calendars.deleteSharedCalendar(calendarName.calendar_name);
                 });
               }}
             >

@@ -20,7 +20,11 @@ function NotificationsPage({ notifications, invitations }) {
               <li
                 key={notif.notification_token}
 								className={`list-group-item list-group-item-action border-0 border-start border-4 ${notif.read ? "bg-light text-muted" : "bg-unread border-primary p-2 rounded"}`}
-
+                onClick={() => {
+                  if (!notif.read) notifications.readNotification(notif.notification_token);
+                }}
+                style={{ cursor: "pointer" }}
+                title={!notif.read ? "Marquer comme lue" : ""}
               >
                 {/* Invitation reçue */}
                 {notif.type === "calendar_invitation" && (
@@ -57,13 +61,7 @@ function NotificationsPage({ notifications, invitations }) {
 
                 {/* Invitation acceptée */}
                 {notif.type === "calendar_invitation_accepted" && (
-                  <div
-										onClick={() => {
-											if (!notif.read) notifications.readNotification(notif.notification_token);
-										}}
-										style={{ cursor: "pointer" }}
-										title={!notif.read ? "Marquer comme lue" : ""}
-									>
+                  <div>
                     <i className="bi bi-check-circle-fill me-2 text-success"></i>
                     <strong>{notif.receiver_email}</strong> a accepté votre invitation pour rejoindre le calendrier <strong>{notif.calendar_name}</strong>
                   </div>
@@ -71,15 +69,24 @@ function NotificationsPage({ notifications, invitations }) {
 
                 {/* Invitation refusée */}
                 {notif.type === "calendar_invitation_rejected" && (
-                  <div
-										onClick={() => {
-											if (!notif.read) notifications.readNotification(notif.notification_token);
-										}}
-										style={{ cursor: "pointer" }}
-										title={!notif.read ? "Marquer comme lue" : ""}
-									>
+                  <div>
                     <i className="bi bi-x-circle-fill me-2 text-danger"></i>
                     <strong>{notif.receiver_email}</strong> a rejeté votre invitation pour rejoindre le calendrier <strong>{notif.calendar_name}</strong>
+                  </div>
+                )}
+
+                {/* Calendrier partagé supprimé */}
+                {notif.type === "calendar_shared_deleted_by_owner" && (
+                  <div>
+                    <i className="bi bi-trash-fill me-2 text-danger"></i>
+                    <strong>{notif.owner_email}</strong> a arrêté de partager le calendrier <strong>{notif.calendar_name}</strong> avec vous
+                  </div>
+                )}
+
+                {notif.type === "calendar_shared_deleted_by_receiver" && (
+                  <div >
+                    <i className="bi bi-trash-fill me-2 text-danger"></i>
+                    <strong>{notif.receiver_email}</strong> a retiré le calendrier <strong>{notif.calendar_name}</strong> que vous lui aviez partagé.
                   </div>
                 )}
 

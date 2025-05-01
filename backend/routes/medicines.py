@@ -78,16 +78,16 @@ def count_shared_medicines():
         uid = user["uid"]
 
         calendar_name = request.args.get("calendarName")
-        calendar_owner_uid = request.args.get("calendarOwnerUid")
+        owner_uid = request.args.get("ownerUid")
 
-        doc = db.collection("users").document(calendar_owner_uid).collection("calendars").document(calendar_name).get()
+        doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_name).get()
         if not doc.exists:
             logger.warning(f"[MED_COUNT] Calendrier introuvable : {calendar_name} pour {uid}.")
             return jsonify({"error": "Calendrier introuvable"}), 404
 
 
-        if not verify_calendar_share(calendar_name, calendar_owner_uid, uid):
-            logger.warning(f"[MED_COUNT] Accès non autorisé à {calendar_name} partagé par {calendar_owner_uid}")
+        if not verify_calendar_share(calendar_name, owner_uid, uid):
+            logger.warning(f"[MED_COUNT] Accès non autorisé à {calendar_name} partagé par {owner_uid}")
             return jsonify({"error": "Accès non autorisé"}), 403
 
         data = doc.to_dict()
