@@ -17,7 +17,7 @@ function Navbar({ sharedProps }) {
     if (authReady && currentUser) {
       fetchNotifications();
     }
-  }, [authReady, currentUser]);
+  }, [authReady, currentUser, fetchNotifications]);
 
 
   return (
