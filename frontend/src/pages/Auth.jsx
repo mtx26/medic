@@ -4,6 +4,7 @@ import { GoogleHandleLogin, registerWithEmail, loginWithEmail, handleLogout } fr
 import AlertSystem from "../components/AlertSystem";
 import { getFirebaseAuthErrorMessage } from "../utils/getFirebaseAuthErrorMessage";
 import { log } from "../utils/logger";
+import { auth } from "../services/firebase";
 import { useNavigate } from "react-router-dom";
 
 
@@ -81,9 +82,19 @@ function Auth() {
               try {
                 if (activeTab === "login") {
                   await loginWithEmail(email, password);
+                  log.info("Connexion réussie", {
+                    id: "LOGIN-SUCCESS",
+                    origin: "Auth.jsx",
+                    user: auth.currentUser,
+                  });
                   
                 } else {
                   await registerWithEmail(email, password, name);
+                  log.info("Inscription réussie", {
+                    id: "REGISTER-SUCCESS",
+                    origin: "Auth.jsx",
+                    user: auth.currentUser,
+                  });
                 }
               } catch (err) {
                 log.error("Firebase auth error", {

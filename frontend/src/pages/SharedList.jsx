@@ -372,7 +372,7 @@ function SharedList({ tokens, calendars, sharedUsers, invitations }) {
                         className="btn btn-outline-primary"
                         title="Ajouter"
                         onClick={async () => {
-                          const success = await tokens.createSharedTokenCalendar(calendarName, expiresAt[calendarName], permissions[calendarName]);
+                          const {token, success} = await tokens.createSharedTokenCalendar(calendarName, expiresAt[calendarName], permissions[calendarName]);
                           if (success) {
                             setAlertType("success");
                             setAlertMessage("👍 Lien de partage créé avec succès.");

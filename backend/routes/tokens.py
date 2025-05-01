@@ -55,9 +55,10 @@ def handle_shared_create(calendar_name):
         # Verifier si le calendrier est déjà partagé
         doc_2 = db.collection("shared_tokens").get()
         for doc in doc_2:
-            if doc.to_dict().get("calendar_name") == calendar_name:
-                logger.warning(f"[CALENDAR_SHARED_CREATE] Calendrier déjà partagé : {calendar_name} pour {owner_uid}.")
-                return jsonify({"error": "Calendrier déjà partagé"}), 400
+            if doc.to_dict().get("owner_uid") == owner_uid:
+                if doc.to_dict().get("calendar_name") == calendar_name:
+                    logger.warning(f"[CALENDAR_SHARED_CREATE] Calendrier déjà partagé : {calendar_name} pour {owner_uid}.")
+                    return jsonify({"error": "Calendrier déjà partagé"}), 400
         
         # Créer un nouveau lien de partage
         token = secrets.token_hex(16)
