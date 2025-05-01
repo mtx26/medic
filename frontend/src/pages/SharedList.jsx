@@ -18,6 +18,7 @@ function SharedList({ tokens, calendars, sharedUsers, invitations }) {
   const [expiresAt, setExpiresAt] = useState([]);
   const [permissions, setPermissions] = useState([]);
   const [emailToInvite, setEmailToInvite] = useState([]);
+  const [hoveredUser, setHoveredUser] = useState(null);
 
   const today = new Date().toISOString().split('T')[0];
 
@@ -407,10 +408,21 @@ function SharedList({ tokens, calendars, sharedUsers, invitations }) {
                   <li key={user.receiver_uid} className="list-group-item px-3">
                     <div className="row align-items-center g-2">
 
-                      <div className={`d-flex align-items-center gap-2 col-md-8`}>
-                        {/* Email */}
+                      <div 
+                        className={`d-flex align-items-center gap-2 col-md-4`}
+                        onMouseEnter={() => setHoveredUser(user.receiver_uid)}
+                        onMouseLeave={() => setHoveredUser(null)}
+                        style={{ cursor: 'pointer', position: 'relative' }}
+                      >
+                        
+                        {/* Image */}
                         <div className="">
-                          <strong>{user.receiver_email}</strong>
+                          <img src={user.picture_url} alt="Profil" className="rounded-circle" style={{ width: "40px", height: "40px" }} />
+                        </div>
+
+                        {/* Nom */}
+                        <div className="">
+                          <strong>{user.display_name}</strong>
                         </div>
 
                         {/* Statut */}
@@ -419,10 +431,38 @@ function SharedList({ tokens, calendars, sharedUsers, invitations }) {
                             {user.accepted ? "Accepté" : "En attente"}
                           </span>
                         </div>
+
+                        {/* Tooltip */}
+                        {hoveredUser === user.receiver_uid && (
+                          <div
+                            className="position-absolute shadow-lg rounded-3 bg-white border p-3"
+                            style={{
+                              zIndex: 999,
+                              bottom: '110%',
+                              left: '50%',
+                              transform: 'translateX(-50%)',
+                              width: '250px',
+                              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                            }}
+                          >
+                            <div className="d-flex flex-column align-items-center text-center gap-2">
+                              <img
+                                src={user.picture_url}
+                                alt="Profil"
+                                className="rounded-circle"
+                                style={{ width: '70px', height: '70px', objectFit: 'cover' }}
+                              />
+                              <div>
+                                <h6 className="mb-0">{user.display_name}</h6>
+                                <small className="text-muted">{user.receiver_email}</small>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
 
                       {/* Permissions*/}
-                      <div className="col-md-2">
+                      <div className="col-md-2 offset-md-4">
                           <select
                             className="form-select"
                             value={user.access}
@@ -501,9 +541,9 @@ function SharedList({ tokens, calendars, sharedUsers, invitations }) {
                         <input
                           type="email"
                           className="form-control"
-                          placeholder="Ajouter un utilisateur (email)"
+                          placeholder="Email du destinataire"
                           onChange={(e) => setEmailToInvite(prev => ({ ...prev, [calendarName]: e.target.value }))}
-                          value={emailToInvite[calendarName]}
+                          value={emailToInvite[calendarName] ?? ""}
                         />
                         <button
                           className="btn btn-outline-primary"

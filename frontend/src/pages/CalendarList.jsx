@@ -24,6 +24,7 @@ function SelectCalendar({ calendars, tokens, invitations, sharedUsers }) {
   const [existingShareToken, setExistingShareToken] = useState(null);
   const [emailToInvite, setEmailToInvite] = useState('');
   const [sharedUsersData, setSharedUsersData] = useState([]);
+  const [hoveredUser, setHoveredUser] = useState(null);
 
   const [loadingCalendars, setLoadingCalendars] = useState(true);
   const REACT_URL = process.env.REACT_APP_REACT_URL
@@ -203,25 +204,63 @@ function SelectCalendar({ calendars, tokens, invitations, sharedUsers }) {
                   <>
                     <div className="d-flex align-items-center gap-2 mb-2">
                       <h5 className="mb-0">Utilisateurs partagés</h5>
-                      <button
-                        className="btn btn-sm btn-outline-warning"
-                        title="Gérer les utilisateurs partagés"
-                        onClick={() => navigate('/shared-calendar')}
-                      >
-                        <i className="bi bi-gear"></i>
-                      </button>
                     </div>
 
                     <ul className="list-group mb-3">
                       {sharedUsersData.map((user) => (
-                        <li key={user.receiver_uid} className="list-group-item d-flex justify-content-between align-items-center">
-                          <span>
-                            <strong>{user.receiver_email}</strong><br />
-                            Accès : {user.access}
-                          </span>
-                          <span className={`badge ${user.accepted ? "bg-success" : "bg-warning text-dark"}`}>
-                            {user.accepted ? "Accepté" : "En attente"}
-                          </span>
+                        <li 
+                          key={user.receiver_uid} 
+                          className="list-group-item d-flex justify-content-between align-items-center"
+                          onMouseEnter={() => setHoveredUser(user.receiver_uid)}
+                          onMouseLeave={() => setHoveredUser(null)}
+                          style={{ cursor: 'pointer' }}
+                        >
+                          <div className="d-flex align-items-center gap-2">
+                            <img src={user.picture_url} alt="Profil" className="rounded-circle" style={{ width: "40px", height: "40px" }}/>
+                            <span>
+                              <strong>{user.display_name}</strong><br />
+                              Accès : {user.access}
+                            </span>
+                            <span className={`badge ${user.accepted ? "bg-success" : "bg-warning text-dark"}`}>
+                              {user.accepted ? "Accepté" : "En attente"}
+                            </span>
+                          </div>
+
+                          {/* Tooltip */}
+                          {hoveredUser === user.receiver_uid && (
+                            <div
+                              className="position-absolute shadow-lg rounded-3 bg-white border p-3"
+                              style={{
+                                zIndex: 999,
+                                top: '110%',
+                                left: '25%',
+                                transform: 'translateX(-50%)',
+                                width: '250px',
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                              }}
+                            >
+                              <div className="d-flex flex-column align-items-center text-center gap-2">
+                                <img
+                                  src={user.picture_url}
+                                  alt="Profil"
+                                  className="rounded-circle"
+                                  style={{ width: '70px', height: '70px', objectFit: 'cover' }}
+                                />
+                                <div>
+                                  <h6 className="mb-0">{user.display_name}</h6>
+                                  <small className="text-muted">{user.receiver_email}</small>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                          <button
+                            className="btn btn-outline-warning"
+                            title="Gérer les utilisateurs partagés"
+                            onClick={() => navigate('/shared-calendar')}
+                          >
+                            <i className="bi bi-gear"></i>
+                          </button>
+
                         </li>
                       ))}
                     </ul>
@@ -232,7 +271,7 @@ function SelectCalendar({ calendars, tokens, invitations, sharedUsers }) {
                   <input
                     type="email"
                     className="form-control"
-                    placeholder="Email du compte"
+                    placeholder="Email du destinataire"
                     onChange={(e) => setEmailToInvite(e.target.value)}
                   />
                   <button

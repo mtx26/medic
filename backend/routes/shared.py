@@ -107,20 +107,36 @@ def handle_delete_shared_calendar(calendar_name):
 def handle_shared_users(calendar_name):
     try:
         user = verify_firebase_token()
-        receiver_uid = user["uid"]
+        owner_uid = user["uid"]
 
-        shared_with_doc = db.collection("users").document(receiver_uid).collection("calendars").document(calendar_name).collection("shared_with")
+        shared_with_doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_name).collection("shared_with")
         shared_users_docs = list(shared_with_doc.stream())
 
 
         shared_users_list = []
         for doc in shared_users_docs:
+
             data = doc.to_dict()
+
+            receiver_uid = data.get("receiver_uid")
+            receiver_email = data.get("receiver_email")
+            access = data.get("access", "read")
+            accepted = data.get("accepted", False)
+            picture_url = db.collection("users").document(receiver_uid).get().to_dict().get("photoURL")
+            display_name = db.collection("users").document(receiver_uid).get().to_dict().get("displayName")
+            if not picture_url:
+                picture_url = "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/icons/person-circle.svg"
+
+            if not verify_calendar_share(calendar_name, owner_uid, receiver_uid):
+                continue
+
             shared_users_list.append({
-                "receiver_uid": data.get("receiver_uid"),
-                "receiver_email": data.get("receiver_email"),
-                "access": data.get("access", "read"),
-                "accepted": data.get("accepted", False)
+                "receiver_uid": receiver_uid,
+                "receiver_email": receiver_email,
+                "access": access,
+                "accepted": accepted,
+                "picture_url": picture_url,
+                "display_name": display_name
             })
 
         logger.info(f"[SHARED_USERS_LOAD] {len(shared_users_list)} utilisateur(s) récupéré(s) pour {calendar_name}.")

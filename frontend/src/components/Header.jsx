@@ -208,7 +208,7 @@ function Navbar({ sharedProps }) {
                       referrerPolicy="no-referrer"
                     />
                   ) : (
-                    <i className="fas fa-user-circle fa-lg me-2"></i>
+                    <i className="bi bi-person-circle fa-lg me-2"></i>
                   )}
                   {userInfo?.displayName || "Compte"}
                 </button>
