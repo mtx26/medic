@@ -1,12 +1,14 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { AuthContext } from '../contexts/LoginContext';
 
 function SharedCalendarMedicines({ shared }) {
-  const { sharedTokens } = useParams();
-  const { authReady, login } = useContext(AuthContext);
-  const navigate = useNavigate();
-  const [successGetSharedMedecines, setSuccessGetSharedMedecines] = useState()
+  // 📍 Paramètres d’URL et navigation
+  const { sharedTokens } = useParams(); // Récupération du token de partage depuis l'URL
+  const navigate = useNavigate(); // Hook de navigation
+
+  // ✅ État de récupération des médicaments partagés
+  const [successGetSharedMedecines, setSuccessGetSharedMedecines] = useState(); // État du succès de la récupération des médicaments partagés
+
 
 
   useEffect(() => {

@@ -6,13 +6,19 @@ import AlertSystem from '../components/AlertSystem';
 import { auth } from '../services/firebase';
 
 const AccountPage = () => {
-  const [oldPassword, setOldPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [alert, setAlert] = useState({ type: '', message: '' });
-  const [oldPasswordVisible, setOldPasswordVisible] = useState(false);
-  const [newPasswordVisible, setNewPasswordVisible] = useState(false);
+  // 👤 Contexte utilisateur
+  const { userInfo } = useContext(UserContext); // Contexte de l'utilisateur connecté
 
-  const { userInfo } = useContext(UserContext);
+  // 🔒 Changement de mot de passe
+  const [oldPassword, setOldPassword] = useState(''); // État pour l'ancien mot de passe
+  const [newPassword, setNewPassword] = useState(''); // État pour le nouveau mot de passe
+  const [oldPasswordVisible, setOldPasswordVisible] = useState(false); // État pour l'affichage de l'ancien mot de passe
+  const [newPasswordVisible, setNewPasswordVisible] = useState(false); // État pour l'affichage du nouveau mot de passe
+
+  // ⚠️ Alertes
+  const [alertMessage, setAlertMessage] = useState(null); // État pour le message d'alerte
+  const [alertType, setAlertType] = useState("info"); // État pour le type d'alerte (par défaut : info)
+
 
   const isGoogleUser = Array.isArray(userInfo?.providerData) && userInfo.providerData.some(
     (provider) => provider.providerId === "google.com"
@@ -27,19 +33,20 @@ const AccountPage = () => {
 
   const handleUpdatePassword = async (e) => {
     e.preventDefault();
-    setAlert({ type: '', message: '' });
     try {
       await reauthenticate();
       await updateUserPassword(newPassword);
 
-      setAlert({ type: 'success', message: 'Mot de passe mis à jour avec succès.' });
+      setAlertType('success');
+      setAlertMessage('✅ Mot de passe mis à jour avec succès.');
 
       // Réinitialiser les champs
       setNewPassword('');
       setOldPassword('');
 
     } catch (error) {
-      setAlert({ type: 'danger', message: error.message });
+      setAlertType('danger');
+      setAlertMessage(error.message);
     }
   };
 
@@ -52,9 +59,9 @@ const AccountPage = () => {
       <h2 className="mb-4">Account Management</h2>
 
       <AlertSystem
-        type={alert.type}
-        message={alert.message}
-        onClose={() => setAlert({ type: '', message: '' })}
+        type={alertType}
+        message={alertMessage}
+        onClose={() => setAlertMessage(null)}
       />
 
       <div className="mb-4">
@@ -64,7 +71,7 @@ const AccountPage = () => {
 
       {isGoogleUser ? (
         <div className="alert alert-info">
-          Connected with Google. You cannot modify your email or password.
+          Connecté avec Google. Vous ne pouvez pas modifier votre email ou mot de passe.
         </div>
       ) : (
         <form autoComplete="on" method="post" action="/">

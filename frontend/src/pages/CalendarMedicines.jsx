@@ -5,18 +5,26 @@ import { AuthContext } from '../contexts/LoginContext';
 import AlertSystem from '../components/AlertSystem';
 
 function MedicamentsPage({ meds, calendars }) {
-  const { nameCalendar } = useParams();
-  const { authReady, currentUser } = useContext(AuthContext);
-  const navigate = useNavigate();
+  // 📍 Paramètres d’URL et navigation
+  const { nameCalendar } = useParams(); // Récupération du nom du calendrier depuis l'URL
+  const navigate = useNavigate(); // Hook de navigation
 
-  const [alertType, setAlertType] = useState("");
-  const [alertMessage, setAlertMessage] = useState("");
-  const [onConfirmAction, setOnConfirmAction] = useState(null);
-  const lastMedRef = useRef(null);
-  const [highlightedIndex, setHighlightedIndex] = useState(null);
-  const [loadingCalendars, setLoadingCalendars] = useState(true);
+  // 🔐 Contexte d'authentification
+  const { authReady, currentUser } = useContext(AuthContext); // Contexte de l'utilisateur connecté
 
-  const hasChanges = JSON.stringify(meds.medsData) !== JSON.stringify(meds.originalMedsData);
+  // ⚠️ Alertes et confirmations
+  const [alertType, setAlertType] = useState(""); // État pour le type d'alerte
+  const [alertMessage, setAlertMessage] = useState(""); // État pour le message d'alerte
+  const [onConfirmAction, setOnConfirmAction] = useState(null); // État pour l'action à confirmer
+
+  // 📦 Données & interface
+  const [loadingCalendars, setLoadingCalendars] = useState(true); // État de chargement des calendriers
+  const [highlightedIndex, setHighlightedIndex] = useState(null); // État pour l'élément mis en évidence dans la liste
+  const lastMedRef = useRef(null); // Référence vers le dernier médicament affiché
+
+  // 🔄 Détection de modifications
+  const hasChanges = JSON.stringify(meds.medsData) !== JSON.stringify(meds.originalMedsData); // Détection des changements dans les médicaments
+
 
   const toggleSelection = (index) => {
     meds.setChecked((prev) =>

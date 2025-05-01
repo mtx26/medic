@@ -5,22 +5,29 @@ import AlertSystem from '../components/AlertSystem';
 const REACT_URL = process.env.REACT_APP_REACT_URL;
 
 function SharedList({ tokens, calendars, sharedUsers, invitations }) {
-  const { authReady, currentUser } = useContext(AuthContext);
-  const [alertType, setAlertType] = useState("");
-  const [alertMessage, setAlertMessage] = useState("");
-  const [onConfirmAction, setOnConfirmAction] = useState(null);
+  // 🔐 Contexte d'authentification
+  const { authReady, currentUser } = useContext(AuthContext); // Contexte de l'utilisateur connecté
 
-  const [alertId , setAlertId ] = useState(null);
+  // ⚠️ Alertes et confirmations
+  const [alertType, setAlertType] = useState(""); // Type d'alerte (ex. success, error)
+  const [alertMessage, setAlertMessage] = useState(""); // Message d'alerte
+  const [onConfirmAction, setOnConfirmAction] = useState(null); // Action à confirmer
+  const [alertId, setAlertId] = useState(null); // Identifiant de l'alerte ciblée
 
-  const [loading, setLoading] = useState(true);
-  const [loadingGroupedShared, setLoadingGroupedShared] = useState(true);
-  const [groupedShared, setGroupedShared] = useState({});
-  const [expiresAt, setExpiresAt] = useState([]);
-  const [permissions, setPermissions] = useState([]);
-  const [emailToInvite, setEmailToInvite] = useState([]);
-  const [hoveredUser, setHoveredUser] = useState(null);
+  // 🔄 Chargement et données partagées groupées
+  const [loading, setLoading] = useState(true); // État de chargement général
+  const [loadingGroupedShared, setLoadingGroupedShared] = useState(true); // État de chargement des partages groupés
+  const [groupedShared, setGroupedShared] = useState({}); // Données groupées des partages
 
-  const today = new Date().toISOString().split('T')[0];
+  // 🔗 Données liées aux partages
+  const [expiresAt, setExpiresAt] = useState([]); // Dates d'expiration des liens partagés
+  const [permissions, setPermissions] = useState([]); // Permissions associées aux partages
+  const [emailsToInvite, setEmailsToInvite] = useState([]); // E-mails à inviter au partage
+  const [hoveredUser, setHoveredUser] = useState(null); // Utilisateur actuellement survolé
+
+  // 📅 Date du jour
+  const today = new Date().toISOString().split('T')[0]; // Date du jour au format 'YYYY-MM-DD'
+
 
   useEffect(() => {
     const load = async () => {
@@ -542,14 +549,14 @@ function SharedList({ tokens, calendars, sharedUsers, invitations }) {
                           type="email"
                           className="form-control"
                           placeholder="Email du destinataire"
-                          onChange={(e) => setEmailToInvite(prev => ({ ...prev, [calendarName]: e.target.value }))}
-                          value={emailToInvite[calendarName] ?? ""}
+                          onChange={(e) => setEmailsToInvite(prev => ({ ...prev, [calendarName]: e.target.value }))}
+                          value={emailsToInvite[calendarName] ?? ""}
                         />
                         <button
                           className="btn btn-outline-primary"
                           title="Envoyer une invitation"
                           onClick={async () => {
-                            const success = await invitations.sendInvitation(emailToInvite[calendarName], calendarName);
+                            const success = await invitations.sendInvitation(emailsToInvite[calendarName], calendarName);
                             if (success) {
 
                               setAlertType("success");
@@ -558,7 +565,7 @@ function SharedList({ tokens, calendars, sharedUsers, invitations }) {
                               setTimeout(async () => {
                                 await setGroupedSharedFunction();
                               }, 1000);
-                              setEmailToInvite(prev => ({ ...prev, [calendarName]: "" }));
+                              setEmailsToInvite(prev => ({ ...prev, [calendarName]: "" }));
                             } else {
                               setAlertType("danger");
                               setAlertMessage("❌ Une erreur est survenue lors de l'envoi de l'invitation.");

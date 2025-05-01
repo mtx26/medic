@@ -7,26 +7,34 @@ import AlertSystem from '../components/AlertSystem';
 
 function SelectCalendar({ calendars, tokens, invitations, sharedUsers }) {
 
-  const navigate = useNavigate();
-  const { authReady, currentUser } = useContext(AuthContext); // Récupération du contexte d'authentification
-  const [newCalendarName, setNewCalendarName] = useState(''); // État pour le nom du nouveau calendrier
-  const [renameValues, setRenameValues] = useState({}); // État pour les valeurs de renommage
-  const [count, setCount] = useState({}); // État pour stocker le nombre de médicaments par calendrier
-  const [alertType, setAlertType] = useState("");
-  const [alertMessage, setAlertMessage] = useState("");
-  const [onConfirmAction, setOnConfirmAction] = useState(null);
-  const [selectedAlert, setSelectedAlert] = useState(null);
-  const [showShareModal, setShowShareModal] = useState(false);
-  const [calendarToShare, setCalendarToShare] = useState('');
-  const [shareMethod, setShareMethod] = useState('link'); 
-  const [expiresAt, setExpiresAt] = useState(null); // Date d'expiration
-  const [permissions, setPermissions] = useState('read'); // Par défaut : lecture seule
-  const [existingShareToken, setExistingShareToken] = useState(null);
-  const [emailToInvite, setEmailToInvite] = useState('');
-  const [sharedUsersData, setSharedUsersData] = useState([]);
-  const [hoveredUser, setHoveredUser] = useState(null);
+  const navigate = useNavigate(); 
+  const { authReady, currentUser } = useContext(AuthContext); // Contexte d'authentification
 
-  const [loadingCalendars, setLoadingCalendars] = useState(true);
+  // 📅 Gestion des calendriers
+  const [loadingCalendars, setLoadingCalendars] = useState(true); // État de chargement des calendriers
+  const [newCalendarName, setNewCalendarName] = useState(''); // État pour le nom du nouveau calendrier
+  const [renameValues, setRenameValues] = useState({}); // État pour les valeurs de renommage de calendrier
+  const [count, setCount] = useState({}); // État pour le nombre de médicaments par calendrier
+
+  // ⚠️ Alertes et confirmations
+  const [alertType, setAlertType] = useState(""); // État pour le type d'alerte
+  const [alertMessage, setAlertMessage] = useState(""); // État pour le message d'alerte
+  const [onConfirmAction, setOnConfirmAction] = useState(null); // État pour l'action à confirmer
+  const [selectedAlert, setSelectedAlert] = useState(null); // État pour l'alerte sélectionnée
+
+  // 🔗 Partage de calendrier (par lien ou utilisateur)
+  const [showShareModal, setShowShareModal] = useState(false); // État pour l'ouverture du modal de partage
+  const [calendarToShare, setCalendarToShare] = useState(''); // État pour le calendrier à partager
+  const [shareMethod, setShareMethod] = useState('link'); // État pour la méthode de partage (par défaut : lien)
+  const [expiresAt, setExpiresAt] = useState(null); // État pour la date d'expiration du lien de partage
+  const [permissions, setPermissions] = useState('read'); // État pour les permissions (par défaut : lecture seule)
+  const [existingShareToken, setExistingShareToken] = useState(null); // État pour un jeton de partage déjà existant
+
+  // 👥 Partage ciblé par utilisateur
+  const [emailToInvite, setEmailToInvite] = useState(''); // État pour l'adresse e-mail à inviter
+  const [sharedUsersData, setSharedUsersData] = useState([]); // État pour les données des utilisateurs ayant accès
+  const [hoveredUser, setHoveredUser] = useState(null); // État pour l'utilisateur actuellement survolé
+
   const REACT_URL = process.env.REACT_APP_REACT_URL
 
 
@@ -55,14 +63,14 @@ function SelectCalendar({ calendars, tokens, invitations, sharedUsers }) {
     const loadCounts = async () => {
       const counts = {};
       for (const calendarName of calendars.calendarsData) {
-        const c = await calendars.getMedicineCount(calendarName); // Récupération du nombre de médicaments
-        counts[calendarName] = c;
+        const count = await calendars.getMedicineCount(calendarName);
+        counts[calendarName] = count;
       }
       for (const calendarName of calendars.sharedCalendarsData) {
-        const c = await calendars.getSharedMedicineCount(calendarName.calendar_name, calendarName.owner_uid); // Récupération du nombre de médicaments
-        counts[calendarName.calendar_name] = c;
+        const count = await calendars.getSharedMedicineCount(calendarName.calendar_name, calendarName.owner_uid);
+        counts[calendarName.calendar_name] = count;
       }
-      setCount(counts); // Mise à jour de l'état avec les nombres
+      setCount(counts); 
     };
     loadCounts();
     }
@@ -373,17 +381,17 @@ function SelectCalendar({ calendars, tokens, invitations, sharedUsers }) {
 
     {selectedAlert === "calendar" && (
       <AlertSystem
-      type={alertType}
-      message={alertMessage}
-      onClose={() => {
-        setAlertMessage("");
-        setOnConfirmAction(null);
-        setSelectedAlert(null);
-      }}
-      onConfirm={() => {
-        if (onConfirmAction) onConfirmAction();
-      }}
-    />
+        type={alertType}
+        message={alertMessage}
+        onClose={() => {
+          setAlertMessage("");
+          setOnConfirmAction(null);
+          setSelectedAlert(null);
+        }}
+        onConfirm={() => {
+          if (onConfirmAction) onConfirmAction();
+        }}
+      />
     )}
 
     {/* Liste des calendriers */}

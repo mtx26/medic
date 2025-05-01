@@ -9,14 +9,17 @@ import { useNavigate } from "react-router-dom";
 
 
 function Auth() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
-  const [passwordVisible, setPasswordVisible] = useState(false);
-  const [activeTab, setActiveTab] = useState("login");
+  // 👤 Authentification utilisateur
+  const [email, setEmail] = useState(""); // État pour l'adresse e-mail
+  const [password, setPassword] = useState(""); // État pour le mot de passe
+  const [name, setName] = useState(""); // État pour le nom d'utilisateur
+  const [passwordVisible, setPasswordVisible] = useState(false); // État pour l'affichage du mot de passe
+  const [activeTab, setActiveTab] = useState("login"); // État pour l'onglet actif (login/register)
 
-  const [alertMessage, setAlertMessage] = useState(null);
-  const [alertType, setAlertType] = useState("info");
+  // ⚠️ Alertes
+  const [alertMessage, setAlertMessage] = useState(null); // État pour le message d'alerte
+  const [alertType, setAlertType] = useState("info"); // État pour le type d'alerte (par défaut : info)
+
 
 
   const location = useLocation();

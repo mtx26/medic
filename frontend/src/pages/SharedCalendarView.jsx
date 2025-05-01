@@ -7,11 +7,14 @@ import interactionPlugin from '@fullcalendar/interaction';
 import frLocale from '@fullcalendar/core/locales/fr';
 function CalendarPage({ events, shared }) {
 
-  const modalRef = useRef(null);
-  const { sharedTokens } = useParams();
+  // 📍 Paramètres d’URL et navigation
+  const { sharedTokens } = useParams(); // Récupération du token de partage depuis l'URL
+  const navigate = useNavigate(); // Hook de navigation
 
-  const navigate = useNavigate();
-  const [successGetSharedCalendar, setSuccessGetSharedCalendar] = useState();
+  // 🔄 Références et états
+  const modalRef = useRef(null); // Référence vers le modal (pour fermeture ou focus)
+  const [successGetSharedCalendar, setSuccessGetSharedCalendar] = useState(); // État du succès de la récupération du calendrier partagé
+
 
 
 

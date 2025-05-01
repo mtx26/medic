@@ -33,20 +33,25 @@ function AppRoutes({ sharedProps }) {
 
   return (
     <Routes>
-      <Route path="/calendars" element={<PrivateRoute element={<CalendarList {...sharedProps}/>} />} />
-      <Route path="/calendars/:nameCalendar" element={<PrivateRoute element={<CalendarView {...sharedProps} />} />} />
-      <Route path="/calendars/:nameCalendar/medicines" element={<PrivateRoute element={<CalendarMedicines {...sharedProps} />} />} />
-      <Route path="/shared-calendar/:sharedTokens" element={<SharedCalendar {...sharedProps} />} />
-      <Route path="/shared-calendar/:sharedTokens/medicines" element={<SharedCalendarMedicines {...sharedProps} />} />
-      <Route path="/notifications" element={<PrivateRoute element={<NotificationsPage {...sharedProps} />} />} />
-      <Route path="/shared-calendar" element={<PrivateRoute element={<SharedList {...sharedProps} />} />} />
+      <Route path="/login" element={userInfo ? <Navigate to="/calendars" /> : <Auth />} />
+      <Route path="/register" element={userInfo ? <Navigate to="/calendars" /> : <Auth />} />
+      <Route path="/reset-password" element={userInfo ? <Navigate to="/calendars" /> : <ResetPassword />} />
+      <Route path="/verify-email" element={userInfo ? <VerifyEmail /> : <Navigate to="/login" />} />
+
       <Route path="/account" element={<PrivateRoute element={<AccountPage {...sharedProps} />} />} />
-      <Route path="*" element={<NotFound />} />
-      <Route path="/login" element={userInfo ? <Navigate to="/calendars" /> : <Auth/>} />
-      <Route path="/register" element={userInfo ? <Navigate to="/calendars" /> : <Auth/>} />
-      <Route path="/reset-password" element={userInfo ? <Navigate to="/calendars" /> : <ResetPassword/>} />
+      <Route path="/notifications" element={<PrivateRoute element={<NotificationsPage {...sharedProps} />} />} />
+
+      <Route path="/calendars/:nameCalendar/medicines" element={<PrivateRoute element={<CalendarMedicines {...sharedProps} />} />} />
+      <Route path="/calendars/:nameCalendar" element={<PrivateRoute element={<CalendarView {...sharedProps} />} />} />
+      <Route path="/calendars" element={<PrivateRoute element={<CalendarList {...sharedProps} />} />} />
+
+      <Route path="/shared-calendar/:sharedTokens/medicines" element={<SharedCalendarMedicines {...sharedProps} />} />
+      <Route path="/shared-calendar/:sharedTokens" element={<SharedCalendar {...sharedProps} />} />
+      <Route path="/shared-calendar" element={<PrivateRoute element={<SharedList {...sharedProps} />} />} />
+
       <Route path="/" element={<Navigate to="/calendars" />} />
-      <Route path="/verify-email" element={userInfo ? <VerifyEmail/> : <Navigate to="/login"/>} />
+      <Route path="*" element={<NotFound />} />
+
     </Routes>
   );
 }

@@ -8,12 +8,17 @@ import frLocale from '@fullcalendar/core/locales/fr';
 import { AuthContext } from '../contexts/LoginContext';
 function CalendarPage({ events, calendars }) {
 
-  const modalRef = useRef(null);
-  const { nameCalendar } = useParams();
+  // 📍 Paramètres d’URL et navigation
+  const { nameCalendar } = useParams(); // Récupération du nom du calendrier depuis l'URL
+  const navigate = useNavigate(); // Hook de navigation
 
-  const navigate = useNavigate();
-  const { authReady, currentUser } = useContext(AuthContext);
-  const [loadingCalendars, setLoadingCalendars] = useState(true);
+  // 🔐 Contexte d'authentification
+  const { authReady, currentUser } = useContext(AuthContext); // Contexte de l'utilisateur connecté
+
+  // 🔄 Références et chargement
+  const modalRef = useRef(null); // Référence vers le modal (pour gestion focus/fermeture)
+  const [loadingCalendars, setLoadingCalendars] = useState(true); // État de chargement des calendriers
+
 
   // Fonction pour gérer le clic sur une date
   const handleDateClick = (info) => {

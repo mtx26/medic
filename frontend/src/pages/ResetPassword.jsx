@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { resetPassword } from "../services/authService";
 
 function ResetPassword() {
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(""); // État pour l'adresse e-mail
 
   const handleReset = (e) => {
     e.preventDefault();

@@ -8,10 +8,16 @@ import { log } from "../utils/logger";
 import { getFirebaseAuthErrorMessage } from "../utils/getFirebaseAuthErrorMessage";
 
 function VerifyEmail() {
-  const { userInfo } = useContext(UserContext); // ✅ Utiliser UserContext
-  const [alertMessage, setAlertMessage] = useState(null);
-  const [alertType, setAlertType] = useState("info");
-  const navigate = useNavigate();
+  // 🔐 Contexte utilisateur
+  const { userInfo } = useContext(UserContext); // Utiliser UserContext pour accéder aux infos utilisateur
+
+  // ⚠️ Alertes
+  const [alertMessage, setAlertMessage] = useState(null); // Message d'alerte
+  const [alertType, setAlertType] = useState("info"); // Type d'alerte (par défaut : info)
+
+  // 📍 Navigation
+  const navigate = useNavigate(); // Hook de navigation
+
 
   useEffect(() => {
     if (userInfo?.emailVerified) {
