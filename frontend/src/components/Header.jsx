@@ -12,6 +12,7 @@ function Navbar({ sharedProps }) {
 
   const { notificationsData, fetchNotifications, readNotification } = sharedProps.notifications;
   const { acceptInvitation, rejectInvitation } = sharedProps.invitations;
+  const { fetchSharedCalendars } = sharedProps.calendars;
   
   useEffect(() => {
     if (authReady && currentUser) {
@@ -83,7 +84,15 @@ function Navbar({ sharedProps }) {
                                 <div>
                                   <i className="bi bi-person-plus-fill me-2 text-primary"></i>
                                     <strong>{notif.sender_email}</strong> vous invite à rejoindre son calendrier <strong>{notif.calendar_name}</strong>
-                                    <button className="btn btn-sm btn-outline-primary ms-2" onClick={() => acceptInvitation(notif.notification_token)}>Accepter</button>
+                                    <button 
+                                      className="btn btn-sm btn-outline-primary ms-2" 
+                                      onClick={() => {
+                                        acceptInvitation(notif.notification_token)
+                                        fetchSharedCalendars()
+                                      }}
+                                    >
+                                      Accepter
+                                    </button>
                                     <button className="btn btn-sm btn-outline-danger ms-2" onClick={() => rejectInvitation(notif.notification_token)}>Rejeter</button>
                                   </div>
                                   <small 

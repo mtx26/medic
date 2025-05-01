@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 
-function AlertSystem({ type = "info", message, onClose, onConfirm = null, duration = 5000 }) {
+function AlertSystem({ type = "info", message, onClose, onConfirm = null, duration = 3000 }) {
   const isConfirm = type.startsWith("confirm");
 
   useEffect(() => {

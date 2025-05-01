@@ -4,18 +4,22 @@ import AlertSystem from '../components/AlertSystem';
 
 const REACT_URL = process.env.REACT_APP_REACT_URL;
 
-function SharedList({ tokens, calendars, sharedUsers }) {
+function SharedList({ tokens, calendars, sharedUsers, invitations }) {
   const { authReady, currentUser } = useContext(AuthContext);
   const [alertType, setAlertType] = useState("");
   const [alertMessage, setAlertMessage] = useState("");
   const [onConfirmAction, setOnConfirmAction] = useState(null);
-  const [alertTokenId, setAlertTokenId] = useState(null);
-  const [alertUserId, setAlertUserId] = useState(null);
+
+  const [alertId , setAlertId ] = useState(null);
+
   const [loading, setLoading] = useState(true);
   const [loadingGroupedShared, setLoadingGroupedShared] = useState(true);
   const [groupedShared, setGroupedShared] = useState({});
-  const [expiresAt, setExpiresAt] = useState(null);
-  const [permissions, setPermissions] = useState("read");
+  const [expiresAt, setExpiresAt] = useState([]);
+  const [permissions, setPermissions] = useState([]);
+  const [emailToInvite, setEmailToInvite] = useState([]);
+
+  const today = new Date().toISOString().split('T')[0];
 
   useEffect(() => {
     const load = async () => {
@@ -48,6 +52,10 @@ function SharedList({ tokens, calendars, sharedUsers }) {
     for (const calendar of calendars.calendarsData) {
       const users = await sharedUsers.fetchSharedUsers(calendar);
       grouped[calendar].users = users;
+
+      // Initialisation pour l'ajout d'un lien de partage
+      setPermissions(prev => ({ ...prev, [calendar]: "read" }));
+      setExpiresAt(prev => ({ ...prev, [calendar]: null }));
     }
 
     setGroupedShared(grouped);
@@ -77,33 +85,42 @@ function SharedList({ tokens, calendars, sharedUsers }) {
       <h2 className="mb-4">Gestion des calendriers partagés</h2>
 
       {Object.entries(groupedShared).map(([calendarName, data]) => (
-        <div key={calendarName}>
-          <div className="mb-4">
-            <h4>{calendarName} :</h4>
+        <div key={calendarName} className="card mb-4">
+          <div className="card-body">
+            <h3 className="card-title">{calendarName}</h3>
+            <hr />
+
+            {/* Lien de partage */}
             <ul className="list-group">
-              <h6 className="mt-4">Liens de partage :</h6>
+              <h6 className="">Liens de partage :</h6>
               {data.tokens.map((token) => (
-              <div key={token.token}>
-                  {alertMessage && alertTokenId === token.token && (
-                      <AlertSystem
+                <div key={token.token}>
+
+                  {/* Alert */}
+                  {alertMessage && alertId === token.token && (
+                    <AlertSystem
                       type={alertType}
                       message={alertMessage}
                       onClose={() => {
                         setAlertMessage("");
                         setOnConfirmAction(null);
-                        setAlertTokenId(null);
+                        setAlertId(null);
                       }}
                       onConfirm={async () => {
                         if (onConfirmAction) await onConfirmAction();
                       }}
                     />
                   )}
-                  
+                    
                   <li key={token.token} className="list-group-item">
                     <div className="row align-items-center g-2">
+
                       {/* Lien */}
-                      <div className="col-md-5">
+                      <div className="col-md-4">
                         <div className="input-group">
+                          <span className="input-group-text bg-primary text-white">
+                            <i className="bi bi-link-45deg"></i>
+                          </span>
                           <input
                             type="text"
                             className="form-control"
@@ -117,11 +134,11 @@ function SharedList({ tokens, calendars, sharedUsers }) {
                                 await navigator.clipboard.writeText(`${REACT_URL}/shared-calendar/${token.token}`);
                                 setAlertType("success");
                                 setAlertMessage("👍 Lien de partage copié dans le presse-papiers.");
-                                setAlertTokenId(token.token);
+                                setAlertId(token.token);
                               } catch (error) {
                                 setAlertType("danger");
                                 setAlertMessage("❌ Une erreur est survenue lors de la copie du lien de partage.");
-                                setAlertTokenId(token.token);
+                                setAlertId(token.token);
                               }
                             }}
                             title="Copier le lien"
@@ -132,27 +149,71 @@ function SharedList({ tokens, calendars, sharedUsers }) {
                       </div>
 
                       {/* Jamais + Expiration */}
-                      <div className="col-md-3 d-flex align-items-center gap-2">
-                        <input
-                          className="form-check-input"
-                          type="checkbox"
-                          id={`neverExpire-${token.token}`}
-                          checked={token.expires_at === ""}
-                          onChange={(e) =>
-                            tokens.updateTokenExpiration(token.token, e.target.checked ? "" : new Date().toISOString().slice(0, 16))
-                          }
-                          title="Expire jamais"
-                        />
-                        <label className="form-check-label" htmlFor={`neverExpire-${token.token}`} title="Expire jamais">Jamais</label>
-                        <input
-                          type="date"
-                          className="form-control"
-                          style={{ minWidth: "120px" }}
-                          value={token.expires_at !== "" ? new Date(token.expires_at).toISOString().split("T")[0] : ""}
-                          onChange={(e) => tokens.updateTokenExpiration(token.token, e.target.value + "T00:00")}
+                      <div className={`d-flex align-items-center gap-2 ${token.expires_at === "" ? "col-md-2" : "col-md-4"}`}>
+                        <select
+                          className="form-select"
+                          value={token.expires_at === "" ? "" : "date"}
+                          onChange={async (e) => {
+                            const value = e.target.value;
+                            if (value === "") {
+                              const success = await tokens.updateTokenExpiration(token.token, "");
+                              if (success) {
+                                setAlertType("success");
+                                setAlertMessage("👍 La date d'expiration a été mise à jour avec succès.");
+                                setAlertId(token.token);
+                              } else {
+                                setAlertType("danger");
+                                setAlertMessage("❌ Une erreur est survenue lors de la mise à jour de la date d'expiration.");
+                                setAlertId(token.token);
+                              }
+                            } else {
+                              const success = await tokens.updateTokenExpiration(token.token, new Date().toISOString().slice(0, 16));
+                              if (success) {
+                                setAlertType("success");
+                                setAlertMessage("👍 La date d'expiration a été mise à jour avec succès.");
+                                setAlertId(token.token);
+                              } else {
+                                setAlertType("danger");
+                                setAlertMessage("❌ Une erreur est survenue lors de la mise à jour de la date d'expiration.");
+                                setAlertId(token.token);
+                              }
+                            }
+                          }}
                           title="Expiration"
-                        />
+                        >
+                          <option value="">Jamais</option>
+                          <option value="date">Expiration le</option>
+                        </select>
+
+                        {token.expires_at !== "" && (
+                          <input
+                            type="date"
+                            className="form-control"
+                            style={{ minWidth: "120px" }}
+                            value={
+                              token.expires_at
+                                ? today
+                                : ""
+                            }
+                            onChange={async (e) => {
+                              const success = await tokens.updateTokenExpiration(token.token, e.target.value + "T00:00")
+                              if (success) {
+                                setAlertType("success");
+                                setAlertMessage("👍 La date d'expiration a été mise à jour avec succès.");
+                                setAlertId(token.token);
+                              } else {
+                                setAlertType("danger");
+                                setAlertMessage("❌ Une erreur est survenue lors de la mise à jour de la date d'expiration.");
+                                setAlertId(token.token);
+                              }
+                            }}
+                            title="Choisir une date d'expiration"
+                            min={new Date().toISOString().split("T")[0]}
+                          />
+                        )}
                       </div>
+
+
 
                       {/* Permissions */}
                       <div className="col-md-2">
@@ -168,7 +229,7 @@ function SharedList({ tokens, calendars, sharedUsers }) {
                       </div>
 
                       {/* Actions */}
-                      <div className="col-md-2 d-flex justify-content-end gap-2">
+                      <div className={`d-flex justify-content-end gap-2 ${token.expires_at === "" ? "col-md-4" : "col-md-2"}`}>
                         <button
                           className={`btn ${token.revoked ? 'btn-outline-danger' : 'btn-outline-success'}`}
                           onClick={async () => {
@@ -176,33 +237,33 @@ function SharedList({ tokens, calendars, sharedUsers }) {
                             if (success) {
                               setAlertType("success");
                               setAlertMessage(token.revoked ? "👍 Lien de partage réactivé avec succès." : "👍 Lien de partage désactivé avec succès.");
-                              setAlertTokenId(token.token);
+                              setAlertId(token.token);
                             } else {
                               setAlertType("danger");
                               setAlertMessage(token.revoked ? "❌ Une erreur est survenue lors de la réactivation du lien de partage." : "❌ Une erreur est survenue lors de la désactivation du lien de partage.");
-                              setAlertTokenId(token.token);
+                              setAlertId(token.token);
                             }
                           }}
                           title={token.revoked ? "Réactiver" : "Désactiver"}
                         >
-                          <i className={`bi ${token.revoked ? 'bi-toggle-off' : 'bi-toggle-on'}`}></i>
+                          <i className={`bi ${token.revoked ? 'bi-toggle-off' : 'bi-toggle-on'} button-icon`}></i>
                         </button>
                         <button
                           className="btn btn-outline-danger"
                           onClick={() => {
                             setAlertType("confirm-danger");
                             setAlertMessage("❌ Confirmez-vous la suppression du lien de partage ?");
-                            setAlertTokenId(token.token);
+                            setAlertId(token.token);
                             setOnConfirmAction(() => async () => {
                               const success = await tokens.deleteSharedTokenCalendar(token.token)
                               if (success) {
                                 setAlertType("success");
                                 setAlertMessage("👍 Lien de partage supprimé avec succès.");
-                                setAlertTokenId(token.token);
+                                setAlertId(token.token);
                               } else {
                                 setAlertType("danger");
                                 setAlertMessage("❌ Une erreur est survenue lors de la suppression du lien de partage.");
-                                setAlertTokenId(token.token);
+                                setAlertId(token.token);
                               }
                             });
                           }}
@@ -215,76 +276,128 @@ function SharedList({ tokens, calendars, sharedUsers }) {
 
                   </li>
 
-              </div>
-              ))}
-              <li className="list-group-item">
-                <div className="row align-items-center g-2">
-                  <h6 className="col-md-4">Ajouter un lien de partage</h6>
-
-                  {/* Jamais + Expiration */}
-                  <div className={`d-flex align-items-center gap-2 ${expiresAt === null ? 'col-md-2' : 'col-md-4'}`}>
-                    <select
-                      className="form-select"
-                      value={expiresAt === null ? '' : 'date'}
-                      title="Expire jamais"
-                      onChange={(e) => {
-                        setExpiresAt(e.target.value === '' ? null : '');
-                      }}
-                    >
-                      <option value=''>Jamais</option>
-                      <option value="date">Choisir une date</option>
-                    </select>
-                    {expiresAt !== null && (
-                      <input
-                        type="date"
-                        className="form-control"
-                        style={{ minWidth: "120px" }}
-                        title="Expiration"
-                        value={expiresAt}
-                        onChange={(e) => setExpiresAt(e.target.value)}
-                      />
-                    )}
-                  </div>
-                  
-                  {/* Permissions */}
-                  <div className="col-md-2">
-                    <select
-                      className="form-select"
-                      value={permissions}
-                      title="Permissions"
-                      onChange={(e) => {
-                        setPermissions(e.target.value);
-                      }}
-                    >
-                      <option value="read">Lecture seule</option>
-                      <option value="edit">Lecture + Édition</option>
-                    </select>
-                  </div>
-
-                  {/* Actions */}
-                  <div className={`d-flex justify-content-end gap-2 ${expiresAt === null ? 'col-md-4' : 'col-md-2'}`}>
-                    <button 
-                    className="btn btn-outline-primary"
-                    title="Ajouter"
-                    >
-                      <i className="bi bi-plus"></i>
-                    </button>
-                  </div>
                 </div>
-              </li>
+              ))}
+
+              {/* Ajouter un nouveau lien de partage */}
+              {data.tokens.length === 0 && (
+                <div>
+
+                  {/* Alert */}
+                  {alertMessage && alertId === "newLink-"+calendarName && (
+                    <AlertSystem
+                      type={alertType}
+                      message={alertMessage}
+                      onClose={() => {
+                        setAlertMessage("");
+                        setOnConfirmAction(null);
+                        setAlertId(null);
+                      }}
+                      onConfirm={async () => {
+                        if (onConfirmAction) await onConfirmAction();
+                      }}
+                    />
+                  )}
+                  <li className="list-group-item" key={calendarName}>
+                    <div className="row align-items-center g-2">
+
+                    {/* Lien */}
+                    <div className="col-md-4">
+                      <div className="input-group">
+                        <span className="input-group-text bg-primary text-white">
+                          <i className="bi bi-link-45deg"></i>
+                        </span>
+                        <input
+                          type="text"
+                          className="form-control text-muted bg-light"
+                          value="Nouveau lien de partage"
+                          disabled
+                          style={{ fontStyle: 'italic', fontWeight: 500 }}
+                        />
+                      </div>
+                    </div>
+
+                      {/* Jamais + Expiration */}
+                      <div className={`d-flex align-items-center gap-2 ${expiresAt[calendarName] === null ? 'col-md-2' : 'col-md-4'}`}>
+                        <select
+                          className="form-select"
+                          value={expiresAt[calendarName] === null ? '' : 'date'}
+                          title="Expire jamais"
+                          onChange={(e) => {
+                            setExpiresAt(prev => ({ ...prev, [calendarName]: e.target.value === '' ? null : today}));
+                          }}
+                        >
+                          <option value=''>Jamais</option>
+                          <option value="date">Expiration le</option>
+                        </select>
+                        {expiresAt[calendarName] !== null && (
+                          <input
+                            type="date"
+                            className="form-control"
+                            style={{ minWidth: "120px" }}
+                            title="Expiration"
+                            value={expiresAt[calendarName]}
+                            onChange={(e) => setExpiresAt(prev => ({ ...prev, [calendarName]: e.target.value }))}
+                            min={today}
+                          />
+                        )}
+                      </div>
+                      
+                      {/* Permissions */}
+                      <div className="col-md-2">
+                        <select
+                          className="form-select"
+                          value={permissions[calendarName]}
+                          title="Permissions"
+                          onChange={(e) => {
+                            setPermissions(prev => ({ ...prev, [calendarName]: e.target.value }));
+                          }}
+                        >
+                          <option value="read">Lecture seule</option>
+                          <option value="edit">Lecture + Édition</option>
+                        </select>
+                      </div>
+
+                      {/* Actions */}
+                      <div className={`d-flex justify-content-end gap-2 ${expiresAt[calendarName] === null ? 'col-md-4' : 'col-md-2'}`}>
+                        <button 
+                        className="btn btn-outline-primary"
+                        title="Ajouter"
+                        onClick={async () => {
+                          const success = await tokens.createSharedTokenCalendar(calendarName, expiresAt[calendarName], permissions[calendarName]);
+                          if (success) {
+                            setAlertType("success");
+                            setAlertMessage("👍 Lien de partage créé avec succès.");
+                            setAlertId("newLink-"+calendarName);
+                          } else {
+                            setAlertType("danger");
+                            setAlertMessage("❌ Une erreur est survenue lors de la création du lien de partage.");
+                            setAlertId("newLink-"+calendarName);
+                          }
+                        }}
+                        >
+                          <i className="bi bi-plus"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </li>
+                </div>
+              )}
             </ul>
+
+            {/* Utilisateurs partagés */}
             <ul className="list-group">
               <h6 className="mt-4">Utilisateurs partagés :</h6>
               {data.users.map((user) => (
                 <div key={user.receiver_uid}>
-                  {alertMessage && alertUserId === user.receiver_uid && (
+                  {alertMessage && alertId === user.receiver_uid && (
                       <AlertSystem
                       type={alertType}
                       message={alertMessage}
                       onClose={() => {
                         setAlertMessage("");
                         setOnConfirmAction(null);
-                        setAlertUserId(null);
+                        setAlertId(null);
                       }}
                       onConfirm={() => {
                         if (onConfirmAction) onConfirmAction();
@@ -293,16 +406,19 @@ function SharedList({ tokens, calendars, sharedUsers }) {
                   )}
                   <li key={user.receiver_uid} className="list-group-item px-3">
                     <div className="row align-items-center g-2">
-                      {/* Email */}
-                      <div className="col-md-3">
-                        <strong>{user.receiver_email}</strong>
-                      </div>
 
-                      {/* Statut */}
-                      <div className="col-md-5">
-                        <span className={`badge rounded-pill ${user.accepted ? "bg-success" : "bg-warning text-dark"}`}>
-                          {user.accepted ? "Accepté" : "En attente"}
-                        </span>
+                      <div className={`d-flex align-items-center gap-2 col-md-8`}>
+                        {/* Email */}
+                        <div className="">
+                          <strong>{user.receiver_email}</strong>
+                        </div>
+
+                        {/* Statut */}
+                        <div className="">
+                          <span className={`badge rounded-pill ${user.accepted ? "bg-success" : "bg-warning text-dark"}`}>
+                            {user.accepted ? "Accepté" : "En attente"}
+                          </span>
+                        </div>
                       </div>
 
                       {/* Permissions*/}
@@ -313,7 +429,7 @@ function SharedList({ tokens, calendars, sharedUsers }) {
                             onChange={(e) => {
                               setAlertType("info");
                               setAlertMessage("Vous ne pouvez pas modifier l'accès d'un utilisateur partagé.");
-                              setAlertUserId(user.receiver_uid);
+                              setAlertId(user.receiver_uid);
                             }}
                             title="Accès"
                             disabled={true}
@@ -330,20 +446,20 @@ function SharedList({ tokens, calendars, sharedUsers }) {
                           onClick={() => {
                             setAlertType("confirm-danger");
                             setAlertMessage("❌ Confirmez-vous la suppression de l'accès à ce calendrier ?");
-                            setAlertUserId(user.receiver_uid);
+                            setAlertId(user.receiver_uid);
                             setOnConfirmAction(() => async () => {
                               const success = await sharedUsers.deleteSharedUser(calendarName, user.receiver_uid)
                               if (success) {
                                 setAlertType("success");
                                 setAlertMessage("👍 L'accès a été supprimé avec succès.");
-                                setAlertUserId(user.receiver_uid);
+                                setAlertId(user.receiver_uid);
                                 setTimeout(async () => {
                                   await setGroupedSharedFunction();
                                 }, 1000);
                               } else {
                                 setAlertType("danger");
                                 setAlertMessage("❌ Une erreur est survenue lors de la suppression de l'accès.");
-                                setAlertUserId(user.receiver_uid);
+                                setAlertId(user.receiver_uid);
                               }
                             });                            
                           }}
@@ -357,11 +473,68 @@ function SharedList({ tokens, calendars, sharedUsers }) {
                   </li>
                 </div>
               ))}
+
+              {/* Ajouter un utilisateur */}
+              <div>
+
+                {/* Alert */}
+                {alertMessage && alertId === "addUser-"+calendarName && (
+                  <AlertSystem
+                    type={alertType}
+                    message={alertMessage}
+                    onClose={() => {
+                      setAlertMessage("");
+                      setOnConfirmAction(null);
+                      setAlertId(null);
+                    }}
+                    onConfirm={() => {
+                      if (onConfirmAction) onConfirmAction();
+                    }}
+                  />
+                )}
+
+
+                <li className="list-group-item" key={calendarName}>
+                  <div className="row align-items-center g-2">
+                    <div className="col-md-6">
+                      <div className="input-group">
+                        <input
+                          type="email"
+                          className="form-control"
+                          placeholder="Ajouter un utilisateur (email)"
+                          onChange={(e) => setEmailToInvite(prev => ({ ...prev, [calendarName]: e.target.value }))}
+                          value={emailToInvite[calendarName]}
+                        />
+                        <button
+                          className="btn btn-outline-primary"
+                          title="Envoyer une invitation"
+                          onClick={async () => {
+                            const success = await invitations.sendInvitation(emailToInvite[calendarName], calendarName);
+                            if (success) {
+
+                              setAlertType("success");
+                              setAlertMessage("👍 L'invitation a été envoyée avec succès.");
+                              setAlertId("addUser-"+calendarName);
+                              setTimeout(async () => {
+                                await setGroupedSharedFunction();
+                              }, 1000);
+                              setEmailToInvite(prev => ({ ...prev, [calendarName]: "" }));
+                            } else {
+                              setAlertType("danger");
+                              setAlertMessage("❌ Une erreur est survenue lors de l'envoi de l'invitation.");
+                              setAlertId("addUser-"+calendarName);
+                            }
+                          }}
+                        >
+                          Partager
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </li>
+              </div>
             </ul>
           </div>
-          {Object.entries(groupedShared).length > 1 && (
-            <hr />
-          )}
         </div>
       ))}
     </div>
