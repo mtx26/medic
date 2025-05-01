@@ -236,7 +236,7 @@ function App() {
       });
       if (!res.ok) throw new Error(`Erreur HTTP GET /api/calendars/${calendarName}/calendar`);
       const data = await res.json();
-      setCalendarEvents(data.map(e => ({ title: e.title, start: e.date, color: e.color })));
+      setCalendarEvents(data.schedule.map(e => ({ title: e.title, start: e.date, color: e.color })));
       log.info("Calendrier récupéré avec succès", {
         id: "CALENDAR_FETCH_SUCCESS",
         origin: "App.js",

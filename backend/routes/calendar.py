@@ -127,7 +127,7 @@ def get_calendar(calendar_name):
 
         schedule = generate_schedule(start_date, medicines)
         logger.info("[CALENDAR_GENERATE] Calendrier généré avec succès.")
-        return jsonify(schedule)
+        return jsonify({"schedule": schedule, "message": "Calendrier généré avec succès"}), 200
 
     except Exception as e:
         logger.exception(f"[CALENDAR_GENERATE_ERROR] Erreur dans /api/calendars/${calendar_name}/calendar")
