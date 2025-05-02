@@ -41,8 +41,8 @@ function AppRoutes({ sharedProps }) {
       <Route path="/account" element={<PrivateRoute element={<AccountPage {...sharedProps} />} />} />
       <Route path="/notifications" element={<PrivateRoute element={<NotificationsPage {...sharedProps} />} />} />
 
-      <Route path="/calendars/:nameCalendar/medicines" element={<PrivateRoute element={<CalendarMedicines {...sharedProps} />} />} />
-      <Route path="/calendars/:nameCalendar" element={<PrivateRoute element={<CalendarView {...sharedProps} />} />} />
+      <Route path="/calendars/:calendarId/medicines" element={<PrivateRoute element={<CalendarMedicines {...sharedProps} />} />} />
+      <Route path="/calendars/:calendarId" element={<PrivateRoute element={<CalendarView {...sharedProps} />} />} />
       <Route path="/calendars" element={<PrivateRoute element={<CalendarList {...sharedProps} />} />} />
 
       <Route path="/shared-calendar/:sharedTokens/medicines" element={<SharedCalendarMedicines {...sharedProps} />} />

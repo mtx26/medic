@@ -6,7 +6,7 @@ import AlertSystem from '../components/AlertSystem';
 
 function MedicamentsPage({ meds, calendars }) {
   // 📍 Paramètres d’URL et navigation
-  const { nameCalendar } = useParams(); // Récupération du nom du calendrier depuis l'URL
+  const { calendarId } = useParams(); // Récupération du nom du calendrier depuis l'URL
   const navigate = useNavigate(); // Hook de navigation
 
   // 🔐 Contexte d'authentification
@@ -52,7 +52,7 @@ function MedicamentsPage({ meds, calendars }) {
           calendars.setCalendarsData([]);
           setLoadingCalendars(true);
           await calendars.fetchCalendars();
-          await meds.fetchCalendarsMedecines(nameCalendar);
+          await meds.fetchCalendarsMedecines(calendarId);
           setLoadingCalendars(false);
         } else {
           setLoadingCalendars(false);
@@ -62,7 +62,7 @@ function MedicamentsPage({ meds, calendars }) {
     load();
   }, [authReady, currentUser]);
 
-  if (loadingCalendars) {
+  if (loadingCalendars || !calendars.calendarsData || calendars.calendarsData.length === 0) {
     return (
       <div className="d-flex justify-content-center align-items-center" style={{ height: '60vh' }}>
         <div className="spinner-border text-primary" role="status">
@@ -72,7 +72,7 @@ function MedicamentsPage({ meds, calendars }) {
     );
   }
 
-  if (!meds.calendarsData.includes(nameCalendar)) {
+  if (!(calendars.calendarsData || []).some(c => c.calendar_id === calendarId)) {
     return <div className="text-center mt-5">❌ Calendrier non trouvé</div>;
   }
 
@@ -82,7 +82,7 @@ function MedicamentsPage({ meds, calendars }) {
         <div className="d-flex justify-content-start mb-3">
           <button
             className="btn btn-outline-primary"
-            onClick={() => navigate(`/calendars/${nameCalendar}`)}
+            onClick={() => navigate(`/calendars/${calendarId}`)}
             title="Retour au calendrier"
           >
             <i className="bi bi-calendar-date"></i>
@@ -114,7 +114,7 @@ function MedicamentsPage({ meds, calendars }) {
               setAlertType("confirm-danger");
               setAlertMessage("❌ Confirmez-vous la suppression des médicaments sélectionnés ?");
               setOnConfirmAction(() => async () => {
-                const success = await meds.deleteSelectedMeds(nameCalendar);
+                const success = await meds.deleteSelectedMeds(calendarId);
                 if (success) {
                   setAlertMessage("✅ Médicaments supprimés.");
                   setAlertType("success");
@@ -142,7 +142,7 @@ function MedicamentsPage({ meds, calendars }) {
               setAlertType("confirm-safe");
               setAlertMessage("✅ Enregistrer les modifications de médicaments ?");
               setOnConfirmAction(() => {
-                const success = meds.updateMeds(nameCalendar);
+                const success = meds.updateMeds(calendarId);
                 if (success) {
                   setAlertMessage("✅ Modifications enregistrées.");
                   setAlertType("success");

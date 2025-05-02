@@ -27,7 +27,7 @@ function Navbar({ sharedProps }) {
       <nav className="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm py-2 d-none d-lg-flex">
         <div className="container">
           <Link to="/" className="navbar-brand fw-bold text-primary fs-4">
-            <i className="bi bi-capsule"></i> Medic Copresser
+            <i className="bi bi-capsule"></i> Medic
           </Link>
 
           <div className="collapse navbar-collapse justify-content-end">
@@ -86,8 +86,8 @@ function Navbar({ sharedProps }) {
                                     <strong>{notif.sender_email}</strong> vous invite à rejoindre son calendrier <strong>{notif.calendar_name}</strong>
                                     <button 
                                       className="btn btn-sm btn-outline-primary ms-2" 
-                                      onClick={() => {
-                                        acceptInvitation(notif.notification_token)
+                                      onClick={async () => {
+                                        await acceptInvitation(notif.notification_token)
                                         fetchSharedCalendars()
                                       }}
                                     >
@@ -237,7 +237,7 @@ function Navbar({ sharedProps }) {
       <nav className="navbar navbar-light bg-white border-bottom shadow-sm py-2 d-lg-none">
         <div className="container-fluid">
           <Link to="/" className="navbar-brand fw-bold text-primary fs-4">
-            <i className="bi bi-capsule"></i> Medic Copresser
+            <i className="bi bi-capsule"></i> Medic
           </Link>
 
           <button

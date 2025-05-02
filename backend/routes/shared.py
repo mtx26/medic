@@ -29,14 +29,16 @@ def handle_shared_calendars():
 
             owner_uid = data.get("owner_uid")
             owner_email = data.get("owner_email")
+            calendar_id = data.get("calendar_id")
             calendar_name = data.get("calendar_name")
             access = data.get("access", "read")
 
-            if not verify_calendar_share(calendar_name, owner_uid, uid):
+            if not verify_calendar_share(calendar_id, owner_uid, uid):
                 continue
 
             # Ajoute les infos à la réponse
             calendars_list.append({
+                "calendar_id": calendar_id,
                 "calendar_name": calendar_name,
                 "owner_uid": owner_uid,
                 "owner_email": owner_email,
@@ -52,26 +54,28 @@ def handle_shared_calendars():
 
 
 # Route pour supprimer un calendrier partagé
-@api.route("/api/shared/calendars/<calendar_name>", methods=["DELETE"])
-def handle_delete_shared_calendar(calendar_name):
+@api.route("/api/shared/calendars/<calendar_id>", methods=["DELETE"])
+def handle_delete_shared_calendar(calendar_id):
     try:
         user = verify_firebase_token()
         receiver_uid = user["uid"]
         receiver_email = user["email"]
 
-        received_calendar_doc = db.collection("users").document(receiver_uid).collection("shared_calendars").document(calendar_name)
+        received_calendar_doc = db.collection("users").document(receiver_uid).collection("shared_calendars").document(calendar_id)
         if not received_calendar_doc.get().exists:
-            logger.warning(f"[CALENDARS_SHARED_DELETE] Calendrier partagé introuvable : {calendar_name} pour {receiver_uid}.")
+            logger.warning(f"[CALENDARS_SHARED_DELETE] Calendrier partagé introuvable : {calendar_id} pour {receiver_uid}.")
             return jsonify({"error": "Calendrier partagé introuvable"}), 404
 
         owner_uid = received_calendar_doc.get().to_dict().get("owner_uid")
+        owner_email = received_calendar_doc.get().to_dict().get("owner_email")
+        calendar_name = received_calendar_doc.get().to_dict().get("calendar_name")
 
-        if not verify_calendar_share(calendar_name, owner_uid, receiver_uid):
-            logger.warning(f"[CALENDARS_SHARED_DELETE] Accès non autorisé à {calendar_name} partagé par {owner_uid}")
+        if not verify_calendar_share(calendar_id, owner_uid, receiver_uid):
+            logger.warning(f"[CALENDARS_SHARED_DELETE] Accès non autorisé à {calendar_id} partagé par {owner_uid}")
             return jsonify({"error": "Accès non autorisé"}), 403
         
 
-        shared_with_doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_name).collection("shared_with").document(receiver_uid)
+        shared_with_doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).collection("shared_with").document(receiver_uid)
         if not shared_with_doc.get().exists:
             logger.warning(f"[CALENDARS_SHARED_DELETE] Utilisateur partagé introuvable : {receiver_uid} pour {owner_uid}.")
             return jsonify({"error": "Utilisateur partagé introuvable"}), 404
@@ -86,6 +90,7 @@ def handle_delete_shared_calendar(calendar_name):
         notification_doc.set({
             "type": "calendar_shared_deleted_by_receiver",
             "calendar_name": calendar_name,
+            "calendar_id": calendar_id,
             "timestamp": datetime.now(),
             "owner_email": owner_email,
             "owner_uid": owner_uid,
@@ -103,13 +108,13 @@ def handle_delete_shared_calendar(calendar_name):
 
 
 # Route pour récupérer les utilisateurs ayant accès à un calendrier
-@api.route("/api/shared/users/<calendar_name>", methods=["GET"])
-def handle_shared_users(calendar_name):
+@api.route("/api/shared/users/<calendar_id>", methods=["GET"])
+def handle_shared_users(calendar_id):
     try:
         user = verify_firebase_token()
         owner_uid = user["uid"]
 
-        shared_with_doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_name).collection("shared_with")
+        shared_with_doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).collection("shared_with")
         shared_users_docs = list(shared_with_doc.stream())
 
 
@@ -127,7 +132,7 @@ def handle_shared_users(calendar_name):
             if not picture_url:
                 picture_url = "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/icons/person-circle.svg"
 
-            if not verify_calendar_share(calendar_name, owner_uid, receiver_uid):
+            if not verify_calendar_share(calendar_id, owner_uid, receiver_uid):
                 continue
 
             shared_users_list.append({
@@ -139,7 +144,7 @@ def handle_shared_users(calendar_name):
                 "display_name": display_name
             })
 
-        logger.info(f"[SHARED_USERS_LOAD] {len(shared_users_list)} utilisateur(s) récupéré(s) pour {calendar_name}.")
+        logger.info(f"[SHARED_USERS_LOAD] {len(shared_users_list)} utilisateur(s) récupéré(s) pour {calendar_id}.")
         return jsonify({"users": shared_users_list}), 200
 
     except Exception as e:
@@ -148,8 +153,8 @@ def handle_shared_users(calendar_name):
 
 
 # Route pour supprimer un utilisateur partagé
-@api.route("/api/shared/users/<calendar_name>/<receiver_uid>", methods=["DELETE"])
-def handle_delete_shared_user(calendar_name, receiver_uid):
+@api.route("/api/shared/users/<calendar_id>/<receiver_uid>", methods=["DELETE"])
+def handle_delete_shared_user(calendar_id, receiver_uid):
     try:
         user = verify_firebase_token()
         owner_uid = user["uid"]
@@ -164,12 +169,14 @@ def handle_delete_shared_user(calendar_name, receiver_uid):
             logger.warning(f"[SHARED_USERS_DELETE] Tentative de suppression de l'utilisateur partagé {receiver_uid} pour lui-même.")
             return jsonify({"error": "Impossible de supprimer l'utilisateur partagé lui-même."}), 400
 
-        shared_with_doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_name).collection("shared_with").document(receiver_uid)
+        shared_with_doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).collection("shared_with").document(receiver_uid)
         if not shared_with_doc.get().exists:
             logger.warning(f"[SHARED_USERS_DELETE] Utilisateur partagé introuvable : {receiver_uid} pour {owner_uid}.")
             return jsonify({"error": "Utilisateur partagé introuvable"}), 404
 
-        received_calendar_doc = db.collection("users").document(receiver_uid).collection("shared_calendars").document(calendar_name)
+        calendar_name = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).get().to_dict().get("calendar_name")
+
+        received_calendar_doc = db.collection("users").document(receiver_uid).collection("shared_calendars").document(calendar_id)
         if received_calendar_doc.get().exists:
             received_calendar_doc.delete()
 
@@ -182,6 +189,7 @@ def handle_delete_shared_user(calendar_name, receiver_uid):
         notification_doc.set({
             "type": "calendar_shared_deleted_by_owner",
             "calendar_name": calendar_name,
+            "calendar_id": calendar_id,
             "timestamp": datetime.now(),
             "owner_email": owner_email,
             "owner_uid": owner_uid,

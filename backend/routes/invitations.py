@@ -8,12 +8,19 @@ from . import api
 db = firestore.client()
 
 # Route pour envoyer une invitation à un utilisateur pour un partage de calendrier
-@api.route("/api/send-invitation/<calendar_name>", methods=["POST"])
-def handle_send_invitation(calendar_name):
+@api.route("/api/send-invitation/<calendar_id>", methods=["POST"])
+def handle_send_invitation(calendar_id):
     try:
         owner_user = verify_firebase_token()
         owner_uid = owner_user["uid"]
         owner_email = owner_user["email"]
+
+        doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).get()
+        if not doc.exists:
+            logger.warning(f"[INVITATION_SEND] Calendrier introuvable : {calendar_id}.")
+            return jsonify({"error": "Calendrier introuvable"}), 404
+
+        calendar_name = doc.to_dict().get("calendar_name")
         
         receiver_email = request.get_json(force=True).get("email")
         receiver_user = auth.get_user_by_email(receiver_email)
@@ -35,9 +42,10 @@ def handle_send_invitation(calendar_name):
 
         # Créer une notif pour l'utilisateur receveur
         db.collection("users").document(receiver_uid).collection("notifications").document(notification_token).set({
+            "calendar_name": calendar_name,
             "owner_uid": owner_uid,
             "owner_email": owner_email,
-            "calendar_name": calendar_name,
+            "calendar_id": calendar_id,
             "type": "calendar_invitation",
             "timestamp": firestore.SERVER_TIMESTAMP,
             "read": False,
@@ -45,7 +53,7 @@ def handle_send_invitation(calendar_name):
         })
 
         # Sauvegarder l'invitation dans la collection "shared_calendars" dans le calendrier de l'utilisateur expéditeur
-        db.collection("users").document(owner_uid).collection("calendars").document(calendar_name).collection("shared_with").document(receiver_uid).set({
+        db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).collection("shared_with").document(receiver_uid).set({
             "receiver_uid": receiver_uid,
             "receiver_email": receiver_email,
             "accepted": False,
@@ -56,7 +64,7 @@ def handle_send_invitation(calendar_name):
         return jsonify({"message": "Invitation envoyée avec succès"}), 200
 
     except Exception as e:
-        logger.exception(f"[INVITATION_SEND_ERROR] Erreur dans /api/send-invitation/{calendar_name}")
+        logger.exception(f"[INVITATION_SEND_ERROR] Erreur dans /api/send-invitation/{calendar_id}")
         return jsonify({"error": "Erreur lors de l'envoi de l'invitation."}), 500
 
 
@@ -77,12 +85,14 @@ def handle_accept_invitation(notification_token):
             logger.warning(f"[INVITATION_ACCEPT] Notification non valide : {notification_token}.")
             return jsonify({"error": "Notification non valide"}), 400
         
+        calendar_id = doc.to_dict().get("calendar_id")
         calendar_name = doc.to_dict().get("calendar_name")
         owner_uid = doc.to_dict().get("owner_uid")
         owner_email = doc.to_dict().get("owner_email")
 
         # Créer une entrée dans sa collection "shared_calendars" pour le calendrier partagé
-        db.collection("users").document(receiver_uid).collection("shared_calendars").document(calendar_name).set({
+        db.collection("users").document(receiver_uid).collection("shared_calendars").document(calendar_id).set({
+            "calendar_id": calendar_id,
             "calendar_name": calendar_name,
             "owner_uid": owner_uid,
             "owner_email": owner_email,
@@ -90,7 +100,7 @@ def handle_accept_invitation(notification_token):
         })
 
         # Dire que l'utilisateur receveur a accepté l'invitation
-        db.collection("users").document(owner_uid).collection("calendars").document(calendar_name).collection("shared_with").document(receiver_uid).set({
+        db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).collection("shared_with").document(receiver_uid).set({
             "accepted": True,
             "accepted_at": firestore.SERVER_TIMESTAMP
         }, merge=True)
@@ -105,6 +115,7 @@ def handle_accept_invitation(notification_token):
             "receiver_uid": receiver_uid,
             "receiver_email": user["email"],
             "calendar_name": calendar_name,
+            "calendar_id": calendar_id,
             "type": "calendar_invitation_accepted",
             "timestamp": firestore.SERVER_TIMESTAMP,
             "read": False,
@@ -136,6 +147,7 @@ def handle_reject_invitation(notification_token):
             logger.warning(f"[INVITATION_REJECT] Notification non valide : {notification_token}.")
             return jsonify({"error": "Notification non valide"}), 400
 
+        calendar_id = doc.to_dict().get("calendar_id")
         calendar_name = doc.to_dict().get("calendar_name")
         owner_uid = doc.to_dict().get("owner_uid")
 
@@ -147,6 +159,7 @@ def handle_reject_invitation(notification_token):
             "receiver_uid": receiver_uid,
             "receiver_email": user["email"],
             "calendar_name": calendar_name,
+            "calendar_id": calendar_id,
             "type": "calendar_invitation_rejected",
             "timestamp": firestore.SERVER_TIMESTAMP,
             "read": False,

@@ -10,8 +10,8 @@ db = firestore.client()
 
 
 # Route pour gérer les médicaments d'un calendrier spécifique
-@api.route("/api/calendars/<calendar_name>/medicines", methods=["GET", "POST"])
-def handle_medicines(calendar_name):
+@api.route("/api/calendars/<calendar_id>/medicines", methods=["GET", "POST"])
+def handle_medicines(calendar_id):
     try:
         user = verify_firebase_token()
         uid = user["uid"]
@@ -22,7 +22,7 @@ def handle_medicines(calendar_name):
                 logger.warning(f"[MED_UPDATE] Format de médicaments invalide reçu de {uid}.")
                 return jsonify({"error": "Le format des médicaments est invalide."}), 400
 
-            db.collection("users").document(uid).collection("calendars").document(calendar_name).set({
+            db.collection("users").document(uid).collection("calendars").document(calendar_id).set({
                 "medicines": medicines,
                 "last_updated": datetime.now(timezone.utc).isoformat()
             }, merge=True)
@@ -31,7 +31,7 @@ def handle_medicines(calendar_name):
             return jsonify({"message": "Médicaments mis à jour", "status": "ok"})
 
         elif request.method == "GET":
-            doc = db.collection("users").document(uid).collection("calendars").document(calendar_name).get()
+            doc = db.collection("users").document(uid).collection("calendars").document(calendar_id).get()
             if doc.exists:
                 data = doc.to_dict()
                 medicines = data.get("medicines", [])
@@ -42,7 +42,7 @@ def handle_medicines(calendar_name):
                 return jsonify({"medicines": []}), 200
 
     except Exception as e:
-        logger.exception(f"[MED_ERROR] Erreur dans /api/calendars/${calendar_name}/medicines")
+        logger.exception(f"[MED_ERROR] Erreur dans /api/calendars/${calendar_id}/medicines")
         return jsonify({"error": "Erreur interne"}), 500
 
 
@@ -52,17 +52,17 @@ def count_medicines():
     try:
         user = verify_firebase_token()
         uid = user["uid"]
-        name_calendar = request.args.get("calendarName")
+        calendar_id = request.args.get("calendarId")
 
-        doc = db.collection("users").document(uid).collection("calendars").document(name_calendar).get()
+        doc = db.collection("users").document(uid).collection("calendars").document(calendar_id).get()
         if not doc.exists:
-            logger.warning(f"[MED_COUNT] Calendrier introuvable : {name_calendar} pour {uid}.")
+            logger.warning(f"[MED_COUNT] Calendrier introuvable : {calendar_id} pour {uid}.")
             return jsonify({"error": "Calendrier introuvable"}), 404
 
         data = doc.to_dict()
         medicines = data.get("medicines", [])
         count = len(medicines)
-        logger.info(f"[MED_COUNT] {count} médicaments récupérés de {name_calendar} pour {uid}.")
+        logger.info(f"[MED_COUNT] {count} médicaments récupérés de {calendar_id} pour {uid}.")
         return jsonify({"count": count}), 200
 
     except Exception as e:
@@ -77,23 +77,23 @@ def count_shared_medicines():
         user = verify_firebase_token()
         uid = user["uid"]
 
-        calendar_name = request.args.get("calendarName")
+        calendar_id = request.args.get("calendarId")
         owner_uid = request.args.get("ownerUid")
 
-        doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_name).get()
+        doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).get()
         if not doc.exists:
-            logger.warning(f"[MED_COUNT] Calendrier introuvable : {calendar_name} pour {uid}.")
+            logger.warning(f"[MED_COUNT] Calendrier introuvable : {calendar_id} pour {uid}.")
             return jsonify({"error": "Calendrier introuvable"}), 404
 
 
-        if not verify_calendar_share(calendar_name, owner_uid, uid):
-            logger.warning(f"[MED_COUNT] Accès non autorisé à {calendar_name} partagé par {owner_uid}")
+        if not verify_calendar_share(calendar_id, owner_uid, uid):
+            logger.warning(f"[MED_COUNT] Accès non autorisé à {calendar_id} partagé par {owner_uid}")
             return jsonify({"error": "Accès non autorisé"}), 403
 
         data = doc.to_dict()
         medicines = data.get("medicines", [])
         count = len(medicines)
-        logger.info(f"[MED_COUNT] {count} médicaments récupérés de {calendar_name} pour {uid}.")
+        logger.info(f"[MED_COUNT] {count} médicaments récupérés de {calendar_id} pour {uid}.")
         return jsonify({"count": count}), 200
 
     except Exception as e:

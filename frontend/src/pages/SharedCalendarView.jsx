@@ -39,7 +39,7 @@ function CalendarPage({ events, shared }) {
   useEffect(() => {
     const fetchShared = async () => {
       if (sharedTokens) {
-        const success = await shared.getSharedCalendar(sharedTokens);
+        const success = await shared.getSharedTokenCalendar(sharedTokens);
         setSuccessGetSharedCalendar(success);
       }
     };
@@ -102,7 +102,7 @@ function CalendarPage({ events, shared }) {
 
             <div>
               <button
-                onClick={() => events.getSharedCalendar(sharedTokens, events.startDate)}
+                onClick={() => events.getSharedTokenCalendar(sharedTokens, events.startDate)}
                 className="btn btn-outline-primary"
               >
                 <i className="bi bi-arrow-repeat"></i>

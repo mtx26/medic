@@ -7,7 +7,7 @@ function SharedCalendarMedicines({ shared }) {
   const navigate = useNavigate(); // Hook de navigation
 
   // ✅ État de récupération des médicaments partagés
-  const [successGetSharedMedecines, setSuccessGetSharedMedecines] = useState(); // État du succès de la récupération des médicaments partagés
+  const [successGetSharedTokenMedecines, setSuccessGetSharedTokenMedecines] = useState(); // État du succès de la récupération des médicaments partagés
 
 
 
@@ -19,15 +19,15 @@ function SharedCalendarMedicines({ shared }) {
   useEffect(() => {
     const fetchShared = async () => {
       if (sharedTokens) {
-        const success = await shared.getSharedMedecines(sharedTokens);
-        setSuccessGetSharedMedecines(success);
+        const success = await shared.getSharedTokenMedecines(sharedTokens);
+        setSuccessGetSharedTokenMedecines(success);
       }
     };
   
     fetchShared();
   }, [sharedTokens]);
 
-  if (successGetSharedMedecines === undefined && sharedTokens) {
+  if (successGetSharedTokenMedecines === undefined && sharedTokens) {
     return (
       <div className="d-flex justify-content-center align-items-center" style={{ height: '60vh' }}>
         <div className="spinner-border text-primary" role="status">
@@ -37,7 +37,7 @@ function SharedCalendarMedicines({ shared }) {
     );
   }
   
-  if (sharedTokens && successGetSharedMedecines === false) {
+  if (sharedTokens && successGetSharedTokenMedecines === false) {
     return (
       <div className="alert alert-danger text-center mt-5" role="alert">
         ❌ Ce lien de calendrier partagé est invalide ou a expiré.

@@ -43,7 +43,9 @@ function App() {
         origin: "App.js",
         count: data.calendars?.length,
       });
-      setCalendarsData(data.calendars ?? []);
+      // trier les calendriers par ordre alphabétique
+      const sortedCalendars = data.calendars.sort((a, b) => a.calendar_name.localeCompare(b.calendar_name));
+      setCalendarsData(sortedCalendars);
 
     } catch (err) {
       log.error("Échec de récupération des calendriers", err, {
@@ -88,7 +90,7 @@ function App() {
 
   // Fonction pour supprimer un calendrier
 
-  const deleteCalendar = useCallback(async (calendarName) => {
+  const deleteCalendar = useCallback(async (calendarId) => {
     try {
       const token = await auth.currentUser.getIdToken();
       const res = await fetch(`${API_URL}/api/calendars`, {
@@ -97,28 +99,30 @@ function App() {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ calendarName }),
+        body: JSON.stringify({ calendarId }),
       });
       if (!res.ok) throw new Error("Erreur HTTP DELETE /api/calendars");
       fetchCalendars();
       log.info("Calendrier supprimé avec succès", {
         id: "CALENDAR_DELETE_SUCCESS",
         origin: "App.js",
-        calendarName,
+        calendarId,
       });
+      return true;
     } catch (err) {
       log.error("Échec de suppression du calendrier", err, {
         id: "CALENDAR_DELETE_FAIL",
         origin: "App.js",
-        calendarName,
+        calendarId,
         stack: err.stack,
       });
+      return false;
     }
   }, [fetchCalendars]);
 
   // Fonction pour renommer un calendrier
 
-  const RenameCalendar = useCallback(async (oldCalendarName, newCalendarName) => {
+  const RenameCalendar = useCallback(async (calendarId, newCalendarName) => {
     try {
       const token = await auth.currentUser.getIdToken();
       const res = await fetch(`${API_URL}/api/calendars`, {
@@ -127,33 +131,35 @@ function App() {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ oldCalendarName, newCalendarName }),
+        body: JSON.stringify({ calendarId, newCalendarName }),
       });
       if (!res.ok) throw new Error("Erreur HTTP PUT /api/calendars");
       fetchCalendars();
       log.info("Calendrier renommé avec succès", {
         id: "CALENDAR_RENAME_SUCCESS",
         origin: "App.js",
-        oldCalendarName,
+        calendarId,
         newCalendarName,
       });
+      return true;
     } catch (err) {
       log.error("Échec de renommage du calendrier", err, {
         id: "CALENDAR_RENAME_FAIL",
         origin: "App.js",
-        oldCalendarName,
+        calendarId,
         newCalendarName,
         stack: err.stack,
       });
+      return false;
     }
   }, [fetchCalendars]);
 
   // Fonction pour obtenir le nombre de médicaments d'un calendrier 
 
-  const getMedicineCount = useCallback(async (calendarName) => {
+  const getMedicineCount = useCallback(async (calendarId) => {
     try {
       const token = await auth.currentUser.getIdToken();
-      const res = await fetch(`${API_URL}/api/countmedicines?calendarName=${calendarName}`, {
+      const res = await fetch(`${API_URL}/api/countmedicines?calendarId=${calendarId}`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -166,7 +172,7 @@ function App() {
       log.info("Nombre de médicaments récupéré avec succès", {
         id: "MED_COUNT_SUCCESS",
         origin: "App.js",
-        calendarName,
+        calendarId,
         count: data.count,
       });
       return data.count ?? 0;
@@ -174,7 +180,7 @@ function App() {
       log.error("Échec de récupération du nombre de médicaments", err, {
         id: "MED_COUNT_FAIL",
         origin: "App.js",
-        calendarName,
+        calendarId,
         stack: err.stack,
       });
       return 0;
@@ -182,10 +188,10 @@ function App() {
   }, []);
 
   // Fonction pour obtenir le nombre de médicaments d'un calendrier partagé
-  const getSharedMedicineCount = useCallback(async (calendarName, ownerUid) => {
+  const getSharedMedicineCount = useCallback(async (calendarId, ownerUid) => {
     try {
       const token = await auth.currentUser.getIdToken();
-      const res = await fetch(`${API_URL}/api/shared/countmedicines?calendarName=${calendarName}&ownerUid=${ownerUid}`, {
+      const res = await fetch(`${API_URL}/api/shared/countmedicines?calendarId=${calendarId}&ownerUid=${ownerUid}`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -196,7 +202,7 @@ function App() {
       log.info("Nombre de médicaments récupéré avec succès", {
         id: "SHARED_MED_COUNT_SUCCESS",
         origin: "App.js",
-        calendarName,
+        calendarId,
         ownerUid,
         count: data.count,
       });
@@ -214,9 +220,9 @@ function App() {
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
   // Fonction pour obtenir le calendrier lier au calendarName
-  const getCalendar = useCallback(async (calendarName, startDate ) => {
+  const getCalendar = useCallback(async (calendarId, startDate ) => {
     try {
-      if (!calendarName) {
+      if (!calendarId) {
         log.warn("Nom de calendrier non fourni, calendrier non chargé.", {
           id: "CALENDAR_NAME_NOT_PROVIDED",
           origin: "App.js",
@@ -228,45 +234,47 @@ function App() {
       }
 
       const token = await auth.currentUser.getIdToken();
-      const res = await fetch(`${API_URL}/api/calendars/${calendarName}/calendar?startTime=${startDate}`, {
+      const res = await fetch(`${API_URL}/api/calendars/${calendarId}/calendar?startTime=${startDate}`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      if (!res.ok) throw new Error(`Erreur HTTP GET /api/calendars/${calendarName}/calendar`);
+      if (!res.ok) throw new Error(`Erreur HTTP GET /api/calendars/${calendarId}/calendar`);
       const data = await res.json();
       setCalendarEvents(data.schedule.map(e => ({ title: e.title, start: e.date, color: e.color })));
       log.info("Calendrier récupéré avec succès", {
         id: "CALENDAR_FETCH_SUCCESS",
         origin: "App.js",
         eventCount: data?.length,
-        calendarName: calendarName,
+        calendarId: calendarId,
       });
+      return true;
     } catch (err) {
       log.error("Échec de récupération du calendrier", err, {
         id: "CALENDAR_FETCH_FAIL",
         origin: "App.js",
-        calendarName: calendarName,
+        calendarId: calendarId,
         startDate,
         stack: err.stack,
       });
+      return false;
     }
   }, [setCalendarEvents]);
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   // Fonction pour obtenir les différents médicaments
-  const fetchCalendarsMedecines = useCallback(async (calendarName) => {
+  const fetchCalendarsMedecines = useCallback(async (calendarId) => {
     try {
       const token = await auth.currentUser.getIdToken();
-      const res = await fetch(`${API_URL}/api/calendars/${calendarName}/medicines`, {
+      const res = await fetch(`${API_URL}/api/calendars/${calendarId}/medicines`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      if (!res.ok) throw new Error(`Erreur HTTP GET /api/calendars/${calendarName}/medicines`);
+      if (!res.ok) throw new Error(`Erreur HTTP GET /api/calendars/${calendarId}/medicines`);
       const data = await res.json();
       setMedsData(data.medicines)
       setOriginalMedsData(JSON.parse(JSON.stringify(data.medicines)));
@@ -274,6 +282,7 @@ function App() {
         id: "MED_FETCH_SUCCESS",
         origin: "App.js",
         count: data.medicines?.length,
+        calendarId,
       });
     } catch (err) {
       log.error("Échec de récupération des médicaments", err, {
@@ -388,7 +397,7 @@ function App() {
 
 
   // Fonction pour recupérer un calendrier partagé par sharedTokens
-  const getSharedCalendar = useCallback(async (sharedToken, startDate) => {
+  const getSharedTokenCalendar = useCallback(async (sharedToken, startDate) => {
     try {
       if (!startDate) {
         startDate = new Date().toISOString().slice(0, 10);
@@ -417,7 +426,7 @@ function App() {
   }, [setCalendarEvents]);
 
   // Fonction pour récupérer les médicaments d'un calendrier partagé
-  const getSharedMedecines = useCallback(async (sharedToken) => {
+  const getSharedTokenMedecines = useCallback(async (sharedToken) => {
     try {
       const  res = await fetch(`${API_URL}/api/shared/${sharedToken}/medecines`, {
         method: "GET",
@@ -471,10 +480,10 @@ function App() {
   }, [setTokensList]);
 
   // Fonction pour créer un lien de partage
-  const createSharedTokenCalendar = useCallback(async (calendarName, expiresAt, permissions) => {
+  const createSharedTokenCalendar = useCallback(async (calendarId, expiresAt, permissions) => {
     try {
       const token = await auth.currentUser.getIdToken();
-      const res = await fetch(`${API_URL}/api/set-shared/${calendarName}`, {
+      const res = await fetch(`${API_URL}/api/set-shared/${calendarId}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -482,12 +491,12 @@ function App() {
         },
         body: JSON.stringify({ expiresAt, permissions }),
       });
-      if (!res.ok) throw new Error(`Erreur HTTP POST /api/set-shared/${calendarName}`);
+      if (!res.ok) throw new Error(`Erreur HTTP POST /api/set-shared/${calendarId}`);
       const data = await res.json();
       log.info("Lien de partage créé avec succès", {
         id: "SHARED_CALENDAR_CREATE_SUCCESS",
         origin: "App.js",
-        calendarName,
+        calendarId,
         token: data.token,
       });
       fetchTokens();
@@ -621,22 +630,22 @@ function App() {
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   // Fonction pour envoyer une invitation à un utilisateur
-  const sendInvitation = useCallback(async (email, calendarName) => {
+  const sendInvitation = useCallback(async (email, calendarId) => {
     try {
       const token = await auth.currentUser.getIdToken();
-      const res = await fetch(`${API_URL}/api/send-invitation/${calendarName}`, {
+      const res = await fetch(`${API_URL}/api/send-invitation/${calendarId}`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ email }),
       });
-      if (!res.ok) throw new Error(`Erreur HTTP POST /api/send-invitation/${calendarName}`);
+      if (!res.ok) throw new Error(`Erreur HTTP POST /api/send-invitation/${calendarId}`);
       log.info("Invitation envoyée avec succès", {
         id: "INVITATION_SEND_SUCCESS",
         origin: "App.js",
         email,
-        calendarName,
+        calendarId,
       });
       return true;
     } catch (err) {
@@ -896,7 +905,6 @@ function App() {
       // 💊 MÉDICAMENTS
       medsData, setMedsData,                  // Liste des médicaments du calendrier actif
       checked, setChecked,                    // Médicaments cochés pour suppression
-      calendarsData, setCalendarsData,        // Liste des calendriers de l’utilisateur
       originalMedsData, setOriginalMedsData,  // Liste des médicaments d’origine
       handleMedChange,                        // Fonction pour modifier un médicament
       updateMeds,                             // Mise à jour des médicaments dans Firestore
@@ -919,8 +927,8 @@ function App() {
     },
     shared: {
       medsData, setMedsData,                  // Liste des médicaments du calendrier actif      
-      getSharedCalendar,                      // Récupération d’un calendrier partagé
-      getSharedMedecines,                     // Récupération des médicaments partagé
+      getSharedTokenCalendar,                 // Récupération d’un calendrier partagé
+      getSharedTokenMedecines,                 // Récupération des médicaments partagé
 
     },
     tokens: {

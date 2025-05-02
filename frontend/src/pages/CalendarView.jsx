@@ -9,7 +9,7 @@ import { AuthContext } from '../contexts/LoginContext';
 function CalendarPage({ events, calendars }) {
 
   // 📍 Paramètres d’URL et navigation
-  const { nameCalendar } = useParams(); // Récupération du nom du calendrier depuis l'URL
+  const { calendarId } = useParams(); // Récupération du nom du calendrier depuis l'URL
   const navigate = useNavigate(); // Hook de navigation
 
   // 🔐 Contexte d'authentification
@@ -17,7 +17,8 @@ function CalendarPage({ events, calendars }) {
 
   // 🔄 Références et chargement
   const modalRef = useRef(null); // Référence vers le modal (pour gestion focus/fermeture)
-  const [loadingCalendars, setLoadingCalendars] = useState(true); // État de chargement des calendriers
+  const [loadingMedicines, setLoadingMedicines] = useState(true); // État de chargement des médicaments
+  const [loadingCalendar, setLoadingCalendar] = useState(true); // État de chargement du calendrier
 
 
   // Fonction pour gérer le clic sur une date
@@ -46,15 +47,12 @@ function CalendarPage({ events, calendars }) {
   // Fonction pour réinitialiser les données lorsque le calendrier change
   useEffect(() => {
     const load = async () => {
-      if (authReady) { // authReady doit être prêt
-        if (currentUser) {
-          calendars.setCalendarsData([]); // Bien vider l'ancien
-          setLoadingCalendars(true);
-          await calendars.fetchCalendars(); // Recharger pour le nouvel utilisateur
-          setLoadingCalendars(false);
-        } else {
-          setLoadingCalendars(false);
-        }
+      if (authReady && currentUser) {
+        calendars.setCalendarsData(null);
+        await calendars.fetchCalendars(); // Recharger pour le nouvel utilisateur
+        setLoadingMedicines(false);
+      } else {
+        setLoadingMedicines(false);
       }
     };
     load();
@@ -62,13 +60,15 @@ function CalendarPage({ events, calendars }) {
   
   // Fonction pour charger le calendrier lorsque l'utilisateur est connecté
   useEffect(() => {
-    if (authReady && currentUser && nameCalendar) {
-      events.getCalendar(nameCalendar)
+    if (authReady && currentUser && calendarId) {
+      events.getCalendar(calendarId)
+      setLoadingCalendar(false);
     }
-  }, [authReady, currentUser, nameCalendar]);
+  }, [authReady, currentUser, calendarId]);
+  
 
   // Si le calendrier n'est pas chargé, afficher un message de chargement
-  if (loadingCalendars) {
+  if (loadingMedicines || loadingCalendar || !events.calendarsData || events.calendarsData.length === 0) {
     return (
       <div className="d-flex justify-content-center align-items-center" style={{ height: '60vh' }}>
         <div className="spinner-border text-primary" role="status">
@@ -78,12 +78,9 @@ function CalendarPage({ events, calendars }) {
     );
   }
   
-  // Si le calendrier n'est pas trouvé, rediriger vers la liste des calendriers
-  if (!events.calendarsData.includes(nameCalendar)) {
+  if (!(events.calendarsData || []).some(c => c.calendar_id === calendarId)) {
     return <div className="text-center mt-5">❌ Calendrier non trouvé</div>;
   }
-  
-  
   
   
 
@@ -92,11 +89,19 @@ function CalendarPage({ events, calendars }) {
 
       <div className="card shadow-sm mb-4">
         <div className="card-body">
+          <h3 className="card-title mb-4">{events.calendarsData.find(c => c.calendar_id === calendarId).calendar_name}</h3>
           {/* Ligne 1 : Boutons d'action */}
           <div className="d-flex flex-wrap  align-items-left gap-2 mb-3">
             <button
               className="btn btn-outline-secondary"
-              onClick={() => navigate(`/calendars/${nameCalendar}/medicines`)}
+              onClick={() => navigate(`/calendars/`)}
+            >
+              <i className="bi bi-calendar-date"></i>
+              <span> Retour aux calendriers</span>
+            </button>
+            <button
+              className="btn btn-outline-secondary"
+              onClick={() => navigate(`/calendars/${calendarId}/medicines`)}
             >
               <i className="bi bi-capsule"></i>
               <span> Liste des médicaments</span>
@@ -121,7 +126,7 @@ function CalendarPage({ events, calendars }) {
 
             <div>
               <button
-                onClick={() => events.getCalendar(nameCalendar, events.startDate)}
+                onClick={() => events.getCalendar(calendarId, events.startDate)}
                 className="btn btn-outline-primary"
               >
                 <i className="bi bi-arrow-repeat"></i>

@@ -44,26 +44,25 @@ function SharedList({ tokens, calendars, sharedUsers, invitations }) {
     const grouped = {};
 
     for (const calendar of calendars.calendarsData) {
-      grouped[calendar] = {
+      grouped[calendar.calendar_id] = {
         tokens: [],
         users: [],
       };
     }
 
     for (const token of tokens.tokensList) {
-      const name = token.calendar_name;
-      if (grouped[name]) {
-        grouped[name].tokens.push(token);
+      if (grouped[token.calendar_id]) {
+        grouped[token.calendar_id].tokens.push(token);
       }
     }
 
     for (const calendar of calendars.calendarsData) {
-      const users = await sharedUsers.fetchSharedUsers(calendar);
-      grouped[calendar].users = users;
+      const users = await sharedUsers.fetchSharedUsers(calendar.calendar_id);
+      grouped[calendar.calendar_id].users = users;
 
       // Initialisation pour l'ajout d'un lien de partage
-      setPermissions(prev => ({ ...prev, [calendar]: "read" }));
-      setExpiresAt(prev => ({ ...prev, [calendar]: null }));
+      setPermissions(prev => ({ ...prev, [calendar.calendar_id]: "read" }));
+      setExpiresAt(prev => ({ ...prev, [calendar.calendar_id]: null }));
     }
 
     setGroupedShared(grouped);
@@ -92,10 +91,10 @@ function SharedList({ tokens, calendars, sharedUsers, invitations }) {
     <div className="container mt-4">
       <h2 className="mb-4">Gestion des calendriers partagés</h2>
 
-      {Object.entries(groupedShared).map(([calendarName, data]) => (
-        <div key={calendarName} className="card mb-4">
+      {Object.entries(groupedShared).map(([calendarId, data]) => (
+        <div key={calendarId} className="card mb-4">
           <div className="card-body">
-            <h3 className="card-title">{calendarName}</h3>
+            <h3 className="card-title">{data.tokens[0].calendar_name}</h3>
             <hr />
 
             {/* Lien de partage */}
@@ -157,14 +156,14 @@ function SharedList({ tokens, calendars, sharedUsers, invitations }) {
                       </div>
 
                       {/* Jamais + Expiration */}
-                      <div className={`d-flex align-items-center gap-2 ${token.expires_at === "" ? "col-md-2" : "col-md-4"}`}>
+                      <div className={`d-flex align-items-center gap-2 col-md-4`}>
                         <select
                           className="form-select"
-                          value={token.expires_at === "" ? "" : "date"}
+                          value={token.expires_at === null ? "" : "date"}
                           onChange={async (e) => {
                             const value = e.target.value;
                             if (value === "") {
-                              const success = await tokens.updateTokenExpiration(token.token, "");
+                              const success = await tokens.updateTokenExpiration(token.token, null);
                               if (success) {
                                 setAlertType("success");
                                 setAlertMessage("👍 La date d'expiration a été mise à jour avec succès.");
@@ -193,7 +192,7 @@ function SharedList({ tokens, calendars, sharedUsers, invitations }) {
                           <option value="date">Expiration le</option>
                         </select>
 
-                        {token.expires_at !== "" && (
+                        {token.expires_at !== null && (
                           <input
                             type="date"
                             className="form-control"
@@ -237,7 +236,7 @@ function SharedList({ tokens, calendars, sharedUsers, invitations }) {
                       </div>
 
                       {/* Actions */}
-                      <div className={`d-flex justify-content-end gap-2 ${token.expires_at === "" ? "col-md-4" : "col-md-2"}`}>
+                      <div className={`d-flex justify-content-end gap-2 col-md-2`}>
                         <button
                           className={`btn ${token.revoked ? 'btn-outline-danger' : 'btn-outline-success'}`}
                           onClick={async () => {
@@ -292,7 +291,7 @@ function SharedList({ tokens, calendars, sharedUsers, invitations }) {
                 <div>
 
                   {/* Alert */}
-                  {alertMessage && alertId === "newLink-"+calendarName && (
+                  {alertMessage && alertId === "newLink-"+calendarId && (
                     <AlertSystem
                       type={alertType}
                       message={alertMessage}
@@ -306,7 +305,7 @@ function SharedList({ tokens, calendars, sharedUsers, invitations }) {
                       }}
                     />
                   )}
-                  <li className="list-group-item" key={calendarName}>
+                  <li className="list-group-item" key={calendarId}>
                     <div className="row align-items-center g-2">
 
                     {/* Lien */}
@@ -326,26 +325,26 @@ function SharedList({ tokens, calendars, sharedUsers, invitations }) {
                     </div>
 
                       {/* Jamais + Expiration */}
-                      <div className={`d-flex align-items-center gap-2 ${expiresAt[calendarName] === null ? 'col-md-2' : 'col-md-4'}`}>
+                      <div className={`d-flex align-items-center gap-2 ${expiresAt[calendarId] === null ? 'col-md-2' : 'col-md-4'}`}>
                         <select
                           className="form-select"
-                          value={expiresAt[calendarName] === null ? '' : 'date'}
+                          value={expiresAt[calendarId] === null ? '' : 'date'}
                           title="Expire jamais"
                           onChange={(e) => {
-                            setExpiresAt(prev => ({ ...prev, [calendarName]: e.target.value === '' ? null : today}));
+                            setExpiresAt(prev => ({ ...prev, [calendarId]: e.target.value === '' ? null : today}));
                           }}
                         >
                           <option value=''>Jamais</option>
                           <option value="date">Expiration le</option>
                         </select>
-                        {expiresAt[calendarName] !== null && (
+                        {expiresAt[calendarId] !== null && (
                           <input
                             type="date"
                             className="form-control"
                             style={{ minWidth: "120px" }}
                             title="Expiration"
-                            value={expiresAt[calendarName]}
-                            onChange={(e) => setExpiresAt(prev => ({ ...prev, [calendarName]: e.target.value }))}
+                            value={expiresAt[calendarId]}
+                            onChange={(e) => setExpiresAt(prev => ({ ...prev, [calendarId]: e.target.value }))}
                             min={today}
                           />
                         )}
@@ -355,10 +354,10 @@ function SharedList({ tokens, calendars, sharedUsers, invitations }) {
                       <div className="col-md-2">
                         <select
                           className="form-select"
-                          value={permissions[calendarName]}
+                          value={permissions[calendarId]}
                           title="Permissions"
                           onChange={(e) => {
-                            setPermissions(prev => ({ ...prev, [calendarName]: e.target.value }));
+                            setPermissions(prev => ({ ...prev, [calendarId]: e.target.value }));
                           }}
                         >
                           <option value="read">Lecture seule</option>
@@ -367,20 +366,20 @@ function SharedList({ tokens, calendars, sharedUsers, invitations }) {
                       </div>
 
                       {/* Actions */}
-                      <div className={`d-flex justify-content-end gap-2 ${expiresAt[calendarName] === null ? 'col-md-4' : 'col-md-2'}`}>
+                      <div className={`d-flex justify-content-end gap-2 ${expiresAt[calendarId] === null ? 'col-md-4' : 'col-md-2'}`}>
                         <button 
                         className="btn btn-outline-primary"
                         title="Ajouter"
                         onClick={async () => {
-                          const {token, success} = await tokens.createSharedTokenCalendar(calendarName, expiresAt[calendarName], permissions[calendarName]);
+                          const {token, success} = await tokens.createSharedTokenCalendar(calendarId, expiresAt[calendarId], permissions[calendarId]);
                           if (success) {
                             setAlertType("success");
                             setAlertMessage("👍 Lien de partage créé avec succès.");
-                            setAlertId("newLink-"+calendarName);
+                            setAlertId("newLink-"+calendarId);
                           } else {
                             setAlertType("danger");
                             setAlertMessage("❌ Une erreur est survenue lors de la création du lien de partage.");
-                            setAlertId("newLink-"+calendarName);
+                            setAlertId("newLink-"+calendarId);
                           }
                         }}
                         >
@@ -495,7 +494,7 @@ function SharedList({ tokens, calendars, sharedUsers, invitations }) {
                             setAlertMessage("❌ Confirmez-vous la suppression de l'accès à ce calendrier ?");
                             setAlertId(user.receiver_uid);
                             setOnConfirmAction(() => async () => {
-                              const success = await sharedUsers.deleteSharedUser(calendarName, user.receiver_uid)
+                              const success = await sharedUsers.deleteSharedUser(calendarId, user.receiver_uid)
                               if (success) {
                                 setAlertType("success");
                                 setAlertMessage("👍 L'accès a été supprimé avec succès.");
@@ -525,7 +524,7 @@ function SharedList({ tokens, calendars, sharedUsers, invitations }) {
               <div>
 
                 {/* Alert */}
-                {alertMessage && alertId === "addUser-"+calendarName && (
+                {alertMessage && alertId === "addUser-"+calendarId && (
                   <AlertSystem
                     type={alertType}
                     message={alertMessage}
@@ -541,7 +540,7 @@ function SharedList({ tokens, calendars, sharedUsers, invitations }) {
                 )}
 
 
-                <li className="list-group-item" key={calendarName}>
+                <li className="list-group-item" key={calendarId}>
                   <div className="row align-items-center g-2">
                     <div className="col-md-6">
                       <div className="input-group">
@@ -549,27 +548,27 @@ function SharedList({ tokens, calendars, sharedUsers, invitations }) {
                           type="email"
                           className="form-control"
                           placeholder="Email du destinataire"
-                          onChange={(e) => setEmailsToInvite(prev => ({ ...prev, [calendarName]: e.target.value }))}
-                          value={emailsToInvite[calendarName] ?? ""}
+                          onChange={(e) => setEmailsToInvite(prev => ({ ...prev, [calendarId]: e.target.value }))}
+                          value={emailsToInvite[calendarId] ?? ""}
                         />
                         <button
                           className="btn btn-outline-primary"
                           title="Envoyer une invitation"
                           onClick={async () => {
-                            const success = await invitations.sendInvitation(emailsToInvite[calendarName], calendarName);
+                            const success = await invitations.sendInvitation(emailsToInvite[calendarId], calendarId);
                             if (success) {
 
                               setAlertType("success");
                               setAlertMessage("👍 L'invitation a été envoyée avec succès.");
-                              setAlertId("addUser-"+calendarName);
+                              setAlertId("addUser-"+calendarId);
                               setTimeout(async () => {
                                 await setGroupedSharedFunction();
                               }, 1000);
-                              setEmailsToInvite(prev => ({ ...prev, [calendarName]: "" }));
+                              setEmailsToInvite(prev => ({ ...prev, [calendarId]: "" }));
                             } else {
                               setAlertType("danger");
                               setAlertMessage("❌ Une erreur est survenue lors de l'envoi de l'invitation.");
-                              setAlertId("addUser-"+calendarName);
+                              setAlertId("addUser-"+calendarId);
                             }
                           }}
                         >
