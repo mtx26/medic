@@ -5,7 +5,9 @@ import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import frLocale from '@fullcalendar/core/locales/fr';
-function CalendarPage({ events, shared }) {
+
+
+function SharedTokenCalendarView({ events, shared }) {
 
   // 📍 Paramètres d’URL et navigation
   const { sharedTokens } = useParams(); // Récupération du token de partage depuis l'URL
@@ -212,4 +214,4 @@ function CalendarPage({ events, shared }) {
   );
 }
 
-export default CalendarPage;
+export default SharedTokenCalendarView;
