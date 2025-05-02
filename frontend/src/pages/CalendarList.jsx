@@ -5,7 +5,7 @@ import AlertSystem from '../components/AlertSystem';
 
 
 
-function SelectCalendar({ calendars, tokens, invitations, sharedUsers }) {
+function SelectCalendar({ calendars, sharedTokens, invitations, sharedUsers }) {
 
   const navigate = useNavigate(); 
   const { authReady, currentUser } = useContext(AuthContext); // Contexte d'authentification
@@ -47,7 +47,7 @@ function SelectCalendar({ calendars, tokens, invitations, sharedUsers }) {
           setLoadingCalendars(true);
           await calendars.fetchCalendars(); // Recharger pour le nouvel utilisateur
           await calendars.fetchSharedCalendars(); // Recharger pour le nouvel utilisateur
-          await tokens.fetchTokens();
+          await sharedTokens.fetchTokens();
           setLoadingCalendars(false);
         } else {
           setLoadingCalendars(false);
@@ -133,7 +133,7 @@ function SelectCalendar({ calendars, tokens, invitations, sharedUsers }) {
                       <input
                         type="text"
                         className="form-control"
-                        value={`${REACT_URL}/shared-calendar/${existingShareToken.token}`}
+                        value={`${REACT_URL}/shared-token-calendar/${existingShareToken.token}`}
                         readOnly
                       />
                       <button
@@ -147,7 +147,7 @@ function SelectCalendar({ calendars, tokens, invitations, sharedUsers }) {
                         className="btn btn-outline-primary"
                         onClick={async () => {
                           try {
-                            await navigator.clipboard.writeText(`${REACT_URL}/shared-calendar/${existingShareToken.token}`);
+                            await navigator.clipboard.writeText(`${REACT_URL}/shared-token-calendar/${existingShareToken.token}`);
                             setAlertType("success");
                             setSelectedAlert("calendar");
                             setAlertMessage("🔗 Lien existant copié dans le presse-papiers !");
@@ -318,10 +318,10 @@ function SelectCalendar({ calendars, tokens, invitations, sharedUsers }) {
                 type="button"
                 className="btn btn-outline-primary"
                 onClick={async () => {
-                  const { token, success } = await tokens.createSharedTokenCalendar(calendarIdToShare, expiresAt, permissions);
+                  const { token, success } = await sharedTokens.createSharedTokenCalendar(calendarIdToShare, expiresAt, permissions);
                   if (success) {
                     try {
-                      await navigator.clipboard.writeText(`${REACT_URL}/shared-calendar/${token}`);
+                      await navigator.clipboard.writeText(`${REACT_URL}/shared-token-calendar/${token}`);
                       setAlertType("success");
                       setSelectedAlert("calendar");
                       setAlertMessage("🔗 Lien copié dans le presse-papiers !");
@@ -486,7 +486,7 @@ function SelectCalendar({ calendars, tokens, invitations, sharedUsers }) {
               setCalendarNameToShare(calendarData.calendar_name);  // On retient quel calendrier partager
               setCalendarIdToShare(calendarData.calendar_id);
               setExistingShareToken(null);
-              const token = await tokens.tokensList.find(
+              const token = await sharedTokens.tokensList.find(
                 (t) => t.calendar_id === calendarData.calendar_id && !t.revoked && t.owner_uid === currentUser.uid
               );
               setSharedUsersData(await sharedUsers.fetchSharedUsers(calendarData.calendar_id));

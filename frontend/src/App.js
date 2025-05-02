@@ -397,7 +397,7 @@ function App() {
 
 
   // Fonction pour recupérer un calendrier partagé par sharedTokens
-  const getSharedTokenCalendar = useCallback(async (sharedToken, startDate) => {
+  const fetchSharedTokenCalendar = useCallback(async (sharedToken, startDate) => {
     try {
       if (!startDate) {
         startDate = new Date().toISOString().slice(0, 10);
@@ -779,13 +779,13 @@ function App() {
   const fetchSharedCalendars = useCallback(async () => {
     try {
       const token = await auth.currentUser.getIdToken();
-      const res = await fetch(`${API_URL}/api/shared/calendars`, {
+      const res = await fetch(`${API_URL}/api/shared/users/calendars`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      if (!res.ok) throw new Error(`Erreur HTTP GET /api/shared/calendars`);
+      if (!res.ok) throw new Error(`Erreur HTTP GET /api/shared/users/calendars`);
       const data = await res.json();
       setSharedCalendarsData(data.calendars);
       log.info("Calendriers partagés récupérés avec succès", {
@@ -804,22 +804,22 @@ function App() {
     }
   }, [setSharedCalendarsData]);
 
-  // Fonction pour supprimer un calendrier partagé
-  const deleteSharedCalendar = useCallback(async (calendarName) => {
+  // Fonction pour supprimer un calendrier partagé pour le receiver
+  const deleteSharedCalendar = useCallback(async (calendarId) => {
     try {
       const token = await auth.currentUser.getIdToken();
-      const res = await fetch(`${API_URL}/api/shared/calendars/${calendarName}`, {
+      const res = await fetch(`${API_URL}/api/shared/users/calendars/${calendarId}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      if (!res.ok) throw new Error(`Erreur HTTP DELETE /api/shared/calendars/${calendarName}`);
+      if (!res.ok) throw new Error(`Erreur HTTP DELETE /api/shared/users/calendars/${calendarId}`);
       fetchSharedCalendars();
       log.info("Calendrier partagé supprimé avec succès", {
         id: "SHARED_CALENDAR_DELETE_SUCCESS",
         origin: "App.js",
-        calendarName,
+        calendarId,
       });
       return true;
     } catch (err) {
@@ -827,22 +827,23 @@ function App() {
         id: "SHARED_CALENDAR_DELETE_FAIL",
         origin: "App.js",
         stack: err.stack,
+        calendarId,
       });
       return false;
     }
   }, [fetchSharedCalendars]);
 
   // Fonction pour récupérer les différentes utilisateurs ayant accès à un calendrier
-  const fetchSharedUsers = useCallback(async (calendarName) => {
+  const fetchSharedUsers = useCallback(async (calendarId) => {
     try {
       const token = await auth.currentUser.getIdToken();
-      const res = await fetch(`${API_URL}/api/shared/users/${calendarName}`, {
+      const res = await fetch(`${API_URL}/api/shared/users/users/${calendarId}`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      if (!res.ok) throw new Error(`Erreur HTTP GET /api/shared/users/${calendarName}`);
+      if (!res.ok) throw new Error(`Erreur HTTP GET /api/shared/users/users/${calendarId}`);
       const data = await res.json();
       log.info("Utilisateurs partagés récupérés avec succès", {
         id: "SHARED_USERS_FETCH_SUCCESS",
@@ -860,21 +861,21 @@ function App() {
     }
   }, []);
 
-  // Fonction pour supprimer un utilisateur partagé
-  const deleteSharedUser = useCallback(async (calendarName, userId) => {
+  // Fonction pour supprimer un utilisateur partagé pour le owner
+  const deleteSharedUser = useCallback(async (calendarId, userId) => {
     try {
       const token = await auth.currentUser.getIdToken();
-      const res = await fetch(`${API_URL}/api/shared/users/${calendarName}/${userId}`, {
+      const res = await fetch(`${API_URL}/api/shared/users/${calendarId}/${userId}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      if (!res.ok) throw new Error(`Erreur HTTP DELETE /api/shared/users/${calendarName}/${userId}`);
+      if (!res.ok) throw new Error(`Erreur HTTP DELETE /api/shared/users/${calendarId}/${userId}`);
       log.info("Utilisateur partagé supprimé avec succès", {
         id: "SHARED_USER_DELETE_SUCCESS",
         origin: "App.js",
-        calendarName,
+        calendarId,
         userId,
       });
       return true;
@@ -883,78 +884,108 @@ function App() {
         id: "SHARED_USER_DELETE_FAIL",
         origin: "App.js",
         stack: err.stack,
-        calendarName,
+        calendarId,
         userId,
       });
       return false;
     }
   }, []);
-  
+
+  // Fonction pour recup le calendrier partagé par un utilisateur
+  const fetchSharedUserCalendar = useCallback(async (calendarId) => {
+    try {
+      const token = await auth.currentUser.getIdToken();
+      const res = await fetch(`${API_URL}/api/shared/user-calendar/${calendarId}`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (!res.ok) throw new Error(`Erreur HTTP GET /api/shared/user-calendar/${calendarId}`);
+      const data = await res.json();
+      return data;
+    } catch (err) {
+      log.error("Échec de récupération du calendrier partagé par un utilisateur", err, {
+        id: "SHARED_USER_CALENDAR_FETCH_FAIL",
+        origin: "App.js",
+        stack: err.stack,
+      });
+      return false;
+    }
+  }, []);
   
   const sharedProps = {
+    // 📅 CALENDRIERS
+    calendars: {
+      calendarsData, setCalendarsData,                 // Liste des calendriers de l’utilisateur
+      sharedCalendarsData, setSharedCalendarsData,     // Liste des calendriers partagés
+      fetchCalendars,                                  // Récupération des calendriers (Firestore)
+      fetchSharedCalendars,                            // Récupération des calendriers partagés
+      addCalendar,                                     // Création d’un nouveau calendrier
+      deleteCalendar,                                  // Suppression d’un calendrier existant
+      deleteSharedCalendar,                            // Suppression d’un calendrier partagé
+      RenameCalendar,                                  // Renommage d’un calendrier
+      getMedicineCount,                                // Nombre de médicaments dans un calendrier
+      getSharedMedicineCount,                          // Nombre de médicaments dans un calendrier partagé
+    },
+  
     // 🗓️ ÉVÉNEMENTS DU CALENDRIER
     events: {
-      calendarEvents, setCalendarEvents,      // Événements affichés dans le calendrier
-      selectedDate, setSelectedDate,          // Date actuellement sélectionnée
-      eventsForDay, setEventsForDay,          // Événements filtrés pour un jour spécifique
-      startDate, setStartDate,                // Date de début pour affichage du calendrier
-      calendarsData, setCalendarsData,        // Liste des calendriers de l’utilisateur
-      getCalendar,                            // Chargement des données d’un calendrier
+      calendarEvents, setCalendarEvents,              // Événements affichés dans le calendrier
+      selectedDate, setSelectedDate,                  // Date actuellement sélectionnée
+      eventsForDay, setEventsForDay,                  // Événements filtrés pour un jour spécifique
+      startDate, setStartDate,                        // Date de début pour affichage du calendrier
+      calendarsData, setCalendarsData,                // (Redondant, mais peut être utile si nécessaire localement)
+      getCalendar,                                    // Chargement des données d’un calendrier
     },
+  
+    // 💊 MÉDICAMENTS
     meds: {
-      // 💊 MÉDICAMENTS
-      medsData, setMedsData,                  // Liste des médicaments du calendrier actif
-      checked, setChecked,                    // Médicaments cochés pour suppression
-      originalMedsData, setOriginalMedsData,  // Liste des médicaments d’origine
-      handleMedChange,                        // Fonction pour modifier un médicament
-      updateMeds,                             // Mise à jour des médicaments dans Firestore
-      deleteSelectedMeds,                     // Suppression des médicaments sélectionnés
-      addMed,                                 // Ajout d’un nouveau médicament
-      fetchCalendarsMedecines,                // Récupération des médicaments d’un calendrier
+      medsData, setMedsData,                          // Liste des médicaments du calendrier actif
+      originalMedsData, setOriginalMedsData,          // Liste des médicaments d’origine
+      checked, setChecked,                            // Médicaments cochés pour suppression
+      handleMedChange,                                // Fonction pour modifier un médicament
+      updateMeds,                                     // Mise à jour des médicaments dans Firestore
+      deleteSelectedMeds,                             // Suppression des médicaments sélectionnés
+      addMed,                                         // Ajout d’un nouveau médicament
+      fetchCalendarsMedecines,                        // Récupération des médicaments d’un calendrier
     },
-    calendars: {
-      // 📅 CALENDRIERS
-      calendarsData, setCalendarsData,        // Liste des calendriers de l’utilisateur
-      sharedCalendarsData, setSharedCalendarsData, // Liste des calendriers partagés
-      fetchCalendars,                         // Récupération des calendriers (Firestore)
-      addCalendar,                            // Création d’un nouveau calendrier
-      deleteCalendar,                         // Suppression d’un calendrier existant
-      RenameCalendar,                         // Renommage d’un calendrier
-      getMedicineCount,                       // Nombre de médicaments dans un calendrier
-      getSharedMedicineCount,                 // Nombre de médicaments dans un calendrier partagé
-      fetchSharedCalendars,                   // Récupération des calendriers partagés
-      deleteSharedCalendar,                   // Suppression d’un calendrier partagé
+  
+    // 🔗 LIENS DE PARTAGE (TOKENS)
+    sharedTokens: {
+      tokensList, setTokensList,                      // Liste des tokens
+      fetchTokens,                                    // Récupération des tokens
+      createSharedTokenCalendar,                      // Création d’un lien de partage
+      deleteSharedTokenCalendar,                      // Suppression d’un lien de partage
+      revokeToken,                                    // Révoquer un token ou le réactiver
+      updateTokenExpiration,                          // Mettre à jour l'expiration d'un token
+      updateTokenPermissions,                         // Mettre à jour les permissions d'un token
+      fetchSharedTokenCalendar,                       // Récupération d’un calendrier partagé
+      getSharedTokenMedecines,                        // Récupération des médicaments partagés
     },
-    shared: {
-      medsData, setMedsData,                  // Liste des médicaments du calendrier actif      
-      getSharedTokenCalendar,                 // Récupération d’un calendrier partagé
-      getSharedTokenMedecines,                 // Récupération des médicaments partagé
-
+  
+    // 👥 UTILISATEURS PARTAGÉS
+    sharedUsers: {
+      fetchSharedUsers,                               // Récupération des utilisateurs partagés
+      deleteSharedUser,                               // Suppression d’un utilisateur partagé
+      fetchSharedUserCalendar,                        // Récupération d’un calendrier partagé
     },
-    tokens: {
-      tokensList, setTokensList,              // Liste des tokens
-      fetchTokens,                            // Récupération des tokens
-      createSharedTokenCalendar,              // Création d’un lien de partage
-      deleteSharedTokenCalendar,              // Suppression d’un lien de partage
-      revokeToken,                            // Révoquer un token ou le réactiver
-      updateTokenExpiration,                  // Mettre à jour l'expiration d'un token
-      updateTokenPermissions,                 // Mettre à jour les permissions d'un token
-    },
+  
+    // ✉️ INVITATIONS
     invitations: {
-      sendInvitation,                         // Envoyer une invitation à un utilisateur
-      acceptInvitation,                       // Accepter une invitation
-      rejectInvitation,                       // Rejeter une invitation
+      sendInvitation,                                 // Envoyer une invitation à un utilisateur
+      acceptInvitation,                               // Accepter une invitation
+      rejectInvitation,                               // Rejeter une invitation
     },
+  
+    // 🔔 NOTIFICATIONS
     notifications: {
       notificationsData, setNotificationsData,        // Liste des notifications
-      fetchNotifications,                     // Récupération des notifications
-      readNotification,                       // Marquer une notification comme lue
+      fetchNotifications,                             // Récupération des notifications
+      readNotification,                               // Marquer une notification comme lue
     },
-    sharedUsers: {
-      fetchSharedUsers,                       // Récupération des utilisateurs partagés
-      deleteSharedUser,                       // Suppression d’un utilisateur partagé
-    },
-  }
+  };
+  
 
   const resetAppData = () => {
     // EVENTS

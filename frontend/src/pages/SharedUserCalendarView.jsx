@@ -7,10 +7,10 @@ import interactionPlugin from '@fullcalendar/interaction';
 import frLocale from '@fullcalendar/core/locales/fr';
 
 
-function SharedTokenCalendarView({ events, sharedTokens }) {
+function SharedUserCalendarView({ events, sharedUsers }) {
 
   // 📍 Paramètres d’URL et navigation
-  const { sharedToken } = useParams(); // Récupération du token de partage depuis l'URL
+  const { calendarId } = useParams(); // Récupération du token de partage depuis l'URL
   const navigate = useNavigate(); // Hook de navigation
 
   // 🔄 Références et états
@@ -40,16 +40,16 @@ function SharedTokenCalendarView({ events, sharedTokens }) {
   // Fonction pour charger le calendrier lorsque l'utilisateur est connecté
   useEffect(() => {
     const fetchShared = async () => {
-      if (sharedToken) {
-        const success = await sharedTokens.fetchSharedTokenCalendar(sharedToken);
+      if (calendarId) {
+        const success = await sharedUsers.fetchSharedUserCalendar(calendarId);
         setSuccessGetSharedCalendar(success);
       }
     };
   
     fetchShared();
-  }, [sharedToken]);
+  }, [sharedTokens]);
 
-  if (successGetSharedCalendar === undefined  && sharedToken) {
+  if (successGetSharedCalendar === undefined  && sharedTokens) {
     return (
       <div className="d-flex justify-content-center align-items-center" style={{ height: '60vh' }}>
         <div className="spinner-border text-primary" role="status">
@@ -59,7 +59,7 @@ function SharedTokenCalendarView({ events, sharedTokens }) {
     );
   }
   
-  if (successGetSharedCalendar === false && sharedToken) {
+  if (sharedTokens && successGetSharedCalendar === false) {
     return (
       <div className="alert alert-danger text-center mt-5" role="alert">
         ❌ Ce lien de calendrier partagé est invalide ou a expiré.
@@ -79,7 +79,7 @@ function SharedTokenCalendarView({ events, sharedTokens }) {
           <div className="d-flex flex-wrap  align-items-left gap-2 mb-3">
             <button
               className="btn btn-outline-secondary"
-              onClick={() => navigate(`/shared-token-calendar/${sharedToken}/medicines`)}
+              onClick={() => navigate(`/shared-token-calendar/${sharedTokens}/medicines`)}
             >
               <i className="bi bi-capsule"></i>
               <span> Liste des médicaments</span>
@@ -104,7 +104,7 @@ function SharedTokenCalendarView({ events, sharedTokens }) {
 
             <div>
               <button
-                onClick={() => events.getSharedTokenCalendar(sharedToken, events.startDate)}
+                onClick={() => events.getSharedTokenCalendar(sharedTokens, events.startDate)}
                 className="btn btn-outline-primary"
               >
                 <i className="bi bi-arrow-repeat"></i>
@@ -214,4 +214,4 @@ function SharedTokenCalendarView({ events, sharedTokens }) {
   );
 }
 
-export default SharedTokenCalendarView;
+export default SharedUserCalendarView;

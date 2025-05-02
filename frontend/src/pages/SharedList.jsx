@@ -4,7 +4,7 @@ import AlertSystem from '../components/AlertSystem';
 
 const REACT_URL = process.env.REACT_APP_REACT_URL;
 
-function SharedList({ tokens, calendars, sharedUsers, invitations }) {
+function SharedList({ sharedTokens, calendars, sharedUsers, invitations }) {
   // 🔐 Contexte d'authentification
   const { authReady, currentUser } = useContext(AuthContext); // Contexte de l'utilisateur connecté
 
@@ -32,13 +32,13 @@ function SharedList({ tokens, calendars, sharedUsers, invitations }) {
   useEffect(() => {
     const load = async () => {
       if (authReady && currentUser) {
-        await tokens.fetchTokens();
+        await sharedTokens.fetchTokens();
         await calendars.fetchCalendars();
         setLoading(false);
       }
     };
     load();
-  }, [authReady, currentUser, calendars.fetchCalendars, tokens.fetchTokens]);
+  }, [authReady, currentUser, calendars.fetchCalendars, sharedTokens.fetchTokens]);
 
   const setGroupedSharedFunction = async () => {
     const grouped = {};
@@ -50,7 +50,7 @@ function SharedList({ tokens, calendars, sharedUsers, invitations }) {
       };
     }
 
-    for (const token of tokens.tokensList) {
+    for (const token of sharedTokens.tokensList) {
       if (grouped[token.calendar_id]) {
         grouped[token.calendar_id].tokens.push(token);
       }
@@ -73,7 +73,7 @@ function SharedList({ tokens, calendars, sharedUsers, invitations }) {
     if (loading === false && authReady && currentUser && calendars.calendarsData) {
       setGroupedSharedFunction();
     }
-  }, [loading, authReady, currentUser, calendars.calendarsData, tokens.tokensList]);
+  }, [loading, authReady, currentUser, calendars.calendarsData, sharedTokens.tokensList]);
   
 
   if (loading || loadingGroupedShared) {
@@ -131,14 +131,14 @@ function SharedList({ tokens, calendars, sharedUsers, invitations }) {
                           <input
                             type="text"
                             className="form-control"
-                            value={`${REACT_URL}/shared-calendar/${token.token}`}
+                            value={`${REACT_URL}/shared-token-calendar/${token.token}`}
                             readOnly
                           />
                           <button
                             className="btn btn-outline-primary"
                             onClick={async () => {
                               try {
-                                await navigator.clipboard.writeText(`${REACT_URL}/shared-calendar/${token.token}`);
+                                await navigator.clipboard.writeText(`${REACT_URL}/shared-token-calendar/${token.token}`);
                                 setAlertType("success");
                                 setAlertMessage("👍 Lien de partage copié dans le presse-papiers.");
                                 setAlertId(token.token);
@@ -163,7 +163,7 @@ function SharedList({ tokens, calendars, sharedUsers, invitations }) {
                           onChange={async (e) => {
                             const value = e.target.value;
                             if (value === "") {
-                              const success = await tokens.updateTokenExpiration(token.token, null);
+                              const success = await sharedTokens.updateTokenExpiration(token.token, null);
                               if (success) {
                                 setAlertType("success");
                                 setAlertMessage("👍 La date d'expiration a été mise à jour avec succès.");
@@ -174,7 +174,7 @@ function SharedList({ tokens, calendars, sharedUsers, invitations }) {
                                 setAlertId(token.token);
                               }
                             } else {
-                              const success = await tokens.updateTokenExpiration(token.token, new Date().toISOString().slice(0, 16));
+                              const success = await sharedTokens.updateTokenExpiration(token.token, new Date().toISOString().slice(0, 16));
                               if (success) {
                                 setAlertType("success");
                                 setAlertMessage("👍 La date d'expiration a été mise à jour avec succès.");
@@ -203,7 +203,7 @@ function SharedList({ tokens, calendars, sharedUsers, invitations }) {
                                 : ""
                             }
                             onChange={async (e) => {
-                              const success = await tokens.updateTokenExpiration(token.token, e.target.value + "T00:00")
+                              const success = await sharedTokens.updateTokenExpiration(token.token, e.target.value + "T00:00")
                               if (success) {
                                 setAlertType("success");
                                 setAlertMessage("👍 La date d'expiration a été mise à jour avec succès.");
@@ -227,7 +227,7 @@ function SharedList({ tokens, calendars, sharedUsers, invitations }) {
                         <select
                           className="form-select"
                           value={token.permissions}
-                          onChange={(e) => tokens.updateTokenPermissions(token.token, e.target.value)}
+                          onChange={(e) => sharedTokens.updateTokenPermissions(token.token, e.target.value)}
                           title="Permissions"
                         >
                           <option value="read">Lecture seule</option>
@@ -240,7 +240,7 @@ function SharedList({ tokens, calendars, sharedUsers, invitations }) {
                         <button
                           className={`btn ${token.revoked ? 'btn-outline-danger' : 'btn-outline-success'}`}
                           onClick={async () => {
-                            const success = await tokens.revokeToken(token.token)
+                            const success = await sharedTokens.revokeToken(token.token)
                             if (success) {
                               setAlertType("success");
                               setAlertMessage(token.revoked ? "👍 Lien de partage réactivé avec succès." : "👍 Lien de partage désactivé avec succès.");
@@ -262,7 +262,7 @@ function SharedList({ tokens, calendars, sharedUsers, invitations }) {
                             setAlertMessage("❌ Confirmez-vous la suppression du lien de partage ?");
                             setAlertId(token.token);
                             setOnConfirmAction(() => async () => {
-                              const success = await tokens.deleteSharedTokenCalendar(token.token)
+                              const success = await sharedTokens.deleteSharedTokenCalendar(token.token)
                               if (success) {
                                 setAlertType("success");
                                 setAlertMessage("👍 Lien de partage supprimé avec succès.");
@@ -371,7 +371,7 @@ function SharedList({ tokens, calendars, sharedUsers, invitations }) {
                         className="btn btn-outline-primary"
                         title="Ajouter"
                         onClick={async () => {
-                          const {token, success} = await tokens.createSharedTokenCalendar(calendarId, expiresAt[calendarId], permissions[calendarId]);
+                          const {token, success} = await sharedTokens.createSharedTokenCalendar(calendarId, expiresAt[calendarId], permissions[calendarId]);
                           if (success) {
                             setAlertType("success");
                             setAlertMessage("👍 Lien de partage créé avec succès.");

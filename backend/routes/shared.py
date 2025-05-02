@@ -10,7 +10,7 @@ import secrets
 db = firestore.client()
 
 # Route pour récupérer les calendriers partagés
-@api.route("/api/shared/calendars", methods=["GET"])
+@api.route("/api/shared/users/calendars", methods=["GET"])
 def handle_shared_calendars():
     try:
         user = verify_firebase_token()
@@ -53,8 +53,59 @@ def handle_shared_calendars():
         return jsonify({"error": "Erreur interne lors de la récupération des calendriers partagés."}), 500
 
 
-# Route pour supprimer un calendrier partagé
-@api.route("/api/shared/calendars/<calendar_id>", methods=["DELETE"])
+# Route pour récupérer les utilisateurs ayant accès à un calendrier
+@api.route("/api/shared/users/users/<calendar_id>", methods=["GET"])
+def handle_shared_users(calendar_id):
+    try:
+        user = verify_firebase_token()
+        owner_uid = user["uid"]
+
+        shared_with_doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).collection("shared_with")
+        shared_users_docs = list(shared_with_doc.stream())
+
+
+        shared_users_list = []
+        for doc in shared_users_docs:
+
+            data = doc.to_dict()
+
+            receiver_uid = data.get("receiver_uid")
+            receiver_email = data.get("receiver_email")
+            access = data.get("access", "read")
+            accepted = data.get("accepted", False)
+            picture_url = db.collection("users").document(receiver_uid).get().to_dict().get("photoURL")
+            display_name = db.collection("users").document(receiver_uid).get().to_dict().get("displayName")
+            if not picture_url:
+                picture_url = "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/icons/person-circle.svg"
+
+            if not verify_calendar_share(calendar_id, owner_uid, receiver_uid):
+                continue
+
+            shared_users_list.append({
+                "receiver_uid": receiver_uid,
+                "receiver_email": receiver_email,
+                "access": access,
+                "accepted": accepted,
+                "picture_url": picture_url,
+                "display_name": display_name
+            })
+
+        logger.info(f"[SHARED_USERS_LOAD] {len(shared_users_list)} utilisateur(s) récupéré(s) pour {calendar_id}.")
+        return jsonify({"users": shared_users_list}), 200
+
+    except Exception as e:
+        logger.exception("[SHARED_USERS_ERROR] Erreur lors de la récupération des utilisateurs partagés.")
+        return jsonify({"error": "Erreur interne lors de la récupération des utilisateurs partagés."}), 500
+
+
+# Route pour récupérer un calendrier partagé
+@api.route("/api/shared/users/calendars/<calendar_id>", methods=["GET"])
+def handle_shared_user_calendar(calendar_id):
+    print(calendar_id)
+
+
+# Route pour supprimer un calendrier partagé pour le receiver
+@api.route("/api/shared/users/calendars/<calendar_id>", methods=["DELETE"])
 def handle_delete_shared_calendar(calendar_id):
     try:
         user = verify_firebase_token()
@@ -107,52 +158,7 @@ def handle_delete_shared_calendar(calendar_id):
         return jsonify({"error": "Erreur interne lors de la suppression du calendrier partagé."}), 500
 
 
-# Route pour récupérer les utilisateurs ayant accès à un calendrier
-@api.route("/api/shared/users/<calendar_id>", methods=["GET"])
-def handle_shared_users(calendar_id):
-    try:
-        user = verify_firebase_token()
-        owner_uid = user["uid"]
-
-        shared_with_doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).collection("shared_with")
-        shared_users_docs = list(shared_with_doc.stream())
-
-
-        shared_users_list = []
-        for doc in shared_users_docs:
-
-            data = doc.to_dict()
-
-            receiver_uid = data.get("receiver_uid")
-            receiver_email = data.get("receiver_email")
-            access = data.get("access", "read")
-            accepted = data.get("accepted", False)
-            picture_url = db.collection("users").document(receiver_uid).get().to_dict().get("photoURL")
-            display_name = db.collection("users").document(receiver_uid).get().to_dict().get("displayName")
-            if not picture_url:
-                picture_url = "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/icons/person-circle.svg"
-
-            if not verify_calendar_share(calendar_id, owner_uid, receiver_uid):
-                continue
-
-            shared_users_list.append({
-                "receiver_uid": receiver_uid,
-                "receiver_email": receiver_email,
-                "access": access,
-                "accepted": accepted,
-                "picture_url": picture_url,
-                "display_name": display_name
-            })
-
-        logger.info(f"[SHARED_USERS_LOAD] {len(shared_users_list)} utilisateur(s) récupéré(s) pour {calendar_id}.")
-        return jsonify({"users": shared_users_list}), 200
-
-    except Exception as e:
-        logger.exception("[SHARED_USERS_ERROR] Erreur lors de la récupération des utilisateurs partagés.")
-        return jsonify({"error": "Erreur interne lors de la récupération des utilisateurs partagés."}), 500
-
-
-# Route pour supprimer un utilisateur partagé
+# Route pour supprimer un utilisateur partagé pour le owner
 @api.route("/api/shared/users/<calendar_id>/<receiver_uid>", methods=["DELETE"])
 def handle_delete_shared_user(calendar_id, receiver_uid):
     try:
