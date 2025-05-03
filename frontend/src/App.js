@@ -68,22 +68,24 @@ function App() {
         },
         body: JSON.stringify({ calendarName }),
       });
-      if (!res.ok) throw new Error("Erreur HTTP POST /api/calendars");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
       fetchCalendars();
       log.info("Calendrier créé avec succès", {
         id: "CALENDAR_CREATE_SUCCESS",
         origin: "App.js",
         calendarName,
       });
-      return true;
+      return { success: true, message: data.message };
     } catch (err) {
       log.error("Échec de création du calendrier", err, {
         id: "CALENDAR_CREATE_FAIL",
         origin: "App.js",
         calendarName,
+        error: err.message,
         stack: err.stack,
       });
-      return false;
+      return { success: false, message: err.message };
     }
   }, [fetchCalendars]);
 
@@ -308,6 +310,7 @@ function App() {
         body: JSON.stringify({ medicines: medicinesData }),
       });
       if (!res.ok) throw new Error(`Erreur HTTP PUT /api/calendars/${calendarId}/medicines`);
+      setOriginalMedicinesData(JSON.parse(JSON.stringify(medicinesData)));
       log.info("Médicaments mis à jour avec succès", {
         id: "MED_UPDATE_SUCCESS",
         origin: "App.js",
@@ -323,7 +326,7 @@ function App() {
       });
       return false;
     }
-  }, [medicinesData]);
+  }, [medicinesData, setOriginalMedicinesData]);
 
   // Fonction pour supprimer des médicaments 
   const deleteSelectedMedicines = useCallback(async (calendarId) => {
@@ -889,6 +892,7 @@ function App() {
     }
   }, [setCalendarEvents]);
 
+  // Fonction pour récupérer les médicaments d’un calendrier partagé par un utilisateur
   const fetchSharedUserCalendarMedicines = useCallback(async (calendarId) => {
     try {
       const token = await auth.currentUser.getIdToken();
@@ -901,6 +905,7 @@ function App() {
       if (!res.ok) throw new Error(`Erreur HTTP GET /api/shared/users/calendars/${calendarId}/medicines`);
       const data = await res.json();
       setMedicinesData(data.medicines);
+      setOriginalMedicinesData(JSON.parse(JSON.stringify(data.medicines)));
       return true;
     } catch (err) {
       log.error("Échec de récupération des médicaments du calendrier partagé par un utilisateur", err, {
@@ -910,7 +915,63 @@ function App() {
       });
       return false;
     }
-  }, [setMedicinesData]);
+  }, [setMedicinesData, setOriginalMedicinesData]);
+
+  // Fonction pour mettre à jour les médicaments d’un calendrier partagé par un utilisateur
+  const updateSharedUserCalendarMedicines = useCallback(async (calendarId) => {
+    try {
+      const token = await auth.currentUser.getIdToken();
+      const res = await fetch(`${API_URL}/api/shared/users/calendars/${calendarId}/medicines`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ medicines: medicinesData }),
+      });
+      if (!res.ok) throw new Error(`Erreur HTTP PUT /api/shared/users/calendars/${calendarId}/medicines`);
+      setOriginalMedicinesData(JSON.parse(JSON.stringify(medicinesData)));
+
+      log.info("Médicaments du calendrier partagé mis à jour avec succès", {
+        id: "SHARED_USER_CALENDAR_MEDICINES_UPDATE_SUCCESS",
+        origin: "App.js",
+        calendarId,
+      });
+      return true;
+    } catch (err) {
+      log.error("Échec de mise à jour des médicaments du calendrier partagé par un utilisateur", err, {
+        id: "SHARED_USER_CALENDAR_MEDICINES_UPDATE_FAIL",
+        origin: "App.js",
+        stack: err.stack,
+      });
+      return false;
+    }
+  }, [medicinesData]);
+
+  // Fonction pour supprimer les médicaments d’un calendrier partagé par un utilisateur
+  const deleteSharedUserCalendarMedicines = useCallback(async (calendarId) => {
+    if (checked.length === 0) return false;
+  
+    setMedicinesData(medicinesData.filter((_, i) => !checked.includes(i)));
+  
+    const success = await updateMedicines(calendarId);
+    if (success) {
+      setChecked([]);
+      log.info("Médicaments du calendrier partagé supprimés avec succès", {
+        id: "SHARED_USER_CALENDAR_MEDICINES_DELETE_SUCCESS",
+        origin: "App.js",
+        calendarId,
+      });
+    } else {
+      log.error("Échec de suppression des médicaments du calendrier partagé par un utilisateur", {
+        id: "SHARED_USER_CALENDAR_MEDICINES_DELETE_FAIL",
+        origin: "App.js",
+        calendarId,
+      });
+    }
+    return success;
+  }, [medicinesData, checked, updateMedicines]);
+
   const sharedProps = {
     // 📅 CALENDRIERS
     calendars: {
@@ -967,6 +1028,8 @@ function App() {
       deleteSharedUser,                               // Suppression d’un utilisateur partagé
       fetchSharedUserCalendar,                        // Récupération d’un calendrier partagé
       fetchSharedUserCalendarMedicines,               // Récupération des médicaments d’un calendrier partagé
+      updateSharedUserCalendarMedicines,              // Mise à jour des médicaments d’un calendrier partagé
+      deleteSharedUserCalendarMedicines,              // Suppression des médicaments d’un calendrier partagé
     },
   
     // ✉️ INVITATIONS

@@ -43,6 +43,7 @@ def update_medicines(calendar_id):
             logger.warning(f"[MED_UPDATE] Format de médicaments invalide reçu de {uid}.")
             return jsonify({"error": "Le format des médicaments est invalide."}), 400
 
+
         db.collection("users").document(uid).collection("calendars").document(calendar_id).set({
             "medicines": medicines,
             "last_updated": firestore.SERVER_TIMESTAMP

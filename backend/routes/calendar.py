@@ -36,14 +36,14 @@ def handle_create_calendar():
 
         if not calendar_name:
             logger.warning(f"[CALENDAR_CREATE] Nom de calendrier manquant pour {uid}.")
-            return jsonify({"error": "Nom de calendrier manquant"}), 400
+            return jsonify({"error": "Nom de calendrier manquant", "code": "MISSING_CALENDAR_NAME"}), 400
 
         calendar_id = secrets.token_hex(16)
         doc = db.collection("users").document(uid).collection("calendars").document(calendar_id).get()
 
         if doc.exists:
             logger.warning(f"[CALENDAR_EXISTS] Tentative de création d'un calendrier déjà existant : '{calendar_name}' pour {uid}.")
-            return jsonify({"message": "Ce calendrier existe déjà", "status": "error"}), 409
+            return jsonify({"error": "Ce calendrier existe déjà", "code": "CALENDAR_ALREADY_EXISTS"}), 409
 
         db.collection("users").document(uid).collection("calendars").document(calendar_id).set({
             "calendar_id": calendar_id,
@@ -53,11 +53,11 @@ def handle_create_calendar():
         }, merge=True)
 
         logger.info(f"[CALENDAR_CREATE] Calendrier '{calendar_name}' créé pour {uid}.")
-        return jsonify({"message": "Calendrier mis à jour", "status": "ok"})
+        return jsonify({"message": "Calendrier créé avec succès", "code": "CALENDAR_CREATED_SUCCESS"}), 200
 
     except Exception:
         logger.exception("[CALENDAR_CREATE_ERROR] Erreur dans POST /api/calendars")
-        return jsonify({"error": "Erreur lors de la création du calendrier."}), 500
+        return jsonify({"error": "Erreur lors de la création du calendrier.", "code": "CALENDAR_CREATE_ERROR"}), 500
 
 
 # Route pour supprimer un calendrier
@@ -81,7 +81,7 @@ def handle_delete_calendar():
                 db.collection("shared_tokens").document(doc.id).delete()
 
         logger.info(f"[CALENDAR_DELETE] Calendrier '{calendar_id}' supprimé pour {uid}.")
-        return jsonify({"message": "Calendrier supprimé", "status": "ok"})
+        return jsonify({"message": "Calendrier supprimé avec succès"}), 200
 
     except Exception:
         logger.exception("[CALENDAR_DELETE_ERROR] Erreur dans DELETE /api/calendars")
@@ -106,11 +106,11 @@ def handle_rename_calendar():
         old_calendar_name = doc_ref.get().to_dict().get("calendar_name")
         if not old_calendar_name or not new_calendar_name:
             logger.warning(f"[CALENDAR_RENAME] Noms invalides reçus pour {uid}.")
-            return jsonify({"error": "Nom de calendrier invalide"}), 400
+            return jsonify({"error": "Nom de calendrier invalide", "code": "INVALID_CALENDAR_NAME"}), 400
 
         if old_calendar_name == new_calendar_name:
             logger.warning(f"[CALENDAR_RENAME] Nom inchangé pour {uid} : {old_calendar_name}.")
-            return jsonify({"error": "Le nom du calendrier n'a pas changé"}), 400
+            return jsonify({"error": "Le nom du calendrier n'a pas changé", "code": "UNCHANGED_CALENDAR_NAME"}), 400
 
         doc_ref.update({"calendar_name": new_calendar_name})
 
@@ -120,11 +120,11 @@ def handle_rename_calendar():
                 db.collection("shared_tokens").document(doc.id).update({"calendar_name": new_calendar_name})
 
         logger.info(f"[CALENDAR_RENAME] Calendrier '{old_calendar_name}' renommé en '{new_calendar_name}' pour {uid}.")
-        return jsonify({"message": "Calendrier renommé avec succès"}), 200
+        return jsonify({"message": "Calendrier renommé avec succès", "code": "CALENDAR_RENAMED_SUCCESS"}), 200
 
     except Exception:
         logger.exception("[CALENDAR_RENAME_ERROR] Erreur dans PUT /api/calendars")
-        return jsonify({"error": "Erreur lors du renommage du calendrier."}), 500
+        return jsonify({"error": "Erreur lors du renommage du calendrier.", "code": "CALENDAR_RENAME_ERROR"}), 500
   
 
 # Route pour générer le calendrier 

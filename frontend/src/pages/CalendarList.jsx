@@ -360,13 +360,13 @@ function SelectCalendar({ calendars, sharedTokens, invitations, sharedUsers }) {
       />
       <button
       onClick={async() => {
-        const success = await calendars.addCalendar(newCalendarName);
-        if (success) {
-          setAlertMessage("✅ Calendrier ajouté avec succès !");
+        const rep = await calendars.addCalendar(newCalendarName);
+        if (rep.success) {
+          setAlertMessage(rep.message);
           setAlertType("success");
           setSelectedAlert("calendar");
         } else {
-          setAlertMessage("❌ Erreur lors de l'ajout du calendrier.");
+          setAlertMessage(rep.error);
           setAlertType("danger");
           setSelectedAlert("calendar");
         }

@@ -138,13 +138,14 @@ function SharedUserCalendarMedicines({ medicines, calendars, sharedUsers }) {
               setAlertType("confirm-danger");
               setAlertMessage("❌ Confirmez-vous la suppression des médicaments sélectionnés ?");
               setOnConfirmAction(() => async () => {
-                const success = await medicines.deleteSelectedMedicines(calendarId);
+                const success = await sharedUsers.deleteSharedUserCalendarMedicines(calendarId);
                 if (success) {
                   setAlertMessage("✅ Médicaments supprimés.");
                   setAlertType("success");
                 } else {
                   setAlertMessage("❌ Erreur lors de la suppression.");
                   setAlertType("danger");
+                  medicines.setMedicinesData(JSON.parse(JSON.stringify(medicines.originalMedicinesData)));
                 }
                 setTimeout(() => {
                   setAlertMessage("");
@@ -165,14 +166,15 @@ function SharedUserCalendarMedicines({ medicines, calendars, sharedUsers }) {
             onClick={() => {
               setAlertType("confirm-safe");
               setAlertMessage("✅ Enregistrer les modifications de médicaments ?");
-              setOnConfirmAction(() => {
-                const success = medicines.updateMedicines(calendarId);
+              setOnConfirmAction(() => async () => {
+                const success = await sharedUsers.updateSharedUserCalendarMedicines(calendarId);
                 if (success) {
                   setAlertMessage("✅ Modifications enregistrées.");
                   setAlertType("success");
                 } else {
                   setAlertMessage("❌ Erreur lors de l'enregistrement des modifications.");
                   setAlertType("danger");
+                  medicines.setMedicinesData(JSON.parse(JSON.stringify(medicines.originalMedicinesData)));
                 }
                 setTimeout(() => {
                   setAlertMessage("");

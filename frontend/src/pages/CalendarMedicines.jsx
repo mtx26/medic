@@ -148,6 +148,7 @@ function MedicamentsPage({ medicines, calendars }) {
                 } else {
                   setAlertMessage("❌ Erreur lors de la suppression.");
                   setAlertType("danger");
+                  medicines.setMedicinesData(JSON.parse(JSON.stringify(medicines.originalMedicinesData)));
                 }
                 setTimeout(() => {
                   setAlertMessage("");
@@ -168,14 +169,15 @@ function MedicamentsPage({ medicines, calendars }) {
             onClick={() => {
               setAlertType("confirm-safe");
               setAlertMessage("✅ Enregistrer les modifications de médicaments ?");
-              setOnConfirmAction(() => {
-                const success = medicines.updateMedicines(medicines.medicinesData, calendarId);
+              setOnConfirmAction(() => async () => {
+                const success = await medicines.updateMedicines(calendarId);
                 if (success) {
                   setAlertMessage("✅ Modifications enregistrées.");
                   setAlertType("success");
                 } else {
                   setAlertMessage("❌ Erreur lors de l'enregistrement des modifications.");
                   setAlertType("danger");
+                  medicines.setMedicinesData(JSON.parse(JSON.stringify(medicines.originalMedicinesData)));
                 }
                 setTimeout(() => {
                   setAlertMessage("");

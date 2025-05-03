@@ -280,3 +280,40 @@ def handle_shared_user_calendar_medicines(calendar_id):
         logger.exception("[SHARED_USER_CALENDAR_MEDICINES_ERROR] Erreur lors de la récupération des médicaments du calendrier partagé.")
         return jsonify({"error": "Erreur interne lors de la récupération des médicaments du calendrier partagé."}), 500
 
+
+# Route pour mettre à jour les médicaments d'un calendrier partagé
+@api.route("/api/shared/users/calendars/<calendar_id>/medicines", methods=["PUT"])
+def handle_update_shared_user_calendar_medicines(calendar_id):
+    try:
+        user = verify_firebase_token()
+        receiver_uid = user["uid"]
+
+
+        doc = db.collection("users").document(receiver_uid).collection("shared_calendars").document(calendar_id)
+        if not doc.get().exists:
+            logger.warning(f"[SHARED_USER_CALENDAR_MEDICINES_UPDATE] Calendrier partagé introuvable : {calendar_id} pour {receiver_uid}.")
+            return jsonify({"error": "Calendrier partagé introuvable"}), 404
+
+        owner_uid = doc.get().to_dict().get("owner_uid")
+        
+        if not verify_calendar_share(calendar_id, owner_uid, receiver_uid):
+            logger.warning(f"[SHARED_USER_CALENDAR_MEDICINES_UPDATE] Accès non autorisé à {calendar_id} partagé par {owner_uid}")
+            return jsonify({"error": "Accès non autorisé"}), 403
+
+        medicines = request.json.get("medicines", [])
+
+        doc_2 = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id)
+        if not doc_2.get().exists:
+            logger.warning(f"[SHARED_USER_CALENDAR_MEDICINES_UPDATE] Calendrier introuvable : {calendar_id} pour {owner_uid}.")
+            return jsonify({"error": "Calendrier introuvable"}), 404
+
+        doc_2.update({"medicines": medicines})
+
+        logger.info(f"[SHARED_USER_CALENDAR_MEDICINES_UPDATE] Médicaments mis à jour avec succès pour {calendar_id}.")
+        return jsonify({"message": "Médicaments mis à jour avec succès"}), 200
+
+    except Exception as e:
+        logger.exception("[SHARED_USER_CALENDAR_MEDICINES_UPDATE_ERROR] Erreur lors de la mise à jour des médicaments du calendrier partagé.")
+        return jsonify({"error": "Erreur interne lors de la mise à jour des médicaments du calendrier partagé."}), 500
+
+
