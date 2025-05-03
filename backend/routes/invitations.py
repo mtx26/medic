@@ -8,7 +8,7 @@ from . import api
 db = firestore.client()
 
 # Route pour envoyer une invitation à un utilisateur pour un partage de calendrier
-@api.route("/api/send-invitation/<calendar_id>", methods=["POST"])
+@api.route("/api/invitations/send/<calendar_id>", methods=["POST"])
 def handle_send_invitation(calendar_id):
     try:
         owner_user = verify_firebase_token()
@@ -38,10 +38,10 @@ def handle_send_invitation(calendar_id):
             return jsonify({"error": "Utilisateur introuvable"}), 404
         
         # Créer un token unique pour la notification
-        notification_token = secrets.token_hex(16)
+        notification_id = secrets.token_hex(16)
 
         # Créer une notif pour l'utilisateur receveur
-        db.collection("users").document(receiver_uid).collection("notifications").document(notification_token).set({
+        db.collection("users").document(receiver_uid).collection("notifications").document(notification_id).set({
             "calendar_name": calendar_name,
             "owner_uid": owner_uid,
             "owner_email": owner_email,
@@ -49,7 +49,7 @@ def handle_send_invitation(calendar_id):
             "type": "calendar_invitation",
             "timestamp": firestore.SERVER_TIMESTAMP,
             "read": False,
-            "notification_token": notification_token
+            "notification_id": notification_id
         })
 
         # Sauvegarder l'invitation dans la collection "shared_calendars" dans le calendrier de l'utilisateur expéditeur
@@ -64,25 +64,25 @@ def handle_send_invitation(calendar_id):
         return jsonify({"message": "Invitation envoyée avec succès"}), 200
 
     except Exception as e:
-        logger.exception(f"[INVITATION_SEND_ERROR] Erreur dans /api/send-invitation/{calendar_id}")
+        logger.exception(f"[INVITATION_SEND_ERROR] Erreur dans /api/invitations/send/{calendar_id}")
         return jsonify({"error": "Erreur lors de l'envoi de l'invitation."}), 500
 
 
 # Route pour accepter une invitation pour un partage de calendrier
-@api.route("/api/accept-invitation/<notification_token>", methods=["POST"])
-def handle_accept_invitation(notification_token):
+@api.route("/api/invitations/accept/<notification_id>", methods=["POST"])
+def handle_accept_invitation(notification_id):
     try:
         user = verify_firebase_token()
         receiver_uid = user["uid"]
 
-        doc = db.collection("users").document(receiver_uid).collection("notifications").document(notification_token).get()
+        doc = db.collection("users").document(receiver_uid).collection("notifications").document(notification_id).get()
         if not doc.exists:
-            logger.warning(f"[INVITATION_ACCEPT] Notification introuvable : {notification_token}.")
+            logger.warning(f"[INVITATION_ACCEPT] Notification introuvable : {notification_id}.")
             return jsonify({"error": "Notification introuvable"}), 404
         
         # Vérifier si la notification est une invitation
         if doc.to_dict().get("type") != "calendar_invitation":
-            logger.warning(f"[INVITATION_ACCEPT] Notification non valide : {notification_token}.")
+            logger.warning(f"[INVITATION_ACCEPT] Notification non valide : {notification_id}.")
             return jsonify({"error": "Notification non valide"}), 400
         
         calendar_id = doc.to_dict().get("calendar_id")
@@ -106,12 +106,12 @@ def handle_accept_invitation(notification_token):
         }, merge=True)
 
         # Dire que la notif a été lue
-        db.collection("users").document(receiver_uid).collection("notifications").document(notification_token).update({
+        db.collection("users").document(receiver_uid).collection("notifications").document(notification_id).update({
             "read": True,
         })
 
         # Créer une notif pour l'utilisateur expéditeur
-        db.collection("users").document(owner_uid).collection("notifications").document(notification_token).set({
+        db.collection("users").document(owner_uid).collection("notifications").document(notification_id).set({
             "receiver_uid": receiver_uid,
             "receiver_email": user["email"],
             "calendar_name": calendar_name,
@@ -119,32 +119,32 @@ def handle_accept_invitation(notification_token):
             "type": "calendar_invitation_accepted",
             "timestamp": firestore.SERVER_TIMESTAMP,
             "read": False,
-            "notification_token": notification_token
+            "notification_id": notification_id
         })
 
-        logger.info(f"[INVITATION_ACCEPT] Invitation acceptée : {notification_token}.")
+        logger.info(f"[INVITATION_ACCEPT] Invitation acceptée : {notification_id}.")
         return jsonify({"message": "Invitation acceptée avec succès"}), 200
 
     except Exception as e:
-        logger.exception(f"[INVITATION_ACCEPT_ERROR] Erreur dans /api/accept-invitation/{notification_token}")
+        logger.exception(f"[INVITATION_ACCEPT_ERROR] Erreur dans /api/invitations/accept/{notification_id}")
         return jsonify({"error": "Erreur lors de l'acceptation de l'invitation."}), 500
 
 
 # Route pour rejeter une invitation pour un partage de calendrier
-@api.route("/api/reject-invitation/<notification_token>", methods=["POST"])
-def handle_reject_invitation(notification_token):
+@api.route("/api/invitations/reject/<notification_id>", methods=["POST"])
+def handle_reject_invitation(notification_id):
     try:
         user = verify_firebase_token()
         receiver_uid = user["uid"]
 
-        doc = db.collection("users").document(receiver_uid).collection("notifications").document(notification_token).get()
+        doc = db.collection("users").document(receiver_uid).collection("notifications").document(notification_id).get()
         if not doc.exists:
-            logger.warning(f"[INVITATION_REJECT] Notification introuvable : {notification_token}.")
+            logger.warning(f"[INVITATION_REJECT] Notification introuvable : {notification_id}.")
             return jsonify({"error": "Notification introuvable"}), 404
 
         # Vérifier si la notification est une invitation
         if doc.to_dict().get("type") != "calendar_invitation":
-            logger.warning(f"[INVITATION_REJECT] Notification non valide : {notification_token}.")
+            logger.warning(f"[INVITATION_REJECT] Notification non valide : {notification_id}.")
             return jsonify({"error": "Notification non valide"}), 400
 
         calendar_id = doc.to_dict().get("calendar_id")
@@ -152,10 +152,10 @@ def handle_reject_invitation(notification_token):
         owner_uid = doc.to_dict().get("owner_uid")
 
         # Supprimer la notif
-        db.collection("users").document(receiver_uid).collection("notifications").document(notification_token).delete()
+        db.collection("users").document(receiver_uid).collection("notifications").document(notification_id).delete()
 
         # Créer une notif pour l'utilisateur expéditeur
-        db.collection("users").document(owner_uid).collection("notifications").document(notification_token).set({
+        db.collection("users").document(owner_uid).collection("notifications").document(notification_id).set({
             "receiver_uid": receiver_uid,
             "receiver_email": user["email"],
             "calendar_name": calendar_name,
@@ -163,12 +163,12 @@ def handle_reject_invitation(notification_token):
             "type": "calendar_invitation_rejected",
             "timestamp": firestore.SERVER_TIMESTAMP,
             "read": False,
-            "notification_token": notification_token
+            "notification_id": notification_id
         })
 
-        logger.info(f"[INVITATION_REJECT] Invitation rejetée : {notification_token}.")
+        logger.info(f"[INVITATION_REJECT] Invitation rejetée : {notification_id}.")
         return jsonify({"message": "Invitation rejetée avec succès"}), 200
 
     except Exception as e:
-        logger.exception(f"[INVITATION_REJECT_ERROR] Erreur dans /api/reject-invitation/{notification_token}")
+        logger.exception(f"[INVITATION_REJECT_ERROR] Erreur dans /api/invitations/reject/{notification_id}")
         return jsonify({"error": "Erreur lors de la réjection de l'invitation."}), 500

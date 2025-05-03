@@ -27,19 +27,19 @@ def handle_notifications():
 
 
 # Route pour marquer une notification comme lue
-@api.route("/api/notifications/<notification_token>", methods=["POST"])
-def handle_read_notification(notification_token):
+@api.route("/api/notifications/<notification_id>", methods=["POST"])
+def handle_read_notification(notification_id):
     try:
         user = verify_firebase_token()
         uid = user["uid"]
 
-        db.collection("users").document(uid).collection("notifications").document(notification_token).update({
+        db.collection("users").document(uid).collection("notifications").document(notification_id).update({
             "read": True
         })
 
-        logger.info(f"[NOTIFICATION_READ] Notification marquée comme lue : {notification_token}.")
+        logger.info(f"[NOTIFICATION_READ] Notification marquée comme lue : {notification_id}.")
         return jsonify({"message": "Notification marquée comme lue avec succès"}), 200
 
     except Exception as e:
-        logger.exception(f"[NOTIFICATION_READ_ERROR] Erreur dans /api/read-notification/{notification_token}")
+        logger.exception(f"[NOTIFICATION_READ_ERROR] Erreur dans /api/read-notification/{notification_id}")
         return jsonify({"error": "Erreur lors de la lecture de la notification."}), 500

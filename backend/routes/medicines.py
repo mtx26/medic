@@ -9,45 +9,55 @@ from function import verify_calendar_share
 db = firestore.client()
 
 
-# Route pour gérer les médicaments d'un calendrier spécifique
-@api.route("/api/calendars/<calendar_id>/medicines", methods=["GET", "POST"])
-def handle_medicines(calendar_id):
+# Obtenir les médicaments d’un calendrier
+@api.route("/api/calendars/<calendar_id>/medicines", methods=["GET"])
+def get_medicines(calendar_id):
     try:
         user = verify_firebase_token()
         uid = user["uid"]
 
-        if request.method == "POST":
-            medicines = request.json.get("medicines")
-            if not isinstance(medicines, list):
-                logger.warning(f"[MED_UPDATE] Format de médicaments invalide reçu de {uid}.")
-                return jsonify({"error": "Le format des médicaments est invalide."}), 400
+        doc = db.collection("users").document(uid).collection("calendars").document(calendar_id).get()
+        if doc.exists:
+            data = doc.to_dict()
+            medicines = data.get("medicines", [])
+            logger.info(f"[MED_FETCH] Médicaments récupérés pour {uid}.")
+            return jsonify({"medicines": medicines}), 200
+        else:
+            logger.warning(f"[MED_FETCH] Aucun document trouvé pour l'utilisateur {uid}.")
+            return jsonify({"medicines": []}), 200
 
-            db.collection("users").document(uid).collection("calendars").document(calendar_id).set({
-                "medicines": medicines,
-                "last_updated": datetime.now(timezone.utc).isoformat()
-            }, merge=True)
+    except Exception:
+        logger.exception(f"[MED_ERROR] Erreur dans GET /api/calendars/{calendar_id}/medicines")
+        return jsonify({"error": "Erreur interne"}), 500
 
-            logger.info(f"[MED_UPDATE] Médicaments mis à jour pour {uid}.")
-            return jsonify({"message": "Médicaments mis à jour", "status": "ok"})
 
-        elif request.method == "GET":
-            doc = db.collection("users").document(uid).collection("calendars").document(calendar_id).get()
-            if doc.exists:
-                data = doc.to_dict()
-                medicines = data.get("medicines", [])
-                logger.info(f"[MED_FETCH] Médicaments récupérés pour {uid}.")
-                return jsonify({"medicines": medicines}), 200
-            else:
-                logger.warning(f"[MED_FETCH] Aucun document trouvé pour l'utilisateur {uid}.")
-                return jsonify({"medicines": []}), 200
+# Mettre à jour les médicaments d’un calendrier
+@api.route("/api/calendars/<calendar_id>/medicines", methods=["POST"])
+def update_medicines(calendar_id):
+    try:
+        user = verify_firebase_token()
+        uid = user["uid"]
+        medicines = request.json.get("medicines")
 
-    except Exception as e:
-        logger.exception(f"[MED_ERROR] Erreur dans /api/calendars/${calendar_id}/medicines")
+        if not isinstance(medicines, list):
+            logger.warning(f"[MED_UPDATE] Format de médicaments invalide reçu de {uid}.")
+            return jsonify({"error": "Le format des médicaments est invalide."}), 400
+
+        db.collection("users").document(uid).collection("calendars").document(calendar_id).set({
+            "medicines": medicines,
+            "last_updated": firestore.SERVER_TIMESTAMP
+        }, merge=True)
+
+        logger.info(f"[MED_UPDATE] Médicaments mis à jour pour {uid}.")
+        return jsonify({"message": "Médicaments mis à jour", "status": "ok"})
+
+    except Exception:
+        logger.exception(f"[MED_ERROR] Erreur dans POST /api/calendars/{calendar_id}/medicines")
         return jsonify({"error": "Erreur interne"}), 500
 
 
 # Route pour compter les médicaments
-@api.route("/api/countmedicines", methods=["GET"])
+@api.route("/api/medicines/count", methods=["GET"])
 def count_medicines():
     try:
         user = verify_firebase_token()
@@ -66,12 +76,12 @@ def count_medicines():
         return jsonify({"count": count}), 200
 
     except Exception as e:
-        logger.exception("[MED_COUNT_ERROR] Erreur dans /api/countmedicines")
+        logger.exception("[MED_COUNT_ERROR] Erreur dans /api/medicines/count")
         return jsonify({"error": "Erreur lors du comptage des médicaments."}), 500
  
 
 # Route pour compter les médicaments d'un calendrier partagé
-@api.route("/api/shared/countmedicines", methods=["GET"])
+@api.route("/api/medicines/tokens/count", methods=["GET"])
 def count_shared_medicines():
     try:
         user = verify_firebase_token()
@@ -97,5 +107,5 @@ def count_shared_medicines():
         return jsonify({"count": count}), 200
 
     except Exception as e:
-        logger.exception("[MED_COUNT_ERROR] Erreur dans /api/shared/countmedicines")
+        logger.exception("[MED_COUNT_ERROR] Erreur dans /api/medicines/shared/count")
         return jsonify({"error": "Erreur lors du comptage des médicaments."}), 500

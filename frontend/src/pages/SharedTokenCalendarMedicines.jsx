@@ -7,7 +7,7 @@ function SharedTokenCalendarMedicines({ meds, sharedTokens }) {
   const navigate = useNavigate(); // Hook de navigation
 
   // ✅ État de récupération des médicaments partagés
-  const [successGetSharedTokenMedecines, setSuccessGetSharedTokenMedecines] = useState(); // État du succès de la récupération des médicaments partagés
+  const [successFetchSharedTokenMedecines, setSuccessFetchSharedTokenMedecines] = useState(); // État du succès de la récupération des médicaments partagés
 
 
 
@@ -19,15 +19,15 @@ function SharedTokenCalendarMedicines({ meds, sharedTokens }) {
   useEffect(() => {
     const fetchShared = async () => {
       if (sharedToken) {
-        const success = await sharedTokens.getSharedTokenMedecines(sharedToken);
-        setSuccessGetSharedTokenMedecines(success);
+        const success = await sharedTokens.fetchSharedTokenMedecines(sharedToken);
+        setSuccessFetchSharedTokenMedecines(success);
       }
     };
   
     fetchShared();
   }, [sharedToken]);
 
-  if (successGetSharedTokenMedecines === undefined && sharedToken) {
+  if (successFetchSharedTokenMedecines === undefined && sharedToken) {
     return (
       <div className="d-flex justify-content-center align-items-center" style={{ height: '60vh' }}>
         <div className="spinner-border text-primary" role="status">
@@ -37,7 +37,7 @@ function SharedTokenCalendarMedicines({ meds, sharedTokens }) {
     );
   }
   
-  if (successGetSharedTokenMedecines === false && sharedToken) {
+  if (successFetchSharedTokenMedecines === false && sharedToken) {
     return (
       <div className="alert alert-danger text-center mt-5" role="alert">
         ❌ Ce lien de calendrier partagé est invalide ou a expiré.

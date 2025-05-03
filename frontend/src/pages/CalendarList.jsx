@@ -70,7 +70,6 @@ function SelectCalendar({ calendars, sharedTokens, invitations, sharedUsers }) {
       for (const calendarData of calendars.sharedCalendarsData) {
         const count = await calendars.getSharedMedicineCount(calendarData.calendar_id, calendarData.owner_uid);
         counts[calendarData.calendar_id] = count;
-        console.log(calendarData.calendar_id, count);
       }
       setCount(counts); 
     };
@@ -289,7 +288,6 @@ function SelectCalendar({ calendars, sharedTokens, invitations, sharedUsers }) {
                     className="btn btn-outline-primary"
                     onClick={async () => {
                       const success = await invitations.sendInvitation(emailToInvite, calendarIdToShare);
-                      console.log(emailToInvite, calendarIdToShare);
                       if (success) {
                         setAlertType("success");
                         setSelectedAlert("calendar");
@@ -449,7 +447,7 @@ function SelectCalendar({ calendars, sharedTokens, invitations, sharedUsers }) {
             setSelectedAlert("calendar"+calendarData.calendar_id);
             setAlertMessage("✅ Confirmez-vous le renommage du calendrier ?");
             setOnConfirmAction(() => async () => {
-              const success = await calendars.RenameCalendar(calendarData.calendar_id, renameValues[calendarData.calendar_id]); // Renommage du calendrier
+              const success = await calendars.renameCalendar(calendarData.calendar_id, renameValues[calendarData.calendar_id]); // Renommage du calendrier
               if (success) {
                 setRenameValues({ ...renameValues, [calendarData.calendar_id]: "" }); // Réinitialisation du champ
                 setAlertType("success");

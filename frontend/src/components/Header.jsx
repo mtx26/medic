@@ -74,7 +74,7 @@ function Navbar({ sharedProps }) {
                     {/* TODO: max 5 notifications est unread */}
                       {notificationsData.filter(notif => !notif.read).slice(0, 5).map((notif) => (
                         <li 
-                          key={notif.notification_token} 
+                          key={notif.notification_id} 
                           className="dropdown-item py-2 fs-6 bg-light border-start border-4 border-primary p-2 rounded"
                         >
                           <div className="d-flex flex-column">
@@ -87,13 +87,13 @@ function Navbar({ sharedProps }) {
                                     <button 
                                       className="btn btn-sm btn-outline-primary ms-2" 
                                       onClick={async () => {
-                                        await acceptInvitation(notif.notification_token)
+                                        await acceptInvitation(notif.notification_id)
                                         fetchSharedCalendars()
                                       }}
                                     >
                                       Accepter
                                     </button>
-                                    <button className="btn btn-sm btn-outline-danger ms-2" onClick={() => rejectInvitation(notif.notification_token)}>Rejeter</button>
+                                    <button className="btn btn-sm btn-outline-danger ms-2" onClick={() => rejectInvitation(notif.notification_id)}>Rejeter</button>
                                   </div>
                                   <small 
                                     className="text-muted"
@@ -105,7 +105,7 @@ function Navbar({ sharedProps }) {
                               {notif.type === "calendar_invitation_accepted" && (
                                 <>
                                   <div
-                                    onClick={() => readNotification(notif.notification_token)}
+                                    onClick={() => readNotification(notif.notification_id)}
                                     title="Marquer comme lu"
                                     style={{
                                       cursor: "pointer",
@@ -126,7 +126,7 @@ function Navbar({ sharedProps }) {
                               {notif.type === "calendar_invitation_rejected" && (
                                 <>
                                   <div
-                                    onClick={() => readNotification(notif.notification_token)}
+                                    onClick={() => readNotification(notif.notification_id)}
                                     title="Marquer comme lu"
                                     style={{
                                       cursor: "pointer",

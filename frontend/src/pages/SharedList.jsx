@@ -240,7 +240,7 @@ function SharedList({ sharedTokens, calendars, sharedUsers, invitations }) {
                         <button
                           className={`btn ${token.revoked ? 'btn-outline-danger' : 'btn-outline-success'}`}
                           onClick={async () => {
-                            const success = await sharedTokens.revokeToken(token.token)
+                            const success = await sharedTokens.updateRevokeToken(token.token)
                             if (success) {
                               setAlertType("success");
                               setAlertMessage(token.revoked ? "👍 Lien de partage réactivé avec succès." : "👍 Lien de partage désactivé avec succès.");

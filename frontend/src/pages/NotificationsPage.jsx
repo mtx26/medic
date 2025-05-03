@@ -14,14 +14,12 @@ function NotificationsPage({ notifications, invitations }) {
         <div className="alert alert-info text-center">Aucune notification pour le moment.</div>
       ) : (
         <ul className="list-group">
-          {notifications.notificationsData
-            .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
-            .map((notif) => (
+          {notifications.notificationsData.map((notif) => (
               <li
-                key={notif.notification_token}
+                key={notif.notification_id}
 								className={`list-group-item list-group-item-action border-0 border-start border-4 ${notif.read ? "bg-light text-muted" : "bg-unread border-primary p-2 rounded"}`}
                 onClick={() => {
-                  if (!notif.read) notifications.readNotification(notif.notification_token);
+                  if (!notif.read) notifications.readNotification(notif.notification_id);
                 }}
                 style={{ cursor: "pointer" }}
                 title={!notif.read ? "Marquer comme lue" : ""}
@@ -38,13 +36,13 @@ function NotificationsPage({ notifications, invitations }) {
                         <div className="mt-2">
                           <button
                             className="btn btn-sm btn-outline-success me-2"
-                            onClick={() => invitations.acceptInvitation(notif.notification_token)}
+                            onClick={() => invitations.acceptInvitation(notif.notification_id)}
                           >
                             <i className="bi bi-check-circle-fill me-2 text-success"></i> Accepter
                           </button>
                           <button
                             className="btn btn-sm btn-outline-danger"
-                            onClick={() => invitations.rejectInvitation(notif.notification_token)}
+                            onClick={() => invitations.rejectInvitation(notif.notification_id)}
                           >
                             <i className="bi bi-x-circle-fill me-2 text-danger"></i> Rejeter
                           </button>

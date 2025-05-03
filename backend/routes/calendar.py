@@ -9,121 +9,127 @@ import secrets
 
 db = firestore.client()
 
-# Route pour gérer les calendriers
-@api.route("/api/calendars", methods=["GET", "POST", "DELETE", "PUT"])
+# Route pour récupérer les calendriers de l'utilisateur
+@api.route("/api/calendars", methods=["GET"])
 def handle_calendars():
     try:
         user = verify_firebase_token()
         uid = user["uid"]
 
-        # Route pour récupérer tous les calendriers
-        if request.method == "GET":
-            calendars_ref = db.collection("users").document(uid).collection("calendars")
-            calendars = []
-            for calendar in calendars_ref.stream():
-                calendar_data = calendar.to_dict()
-                calendars.append(calendar_data)
-            logger.info(f"[CALENDAR_GET] {len(calendars)} calendriers récupérés pour {uid}.")
-            return jsonify({"calendars": calendars}), 200
+        calendars_ref = db.collection("users").document(uid).collection("calendars")
+        calendars = [calendar.to_dict() for calendar in calendars_ref.stream()]
+        logger.info(f"[CALENDAR_GET] {len(calendars)} calendriers récupérés pour {uid}.")
+        return jsonify({"calendars": calendars}), 200
 
-        # Route pour créer un calendrier
-        elif request.method == "POST":
-            calendar_name = request.json.get("calendarName")
-            if not calendar_name:
-                logger.warning(f"[CALENDAR_CREATE] Nom de calendrier manquant pour {uid}.")
-                return jsonify({"error": "Nom de calendrier manquant"}), 400
-
-            calendar_id = secrets.token_hex(16)
-
-            doc = db.collection("users").document(uid).collection("calendars").document(calendar_id).get()
-
-            if doc.exists:
-                logger.warning(f"[CALENDAR_EXISTS] Tentative de création d'un calendrier déjà existant : '{calendar_name}' pour {uid}.")
-                return jsonify({"message": "Ce calendrier existe déjà", "status": "error"}), 409
-            
-
-            db.collection("users").document(uid).collection("calendars").document(calendar_id).set({
-                "calendar_id": calendar_id,
-                "calendar_name": calendar_name,
-                "medicines": "",
-                "last_updated": datetime.now(timezone.utc).isoformat()
-            }, merge=True)
-            
-            logger.info(f"[CALENDAR_CREATE] Calendrier '{calendar_name}' créé pour {uid}.")
-            return jsonify({"message": "Calendrier mis à jour", "status": "ok"})
-
-        # Route pour supprimer un calendrier
-        elif request.method == "DELETE":
-            calendar_id = request.json.get("calendarId")
-
-            doc_ref = db.collection("users").document(uid).collection("calendars").document(calendar_id)
-            if not doc_ref.get().exists:
-                logger.warning(f"[CALENDAR_DELETE] Calendrier '{calendar_id}' introuvable pour {uid}.")
-                return jsonify({"error": "Calendrier introuvable"}), 404
-
-            doc_ref.delete()
-            # pour le calendrier partagé
-            shared_tokens_ref = db.collection("shared_tokens").get()
-
-            for doc in shared_tokens_ref:
-                if doc.to_dict().get("owner_uid") == uid:
-                    if doc.to_dict().get("calendar_id") == calendar_id:
-                        db.collection("shared_tokens").document(doc.id).delete()
-
-            logger.info(f"[CALENDAR_DELETE] Calendrier '{calendar_id}' supprimé pour {uid}.")
-            return jsonify({"message": "Calendrier supprimé", "status": "ok"})
-            
-
-        # Route pour renommer un calendrier
-        elif request.method == "PUT":
-            # pour le calendrier personnel
-            data = request.get_json(force=True)
-            calendar_id = data.get("calendarId")
-
-            
-            doc_ref = db.collection("users").document(uid).collection("calendars").document(calendar_id)
-
-            if not doc_ref.get().exists:
-                logger.warning(f"[CALENDAR_RENAME] Calendrier '{calendar_id}' introuvable pour {uid}.")
-                return jsonify({"error": "Calendrier introuvable"}), 404
-
-            old_calendar_name = doc_ref.get().to_dict().get("calendar_name")
-            new_calendar_name = data.get("newCalendarName")
-
-            if not old_calendar_name or not new_calendar_name:
-                logger.warning(f"[CALENDAR_RENAME] Noms invalides reçus pour {uid}.")
-                return jsonify({"error": "Nom de calendrier invalide"}), 400
-
-            if old_calendar_name == new_calendar_name:
-                logger.warning(f"[CALENDAR_RENAME] Nom inchangé pour {uid} : {old_calendar_name}.")
-                return jsonify({"error": "Le nom du calendrier n'a pas changé"}), 400
-
-            doc_ref.update({
-                "calendar_name": new_calendar_name
-            })
-            
-
-            # pour le calendrier partagé
-            shared_tokens_ref = db.collection("shared_tokens").get()
-            for doc in shared_tokens_ref:
-                if doc.to_dict().get("owner_uid") == uid:
-                    if doc.to_dict().get("calendar_name") == old_calendar_name:
-                        db.collection("shared_tokens").document(doc.id).update({
-                            "calendar_name": new_calendar_name
-                        })   
-
-            logger.info(f"[CALENDAR_RENAME] Calendrier '{old_calendar_name}' renommé en '{new_calendar_name}' pour {uid}.")
-            return jsonify({"message": "Calendrier renommé avec succès"}), 200
+    except Exception:
+        logger.exception("[CALENDAR_ERROR] Erreur dans GET /api/calendars")
+        return jsonify({"error": "Erreur lors de la récupération des calendriers."}), 500
 
 
-    except Exception as e:
-        logger.exception("[CALENDAR_ERROR] Erreur dans /api/calendars")
-        return jsonify({"error": "Erreur lors de la gestion des calendriers."}), 500
-   
+# Route pour créer un calendrier
+@api.route("/api/calendars", methods=["POST"])
+def handle_create_calendar():
+    try:
+        user = verify_firebase_token()
+        uid = user["uid"]
+        calendar_name = request.json.get("calendarName")
+
+        if not calendar_name:
+            logger.warning(f"[CALENDAR_CREATE] Nom de calendrier manquant pour {uid}.")
+            return jsonify({"error": "Nom de calendrier manquant"}), 400
+
+        calendar_id = secrets.token_hex(16)
+        doc = db.collection("users").document(uid).collection("calendars").document(calendar_id).get()
+
+        if doc.exists:
+            logger.warning(f"[CALENDAR_EXISTS] Tentative de création d'un calendrier déjà existant : '{calendar_name}' pour {uid}.")
+            return jsonify({"message": "Ce calendrier existe déjà", "status": "error"}), 409
+
+        db.collection("users").document(uid).collection("calendars").document(calendar_id).set({
+            "calendar_id": calendar_id,
+            "calendar_name": calendar_name,
+            "medicines": "",
+            "last_updated": firestore.SERVER_TIMESTAMP
+        }, merge=True)
+
+        logger.info(f"[CALENDAR_CREATE] Calendrier '{calendar_name}' créé pour {uid}.")
+        return jsonify({"message": "Calendrier mis à jour", "status": "ok"})
+
+    except Exception:
+        logger.exception("[CALENDAR_CREATE_ERROR] Erreur dans POST /api/calendars")
+        return jsonify({"error": "Erreur lors de la création du calendrier."}), 500
+
+
+# Route pour supprimer un calendrier
+@api.route("/api/calendars", methods=["DELETE"])
+def handle_delete_calendar():
+    try:
+        user = verify_firebase_token()
+        uid = user["uid"]
+        calendar_id = request.json.get("calendarId")
+
+        doc_ref = db.collection("users").document(uid).collection("calendars").document(calendar_id)
+        if not doc_ref.get().exists:
+            logger.warning(f"[CALENDAR_DELETE] Calendrier '{calendar_id}' introuvable pour {uid}.")
+            return jsonify({"error": "Calendrier introuvable"}), 404
+
+        doc_ref.delete()
+
+        for doc in db.collection("shared_tokens").get():
+            token_data = doc.to_dict()
+            if token_data.get("owner_uid") == uid and token_data.get("calendar_id") == calendar_id:
+                db.collection("shared_tokens").document(doc.id).delete()
+
+        logger.info(f"[CALENDAR_DELETE] Calendrier '{calendar_id}' supprimé pour {uid}.")
+        return jsonify({"message": "Calendrier supprimé", "status": "ok"})
+
+    except Exception:
+        logger.exception("[CALENDAR_DELETE_ERROR] Erreur dans DELETE /api/calendars")
+        return jsonify({"error": "Erreur lors de la suppression du calendrier."}), 500
+
+
+# Route pour renommer un calendrier
+@api.route("/api/calendars", methods=["PUT"])
+def handle_rename_calendar():
+    try:
+        user = verify_firebase_token()
+        uid = user["uid"]
+        data = request.get_json(force=True)
+        calendar_id = data.get("calendarId")
+        new_calendar_name = data.get("newCalendarName")
+
+        doc_ref = db.collection("users").document(uid).collection("calendars").document(calendar_id)
+        if not doc_ref.get().exists:
+            logger.warning(f"[CALENDAR_RENAME] Calendrier '{calendar_id}' introuvable pour {uid}.")
+            return jsonify({"error": "Calendrier introuvable"}), 404
+
+        old_calendar_name = doc_ref.get().to_dict().get("calendar_name")
+        if not old_calendar_name or not new_calendar_name:
+            logger.warning(f"[CALENDAR_RENAME] Noms invalides reçus pour {uid}.")
+            return jsonify({"error": "Nom de calendrier invalide"}), 400
+
+        if old_calendar_name == new_calendar_name:
+            logger.warning(f"[CALENDAR_RENAME] Nom inchangé pour {uid} : {old_calendar_name}.")
+            return jsonify({"error": "Le nom du calendrier n'a pas changé"}), 400
+
+        doc_ref.update({"calendar_name": new_calendar_name})
+
+        for doc in db.collection("shared_tokens").get():
+            token_data = doc.to_dict()
+            if token_data.get("owner_uid") == uid and token_data.get("calendar_name") == old_calendar_name:
+                db.collection("shared_tokens").document(doc.id).update({"calendar_name": new_calendar_name})
+
+        logger.info(f"[CALENDAR_RENAME] Calendrier '{old_calendar_name}' renommé en '{new_calendar_name}' pour {uid}.")
+        return jsonify({"message": "Calendrier renommé avec succès"}), 200
+
+    except Exception:
+        logger.exception("[CALENDAR_RENAME_ERROR] Erreur dans PUT /api/calendars")
+        return jsonify({"error": "Erreur lors du renommage du calendrier."}), 500
+  
 
 # Route pour générer le calendrier 
 @api.route("/api/calendars/<calendar_id>/calendar", methods=["GET"])
-def get_calendar(calendar_id):
+def handle_calendar(calendar_id):
     try:
         user = verify_firebase_token()
         owner_uid = user["uid"]

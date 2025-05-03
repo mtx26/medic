@@ -56,7 +56,6 @@ function App() {
     }
   }, [setCalendarsData]);
 
-
   // Fonction pour ajouter un calendrier
   const addCalendar = useCallback(async (calendarName) => {
     try {
@@ -89,7 +88,6 @@ function App() {
   }, [fetchCalendars]);
 
   // Fonction pour supprimer un calendrier
-
   const deleteCalendar = useCallback(async (calendarId) => {
     try {
       const token = await auth.currentUser.getIdToken();
@@ -121,8 +119,7 @@ function App() {
   }, [fetchCalendars]);
 
   // Fonction pour renommer un calendrier
-
-  const RenameCalendar = useCallback(async (calendarId, newCalendarName) => {
+  const renameCalendar = useCallback(async (calendarId, newCalendarName) => {
     try {
       const token = await auth.currentUser.getIdToken();
       const res = await fetch(`${API_URL}/api/calendars`, {
@@ -155,11 +152,10 @@ function App() {
   }, [fetchCalendars]);
 
   // Fonction pour obtenir le nombre de médicaments d'un calendrier 
-
   const getMedicineCount = useCallback(async (calendarId) => {
     try {
       const token = await auth.currentUser.getIdToken();
-      const res = await fetch(`${API_URL}/api/countmedicines?calendarId=${calendarId}`, {
+      const res = await fetch(`${API_URL}/api/medicines/count?calendarId=${calendarId}`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -167,7 +163,7 @@ function App() {
           "Accept": "application/json",
         },
       });
-      if (!res.ok) throw new Error("Erreur HTTP GET /api/medicines");
+      if (!res.ok) throw new Error("Erreur HTTP GET /api/medicines/count");
       const data = await res.json();
       log.info("Nombre de médicaments récupéré avec succès", {
         id: "MED_COUNT_SUCCESS",
@@ -191,13 +187,13 @@ function App() {
   const getSharedMedicineCount = useCallback(async (calendarId, ownerUid) => {
     try {
       const token = await auth.currentUser.getIdToken();
-      const res = await fetch(`${API_URL}/api/shared/countmedicines?calendarId=${calendarId}&ownerUid=${ownerUid}`, {
+      const res = await fetch(`${API_URL}/api/medicines/tokens/count?calendarId=${calendarId}&ownerUid=${ownerUid}`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      if (!res.ok) throw new Error("Erreur HTTP GET /api/shared/countmedicines");
+      if (!res.ok) throw new Error("Erreur HTTP GET /api/medicines/tokens/count");
       const data = await res.json();
       log.info("Nombre de médicaments récupéré avec succès", {
         id: "SHARED_MED_COUNT_SUCCESS",
@@ -217,9 +213,11 @@ function App() {
     }
   }, []);
 
+
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
-  // Fonction pour obtenir le calendrier lier au calendarName
+
+  // Fonction pour obtenir le calendrier lier au calendarId
   const getCalendar = useCallback(async (calendarId, startDate ) => {
     try {
       if (!calendarId) {
@@ -262,7 +260,9 @@ function App() {
     }
   }, [setCalendarEvents]);
 
+
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
   // Fonction pour obtenir les différents médicaments
   const fetchCalendarsMedecines = useCallback(async (calendarId) => {
@@ -294,7 +294,6 @@ function App() {
   }, [setMedsData, setOriginalMedsData]);
     
 
-
   // Fonction pour mettre à jour un médicament dans la variable meds
   const handleMedChange = useCallback((index, field, value) => {
     if (value !== null && field !== null && index !== null) {
@@ -320,19 +319,19 @@ function App() {
   }, [medsData, setMedsData]);
 
     // Fonction pour mettre à jour les médicaments
-  const updateMeds = useCallback(async (calendarName, newMeds = medsData) => {
+  const updateMeds = useCallback(async (calendarId, newMeds = medsData) => {
     try {
       if (medsData.length === 0) {
         log.warn("Aucun médicament à mettre à jour", {
           id: "MED_UPDATE_NO_MEDS",
           origin: "App.js",
-          calendarName,
+          calendarId,
         });
         return false;
       };
 
       const token = await auth.currentUser.getIdToken();
-      const res = await fetch(`${API_URL}/api/calendars/${calendarName}/medicines`, {
+      const res = await fetch(`${API_URL}/api/calendars/${calendarId}/medicines`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -340,7 +339,7 @@ function App() {
         },
         body: JSON.stringify({ medicines: newMeds  }),
       });
-      if (!res.ok) throw new Error(`Erreur HTTP POST /api/calendars/${calendarName}/medicines`);
+      if (!res.ok) throw new Error(`Erreur HTTP POST /api/calendars/${calendarId}/medicines`);
       log.info("Médicaments mis à jour avec succès", {
         id: "MED_UPDATE_SUCCESS",
         origin: "App.js",
@@ -357,34 +356,34 @@ function App() {
     }
   }, [medsData]);
 
-
   // Fonction pour supprimer des médicaments 
-  const deleteSelectedMeds = useCallback(async (nameCalendar) => {
+  const deleteSelectedMeds = useCallback(async (calendarId) => {
     if (checked.length === 0) return false;
   
     const updatedMeds = medsData.filter((_, i) => !checked.includes(i));
     setMedsData(updatedMeds);
     setChecked([]);
   
-    const success = await updateMeds(nameCalendar, updatedMeds);
+    const success = await updateMeds(calendarId, updatedMeds);
   
     if (success) {
       log.info("Médicaments supprimés avec succès", {
         id: "MED_DELETE_SUCCESS",
         origin: "App.js",
         count: checked.length,
+        calendarId,
       });
     } else {
       log.error("Échec de suppression des médicaments", {
         id: "MED_DELETE_FAIL",
         origin: "App.js",
         count: checked.length,
+        calendarId,
       });
     }
     return success;
   }, [checked, medsData, setMedsData, setChecked, updateMeds]);
   
-
   // Fonction pour ajouter un nouveau médicament sanq la variable meds
   const addMed = useCallback(() => {
     setMedsData([
@@ -393,20 +392,21 @@ function App() {
     ]);
   }, [medsData, setMedsData]);
 
-//////////////////////////////////////////////////////////////////////////////////////////////////
+
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-  // Fonction pour recupérer un calendrier partagé par sharedTokens
-  const fetchSharedTokenCalendar = useCallback(async (sharedToken, startDate) => {
+  // Fonction pour recupérer un calendrier partagé par un token
+  const fetchSharedTokenCalendar = useCallback(async (token, startDate) => {
     try {
       if (!startDate) {
         startDate = new Date().toISOString().slice(0, 10);
       }
       
-      const res = await fetch(`${API_URL}/api/shared/${sharedToken}?startTime=${startDate}`, {
+      const res = await fetch(`${API_URL}/api/tokens/${token}/calendar?startTime=${startDate}`, {
         method: "GET",
       });
-      if (!res.ok) throw new Error(`Erreur HTTP GET /api/shared/${sharedToken}`);
+      if (!res.ok) throw new Error(`Erreur HTTP GET /api/tokens/${token}/calendar`);
       const data = await res.json();
       setCalendarEvents(data.map(e => ({ title: e.title, start: e.date, color: e.color })));
       log.info("Calendrier partagé recuperé avec succès", {
@@ -426,18 +426,19 @@ function App() {
   }, [setCalendarEvents]);
 
   // Fonction pour récupérer les médicaments d'un calendrier partagé
-  const getSharedTokenMedecines = useCallback(async (sharedToken) => {
+  const fetchSharedTokenMedecines = useCallback(async (token) => {
     try {
-      const  res = await fetch(`${API_URL}/api/shared/${sharedToken}/medecines`, {
+      const  res = await fetch(`${API_URL}/api/tokens/${token}/medecines`, {
         method: "GET",
       });
-      if (!res.ok) throw new Error(`Erreur HTTP GET /api/shared/${sharedToken}/medecines`);
+      if (!res.ok) throw new Error(`Erreur HTTP GET /api/tokens/${token}/medecines`);
       const data = await res.json();
       setMedsData(data.medicines)
       log.info("Médicaments récupérés avec succès", {
         id: "SHARED_MED_FETCH_SUCCESS",
         origin: "App.js",
         count: data.medicines?.length,
+        token,
       });
       return true;
     } catch (err) {
@@ -445,11 +446,11 @@ function App() {
         id: "SHARED_MED_FETCH_FAIL",
         origin: "App.js",
         stack: err.stack,
+        token,
       });
       return false;
     }
   }, [setMedsData]);
-  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   // Fonction pour récupérer les tokens
   const fetchTokens = useCallback(async () => {
@@ -483,7 +484,7 @@ function App() {
   const createSharedTokenCalendar = useCallback(async (calendarId, expiresAt, permissions) => {
     try {
       const token = await auth.currentUser.getIdToken();
-      const res = await fetch(`${API_URL}/api/set-shared/${calendarId}`, {
+      const res = await fetch(`${API_URL}/api/tokens/${calendarId}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -515,13 +516,13 @@ function App() {
   const deleteSharedTokenCalendar = useCallback(async (token) => {
     try {
       const tokenFirebase = await auth.currentUser.getIdToken();
-      const res = await fetch(`${API_URL}/api/shared/${token}`, {
+      const res = await fetch(`${API_URL}/api/tokens/${token}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${tokenFirebase}`,
         },
       });
-      if (!res.ok) throw new Error(`Erreur HTTP DELETE /api/shared/${token}`);
+      if (!res.ok) throw new Error(`Erreur HTTP DELETE /api/tokens/${token}`);
       fetchTokens();
       log.info("Lien de partage supprimé avec succès", {
         id: "SHARED_CALENDAR_DELETE_SUCCESS",
@@ -540,16 +541,16 @@ function App() {
   }, [fetchTokens]);
   
   // Fonction pour revoker un token
-  const revokeToken = useCallback(async (token) => {
+  const updateRevokeToken = useCallback(async (token) => {
     try {
       const tokenFirebase = await auth.currentUser.getIdToken();
-      const res = await fetch(`${API_URL}/api/revoke-token/${token}`, {
+      const res = await fetch(`${API_URL}/api/tokens/revoke/${token}`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${tokenFirebase}`,
         },
       });
-      if (!res.ok) throw new Error(`Erreur HTTP POST /api/revoke-token/${token}`);
+      if (!res.ok) throw new Error(`Erreur HTTP POST /api/tokens/revoke/${token}`);
       fetchTokens();
       log.info("Token révoqué avec succès", {
         id: "TOKEN_REVOKE_SUCCESS",
@@ -571,14 +572,14 @@ function App() {
   const updateTokenExpiration = useCallback(async (token, expiresAt) => {
     try {
       const tokenFirebase = await auth.currentUser.getIdToken();
-      const res = await fetch(`${API_URL}/api/update-token-expiration/${token}`, {
+      const res = await fetch(`${API_URL}/api/tokens/expiration/${token}`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${tokenFirebase}`,
         },
         body: JSON.stringify({ expiresAt }),
       });
-      if (!res.ok) throw new Error(`Erreur HTTP POST /api/update-token-expiration/${token}`);
+      if (!res.ok) throw new Error(`Erreur HTTP POST /api/tokens/expiration/${token}`);
       fetchTokens();
       log.info("Expiration du token mise à jour avec succès", {
         id: "TOKEN_EXPIRATION_UPDATE_SUCCESS",
@@ -601,14 +602,14 @@ function App() {
   const updateTokenPermissions = useCallback(async (token, permissions) => {
     try {
       const tokenFirebase = await auth.currentUser.getIdToken();
-      const res = await fetch(`${API_URL}/api/update-token-permissions/${token}`, {
+      const res = await fetch(`${API_URL}/api/tokens/permissions/${token}`, {
         method: "POST",
           headers: {
           Authorization: `Bearer ${tokenFirebase}`,
         },
         body: JSON.stringify({ permissions }),
       });
-      if (!res.ok) throw new Error(`Erreur HTTP POST /api/update-token-permissions/${token}`);
+      if (!res.ok) throw new Error(`Erreur HTTP POST /api/tokens/permissions/${token}`);
       fetchTokens();
       log.info("Permissions du token mises à jour avec succès", {
         id: "TOKEN_PERMISSIONS_UPDATE_SUCCESS",
@@ -627,20 +628,22 @@ function App() {
     }
   }, [fetchTokens]);
 
+
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
   // Fonction pour envoyer une invitation à un utilisateur
   const sendInvitation = useCallback(async (email, calendarId) => {
     try {
       const token = await auth.currentUser.getIdToken();
-      const res = await fetch(`${API_URL}/api/send-invitation/${calendarId}`, {
+      const res = await fetch(`${API_URL}/api/invitations/send/${calendarId}`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ email }),
       });
-      if (!res.ok) throw new Error(`Erreur HTTP POST /api/send-invitation/${calendarId}`);
+      if (!res.ok) throw new Error(`Erreur HTTP POST /api/invitations/send/${calendarId}`);
       log.info("Invitation envoyée avec succès", {
         id: "INVITATION_SEND_SUCCESS",
         origin: "App.js",
@@ -689,21 +692,21 @@ function App() {
   }, [setNotificationsData]);
 
   // Fonction pour accepter une invitation
-  const acceptInvitation = useCallback(async (notificationToken) => {
+  const acceptInvitation = useCallback(async (notificationId) => {
     try {
       const token = await auth.currentUser.getIdToken();
-      const res = await fetch(`${API_URL}/api/accept-invitation/${notificationToken}`, {
+      const res = await fetch(`${API_URL}/api/invitations/accept/${notificationId}`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      if (!res.ok) throw new Error(`Erreur HTTP POST /api/accept-invitation/${notificationToken}`);
+      if (!res.ok) throw new Error(`Erreur HTTP POST /api/invitations/accept/${notificationId}`);
       fetchNotifications(); 
       log.info("Invitation acceptée avec succès", {
         id: "INVITATION_ACCEPT_SUCCESS",
         origin: "App.js",
-        notificationToken,
+        notificationId,
       });
       return true;
     } catch (err) {
@@ -717,21 +720,21 @@ function App() {
   }, [fetchNotifications]);
 
   // Fonction pour rejeter une invitation
-  const rejectInvitation = useCallback(async (notificationToken) => {
+  const rejectInvitation = useCallback(async (notificationId) => {
     try {
       const token = await auth.currentUser.getIdToken();
-      const res = await fetch(`${API_URL}/api/reject-invitation/${notificationToken}`, {
+      const res = await fetch(`${API_URL}/api/invitations/reject/${notificationId}`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      if (!res.ok) throw new Error(`Erreur HTTP POST /api/reject-invitation/${notificationToken}`);
+      if (!res.ok) throw new Error(`Erreur HTTP POST /api/invitations/reject/${notificationId}`);
       fetchNotifications();
       log.info("Invitation rejetée avec succès", {
         id: "INVITATION_REJECT_SUCCESS",
         origin: "App.js",
-        notificationToken,
+        notificationId,
       });
       return true;
     } catch (err) {
@@ -745,21 +748,21 @@ function App() {
   }, [fetchNotifications]);
 
   // Fonction pour marquer une notification comme lue
-  const readNotification = useCallback(async (notificationToken) => {
+  const readNotification = useCallback(async (notificationId) => {
     try {
       const token = await auth.currentUser.getIdToken();
-      const res = await fetch(`${API_URL}/api/notifications/${notificationToken}`, {
+      const res = await fetch(`${API_URL}/api/notifications/${notificationId}`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      if (!res.ok) throw new Error(`Erreur HTTP POST /api/notifications/${notificationToken}`);
+      if (!res.ok) throw new Error(`Erreur HTTP POST /api/notifications/${notificationId}`);
       fetchNotifications();
       log.info("Notification marquée comme lue avec succès", {
         id: "NOTIFICATION_READ_SUCCESS",
         origin: "App.js",
-        notificationToken,
+        notificationId,
       });
       return true;
     } catch (err) {
@@ -895,13 +898,13 @@ function App() {
   const fetchSharedUserCalendar = useCallback(async (calendarId) => {
     try {
       const token = await auth.currentUser.getIdToken();
-      const res = await fetch(`${API_URL}/api/shared/user-calendar/${calendarId}`, {
+      const res = await fetch(`${API_URL}/api/shared/users/calendars/${calendarId}`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      if (!res.ok) throw new Error(`Erreur HTTP GET /api/shared/user-calendar/${calendarId}`);
+      if (!res.ok) throw new Error(`Erreur HTTP GET /api/shared/users/calendars/${calendarId}`);
       const data = await res.json();
       return data;
     } catch (err) {
@@ -924,7 +927,7 @@ function App() {
       addCalendar,                                     // Création d’un nouveau calendrier
       deleteCalendar,                                  // Suppression d’un calendrier existant
       deleteSharedCalendar,                            // Suppression d’un calendrier partagé
-      RenameCalendar,                                  // Renommage d’un calendrier
+      renameCalendar,                                  // Renommage d’un calendrier
       getMedicineCount,                                // Nombre de médicaments dans un calendrier
       getSharedMedicineCount,                          // Nombre de médicaments dans un calendrier partagé
     },
@@ -957,11 +960,11 @@ function App() {
       fetchTokens,                                    // Récupération des tokens
       createSharedTokenCalendar,                      // Création d’un lien de partage
       deleteSharedTokenCalendar,                      // Suppression d’un lien de partage
-      revokeToken,                                    // Révoquer un token ou le réactiver
+      updateRevokeToken,                              // Révoquer un token ou le réactiver
       updateTokenExpiration,                          // Mettre à jour l'expiration d'un token
       updateTokenPermissions,                         // Mettre à jour les permissions d'un token
       fetchSharedTokenCalendar,                       // Récupération d’un calendrier partagé
-      getSharedTokenMedecines,                        // Récupération des médicaments partagés
+      fetchSharedTokenMedecines,                        // Récupération des médicaments partagés
     },
   
     // 👥 UTILISATEURS PARTAGÉS
