@@ -6,12 +6,10 @@ from logger import log_backend as logger
 def status():
     if request.method == 'HEAD':
         logger.info("Requête HEAD reçue sur /api/status", {
-            "origin": "STATUS",
-            "uid": uid
+            "origin": "STATUS"
         })
         return '', 200
     logger.info("Requête GET reçue sur /api/status", {
-        "origin": "STATUS",
-        "uid": uid
+        "origin": "STATUS"
     })
     return jsonify({"status": "ok"}), 200
