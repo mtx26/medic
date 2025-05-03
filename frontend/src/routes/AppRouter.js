@@ -56,10 +56,10 @@ function AppRoutes({ sharedProps }) {
 
       <Route path="/shared-token-calendar/:sharedToken/medicines" element={<SharedTokenCalendarMedicines {...sharedProps} />} />
       <Route path="/shared-token-calendar/:sharedToken" element={<SharedTokenCalendarView {...sharedProps} />} />
-{/*
+
       <Route path="/shared-user-calendar/:calendarId/medicines" element={<SharedUserCalendarMedicines {...sharedProps} />} />
       <Route path="/shared-user-calendar/:calendarId" element={<SharedUserCalendarView {...sharedProps} />} />
-*/}
+
       <Route path="/" element={<Navigate to="/calendars" />} />
       <Route path="*" element={<NotFound />} />
 

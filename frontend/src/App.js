@@ -15,11 +15,11 @@ function App() {
   const [calendarEvents, setCalendarEvents] = useState([]);
   const [selectedDate, setSelectedDate] = useState('');
   const [eventsForDay, setEventsForDay] = useState([]);
-  const [medsData, setMedsData] = useState([]);
+  const [medicinesData, setMedicinesData] = useState([]);
   const [checked, setChecked] = useState([]);
   const [tokensList, setTokensList] = useState([]);
   const [calendarsData, setCalendarsData] = useState([]);
-  const [originalMedsData, setOriginalMedsData] = useState([]);
+  const [originalMedicinesData, setOriginalMedicinesData] = useState([]);
   const [notificationsData, setNotificationsData] = useState([]);
   const [sharedCalendarsData, setSharedCalendarsData] = useState([]);
 
@@ -187,13 +187,13 @@ function App() {
   const getSharedMedicineCount = useCallback(async (calendarId, ownerUid) => {
     try {
       const token = await auth.currentUser.getIdToken();
-      const res = await fetch(`${API_URL}/api/medicines/tokens/count?calendarId=${calendarId}&ownerUid=${ownerUid}`, {
+      const res = await fetch(`${API_URL}/api/medicines/shared/count?calendarId=${calendarId}&ownerUid=${ownerUid}`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      if (!res.ok) throw new Error("Erreur HTTP GET /api/medicines/tokens/count");
+      if (!res.ok) throw new Error("Erreur HTTP GET /api/medicines/shared/count");
       const data = await res.json();
       log.info("Nombre de médicaments récupéré avec succès", {
         id: "SHARED_MED_COUNT_SUCCESS",
@@ -214,11 +214,11 @@ function App() {
   }, []);
 
 
-  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
 
   // Fonction pour obtenir le calendrier lier au calendarId
-  const getCalendar = useCallback(async (calendarId, startDate ) => {
+  const fetchCalendar = useCallback(async (calendarId, startDate ) => {
     try {
       if (!calendarId) {
         log.warn("Nom de calendrier non fourni, calendrier non chargé.", {
@@ -261,11 +261,11 @@ function App() {
   }, [setCalendarEvents]);
 
 
-  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
   // Fonction pour obtenir les différents médicaments
-  const fetchCalendarsMedecines = useCallback(async (calendarId) => {
+  const fetchCalendarMedicines = useCallback(async (calendarId) => {
     try {
       const token = await auth.currentUser.getIdToken();
       const res = await fetch(`${API_URL}/api/calendars/${calendarId}/medicines`, {
@@ -276,97 +276,65 @@ function App() {
       });
       if (!res.ok) throw new Error(`Erreur HTTP GET /api/calendars/${calendarId}/medicines`);
       const data = await res.json();
-      setMedsData(data.medicines)
-      setOriginalMedsData(JSON.parse(JSON.stringify(data.medicines)));
+      setMedicinesData(data.medicines)
+      setOriginalMedicinesData(JSON.parse(JSON.stringify(data.medicines)));
       log.info("Médicaments récupérés avec succès", {
         id: "MED_FETCH_SUCCESS",
         origin: "App.js",
         count: data.medicines?.length,
         calendarId,
       });
+      return true;
     } catch (err) {
       log.error("Échec de récupération des médicaments", err, {
         id: "MED_FETCH_FAIL",
         origin: "App.js",
         stack: err.stack,
       });
+      return false;
     }
-  }, [setMedsData, setOriginalMedsData]);
+  }, [setMedicinesData, setOriginalMedicinesData]);
     
-
-  // Fonction pour mettre à jour un médicament dans la variable meds
-  const handleMedChange = useCallback((index, field, value) => {
-    if (value !== null && field !== null && index !== null) {
-      const updated = [...medsData];
-      const numericFields = ['tablet_count', 'interval_days'];
-      if (field === 'time') {
-        updated[index][field] = [value];
-      } else if (numericFields.includes(field)) {
-        updated[index][field] = value === '' ? '' : parseFloat(value);
-      } else {
-        updated[index][field] = value;
-      }
-      setMedsData(updated);
-    }
-    else {
-      log.warn("Valeur indéfinie pour le champ", {
-        id: "MED_CHANGE_UNDEFINED_VALUE",
-        origin: "App.js",
-        field,
-        index,
-      });
-    }
-  }, [medsData, setMedsData]);
-
-    // Fonction pour mettre à jour les médicaments
-  const updateMeds = useCallback(async (calendarId, newMeds = medsData) => {
+  // Fonction pour modifier un médicament
+  const updateMedicines = useCallback(async (calendarId) => {
     try {
-      if (medsData.length === 0) {
-        log.warn("Aucun médicament à mettre à jour", {
-          id: "MED_UPDATE_NO_MEDS",
-          origin: "App.js",
-          calendarId,
-        });
-        return false;
-      };
-
       const token = await auth.currentUser.getIdToken();
       const res = await fetch(`${API_URL}/api/calendars/${calendarId}/medicines`, {
-        method: "POST",
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ medicines: newMeds  }),
+        body: JSON.stringify({ medicines: medicinesData }),
       });
-      if (!res.ok) throw new Error(`Erreur HTTP POST /api/calendars/${calendarId}/medicines`);
+      if (!res.ok) throw new Error(`Erreur HTTP PUT /api/calendars/${calendarId}/medicines`);
       log.info("Médicaments mis à jour avec succès", {
         id: "MED_UPDATE_SUCCESS",
         origin: "App.js",
-        count: newMeds?.length,
+        count: medicinesData?.length,
+        calendarId,
       });
       return true;
     } catch (err) {
-      log.error("Échec de mise à jour des médicaments", err, {
+      log.error("Échec de modification du médicament", err, {
         id: "MED_UPDATE_FAIL",
         origin: "App.js",
         stack: err.stack,
       });
       return false;
     }
-  }, [medsData]);
+  }, [medicinesData]);
 
   // Fonction pour supprimer des médicaments 
-  const deleteSelectedMeds = useCallback(async (calendarId) => {
+  const deleteSelectedMedicines = useCallback(async (calendarId) => {
     if (checked.length === 0) return false;
   
-    const updatedMeds = medsData.filter((_, i) => !checked.includes(i));
-    setMedsData(updatedMeds);
-    setChecked([]);
+    setMedicinesData(medicinesData.filter((_, i) => !checked.includes(i)));
   
-    const success = await updateMeds(calendarId, updatedMeds);
+    const success = await updateMedicines(calendarId);
   
     if (success) {
+      setChecked([]);
       log.info("Médicaments supprimés avec succès", {
         id: "MED_DELETE_SUCCESS",
         origin: "App.js",
@@ -382,18 +350,18 @@ function App() {
       });
     }
     return success;
-  }, [checked, medsData, setMedsData, setChecked, updateMeds]);
+  }, [checked, medicinesData, setMedicinesData, setChecked, updateMedicines]);
   
-  // Fonction pour ajouter un nouveau médicament sanq la variable meds
-  const addMed = useCallback(() => {
-    setMedsData([
-      ...medsData,
+  // Fonction pour ajouter un nouveau médicament sanq la variable medicines
+  const addMedicine = useCallback(() => {
+    setMedicinesData([
+      ...medicinesData,
       { name: '', tablet_count: 1, time: ['morning'], interval_days: 1, start_date: '' },
     ]);
-  }, [medsData, setMedsData]);
+  }, [medicinesData, setMedicinesData]);
 
 
-  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
   // Fonction pour recupérer un calendrier partagé par un token
@@ -408,8 +376,8 @@ function App() {
       });
       if (!res.ok) throw new Error(`Erreur HTTP GET /api/tokens/${token}/calendar`);
       const data = await res.json();
-      setCalendarEvents(data.map(e => ({ title: e.title, start: e.date, color: e.color })));
-      log.info("Calendrier partagé recuperé avec succès", {
+      setCalendarEvents(data.schedule.map(e => ({ title: e.title, start: e.date, color: e.color })));
+      log.info("Calendrier partagé récupéré avec succès", {
         id: "SHARED_CALENDAR_FETCH_SUCCESS",
         origin: "App.js",
         count: data?.length,
@@ -426,14 +394,14 @@ function App() {
   }, [setCalendarEvents]);
 
   // Fonction pour récupérer les médicaments d'un calendrier partagé
-  const fetchSharedTokenMedecines = useCallback(async (token) => {
+  const fetchSharedTokenMedicines = useCallback(async (token) => {
     try {
       const  res = await fetch(`${API_URL}/api/tokens/${token}/medecines`, {
         method: "GET",
       });
       if (!res.ok) throw new Error(`Erreur HTTP GET /api/tokens/${token}/medecines`);
       const data = await res.json();
-      setMedsData(data.medicines)
+      setMedicinesData(data.medicines)
       log.info("Médicaments récupérés avec succès", {
         id: "SHARED_MED_FETCH_SUCCESS",
         origin: "App.js",
@@ -450,7 +418,7 @@ function App() {
       });
       return false;
     }
-  }, [setMedsData]);
+  }, [setMedicinesData]);
 
   // Fonction pour récupérer les tokens
   const fetchTokens = useCallback(async () => {
@@ -481,7 +449,7 @@ function App() {
   }, [setTokensList]);
 
   // Fonction pour créer un lien de partage
-  const createSharedTokenCalendar = useCallback(async (calendarId, expiresAt, permissions) => {
+  const createToken = useCallback(async (calendarId, expiresAt, permissions) => {
     try {
       const token = await auth.currentUser.getIdToken();
       const res = await fetch(`${API_URL}/api/tokens/${calendarId}`, {
@@ -513,7 +481,7 @@ function App() {
   }, [fetchTokens]);
 
   // Fonction pour supprimer un lien de partage
-  const deleteSharedTokenCalendar = useCallback(async (token) => {
+  const deleteToken = useCallback(async (token) => {
     try {
       const tokenFirebase = await auth.currentUser.getIdToken();
       const res = await fetch(`${API_URL}/api/tokens/${token}`, {
@@ -629,7 +597,7 @@ function App() {
   }, [fetchTokens]);
 
 
-  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
   // Fonction pour envoyer une invitation à un utilisateur
@@ -776,7 +744,7 @@ function App() {
   }, [fetchNotifications]);
 
 
-  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   // Fonction pour récupérer les calendriers partagés
   const fetchSharedCalendars = useCallback(async () => {
@@ -895,10 +863,13 @@ function App() {
   }, []);
 
   // Fonction pour recup le calendrier partagé par un utilisateur
-  const fetchSharedUserCalendar = useCallback(async (calendarId) => {
+  const fetchSharedUserCalendar = useCallback(async (calendarId, startDate) => {
     try {
+      if (!startDate) {
+        startDate = new Date().toISOString().split('T')[0];
+      }
       const token = await auth.currentUser.getIdToken();
-      const res = await fetch(`${API_URL}/api/shared/users/calendars/${calendarId}`, {
+      const res = await fetch(`${API_URL}/api/shared/users/calendars/${calendarId}?startTime=${startDate}`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -906,7 +877,8 @@ function App() {
       });
       if (!res.ok) throw new Error(`Erreur HTTP GET /api/shared/users/calendars/${calendarId}`);
       const data = await res.json();
-      return data;
+      setCalendarEvents(data.schedule.map(e => ({ title: e.title, start: e.date, color: e.color })));
+      return true
     } catch (err) {
       log.error("Échec de récupération du calendrier partagé par un utilisateur", err, {
         id: "SHARED_USER_CALENDAR_FETCH_FAIL",
@@ -915,8 +887,30 @@ function App() {
       });
       return false;
     }
-  }, []);
-  
+  }, [setCalendarEvents]);
+
+  const fetchSharedUserCalendarMedicines = useCallback(async (calendarId) => {
+    try {
+      const token = await auth.currentUser.getIdToken();
+      const res = await fetch(`${API_URL}/api/shared/users/calendars/${calendarId}/medicines`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (!res.ok) throw new Error(`Erreur HTTP GET /api/shared/users/calendars/${calendarId}/medicines`);
+      const data = await res.json();
+      setMedicinesData(data.medicines);
+      return true;
+    } catch (err) {
+      log.error("Échec de récupération des médicaments du calendrier partagé par un utilisateur", err, {
+        id: "SHARED_USER_CALENDAR_MEDICINES_FETCH_FAIL",
+        origin: "App.js",
+        stack: err.stack,
+      });
+      return false;
+    }
+  }, [setMedicinesData]);
   const sharedProps = {
     // 📅 CALENDRIERS
     calendars: {
@@ -939,32 +933,32 @@ function App() {
       eventsForDay, setEventsForDay,                  // Événements filtrés pour un jour spécifique
       startDate, setStartDate,                        // Date de début pour affichage du calendrier
       calendarsData, setCalendarsData,                // (Redondant, mais peut être utile si nécessaire localement)
-      getCalendar,                                    // Chargement des données d’un calendrier
+      fetchCalendar,                                    // Chargement des données d’un calendrier
     },
   
     // 💊 MÉDICAMENTS
-    meds: {
-      medsData, setMedsData,                          // Liste des médicaments du calendrier actif
-      originalMedsData, setOriginalMedsData,          // Liste des médicaments d’origine
+    medicines: {
+      medicinesData, setMedicinesData,                          // Liste des médicaments du calendrier actif
+      originalMedicinesData, setOriginalMedicinesData,          // Liste des médicaments d’origine
       checked, setChecked,                            // Médicaments cochés pour suppression
-      handleMedChange,                                // Fonction pour modifier un médicament
-      updateMeds,                                     // Mise à jour des médicaments dans Firestore
-      deleteSelectedMeds,                             // Suppression des médicaments sélectionnés
-      addMed,                                         // Ajout d’un nouveau médicament
-      fetchCalendarsMedecines,                        // Récupération des médicaments d’un calendrier
+      //handleMedChange,                                // Fonction pour modifier un médicament
+      updateMedicines,                                     // Mise à jour des médicaments dans Firestore
+      deleteSelectedMedicines,                             // Suppression des médicaments sélectionnés
+      addMedicine,                                         // Ajout d’un nouveau médicament
+      fetchCalendarMedicines,                        // Récupération des médicaments d’un calendrier
     },
   
     // 🔗 LIENS DE PARTAGE (TOKENS)
     sharedTokens: {
       tokensList, setTokensList,                      // Liste des tokens
       fetchTokens,                                    // Récupération des tokens
-      createSharedTokenCalendar,                      // Création d’un lien de partage
-      deleteSharedTokenCalendar,                      // Suppression d’un lien de partage
+      createToken,                      // Création d’un lien de partage
+      deleteToken,                      // Suppression d’un lien de partage
       updateRevokeToken,                              // Révoquer un token ou le réactiver
       updateTokenExpiration,                          // Mettre à jour l'expiration d'un token
       updateTokenPermissions,                         // Mettre à jour les permissions d'un token
       fetchSharedTokenCalendar,                       // Récupération d’un calendrier partagé
-      fetchSharedTokenMedecines,                        // Récupération des médicaments partagés
+      fetchSharedTokenMedicines,                        // Récupération des médicaments partagés
     },
   
     // 👥 UTILISATEURS PARTAGÉS
@@ -972,6 +966,7 @@ function App() {
       fetchSharedUsers,                               // Récupération des utilisateurs partagés
       deleteSharedUser,                               // Suppression d’un utilisateur partagé
       fetchSharedUserCalendar,                        // Récupération d’un calendrier partagé
+      fetchSharedUserCalendarMedicines,               // Récupération des médicaments d’un calendrier partagé
     },
   
     // ✉️ INVITATIONS
@@ -997,10 +992,10 @@ function App() {
     setEventsForDay([]);
     setStartDate(null);
   
-    // MEDS
-    setMedsData([]);
+    // MEDICINES
+    setMedicinesData([]);
     setChecked([]);
-    setOriginalMedsData([]);
+    setOriginalMedicinesData([]);
     
     // CALENDARS
     setCalendarsData([]);

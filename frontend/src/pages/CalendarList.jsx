@@ -316,7 +316,7 @@ function SelectCalendar({ calendars, sharedTokens, invitations, sharedUsers }) {
                 type="button"
                 className="btn btn-outline-primary"
                 onClick={async () => {
-                  const { token, success } = await sharedTokens.createSharedTokenCalendar(calendarIdToShare, expiresAt, permissions);
+                  const { token, success } = await sharedTokens.createToken(calendarIdToShare, expiresAt, permissions);
                   if (success) {
                     try {
                       await navigator.clipboard.writeText(`${REACT_URL}/shared-token-calendar/${token}`);
@@ -575,7 +575,7 @@ function SelectCalendar({ calendars, sharedTokens, invitations, sharedUsers }) {
               type="button"
               className="btn btn-outline-success"
               title="Ouvrir"
-              onClick={() => navigate('/calendars/' + calendarData.calendar_id)}
+              onClick={() => navigate('/shared-user-calendar/' + calendarData.calendar_id)}
             >
               Ouvrir
             </button>

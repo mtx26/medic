@@ -1,33 +1,33 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
-function SharedTokenCalendarMedicines({ meds, sharedTokens }) {
+function SharedTokenCalendarMedicines({ medicines, sharedTokens }) {
   // 📍 Paramètres d’URL et navigation
   const { sharedToken } = useParams(); // Récupération du token de partage depuis l'URL
   const navigate = useNavigate(); // Hook de navigation
 
   // ✅ État de récupération des médicaments partagés
-  const [successFetchSharedTokenMedecines, setSuccessFetchSharedTokenMedecines] = useState(); // État du succès de la récupération des médicaments partagés
+  const [successFetchSharedTokenMedicines, setSuccessFetchSharedTokenMedicines] = useState(); // État du succès de la récupération des médicaments partagés
 
 
 
   useEffect(() => {
-    meds.setMedsData([]);
-  }, [meds.setMedsData]);
+    medicines.setMedicinesData([]);
+  }, [medicines.setMedicinesData]);
   
   // Fonction pour charger le calendrier lorsque l'utilisateur est connecté
   useEffect(() => {
     const fetchShared = async () => {
       if (sharedToken) {
-        const success = await sharedTokens.fetchSharedTokenMedecines(sharedToken);
-        setSuccessFetchSharedTokenMedecines(success);
+        const success = await sharedTokens.fetchSharedTokenMedicines(sharedToken);
+        setSuccessFetchSharedTokenMedicines(success);
       }
     };
   
     fetchShared();
   }, [sharedToken]);
 
-  if (successFetchSharedTokenMedecines === undefined && sharedToken) {
+  if (successFetchSharedTokenMedicines === undefined && sharedToken) {
     return (
       <div className="d-flex justify-content-center align-items-center" style={{ height: '60vh' }}>
         <div className="spinner-border text-primary" role="status">
@@ -37,7 +37,7 @@ function SharedTokenCalendarMedicines({ meds, sharedTokens }) {
     );
   }
   
-  if (successFetchSharedTokenMedecines === false && sharedToken) {
+  if (successFetchSharedTokenMedicines === false && sharedToken) {
     return (
       <div className="alert alert-danger text-center mt-5" role="alert">
         ❌ Ce lien de calendrier partagé est invalide ou a expiré.
@@ -60,13 +60,13 @@ function SharedTokenCalendarMedicines({ meds, sharedTokens }) {
         <span> Liste des médicaments</span>
       </h4>
 
-      {meds.medsData.length === 0 ? (
+      {medicines.medicinesData.length === 0 ? (
         <div className="text-center mt-5 text-muted">
           ❌ Aucun médicament n’a encore été ajouté pour ce calendrier.
         </div>
       ) : (
         <ul className="list-group mt-3">
-          {meds.medsData.map((med, index) => (
+          {medicines.medicinesData.map((med, index) => (
             <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
               <div>
                 <strong>{med.name}</strong> 

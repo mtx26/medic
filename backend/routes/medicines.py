@@ -16,15 +16,15 @@ def get_medicines(calendar_id):
         user = verify_firebase_token()
         uid = user["uid"]
 
-        doc = db.collection("users").document(uid).collection("calendars").document(calendar_id).get()
-        if doc.exists:
-            data = doc.to_dict()
-            medicines = data.get("medicines", [])
-            logger.info(f"[MED_FETCH] Médicaments récupérés pour {uid}.")
-            return jsonify({"medicines": medicines}), 200
-        else:
-            logger.warning(f"[MED_FETCH] Aucun document trouvé pour l'utilisateur {uid}.")
-            return jsonify({"medicines": []}), 200
+        doc = db.collection("users").document(uid).collection("calendars").document(calendar_id)
+        if not doc.get().exists:
+            logger.warning(f"[MED_FETCH] Calendrier introuvable : {calendar_id} pour {uid}.")
+            return jsonify({"error": "Calendrier introuvable"}), 404
+
+        medicines = doc.get().to_dict().get("medicines", [])
+
+        logger.info(f"[MED_FETCH] {len(medicines)} médicament(s) récupéré(s) pour {calendar_id}.")
+        return jsonify({"medicines": medicines}), 200
 
     except Exception:
         logger.exception(f"[MED_ERROR] Erreur dans GET /api/calendars/{calendar_id}/medicines")
@@ -32,7 +32,7 @@ def get_medicines(calendar_id):
 
 
 # Mettre à jour les médicaments d’un calendrier
-@api.route("/api/calendars/<calendar_id>/medicines", methods=["POST"])
+@api.route("/api/calendars/<calendar_id>/medicines", methods=["PUT"])
 def update_medicines(calendar_id):
     try:
         user = verify_firebase_token()
@@ -81,7 +81,7 @@ def count_medicines():
  
 
 # Route pour compter les médicaments d'un calendrier partagé
-@api.route("/api/medicines/tokens/count", methods=["GET"])
+@api.route("/api/medicines/shared/count", methods=["GET"])
 def count_shared_medicines():
     try:
         user = verify_firebase_token()

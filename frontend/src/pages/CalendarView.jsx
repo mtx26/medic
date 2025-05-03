@@ -61,7 +61,7 @@ function CalendarPage({ events, calendars }) {
   // Fonction pour charger le calendrier lorsque l'utilisateur est connecté
   useEffect(() => {
     if (authReady && currentUser && calendarId) {
-      events.getCalendar(calendarId)
+      events.fetchCalendar(calendarId)
       setLoadingCalendar(false);
     }
   }, [authReady, currentUser, calendarId]);
@@ -126,7 +126,7 @@ function CalendarPage({ events, calendars }) {
 
             <div>
               <button
-                onClick={() => events.getCalendar(calendarId, events.startDate)}
+                onClick={() => events.fetchCalendar(calendarId, events.startDate)}
                 className="btn btn-outline-primary"
               >
                 <i className="bi bi-arrow-repeat"></i>

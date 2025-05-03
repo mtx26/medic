@@ -4,7 +4,7 @@ from auth import verify_firebase_token
 from datetime import datetime, timezone
 from . import api
 from firebase_admin import firestore, auth
-from function import verify_calendar_share
+from function import verify_calendar_share, generate_schedule
 import secrets
 
 db = firestore.client()
@@ -56,7 +56,42 @@ def handle_shared_calendars():
 # Route pour récupérer un calendrier partagé
 @api.route("/api/shared/users/calendars/<calendar_id>", methods=["GET"])
 def handle_user_shared_calendar(calendar_id):
-    print(calendar_id)
+    try:
+        user = verify_firebase_token()
+        uid = user["uid"]
+
+        shared_with_doc = db.collection("users").document(uid).collection("shared_calendars").document(calendar_id)
+        if not shared_with_doc.get().exists:
+            logger.warning(f"[CALENDARS_SHARED_LOAD] Calendrier partagé introuvable : {calendar_id} pour {uid}.")
+            return jsonify({"error": "Calendrier partagé introuvable"}), 404
+
+        data = shared_with_doc.get().to_dict()
+        calendar_name = data.get("calendar_name")
+        owner_uid = data.get("owner_uid")
+        owner_email = data.get("owner_email")
+
+        start_date = request.args.get("startTime")
+        
+        if not start_date:
+            start_date = datetime.now(timezone.utc).date()
+        else:
+            start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
+
+        if not verify_calendar_share(calendar_id, owner_uid, uid):
+            logger.warning(f"[CALENDARS_SHARED_LOAD] Accès non autorisé à {calendar_id} partagé par {owner_uid}")
+            return jsonify({"error": "Accès non autorisé"}), 403
+        
+        doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id)
+        medicines = doc.get().to_dict().get("medicines", [])
+
+        schedule = generate_schedule(start_date, medicines)
+    
+        logger.info(f"[CALENDARS_SHARED_LOAD] Calendrier partagé récupéré avec succès : {calendar_id} pour {uid}.")
+        return jsonify({"schedule": schedule, "message": "Calendrier partagé récupéré avec succès"}), 200
+
+    except Exception as e:
+        logger.exception("[CALENDARS_SHARED_ERROR] Erreur lors de la récupération du calendrier partagé.")
+        return jsonify({"error": "Erreur interne lors de la récupération du calendrier partagé."}), 500
 
 
 # Route pour supprimer un calendrier partagé pour le receiver
@@ -211,3 +246,37 @@ def handle_shared_users(calendar_id):
     except Exception as e:
         logger.exception("[SHARED_USERS_ERROR] Erreur lors de la récupération des utilisateurs partagés.")
         return jsonify({"error": "Erreur interne lors de la récupération des utilisateurs partagés."}), 500
+
+
+# Route pour récupérer les médicaments d'un calendrier partagé
+@api.route("/api/shared/users/calendars/<calendar_id>/medicines", methods=["GET"])
+def handle_shared_user_calendar_medicines(calendar_id):
+    try:
+        user = verify_firebase_token()
+        receiver_uid = user["uid"]
+
+        doc = db.collection("users").document(receiver_uid).collection("shared_calendars").document(calendar_id)
+        if not doc.get().exists:
+            logger.warning(f"[SHARED_USER_CALENDAR_MEDICINES_LOAD] Calendrier partagé introuvable : {calendar_id} pour {receiver_uid}.")
+            return jsonify({"error": "Calendrier partagé introuvable"}), 404
+
+        owner_uid = doc.get().to_dict().get("owner_uid")
+
+        if not verify_calendar_share(calendar_id, owner_uid, receiver_uid):
+            logger.warning(f"[SHARED_USER_CALENDAR_MEDICINES_LOAD] Accès non autorisé à {calendar_id} partagé par {owner_uid}")
+            return jsonify({"error": "Accès non autorisé"}), 403
+
+        doc_2 = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id)
+        if not doc_2.get().exists:
+            logger.warning(f"[SHARED_USER_CALENDAR_MEDICINES_LOAD] Calendrier introuvable : {calendar_id} pour {owner_uid}.")
+            return jsonify({"error": "Calendrier introuvable"}), 404
+
+        medicines = doc_2.get().to_dict().get("medicines", [])
+
+        logger.info(f"[SHARED_USER_CALENDAR_MEDICINES_LOAD] {len(medicines)} médicament(s) récupéré(s) pour {calendar_id}.")
+        return jsonify({"medicines": medicines}), 200
+
+    except Exception as e:
+        logger.exception("[SHARED_USER_CALENDAR_MEDICINES_ERROR] Erreur lors de la récupération des médicaments du calendrier partagé.")
+        return jsonify({"error": "Erreur interne lors de la récupération des médicaments du calendrier partagé."}), 500
+

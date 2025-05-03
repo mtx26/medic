@@ -134,14 +134,13 @@ def handle_calendar(calendar_id):
         user = verify_firebase_token()
         owner_uid = user["uid"]
 
-        doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).get()
-        if doc.exists:
-            data = doc.to_dict()
-            medicines = data.get("medicines", [])
-            logger.info(f"[CALENDAR_LOAD] Médicaments récupérés pour {owner_uid}.")
-        else:
+        doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id)
+        if not doc.get().exists:
             logger.warning(f"[CALENDAR_LOAD] Document introuvable pour l'utilisateur {owner_uid}.")
             return jsonify({"error": "Calendrier introuvable"}), 404
+        
+        medicines = doc.get().to_dict().get("medicines", [])
+        logger.info(f"[CALENDAR_LOAD] Médicaments récupérés pour {owner_uid}.")
         
         start_str = request.args.get("startTime")
         if not start_str:

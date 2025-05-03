@@ -47,9 +47,9 @@ function SharedUserCalendarView({ events, sharedUsers }) {
     };
   
     fetchShared();
-  }, [sharedTokens]);
+  }, [calendarId]);
 
-  if (successGetSharedCalendar === undefined  && sharedTokens) {
+  if (successGetSharedCalendar === undefined  && calendarId) {
     return (
       <div className="d-flex justify-content-center align-items-center" style={{ height: '60vh' }}>
         <div className="spinner-border text-primary" role="status">
@@ -59,7 +59,7 @@ function SharedUserCalendarView({ events, sharedUsers }) {
     );
   }
   
-  if (sharedTokens && successGetSharedCalendar === false) {
+  if (successGetSharedCalendar === false && calendarId  ) {
     return (
       <div className="alert alert-danger text-center mt-5" role="alert">
         ❌ Ce lien de calendrier partagé est invalide ou a expiré.
@@ -79,7 +79,7 @@ function SharedUserCalendarView({ events, sharedUsers }) {
           <div className="d-flex flex-wrap  align-items-left gap-2 mb-3">
             <button
               className="btn btn-outline-secondary"
-              onClick={() => navigate(`/shared-token-calendar/${sharedTokens}/medicines`)}
+              onClick={() => navigate(`/shared-user-calendar/${calendarId}/medicines`)}
             >
               <i className="bi bi-capsule"></i>
               <span> Liste des médicaments</span>
@@ -104,7 +104,7 @@ function SharedUserCalendarView({ events, sharedUsers }) {
 
             <div>
               <button
-                onClick={() => events.getSharedTokenCalendar(sharedTokens, events.startDate)}
+                onClick={() => events.getSharedTokenCalendar(calendarId, events.startDate)}
                 className="btn btn-outline-primary"
               >
                 <i className="bi bi-arrow-repeat"></i>

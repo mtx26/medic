@@ -262,7 +262,7 @@ function SharedList({ sharedTokens, calendars, sharedUsers, invitations }) {
                             setAlertMessage("❌ Confirmez-vous la suppression du lien de partage ?");
                             setAlertId(token.token);
                             setOnConfirmAction(() => async () => {
-                              const success = await sharedTokens.deleteSharedTokenCalendar(token.token)
+                              const success = await sharedTokens.deleteToken(token.token)
                               if (success) {
                                 setAlertType("success");
                                 setAlertMessage("👍 Lien de partage supprimé avec succès.");
@@ -371,7 +371,7 @@ function SharedList({ sharedTokens, calendars, sharedUsers, invitations }) {
                         className="btn btn-outline-primary"
                         title="Ajouter"
                         onClick={async () => {
-                          const {token, success} = await sharedTokens.createSharedTokenCalendar(calendarId, expiresAt[calendarId], permissions[calendarId]);
+                          const {token, success} = await sharedTokens.createToken(calendarId, expiresAt[calendarId], permissions[calendarId]);
                           if (success) {
                             setAlertType("success");
                             setAlertMessage("👍 Lien de partage créé avec succès.");

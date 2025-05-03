@@ -236,7 +236,7 @@ def handle_read_token(token):
 
         schedule = generate_schedule(start_date, medicines)
         logger.info(f"[CALENDAR_GENERATE] Calendrier généré avec succès pour token {token}.")
-        return jsonify(schedule), 200
+        return jsonify({"schedule": schedule, "message": "Calendrier généré avec succès"}), 200
 
     except Exception:
         logger.exception(f"[CALENDAR_GENERATE_ERROR] Erreur dans GET /api/tokens/{token}")
