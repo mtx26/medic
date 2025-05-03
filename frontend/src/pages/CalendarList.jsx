@@ -64,12 +64,20 @@ function SelectCalendar({ calendars, sharedTokens, invitations, sharedUsers }) {
     const loadCounts = async () => {
       const counts = {};
       for (const calendarData of calendars.calendarsData) {
-        const count = await calendars.getMedicineCount(calendarData.calendar_id);
-        counts[calendarData.calendar_id] = count;
+        const rep = await calendars.getMedicineCount(calendarData.calendar_id);
+        if (rep.success) {
+          counts[calendarData.calendar_id] = rep.count;
+        } else {
+          counts[calendarData.calendar_id] = 0;
+        }
       }
       for (const calendarData of calendars.sharedCalendarsData) {
-        const count = await calendars.getSharedMedicineCount(calendarData.calendar_id, calendarData.owner_uid);
-        counts[calendarData.calendar_id] = count;
+        const rep = await calendars.getSharedMedicineCount(calendarData.calendar_id, calendarData.owner_uid);
+        if (rep.success) {
+          counts[calendarData.calendar_id] = rep.count;
+        } else {
+          counts[calendarData.calendar_id] = 0;
+        }
       }
       setCount(counts); 
     };
@@ -348,6 +356,20 @@ function SelectCalendar({ calendars, sharedTokens, invitations, sharedUsers }) {
 
   <div className="card p-3 shadow-sm w-100" style={{ maxWidth: '800px' }}>
     <h5 className="mb-3">Mes calendriers</h5>
+    {selectedAlert === "header" && (
+      <AlertSystem
+        type={alertType}
+        message={alertMessage}
+        onClose={() => {
+          setAlertMessage("");
+          setOnConfirmAction(null);
+          setSelectedAlert(null);
+        }}
+        onConfirm={() => {
+          if (onConfirmAction) onConfirmAction();
+        }}
+      />
+    )}
 
     {/* Champ pour ajouter un nouveau calendrier */}
     <div className="input-group mb-4">
@@ -362,13 +384,13 @@ function SelectCalendar({ calendars, sharedTokens, invitations, sharedUsers }) {
       onClick={async() => {
         const rep = await calendars.addCalendar(newCalendarName);
         if (rep.success) {
-          setAlertMessage(rep.message);
+          setAlertMessage("✅ " + rep.message);
           setAlertType("success");
-          setSelectedAlert("calendar");
+          setSelectedAlert("header");
         } else {
-          setAlertMessage(rep.error);
+          setAlertMessage("❌ " + rep.error);
           setAlertType("danger");
-          setSelectedAlert("calendar");
+          setSelectedAlert("header");
         }
         setNewCalendarName("");
       }} // Ajout d'un nouveau calendrier
@@ -447,16 +469,16 @@ function SelectCalendar({ calendars, sharedTokens, invitations, sharedUsers }) {
             setSelectedAlert("calendar"+calendarData.calendar_id);
             setAlertMessage("✅ Confirmez-vous le renommage du calendrier ?");
             setOnConfirmAction(() => async () => {
-              const success = await calendars.renameCalendar(calendarData.calendar_id, renameValues[calendarData.calendar_id]); // Renommage du calendrier
-              if (success) {
+              const rep = await calendars.renameCalendar(calendarData.calendar_id, renameValues[calendarData.calendar_id]); // Renommage du calendrier
+              if (rep.success) {
                 setRenameValues({ ...renameValues, [calendarData.calendar_id]: "" }); // Réinitialisation du champ
                 setAlertType("success");
                 setSelectedAlert("calendar"+calendarData.calendar_id);
-                setAlertMessage("✅ Calendrier renommé avec succès !");
+                setAlertMessage("✅ " + rep.message);
               } else {
                 setAlertType("danger");
                 setSelectedAlert("calendar"+calendarData.calendar_id);
-                setAlertMessage("❌ Erreur lors du renommage du calendrier.");
+                setAlertMessage("❌ " + rep.error);
               }
             });
           }}
@@ -505,15 +527,15 @@ function SelectCalendar({ calendars, sharedTokens, invitations, sharedUsers }) {
             setSelectedAlert("calendar"+calendarData.calendar_id);
             setAlertMessage("❌ Confirmez-vous la suppression du calendrier ?");
             setOnConfirmAction(() => async () => {
-              const success = await calendars.deleteCalendar(calendarData.calendar_id);
-              if (success) {
+              const rep = await calendars.deleteCalendar(calendarData.calendar_id);
+              if (rep.success) {
                 setAlertType("success");
                 setSelectedAlert("calendar"+calendarData.calendar_id);
-                setAlertMessage("✅ Calendrier supprimé avec succès !");
+                setAlertMessage("✅ " + rep.message);
               } else {
                 setAlertType("danger");
                 setSelectedAlert("calendar"+calendarData.calendar_id);
-                setAlertMessage("❌ Erreur lors de la suppression du calendrier.");
+                setAlertMessage("❌ " + rep.error);
               }
             });
           }}

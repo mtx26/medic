@@ -36,23 +36,24 @@ function App() {
         method: "GET",
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (!res.ok) throw new Error("Erreur HTTP GET /api/calendars");
       const data = await res.json();
-      log.info("Calendriers récupérés avec succès", {
-        id: "CALENDARS_FETCH_SUCCESS",
-        origin: "App.js",
-        count: data.calendars?.length,
-      });
+      if (!res.ok) throw new Error(data.error);
       // trier les calendriers par ordre alphabétique
       const sortedCalendars = data.calendars.sort((a, b) => a.calendar_name.localeCompare(b.calendar_name));
       setCalendarsData(sortedCalendars);
+      log.info(data.message, {
+        origin: "CALENDARS_FETCH_SUCCESS",
+        "uid": auth.currentUser.uid,
+        "count": data.calendars?.length,
+      });
+      return { success: true, message: data.message, code: data.code };
 
     } catch (err) {
-      log.error("Échec de récupération des calendriers", err, {
-        id: "CALENDARS_FETCH_FAIL",
-        origin: "App.js",
-        stack: err.stack,
+      log.error(err.message || "Erreur lors de la récupération des calendriers", err, {
+        origin: "CALENDARS_FETCH_ERROR",
+        "uid": auth.currentUser.uid,
       });
+      return { success: false, error: err.message, code: err.code };
     }
   }, [setCalendarsData]);
 
@@ -71,21 +72,21 @@ function App() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       fetchCalendars();
-      log.info("Calendrier créé avec succès", {
-        id: "CALENDAR_CREATE_SUCCESS",
-        origin: "App.js",
-        calendarName,
+
+      log.info(data.message, {
+        origin: "CALENDAR_CREATE_SUCCESS",
+        "uid": auth.currentUser.uid,
+        "calendarName": calendarName,
       });
-      return { success: true, message: data.message };
+      return { success: true, message: data.message, code: data.code };
     } catch (err) {
-      log.error("Échec de création du calendrier", err, {
-        id: "CALENDAR_CREATE_FAIL",
-        origin: "App.js",
-        calendarName,
-        error: err.message,
-        stack: err.stack,
+
+      log.error(err.message || "Erreur lors de la création du calendrier", err, {
+        origin: "CALENDAR_CREATE_ERROR",
+        "uid": auth.currentUser.uid,
+        "calendarName": calendarName,
       });
-      return { success: false, message: err.message };
+      return { success: false, error: err.message, code: err.code };
     }
   }, [fetchCalendars]);
 
@@ -101,22 +102,22 @@ function App() {
         },
         body: JSON.stringify({ calendarId }),
       });
-      if (!res.ok) throw new Error("Erreur HTTP DELETE /api/calendars");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
       fetchCalendars();
-      log.info("Calendrier supprimé avec succès", {
-        id: "CALENDAR_DELETE_SUCCESS",
-        origin: "App.js",
-        calendarId,
+      log.info(data.message, {
+        origin: "CALENDAR_DELETE_SUCCESS",
+        "uid": auth.currentUser.uid,
+        "calendarId": calendarId,
       });
-      return true;
+      return { success: true, message: data.message, code: data.code };
     } catch (err) {
-      log.error("Échec de suppression du calendrier", err, {
-        id: "CALENDAR_DELETE_FAIL",
-        origin: "App.js",
-        calendarId,
-        stack: err.stack,
+      log.error(err.message || "Erreur lors de la suppression du calendrier", err, {
+        origin: "CALENDAR_DELETE_ERROR",
+        "uid": auth.currentUser.uid,
+        "calendarId": calendarId,
       });
-      return false;
+      return { success: false, error: err.message, code: err.code };
     }
   }, [fetchCalendars]);
 
@@ -132,24 +133,24 @@ function App() {
         },
         body: JSON.stringify({ calendarId, newCalendarName }),
       });
-      if (!res.ok) throw new Error("Erreur HTTP PUT /api/calendars");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
       fetchCalendars();
-      log.info("Calendrier renommé avec succès", {
-        id: "CALENDAR_RENAME_SUCCESS",
-        origin: "App.js",
-        calendarId,
-        newCalendarName,
+      log.info(data.message, {
+        origin: "CALENDAR_RENAME_SUCCESS",
+        "uid": auth.currentUser.uid,
+        "calendarId": calendarId,
+        "newCalendarName": newCalendarName,
       });
-      return true;
+      return { success: true, message: data.message, code: data.code };
     } catch (err) {
-      log.error("Échec de renommage du calendrier", err, {
-        id: "CALENDAR_RENAME_FAIL",
-        origin: "App.js",
-        calendarId,
-        newCalendarName,
-        stack: err.stack,
+      log.error(err.message || "Erreur lors du renommage du calendrier", err, {
+        origin: "CALENDAR_RENAME_ERROR",
+        "uid": auth.currentUser.uid,
+        "calendarId": calendarId,
+        "newCalendarName": newCalendarName,
       });
-      return false;
+      return { success: false, error: err.message, code: err.code };
     }
   }, [fetchCalendars]);
 
@@ -165,23 +166,22 @@ function App() {
           "Accept": "application/json",
         },
       });
-      if (!res.ok) throw new Error("Erreur HTTP GET /api/medicines/count");
       const data = await res.json();
-      log.info("Nombre de médicaments récupéré avec succès", {
-        id: "MED_COUNT_SUCCESS",
-        origin: "App.js",
-        calendarId,
-        count: data.count,
+      if (!res.ok) throw new Error(data.error);
+      log.info(data.message, {
+        origin: "MED_COUNT_SUCCESS",
+        "uid": auth.currentUser.uid,
+        "calendarId": calendarId,
+        "count": data.count,
       });
-      return data.count ?? 0;
+      return { success: true, count: data.count };
     } catch (err) {
-      log.error("Échec de récupération du nombre de médicaments", err, {
-        id: "MED_COUNT_FAIL",
-        origin: "App.js",
-        calendarId,
-        stack: err.stack,
+      log.error(err.message || "Erreur lors de la récupération du nombre de médicaments", err, {
+        origin: "MED_COUNT_ERROR",
+        "uid": auth.currentUser.uid,
+        "calendarId": calendarId,
       });
-      return 0;
+      return { success: false, error: err.message, code: err.code };
     }
   }, []);
 
@@ -195,23 +195,24 @@ function App() {
           Authorization: `Bearer ${token}`,
         },
       });
-      if (!res.ok) throw new Error("Erreur HTTP GET /api/medicines/shared/count");
       const data = await res.json();
-      log.info("Nombre de médicaments récupéré avec succès", {
-        id: "SHARED_MED_COUNT_SUCCESS",
-        origin: "App.js",
-        calendarId,
-        ownerUid,
-        count: data.count,
+      if (!res.ok) throw new Error(data.error);
+      log.info(data.message, {
+        origin: "MED_SHARED_COUNT_SUCCESS",
+        "uid": auth.currentUser.uid,
+        "calendarId": calendarId,
+        "ownerUid": ownerUid,
+        "count": data.count,
       });
-      return data.count;
+      return { success: true, count: data.count };
     } catch (err) {
-      log.error("Échec de récupération du nombre de médicaments partagé", err, {
-        id: "SHARED_MED_COUNT_FAIL",
-        origin: "App.js",
-        stack: err.stack,
+      log.error(err.message || "Erreur lors de la récupération du nombre de médicaments partagé", err, {
+        origin: "MED_SHARED_COUNT_ERROR",
+        "uid": auth.currentUser.uid,
+        "calendarId": calendarId,
+        "ownerUid": ownerUid,
       });
-      return 0;
+      return { success: false, error: err.message, code: err.code };
     }
   }, []);
 
@@ -224,10 +225,10 @@ function App() {
     try {
       if (!calendarId) {
         log.warn("Nom de calendrier non fourni, calendrier non chargé.", {
-          id: "CALENDAR_NAME_NOT_PROVIDED",
-          origin: "App.js",
+          origin: "CALENDAR_NAME_NOT_PROVIDED",
+          "uid": auth.currentUser.uid,
         });
-        return;
+        return { success: false, error: "Nom de calendrier non fourni, calendrier non chargé.", code: "CALENDAR_NAME_NOT_PROVIDED" };
       }
       if (!startDate) {
         startDate = new Date().toISOString().slice(0, 10);
@@ -240,25 +241,24 @@ function App() {
           Authorization: `Bearer ${token}`,
         },
       });
-      if (!res.ok) throw new Error(`Erreur HTTP GET /api/calendars/${calendarId}/calendar`);
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
       setCalendarEvents(data.schedule.map(e => ({ title: e.title, start: e.date, color: e.color })));
-      log.info("Calendrier récupéré avec succès", {
-        id: "CALENDAR_FETCH_SUCCESS",
-        origin: "App.js",
-        eventCount: data?.length,
-        calendarId: calendarId,
+      log.info(data.message, {
+        origin: "CALENDAR_FETCH_SUCCESS",
+        "uid": auth.currentUser.uid,
+        "eventCount": data?.length,
+        "calendarId": calendarId,
       });
-      return true;
+      return { success: true, message: data.message, code: data.code };
     } catch (err) {
-      log.error("Échec de récupération du calendrier", err, {
-        id: "CALENDAR_FETCH_FAIL",
-        origin: "App.js",
-        calendarId: calendarId,
-        startDate,
-        stack: err.stack,
+      log.error(err.message || "Erreur lors de la récupération du calendrier", err, {
+        origin: "CALENDAR_FETCH_ERROR",
+        "uid": auth.currentUser.uid,
+        "calendarId": calendarId,
+        "startDate": startDate,
       });
-      return false;
+      return { success: false, error: err.message, code: err.code };
     }
   }, [setCalendarEvents]);
 
@@ -276,27 +276,41 @@ function App() {
           Authorization: `Bearer ${token}`,
         },
       });
-      if (!res.ok) throw new Error(`Erreur HTTP GET /api/calendars/${calendarId}/medicines`);
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
       setMedicinesData(data.medicines)
       setOriginalMedicinesData(JSON.parse(JSON.stringify(data.medicines)));
-      log.info("Médicaments récupérés avec succès", {
-        id: "MED_FETCH_SUCCESS",
-        origin: "App.js",
-        count: data.medicines?.length,
-        calendarId,
+      log.info(data.message, {
+        origin: "MED_FETCH_SUCCESS",
+        "uid": auth.currentUser.uid,
+        "count": data.medicines?.length,
+        "calendarId": calendarId,
       });
-      return true;
+      return { success: true, message: data.message, code: data.code };
     } catch (err) {
-      log.error("Échec de récupération des médicaments", err, {
-        id: "MED_FETCH_FAIL",
-        origin: "App.js",
-        stack: err.stack,
+      log.error(err.message || "Erreur lors de la récupération des médicaments", err, {
+        origin: "MED_FETCH_ERROR",
+        "uid": auth.currentUser.uid,
+        "calendarId": calendarId,
       });
-      return false;
+      return { success: false, error: err.message, code: err.code };
     }
   }, [setMedicinesData, setOriginalMedicinesData]);
     
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
   // Fonction pour modifier un médicament
   const updateMedicines = useCallback(async (calendarId) => {
     try {
@@ -309,22 +323,23 @@ function App() {
         },
         body: JSON.stringify({ medicines: medicinesData }),
       });
-      if (!res.ok) throw new Error(`Erreur HTTP PUT /api/calendars/${calendarId}/medicines`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
       setOriginalMedicinesData(JSON.parse(JSON.stringify(medicinesData)));
-      log.info("Médicaments mis à jour avec succès", {
-        id: "MED_UPDATE_SUCCESS",
-        origin: "App.js",
-        count: medicinesData?.length,
-        calendarId,
+      log.info(data.message, {
+        origin: "MED_UPDATE_SUCCESS",
+        "uid": auth.currentUser.uid,
+        "count": medicinesData?.length,
+        "calendarId": calendarId,
       });
-      return true;
+      return { success: true, message: data.message, code: data.code };
     } catch (err) {
-      log.error("Échec de modification du médicament", err, {
-        id: "MED_UPDATE_FAIL",
-        origin: "App.js",
-        stack: err.stack,
+      log.error(err.message || "Erreur lors de la modification des médicaments", err, {
+        origin: "MED_UPDATE_ERROR",
+        "uid": auth.currentUser.uid,
+        "calendarId": calendarId,
       });
-      return false;
+      return { success: false, error: err.message, code: err.code };
     }
   }, [medicinesData, setOriginalMedicinesData]);
 
@@ -334,25 +349,26 @@ function App() {
   
     setMedicinesData(medicinesData.filter((_, i) => !checked.includes(i)));
   
-    const success = await updateMedicines(calendarId);
+    const rep = await updateMedicines(calendarId);
   
-    if (success) {
+    if (rep.success) {
       setChecked([]);
-      log.info("Médicaments supprimés avec succès", {
-        id: "MED_DELETE_SUCCESS",
-        origin: "App.js",
-        count: checked.length,
-        calendarId,
+      log.info(rep.message, {
+        origin: "MED_DELETE_SUCCESS",
+        "uid": auth.currentUser.uid,
+        "count": checked.length,
+        "calendarId": calendarId,
       });
+      return true;
     } else {
-      log.error("Échec de suppression des médicaments", {
-        id: "MED_DELETE_FAIL",
-        origin: "App.js",
-        count: checked.length,
-        calendarId,
+      log.error(rep.error, {
+        origin: "MED_DELETE_ERROR",
+        "uid": auth.currentUser.uid,
+        "count": checked.length,
+        "calendarId": calendarId,
       });
+      return false;
     }
-    return success;
   }, [checked, medicinesData, setMedicinesData, setChecked, updateMedicines]);
   
   // Fonction pour ajouter un nouveau médicament sanq la variable medicines
@@ -954,7 +970,7 @@ function App() {
   
     setMedicinesData(medicinesData.filter((_, i) => !checked.includes(i)));
   
-    const success = await updateMedicines(calendarId);
+    const success = await updateSharedUserCalendarMedicines(calendarId);
     if (success) {
       setChecked([]);
       log.info("Médicaments du calendrier partagé supprimés avec succès", {

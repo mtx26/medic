@@ -1,5 +1,5 @@
 from flask import jsonify, request
-from logger import backend_logger as logger
+from logger import log_backend as logger    
 from auth import verify_firebase_token
 from datetime import datetime, timezone
 from . import api
@@ -20,7 +20,10 @@ def handle_shared_calendars():
         shared_users_docs = list(shared_with_doc.stream())
 
         if not shared_users_docs:
-            logger.info(f"[CALENDARS_SHARED_LOAD] Aucun calendrier partagé pour {uid}.")
+            logger.info("Aucun calendrier partagé pour {uid}.", {
+                "origin": "CALENDARS_SHARED_LOAD",
+                "uid": uid
+            })
             return jsonify({"calendars": []}), 200
 
         calendars_list = []
@@ -45,11 +48,18 @@ def handle_shared_calendars():
                 "access": access
             })
 
-        logger.info(f"[CALENDARS_SHARED_LOAD] {len(calendars_list)} calendrier(s) récupéré(s) pour {uid}.")
+        logger.info("Calendriers partagés récupérés avec succès pour {uid}.", {
+            "origin": "CALENDARS_SHARED_LOAD",
+            "uid": uid,
+            "count": len(calendars_list)
+        })
         return jsonify({"calendars": calendars_list}), 200
 
     except Exception as e:
-        logger.exception("[CALENDARS_SHARED_ERROR] Erreur lors de la récupération des calendriers partagés.")
+        logger.exception("Erreur lors de la récupération des calendriers partagés.", {
+            "origin": "CALENDARS_SHARED_ERROR",
+            "uid": uid
+        })
         return jsonify({"error": "Erreur interne lors de la récupération des calendriers partagés."}), 500
 
 
@@ -62,7 +72,10 @@ def handle_user_shared_calendar(calendar_id):
 
         shared_with_doc = db.collection("users").document(uid).collection("shared_calendars").document(calendar_id)
         if not shared_with_doc.get().exists:
-            logger.warning(f"[CALENDARS_SHARED_LOAD] Calendrier partagé introuvable : {calendar_id} pour {uid}.")
+            logger.warning("Calendrier partagé introuvable : {calendar_id} pour {uid}.", {
+                "origin": "CALENDARS_SHARED_LOAD",
+                "uid": uid
+            })
             return jsonify({"error": "Calendrier partagé introuvable"}), 404
 
         data = shared_with_doc.get().to_dict()
@@ -78,7 +91,10 @@ def handle_user_shared_calendar(calendar_id):
             start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
 
         if not verify_calendar_share(calendar_id, owner_uid, uid):
-            logger.warning(f"[CALENDARS_SHARED_LOAD] Accès non autorisé à {calendar_id} partagé par {owner_uid}")
+            logger.warning("Accès non autorisé à {calendar_id} partagé par {owner_uid}.", {
+                "origin": "CALENDARS_SHARED_LOAD",
+                "uid": uid
+            })
             return jsonify({"error": "Accès non autorisé"}), 403
         
         doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id)
@@ -86,11 +102,17 @@ def handle_user_shared_calendar(calendar_id):
 
         schedule = generate_schedule(start_date, medicines)
     
-        logger.info(f"[CALENDARS_SHARED_LOAD] Calendrier partagé récupéré avec succès : {calendar_id} pour {uid}.")
+        logger.info("Calendrier partagé récupéré avec succès : {calendar_id} pour {uid}.", {
+            "origin": "CALENDARS_SHARED_LOAD",
+            "uid": uid
+        })
         return jsonify({"schedule": schedule, "message": "Calendrier partagé récupéré avec succès"}), 200
 
     except Exception as e:
-        logger.exception("[CALENDARS_SHARED_ERROR] Erreur lors de la récupération du calendrier partagé.")
+        logger.exception("Erreur lors de la récupération du calendrier partagé.", {
+            "origin": "CALENDARS_SHARED_ERROR",
+            "uid": uid
+        })
         return jsonify({"error": "Erreur interne lors de la récupération du calendrier partagé."}), 500
 
 
@@ -104,7 +126,10 @@ def handle_delete_user_shared_calendar(calendar_id):
 
         received_calendar_doc = db.collection("users").document(receiver_uid).collection("shared_calendars").document(calendar_id)
         if not received_calendar_doc.get().exists:
-            logger.warning(f"[CALENDARS_SHARED_DELETE] Calendrier partagé introuvable : {calendar_id} pour {receiver_uid}.")
+            logger.warning("Calendrier partagé introuvable : {calendar_id} pour {receiver_uid}.", {
+                "origin": "CALENDARS_SHARED_DELETE",
+                "uid": receiver_uid
+            })
             return jsonify({"error": "Calendrier partagé introuvable"}), 404
 
         owner_uid = received_calendar_doc.get().to_dict().get("owner_uid")
@@ -112,13 +137,19 @@ def handle_delete_user_shared_calendar(calendar_id):
         calendar_name = received_calendar_doc.get().to_dict().get("calendar_name")
 
         if not verify_calendar_share(calendar_id, owner_uid, receiver_uid):
-            logger.warning(f"[CALENDARS_SHARED_DELETE] Accès non autorisé à {calendar_id} partagé par {owner_uid}")
+            logger.warning("Accès non autorisé à {calendar_id} partagé par {owner_uid}.", {
+                "origin": "CALENDARS_SHARED_DELETE",
+                "uid": receiver_uid
+            })
             return jsonify({"error": "Accès non autorisé"}), 403
         
 
         shared_with_doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).collection("shared_with").document(receiver_uid)
         if not shared_with_doc.get().exists:
-            logger.warning(f"[CALENDARS_SHARED_DELETE] Utilisateur partagé introuvable : {receiver_uid} pour {owner_uid}.")
+            logger.warning("Utilisateur partagé introuvable : {receiver_uid} pour {owner_uid}.", {
+                "origin": "CALENDARS_SHARED_DELETE",
+                "uid": receiver_uid
+            })
             return jsonify({"error": "Utilisateur partagé introuvable"}), 404
             
         received_calendar_doc.delete()
@@ -144,7 +175,10 @@ def handle_delete_user_shared_calendar(calendar_id):
         return jsonify({"message": "Calendrier partagé supprimé avec succès"}), 200
 
     except Exception as e:
-        logger.exception("[CALENDARS_SHARED_DELETE_ERROR] Erreur lors de la suppression du calendrier partagé.")
+        logger.exception("Erreur lors de la suppression du calendrier partagé.", {
+            "origin": "CALENDARS_SHARED_DELETE_ERROR",
+            "uid": receiver_uid
+        })
         return jsonify({"error": "Erreur interne lors de la suppression du calendrier partagé."}), 500
 
 
@@ -158,16 +192,25 @@ def handle_delete_user_shared_user(calendar_id, receiver_uid):
         try:
             receiver_email = db.collection("users").document(receiver_uid).get().to_dict().get("email")
         except:
-            logger.warning(f"[SHARED_USERS_DELETE] Utilisateur partagé introuvable : {receiver_uid} pour {owner_uid}.")
+            logger.warning("Utilisateur partagé introuvable : {receiver_uid} pour {owner_uid}.", {
+                "origin": "SHARED_USERS_DELETE",
+                "uid": receiver_uid
+            })
             receiver_email = "user_not_found"
 
         if owner_uid == receiver_uid:
-            logger.warning(f"[SHARED_USERS_DELETE] Tentative de suppression de l'utilisateur partagé {receiver_uid} pour lui-même.")
+            logger.warning("Tentative de suppression de l'utilisateur partagé {receiver_uid} pour lui-même.", {
+                "origin": "SHARED_USERS_DELETE",
+                "uid": receiver_uid
+            })
             return jsonify({"error": "Impossible de supprimer l'utilisateur partagé lui-même."}), 400
 
         shared_with_doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).collection("shared_with").document(receiver_uid)
         if not shared_with_doc.get().exists:
-            logger.warning(f"[SHARED_USERS_DELETE] Utilisateur partagé introuvable : {receiver_uid} pour {owner_uid}.")
+            logger.warning("Utilisateur partagé introuvable : {receiver_uid} pour {owner_uid}.", {
+                "origin": "SHARED_USERS_DELETE",
+                "uid": receiver_uid
+            })
             return jsonify({"error": "Utilisateur partagé introuvable"}), 404
 
         calendar_name = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).get().to_dict().get("calendar_name")
@@ -195,11 +238,17 @@ def handle_delete_user_shared_user(calendar_id, receiver_uid):
             "read": False
         })
 
-        logger.info(f"[SHARED_USERS_DELETE] Utilisateur partagé supprimé avec succès : {receiver_uid} pour {owner_uid}.")
+        logger.info("Utilisateur partagé supprimé avec succès : {receiver_uid} pour {owner_uid}.", {
+            "origin": "SHARED_USERS_DELETE",
+            "uid": receiver_uid
+        })
         return jsonify({"message": "Utilisateur partagé supprimé avec succès"}), 200
 
     except Exception as e:
-        logger.exception("[SHARED_USERS_DELETE_ERROR] Erreur lors de la suppression de l'utilisateur partagé.")
+        logger.exception("Erreur lors de la suppression de l'utilisateur partagé.", {
+            "origin": "SHARED_USERS_DELETE_ERROR",
+            "uid": receiver_uid
+        })
         return jsonify({"error": "Erreur interne lors de la suppression de l'utilisateur partagé."}), 500
 
 
@@ -240,11 +289,17 @@ def handle_shared_users(calendar_id):
                 "display_name": display_name
             })
 
-        logger.info(f"[SHARED_USERS_LOAD] {len(shared_users_list)} utilisateur(s) récupéré(s) pour {calendar_id}.")
+        logger.info("Utilisateurs partagés récupérés avec succès : {calendar_id}.", {
+            "origin": "SHARED_USERS_LOAD",
+            "uid": owner_uid
+        })
         return jsonify({"users": shared_users_list}), 200
 
     except Exception as e:
-        logger.exception("[SHARED_USERS_ERROR] Erreur lors de la récupération des utilisateurs partagés.")
+        logger.exception("Erreur lors de la récupération des utilisateurs partagés.", {
+            "origin": "SHARED_USERS_ERROR",
+            "uid": owner_uid
+        })
         return jsonify({"error": "Erreur interne lors de la récupération des utilisateurs partagés."}), 500
 
 
@@ -257,27 +312,42 @@ def handle_shared_user_calendar_medicines(calendar_id):
 
         doc = db.collection("users").document(receiver_uid).collection("shared_calendars").document(calendar_id)
         if not doc.get().exists:
-            logger.warning(f"[SHARED_USER_CALENDAR_MEDICINES_LOAD] Calendrier partagé introuvable : {calendar_id} pour {receiver_uid}.")
+            logger.warning("Calendrier partagé introuvable : {calendar_id} pour {receiver_uid}.", {
+                "origin": "SHARED_USER_CALENDAR_MEDICINES_LOAD",
+                "uid": receiver_uid
+            })
             return jsonify({"error": "Calendrier partagé introuvable"}), 404
 
         owner_uid = doc.get().to_dict().get("owner_uid")
 
         if not verify_calendar_share(calendar_id, owner_uid, receiver_uid):
-            logger.warning(f"[SHARED_USER_CALENDAR_MEDICINES_LOAD] Accès non autorisé à {calendar_id} partagé par {owner_uid}")
+            logger.warning("Accès non autorisé à {calendar_id} partagé par {owner_uid}.", {
+                "origin": "SHARED_USER_CALENDAR_MEDICINES_LOAD",
+                "uid": receiver_uid
+            })
             return jsonify({"error": "Accès non autorisé"}), 403
 
         doc_2 = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id)
         if not doc_2.get().exists:
-            logger.warning(f"[SHARED_USER_CALENDAR_MEDICINES_LOAD] Calendrier introuvable : {calendar_id} pour {owner_uid}.")
+            logger.warning("Calendrier introuvable : {calendar_id} pour {owner_uid}.", {
+                "origin": "SHARED_USER_CALENDAR_MEDICINES_LOAD",
+                "uid": owner_uid
+            })
             return jsonify({"error": "Calendrier introuvable"}), 404
 
         medicines = doc_2.get().to_dict().get("medicines", [])
 
-        logger.info(f"[SHARED_USER_CALENDAR_MEDICINES_LOAD] {len(medicines)} médicament(s) récupéré(s) pour {calendar_id}.")
+        logger.info("Médicaments récupérés avec succès : {calendar_id}.", {
+            "origin": "SHARED_USER_CALENDAR_MEDICINES_LOAD",
+            "uid": receiver_uid
+        })
         return jsonify({"medicines": medicines}), 200
 
     except Exception as e:
-        logger.exception("[SHARED_USER_CALENDAR_MEDICINES_ERROR] Erreur lors de la récupération des médicaments du calendrier partagé.")
+        logger.exception("Erreur lors de la récupération des médicaments du calendrier partagé.", {
+            "origin": "SHARED_USER_CALENDAR_MEDICINES_ERROR",
+            "uid": receiver_uid
+        })
         return jsonify({"error": "Erreur interne lors de la récupération des médicaments du calendrier partagé."}), 500
 
 
@@ -291,29 +361,44 @@ def handle_update_shared_user_calendar_medicines(calendar_id):
 
         doc = db.collection("users").document(receiver_uid).collection("shared_calendars").document(calendar_id)
         if not doc.get().exists:
-            logger.warning(f"[SHARED_USER_CALENDAR_MEDICINES_UPDATE] Calendrier partagé introuvable : {calendar_id} pour {receiver_uid}.")
+            logger.warning("Calendrier partagé introuvable : {calendar_id} pour {receiver_uid}.", {
+                "origin": "SHARED_USER_CALENDAR_MEDICINES_UPDATE",
+                "uid": receiver_uid
+            })
             return jsonify({"error": "Calendrier partagé introuvable"}), 404
 
         owner_uid = doc.get().to_dict().get("owner_uid")
         
         if not verify_calendar_share(calendar_id, owner_uid, receiver_uid):
-            logger.warning(f"[SHARED_USER_CALENDAR_MEDICINES_UPDATE] Accès non autorisé à {calendar_id} partagé par {owner_uid}")
+            logger.warning("Accès non autorisé à {calendar_id} partagé par {owner_uid}.", {
+                "origin": "SHARED_USER_CALENDAR_MEDICINES_UPDATE",
+                "uid": receiver_uid
+            })
             return jsonify({"error": "Accès non autorisé"}), 403
 
         medicines = request.json.get("medicines", [])
 
         doc_2 = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id)
         if not doc_2.get().exists:
-            logger.warning(f"[SHARED_USER_CALENDAR_MEDICINES_UPDATE] Calendrier introuvable : {calendar_id} pour {owner_uid}.")
+            logger.warning("Calendrier introuvable : {calendar_id} pour {owner_uid}.", {
+                "origin": "SHARED_USER_CALENDAR_MEDICINES_UPDATE",
+                "uid": owner_uid
+            })
             return jsonify({"error": "Calendrier introuvable"}), 404
 
         doc_2.update({"medicines": medicines})
 
-        logger.info(f"[SHARED_USER_CALENDAR_MEDICINES_UPDATE] Médicaments mis à jour avec succès pour {calendar_id}.")
+        logger.info("Médicaments mis à jour avec succès : {calendar_id}.", {
+            "origin": "SHARED_USER_CALENDAR_MEDICINES_UPDATE",
+            "uid": receiver_uid
+        })
         return jsonify({"message": "Médicaments mis à jour avec succès"}), 200
 
     except Exception as e:
-        logger.exception("[SHARED_USER_CALENDAR_MEDICINES_UPDATE_ERROR] Erreur lors de la mise à jour des médicaments du calendrier partagé.")
+        logger.exception("Erreur lors de la mise à jour des médicaments du calendrier partagé.", {
+            "origin": "SHARED_USER_CALENDAR_MEDICINES_UPDATE_ERROR",
+            "uid": receiver_uid
+        })
         return jsonify({"error": "Erreur interne lors de la mise à jour des médicaments du calendrier partagé."}), 500
 
 

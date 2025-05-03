@@ -1,5 +1,5 @@
 from flask import jsonify, request
-from logger import backend_logger as logger
+from logger import log_backend as logger
 from auth import verify_firebase_token
 from firebase_admin import firestore, auth
 import secrets
@@ -17,7 +17,10 @@ def handle_send_invitation(calendar_id):
 
         doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).get()
         if not doc.exists:
-            logger.warning(f"[INVITATION_SEND] Calendrier introuvable : {calendar_id}.")
+            logger.warning("Calendrier introuvable : {calendar_id}.", {
+                "origin": "INVITATION_SEND",
+                "uid": owner_uid
+            })
             return jsonify({"error": "Calendrier introuvable"}), 404
 
         calendar_name = doc.to_dict().get("calendar_name")
@@ -28,13 +31,19 @@ def handle_send_invitation(calendar_id):
         
         # Verif si soit même
         if owner_uid == receiver_uid:
-            logger.warning(f"[INVITATION_SEND] Tentative de partage avec soi-même : {receiver_email}.")
+            logger.warning("Tentative de partage avec soi-même : {receiver_email}.", {
+                "origin": "INVITATION_SEND",
+                "uid": owner_uid
+            })
             return jsonify({"error": "Impossible de partager avec soi-même."}), 400
 
         # Vérifier si l'utilisateur existe  
         doc = db.collection("users").document(receiver_uid).get()
         if not doc.exists:
-            logger.warning(f"[INVITATION_SEND] Utilisateur introuvable : {receiver_email}.")
+            logger.warning("Utilisateur introuvable : {receiver_email}.", {
+                "origin": "INVITATION_SEND",
+                "uid": owner_uid
+            })
             return jsonify({"error": "Utilisateur introuvable"}), 404
         
         # Créer un token unique pour la notification
@@ -60,11 +69,17 @@ def handle_send_invitation(calendar_id):
             "access": "edit"
         })
 
-        logger.info(f"[INVITATION_SEND] Invitation envoyée à {receiver_email} pour le calendrier {calendar_name}.")
+        logger.info("Invitation envoyée à {receiver_email} pour le calendrier {calendar_name}.", {
+            "origin": "INVITATION_SEND",
+            "uid": owner_uid
+        })
         return jsonify({"message": "Invitation envoyée avec succès"}), 200
 
     except Exception as e:
-        logger.exception(f"[INVITATION_SEND_ERROR] Erreur dans /api/invitations/send/{calendar_id}")
+        logger.exception("Erreur dans /api/invitations/send/{calendar_id}", {
+            "origin": "INVITATION_SEND",
+            "uid": owner_uid
+        })
         return jsonify({"error": "Erreur lors de l'envoi de l'invitation."}), 500
 
 
@@ -77,12 +92,18 @@ def handle_accept_invitation(notification_id):
 
         doc = db.collection("users").document(receiver_uid).collection("notifications").document(notification_id).get()
         if not doc.exists:
-            logger.warning(f"[INVITATION_ACCEPT] Notification introuvable : {notification_id}.")
+            logger.warning("Notification introuvable : {notification_id}.", {
+                "origin": "INVITATION_ACCEPT",
+                "uid": receiver_uid
+            })
             return jsonify({"error": "Notification introuvable"}), 404
         
         # Vérifier si la notification est une invitation
         if doc.to_dict().get("type") != "calendar_invitation":
-            logger.warning(f"[INVITATION_ACCEPT] Notification non valide : {notification_id}.")
+            logger.warning("Notification non valide : {notification_id}.", {
+                "origin": "INVITATION_ACCEPT",
+                "uid": receiver_uid
+            })
             return jsonify({"error": "Notification non valide"}), 400
         
         calendar_id = doc.to_dict().get("calendar_id")
@@ -122,11 +143,17 @@ def handle_accept_invitation(notification_id):
             "notification_id": notification_id
         })
 
-        logger.info(f"[INVITATION_ACCEPT] Invitation acceptée : {notification_id}.")
+        logger.info("Invitation acceptée : {notification_id}.", {
+            "origin": "INVITATION_ACCEPT",
+            "uid": receiver_uid
+        })
         return jsonify({"message": "Invitation acceptée avec succès"}), 200
 
     except Exception as e:
-        logger.exception(f"[INVITATION_ACCEPT_ERROR] Erreur dans /api/invitations/accept/{notification_id}")
+        logger.exception("Erreur dans /api/invitations/accept/{notification_id}", {
+            "origin": "INVITATION_ACCEPT",
+            "uid": receiver_uid
+        })
         return jsonify({"error": "Erreur lors de l'acceptation de l'invitation."}), 500
 
 
@@ -139,12 +166,18 @@ def handle_reject_invitation(notification_id):
 
         doc = db.collection("users").document(receiver_uid).collection("notifications").document(notification_id).get()
         if not doc.exists:
-            logger.warning(f"[INVITATION_REJECT] Notification introuvable : {notification_id}.")
+            logger.warning("Notification introuvable : {notification_id}.", {
+                "origin": "INVITATION_REJECT",
+                "uid": receiver_uid
+            })
             return jsonify({"error": "Notification introuvable"}), 404
 
         # Vérifier si la notification est une invitation
         if doc.to_dict().get("type") != "calendar_invitation":
-            logger.warning(f"[INVITATION_REJECT] Notification non valide : {notification_id}.")
+            logger.warning("Notification non valide : {notification_id}.", {
+                "origin": "INVITATION_REJECT",
+                "uid": receiver_uid
+            })
             return jsonify({"error": "Notification non valide"}), 400
 
         calendar_id = doc.to_dict().get("calendar_id")
@@ -166,9 +199,15 @@ def handle_reject_invitation(notification_id):
             "notification_id": notification_id
         })
 
-        logger.info(f"[INVITATION_REJECT] Invitation rejetée : {notification_id}.")
+        logger.info("Invitation rejetée : {notification_id}.", {
+            "origin": "INVITATION_REJECT",
+            "uid": receiver_uid
+        })
         return jsonify({"message": "Invitation rejetée avec succès"}), 200
 
     except Exception as e:
-        logger.exception(f"[INVITATION_REJECT_ERROR] Erreur dans /api/invitations/reject/{notification_id}")
+        logger.exception("Erreur dans /api/invitations/reject/{notification_id}", {
+            "origin": "INVITATION_REJECT",
+            "uid": receiver_uid
+        })
         return jsonify({"error": "Erreur lors de la réjection de l'invitation."}), 500

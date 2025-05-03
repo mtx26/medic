@@ -81,8 +81,8 @@ function MedicamentsPage({ medicines, calendars }) {
       if (authReady && currentUser && calendarId) {
         calendars.setCalendarsData([]);
         await calendars.fetchCalendars();
-        const success = await medicines.fetchCalendarMedicines(calendarId);
-        setLoadingMedicines(success);
+        const rep = await medicines.fetchCalendarMedicines(calendarId);
+        setLoadingMedicines(rep.success);
       }
     };
     load();
@@ -170,12 +170,12 @@ function MedicamentsPage({ medicines, calendars }) {
               setAlertType("confirm-safe");
               setAlertMessage("✅ Enregistrer les modifications de médicaments ?");
               setOnConfirmAction(() => async () => {
-                const success = await medicines.updateMedicines(calendarId);
-                if (success) {
-                  setAlertMessage("✅ Modifications enregistrées.");
+                const rep = await medicines.updateMedicines(calendarId);
+                if (rep.success) {
+                  setAlertMessage("✅ "+rep.message);
                   setAlertType("success");
                 } else {
-                  setAlertMessage("❌ Erreur lors de l'enregistrement des modifications.");
+                  setAlertMessage("❌ "+rep.error);
                   setAlertType("danger");
                   medicines.setMedicinesData(JSON.parse(JSON.stringify(medicines.originalMedicinesData)));
                 }

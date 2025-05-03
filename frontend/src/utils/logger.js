@@ -22,17 +22,6 @@ const fetchLog = (msg, error, context, type) => {
       if (isDev) console.warn("Échec de l'envoi du log au backend :", err);
     });
   }
-
-  if (isDev) {
-    console.groupCollapsed(`[${type.toUpperCase()}] ${msg}`);
-    console.log("Message:", msg);
-    if (context) console.log("Contexte:", context);
-    if (error) {
-      console.error("Erreur:", error);
-      if (error.stack) console.log("Stack:", error.stack);
-    }
-    console.groupEnd();
-  }
 };
 
 export const log = {

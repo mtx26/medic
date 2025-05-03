@@ -1,5 +1,5 @@
 from flask import jsonify, request
-from logger import backend_logger as logger
+from logger import log_backend as logger
 from auth import verify_firebase_token
 from datetime import datetime, timezone, timedelta
 from . import api
@@ -18,17 +18,30 @@ def get_medicines(calendar_id):
 
         doc = db.collection("users").document(uid).collection("calendars").document(calendar_id)
         if not doc.get().exists:
-            logger.warning(f"[MED_FETCH] Calendrier introuvable : {calendar_id} pour {uid}.")
-            return jsonify({"error": "Calendrier introuvable"}), 404
+            logger.warning("Calendrier introuvable.", {
+                "origin": "MED_FETCH_ERROR",
+                "uid": uid,
+                "calendar_id": calendar_id
+            })
+            return jsonify({"error": "Calendrier introuvable", "code": "CALENDAR_NOT_FOUND"}), 404
 
         medicines = doc.get().to_dict().get("medicines", [])
 
-        logger.info(f"[MED_FETCH] {len(medicines)} médicament(s) récupéré(s) pour {calendar_id}.")
-        return jsonify({"medicines": medicines}), 200
+        logger.info("Médicaments récupérés avec succès.", {
+            "origin": "MED_FETCH_SUCCESS",
+            "uid": uid,
+            "calendar_id": calendar_id
+        })
+        return jsonify({"medicines": medicines, "message": "Médicaments récupérés avec succès", "code": "MED_FETCH_SUCCESS"}), 200
 
-    except Exception:
-        logger.exception(f"[MED_ERROR] Erreur dans GET /api/calendars/{calendar_id}/medicines")
-        return jsonify({"error": "Erreur interne"}), 500
+    except Exception as e:
+        logger.exception(f"Erreur dans GET /api/calendars/{calendar_id}/medicines", {
+            "origin": "MED_FETCH_ERROR",
+            "uid": uid,
+            "calendar_id": calendar_id,
+            "error": str(e)
+        })
+        return jsonify({"error": "Erreur lors de la récupération des médicaments.", "code": "MED_FETCH_ERROR"}), 500
 
 
 # Mettre à jour les médicaments d’un calendrier
@@ -40,8 +53,12 @@ def update_medicines(calendar_id):
         medicines = request.json.get("medicines")
 
         if not isinstance(medicines, list):
-            logger.warning(f"[MED_UPDATE] Format de médicaments invalide reçu de {uid}.")
-            return jsonify({"error": "Le format des médicaments est invalide."}), 400
+            logger.warning("Format de médicaments invalide reçu.", {
+                "origin": "MED_UPDATE_ERROR",
+                "uid": uid,
+                "calendar_id": calendar_id
+            })
+            return jsonify({"error": "Le format des médicaments est invalide.", "code": "INVALID_MEDICINE_FORMAT"}), 400
 
 
         db.collection("users").document(uid).collection("calendars").document(calendar_id).set({
@@ -49,12 +66,21 @@ def update_medicines(calendar_id):
             "last_updated": firestore.SERVER_TIMESTAMP
         }, merge=True)
 
-        logger.info(f"[MED_UPDATE] Médicaments mis à jour pour {uid}.")
-        return jsonify({"message": "Médicaments mis à jour", "status": "ok"})
+        logger.info("Médicaments mis à jour avec succès.", {
+            "origin": "MED_UPDATE_SUCCESS",
+            "uid": uid,
+            "calendar_id": calendar_id
+        })
+        return jsonify({"message": "Médicaments mis à jour avec succès", "code": "MED_UPDATE_SUCCESS"}), 200
 
-    except Exception:
-        logger.exception(f"[MED_ERROR] Erreur dans POST /api/calendars/{calendar_id}/medicines")
-        return jsonify({"error": "Erreur interne"}), 500
+    except Exception as e:
+        logger.exception(f"Erreur dans POST /api/calendars/{calendar_id}/medicines", {
+            "origin": "MED_UPDATE_ERROR",
+            "uid": uid,
+            "calendar_id": calendar_id,
+            "error": str(e)
+        })
+        return jsonify({"error": "Erreur lors de la mise à jour des médicaments.", "code": "MED_UPDATE_ERROR"}), 500
 
 
 # Route pour compter les médicaments
@@ -67,18 +93,32 @@ def count_medicines():
 
         doc = db.collection("users").document(uid).collection("calendars").document(calendar_id).get()
         if not doc.exists:
-            logger.warning(f"[MED_COUNT] Calendrier introuvable : {calendar_id} pour {uid}.")
-            return jsonify({"error": "Calendrier introuvable"}), 404
+            logger.warning("Calendrier introuvable.", {
+                "origin": "MED_COUNT_ERROR",
+                "uid": uid,
+                "calendar_id": calendar_id
+            })
+            return jsonify({"error": "Calendrier introuvable", "code": "CALENDAR_NOT_FOUND"}), 404
 
         data = doc.to_dict()
         medicines = data.get("medicines", [])
         count = len(medicines)
-        logger.info(f"[MED_COUNT] {count} médicaments récupérés de {calendar_id} pour {uid}.")
-        return jsonify({"count": count}), 200
+        logger.info("Médicaments récupérés avec succès.", {
+            "origin": "MED_COUNT_SUCCESS",
+            "uid": uid,
+            "calendar_id": calendar_id,
+            "count": count
+        })
+        return jsonify({"count": count, "message": "Médicaments récupérés avec succès", "code": "MED_COUNT_SUCCESS"}), 200
 
     except Exception as e:
-        logger.exception("[MED_COUNT_ERROR] Erreur dans /api/medicines/count")
-        return jsonify({"error": "Erreur lors du comptage des médicaments."}), 500
+        logger.exception("Erreur dans /api/medicines/count", {
+            "origin": "MED_COUNT_ERROR",
+            "uid": uid,
+            "calendar_id": calendar_id,
+            "error": str(e)
+        })
+        return jsonify({"error": "Erreur lors du comptage des médicaments.", "code": "MED_COUNT_ERROR"}), 500
  
 
 # Route pour compter les médicaments d'un calendrier partagé
@@ -93,20 +133,40 @@ def count_shared_medicines():
 
         doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).get()
         if not doc.exists:
-            logger.warning(f"[MED_COUNT] Calendrier introuvable : {calendar_id} pour {uid}.")
-            return jsonify({"error": "Calendrier introuvable"}), 404
+            logger.warning("Calendrier introuvable.", {
+                "origin": "MED_SHARED_COUNT_ERROR",
+                "uid": uid,
+                "calendar_id": calendar_id
+            })
+            return jsonify({"error": "Calendrier introuvable", "code": "CALENDAR_NOT_FOUND"}), 404
 
 
         if not verify_calendar_share(calendar_id, owner_uid, uid):
-            logger.warning(f"[MED_COUNT] Accès non autorisé à {calendar_id} partagé par {owner_uid}")
-            return jsonify({"error": "Accès non autorisé"}), 403
+            logger.warning("Accès non autorisé.", {
+                "origin": "MED_SHARED_COUNT_ERROR",
+                "uid": uid,
+                "calendar_id": calendar_id,
+                "owner_uid": owner_uid
+            })
+            return jsonify({"error": "Accès non autorisé", "code": "UNAUTHORIZED_ACCESS"}), 403
 
         data = doc.to_dict()
         medicines = data.get("medicines", [])
         count = len(medicines)
-        logger.info(f"[MED_COUNT] {count} médicaments récupérés de {calendar_id} pour {uid}.")
-        return jsonify({"count": count}), 200
+        logger.info("Médicaments récupérés avec succès.", {
+            "origin": "MED_SHARED_COUNT_SUCCESS",
+            "uid": uid,
+            "calendar_id": calendar_id,
+            "count": count,
+            "owner_uid": owner_uid
+        })
+        return jsonify({"count": count, "message": "Médicaments récupérés avec succès", "code": "MED_SHARED_COUNT_SUCCESS"}), 200
 
     except Exception as e:
-        logger.exception("[MED_COUNT_ERROR] Erreur dans /api/medicines/shared/count")
-        return jsonify({"error": "Erreur lors du comptage des médicaments."}), 500
+        logger.exception("Erreur dans /api/medicines/shared/count", {
+            "origin": "MED_SHARED_COUNT_ERROR",
+            "uid": uid,
+            "calendar_id": calendar_id,
+            "error": str(e)
+        })
+        return jsonify({"error": "Erreur lors du comptage des médicaments.", "code": "MED_SHARED_COUNT_ERROR"}), 500

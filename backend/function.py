@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, date
 import calendar
-from logger import backend_logger as logger
+from logger import log_backend as logger
 from firebase_admin import firestore
 
 db = firestore.client()
@@ -13,14 +13,24 @@ def verify_calendar_share(calendar_name : str, owner_uid : str, receiver_uid : s
         
         shared_with_doc = shared_with_ref.get()
         if not shared_with_doc.exists:
-            logger.warning(f"[SHARED_VERIFY] Pas d'accès : {calendar_name} non partagé par {owner_uid} à {receiver_uid}")
+            logger.warning("Accès refusé", {
+                "origin": "SHARED_VERIFY",
+                "uid": receiver_uid,
+                "calendar_name": calendar_name,
+                "owner_uid": owner_uid
+            })
             return False
         
         shared_data = shared_with_doc.to_dict()
         return shared_data.get("receiver_uid") == receiver_uid
 
     except Exception as e:
-        logger.exception(f"[SHARED_VERIFY_ERROR] Erreur lors de la vérification du partage de {calendar_name}")
+        logger.exception("Erreur lors de la vérification du partage", {
+            "origin": "SHARED_VERIFY_ERROR",
+            "uid": receiver_uid,
+            "calendar_name": calendar_name, 
+            "owner_uid": owner_uid
+        })
         return False
 
 def is_medication_due(med, current_date):
