@@ -41,8 +41,8 @@ function SharedUserCalendarView({ events, sharedUsers }) {
   useEffect(() => {
     const fetchShared = async () => {
       if (calendarId) {
-        const success = await sharedUsers.fetchSharedUserCalendar(calendarId);
-        setSuccessGetSharedCalendar(success);
+        const rep = await sharedUsers.fetchSharedUserCalendar(calendarId);
+        setSuccessGetSharedCalendar(rep.success);
       }
     };
   

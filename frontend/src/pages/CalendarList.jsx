@@ -295,15 +295,15 @@ function SelectCalendar({ calendars, sharedTokens, invitations, sharedUsers }) {
                     type="button"
                     className="btn btn-outline-primary"
                     onClick={async () => {
-                      const success = await invitations.sendInvitation(emailToInvite, calendarIdToShare);
-                      if (success) {
+                      const rep = await invitations.sendInvitation(emailToInvite, calendarIdToShare);
+                      if (rep.success) {
                         setAlertType("success");
                         setSelectedAlert("calendar");
-                        setAlertMessage("✅ Invitation envoyée avec succès !");
+                        setAlertMessage("✅ "+ rep.message);
                       } else {
                         setAlertType("danger");
                         setSelectedAlert("calendar");
-                        setAlertMessage("❌ Erreur lors de l'envoi de l'invitation.");
+                        setAlertMessage("❌ "+ rep.error);
                       }
                       setShowShareModal(false);
                     }}
@@ -324,13 +324,13 @@ function SelectCalendar({ calendars, sharedTokens, invitations, sharedUsers }) {
                 type="button"
                 className="btn btn-outline-primary"
                 onClick={async () => {
-                  const { token, success } = await sharedTokens.createToken(calendarIdToShare, expiresAt, permissions);
-                  if (success) {
+                  const rep = await sharedTokens.createToken(calendarIdToShare, expiresAt, permissions);
+                  if (rep.success) {
                     try {
-                      await navigator.clipboard.writeText(`${REACT_URL}/shared-token-calendar/${token}`);
+                      await navigator.clipboard.writeText(`${REACT_URL}/shared-token-calendar/${rep.token}`);
                       setAlertType("success");
                       setSelectedAlert("calendar");
-                      setAlertMessage("🔗 Lien copié dans le presse-papiers !");
+                      setAlertMessage("✅ "+ rep.message);
                     } catch (error) {
                       setAlertType("danger");
                       setSelectedAlert("calendar");
@@ -339,7 +339,7 @@ function SelectCalendar({ calendars, sharedTokens, invitations, sharedUsers }) {
                   } else {
                     setAlertType("danger");
                     setSelectedAlert("calendar");
-                    setAlertMessage("❌ Erreur lors de la création du lien.");
+                    setAlertMessage("❌ " + rep.error);
                   }
                   setShowShareModal(false);
                 }}
@@ -610,15 +610,15 @@ function SelectCalendar({ calendars, sharedTokens, invitations, sharedUsers }) {
                 setSelectedAlert("sharedCalendar");
                 setAlertMessage("❌ Confirmez-vous la suppression du calendrier partagé ?");
                 setOnConfirmAction(() => async () => {
-                  const success = await calendars.deleteSharedCalendar(calendarData.calendar_id);
-                  if (success) {
+                  const rep = await calendars.deleteSharedCalendar(calendarData.calendar_id);
+                  if (rep.success) {
                     setAlertType("success");
                     setSelectedAlert("sharedCalendar");
-                    setAlertMessage("✅ Calendrier partagé supprimé avec succès !");
+                    setAlertMessage("✅ " + rep.message);
                   } else {
                     setAlertType("danger");
                     setSelectedAlert("sharedCalendar");
-                    setAlertMessage("❌ Erreur lors de la suppression du calendrier partagé.");
+                    setAlertMessage("❌ " + rep.error);
                   }
                 });
               }}

@@ -1,8 +1,7 @@
 from . import api
-from logger import log_backend as logger
 from auth import verify_firebase_token
-from flask import jsonify
 from firebase_admin import firestore
+from response import success_response, error_response, warning_response
 
 db = firestore.client()
 
@@ -18,19 +17,23 @@ def handle_notifications():
         for doc in notifications_ref:
             notifications.append(doc.to_dict())
 
-        logger.info("Notifications récupérées pour {uid}.", {
-            "origin": "NOTIFICATIONS_FETCH",
-            "uid": uid
-        })
-        return jsonify({"notifications": notifications}), 200
+        return success_response(
+            message="Notifications récupérées avec succès", 
+            code="NOTIFICATIONS_FETCH_SUCCESS", 
+            uid=uid, 
+            origin="NOTIFICATIONS_FETCH",
+            data={"notifications": notifications}
+        )
 
     except Exception as e:
-        logger.exception("Erreur dans /api/notifications", {
-            "origin": "NOTIFICATIONS_ERROR",
-            "uid": uid
-        })
-        return jsonify({"error": "Erreur lors de la récupération des notifications."}), 500
-
+        return error_response(
+            message="Erreur lors de la récupération des notifications.", 
+            code="NOTIFICATIONS_FETCH_ERROR", 
+            status_code=500, 
+            uid=uid, 
+            origin="NOTIFICATIONS_FETCH",
+            error=str(e)
+        )
 
 # Route pour marquer une notification comme lue
 @api.route("/api/notifications/<notification_id>", methods=["POST"])
@@ -41,25 +44,33 @@ def handle_read_notification(notification_id):
 
         doc = db.collection("users").document(uid).collection("notifications").document(notification_id)
         if not doc.get().exists:
-            logger.warning("Notification introuvable : {notification_id}.", {
-                "origin": "NOTIFICATION_READ",
-                "uid": uid
-            })
-            return jsonify({"error": "Notification introuvable"}), 404
+            return warning_response(
+                message="Notification introuvable", 
+                code="NOTIFICATION_READ_ERROR", 
+                status_code=404, 
+                uid=uid, 
+                origin="NOTIFICATION_READ",
+                log_extra={"notification_id": notification_id}
+            )
         
         doc.update({
             "read": True
         })
 
-        logger.info("Notification marquée comme lue : {notification_id}.", {
-            "origin": "NOTIFICATION_READ",
-            "uid": uid
-        })
-        return jsonify({"message": "Notification marquée comme lue avec succès"}), 200
+        return success_response(
+            message="Notification marquée comme lue avec succès", 
+            code="NOTIFICATION_READ_SUCCESS", 
+            uid=uid, 
+            origin="NOTIFICATION_READ",
+            log_extra={"notification_id": notification_id}
+        )
 
     except Exception as e:
-        logger.exception("Erreur dans /api/read-notification/{notification_id}", {
-            "origin": "NOTIFICATION_READ_ERROR",
-            "uid": uid
-        })
-        return jsonify({"error": "Erreur lors de la lecture de la notification."}), 500
+        return error_response(
+            message="Erreur lors de la lecture de la notification.", 
+            code="NOTIFICATION_READ_ERROR", 
+            status_code=500, 
+            uid=uid, 
+            origin="NOTIFICATION_READ",
+            error=str(e)
+        )

@@ -134,7 +134,10 @@ function App() {
         body: JSON.stringify({ calendarId, newCalendarName }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
+      if (!res.ok) {
+        console.log(data);
+        throw new Error(data.error);
+      }
       fetchCalendars();
       log.info(data.message, {
         origin: "CALENDAR_RENAME_SUCCESS",
@@ -296,20 +299,6 @@ function App() {
       return { success: false, error: err.message, code: err.code };
     }
   }, [setMedicinesData, setOriginalMedicinesData]);
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
   
   // Fonction pour modifier un médicament
   const updateMedicines = useCallback(async (calendarId) => {
@@ -359,7 +348,7 @@ function App() {
         "count": checked.length,
         "calendarId": calendarId,
       });
-      return true;
+      return {success: true, message: "Médicaments supprimés avec succès", code: rep.code};
     } else {
       log.error(rep.error, {
         origin: "MED_DELETE_ERROR",
@@ -367,7 +356,7 @@ function App() {
         "count": checked.length,
         "calendarId": calendarId,
       });
-      return false;
+      return {success: false, error: "Erreur lors de la suppression des médicaments", code: rep.code};
     }
   }, [checked, medicinesData, setMedicinesData, setChecked, updateMedicines]);
   
@@ -393,22 +382,20 @@ function App() {
       const res = await fetch(`${API_URL}/api/tokens/${token}/calendar?startTime=${startDate}`, {
         method: "GET",
       });
-      if (!res.ok) throw new Error(`Erreur HTTP GET /api/tokens/${token}/calendar`);
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
       setCalendarEvents(data.schedule.map(e => ({ title: e.title, start: e.date, color: e.color })));
-      log.info("Calendrier partagé récupéré avec succès", {
-        id: "SHARED_CALENDAR_FETCH_SUCCESS",
-        origin: "App.js",
-        count: data?.length,
+      log.info(data.message, {
+        origin: "SHARED_CALENDAR_FETCH_SUCCESS",
+        "token": token,
       });
-      return true;
+      return {success: true, message: data.message, code: data.code};
     } catch (err) {
-      log.error("Échec de récupération du calendrier partagé", err, {
-        id: "SHARED_CALENDAR_FETCH_FAIL",
-        origin: "App.js",
-        stack: err.stack,
+      log.error(err.message || "Échec de récupération du calendrier partagé", err, {
+        origin: "SHARED_CALENDAR_FETCH_ERROR",
+        "token": token,
       });
-      return false;
+      return {success: false, error: err.message, code: err.code};
     }
   }, [setCalendarEvents]);
 
@@ -418,24 +405,20 @@ function App() {
       const  res = await fetch(`${API_URL}/api/tokens/${token}/medecines`, {
         method: "GET",
       });
-      if (!res.ok) throw new Error(`Erreur HTTP GET /api/tokens/${token}/medecines`);
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
       setMedicinesData(data.medicines)
-      log.info("Médicaments récupérés avec succès", {
-        id: "SHARED_MED_FETCH_SUCCESS",
-        origin: "App.js",
-        count: data.medicines?.length,
-        token,
+      log.info(data.message, {
+        origin: "SHARED_MED_FETCH_SUCCESS",
+        "token": token,
       });
-      return true;
+      return {success: true, message: data.message, code: data.code};
     } catch (err) {
-      log.error("Échec de récupération des médicaments partagé", err, {
-        id: "SHARED_MED_FETCH_FAIL",
-        origin: "App.js",
-        stack: err.stack,
-        token,
+      log.error(err.message || "Échec de récupération des médicaments partagé", err, {
+        origin: "SHARED_MED_FETCH_ERROR",
+        "token": token,
       });
-      return false;
+      return {success: false, error: err.message, code: err.code};
     }
   }, [setMedicinesData]);
 
@@ -447,23 +430,22 @@ function App() {
         method: "GET",
       headers: { Authorization: `Bearer ${token}` },
       });
-      if (!res.ok) throw new Error(`Erreur HTTP GET /api/tokens`);
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
       const sortedTokens = data.tokens.sort((a, b) => a.calendar_name.localeCompare(b.calendar_name));
       setTokensList(sortedTokens);
-      log.info("Tokens récupérés avec succès", {
-        id: "TOKENS_FETCH_SUCCESS",
-        origin: "App.js",
-        count: data.tokens?.length,
+      log.info(data.message, {
+        origin: "TOKENS_FETCH_SUCCESS",
+        "uid": auth.currentUser.uid,
+        "count": data.tokens?.length,
       });
-      return true;
+      return {success: true, message: data.message, code: data.code};
     } catch (err) {
-      log.error("Échec de récupération des tokens", err, {
-        id: "TOKENS_FETCH_FAIL",
-        origin: "App.js",
-        stack: err.stack,
+      log.error(err.message || "Échec de récupération des tokens", err, {
+        origin: "TOKENS_FETCH_ERROR",
+        "uid": auth.currentUser.uid,
       });
-      return false;
+      return {success: false, error: err.message, code: err.code};
     }
   }, [setTokensList]);
 
@@ -479,23 +461,21 @@ function App() {
         },
         body: JSON.stringify({ expiresAt, permissions }),
       });
-      if (!res.ok) throw new Error(`Erreur HTTP POST /api/set-shared/${calendarId}`);
       const data = await res.json();
-      log.info("Lien de partage créé avec succès", {
-        id: "SHARED_CALENDAR_CREATE_SUCCESS",
-        origin: "App.js",
-        calendarId,
-        token: data.token,
+      if (!res.ok) throw new Error(data.error);
+      log.info(data.message, {
+        origin: "SHARED_CALENDAR_CREATE_SUCCESS",
+        "calendarId": calendarId,
+        "token": data.token,
       });
       fetchTokens();
-      return {token: data.token, success: true};
+      return {success: true, token: data.token, message: data.message, code: data.code};
     } catch (err) {
-      log.error("Échec de création du lien de partage", err, {
-        id: "SHARED_CALENDAR_CREATE_FAIL",
-        origin: "App.js",
-        stack: err.stack,
+      log.error(err.message || "Échec de création du lien de partage", err, {
+        origin: "SHARED_CALENDAR_CREATE_ERROR",
+        "calendarId": calendarId,
       });
-      return {token: null, success: false};
+      return {success: false, token: null, error: err.message, code: err.code};
     }
   }, [fetchTokens]);
 
@@ -509,21 +489,20 @@ function App() {
           Authorization: `Bearer ${tokenFirebase}`,
         },
       });
-      if (!res.ok) throw new Error(`Erreur HTTP DELETE /api/tokens/${token}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
       fetchTokens();
-      log.info("Lien de partage supprimé avec succès", {
-        id: "SHARED_CALENDAR_DELETE_SUCCESS",
-        origin: "App.js",
-        token,
+      log.info(data.message, {
+        origin: "SHARED_CALENDAR_DELETE_SUCCESS",
+        "token": token,
       });
-      return true;
+      return {success: true, message: data.message, code: data.code};
     } catch (err) {
-      log.error("Échec de suppression du lien de partage", err, {
-        id: "SHARED_CALENDAR_DELETE_FAIL",
-        origin: "App.js",
-        stack: err.stack,
+      log.error(err.message || "Échec de suppression du lien de partage", err, {
+        origin: "SHARED_CALENDAR_DELETE_ERROR",
+        "token": token,
       });
-      return false;
+      return {success: false, error: err.message, code: err.code};
     }
   }, [fetchTokens]);
   
@@ -537,21 +516,20 @@ function App() {
           Authorization: `Bearer ${tokenFirebase}`,
         },
       });
-      if (!res.ok) throw new Error(`Erreur HTTP POST /api/tokens/revoke/${token}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
       fetchTokens();
-      log.info("Token révoqué avec succès", {
-        id: "TOKEN_REVOKE_SUCCESS",
-        origin: "App.js",
-        token,
+      log.info(data.message, {
+        origin: "TOKEN_REVOKE_SUCCESS",
+        "token": token,
       });
-      return true;
+      return {success: true, message: data.message, code: data.code};
     } catch (err) {
-      log.error("Échec de révoquer le token", err, {
-        id: "TOKEN_REVOKE_FAIL",
-        origin: "App.js",
-        stack: err.stack,
+      log.error(err.message || "Échec de révoquer le token", err, {
+        origin: "TOKEN_REVOKE_ERROR",
+        "token": token,
       });
-      return false;
+      return {success: false, error: err.message, code: err.code};
     }
   }, [fetchTokens]);
 
@@ -566,22 +544,21 @@ function App() {
         },
         body: JSON.stringify({ expiresAt }),
       });
-      if (!res.ok) throw new Error(`Erreur HTTP POST /api/tokens/expiration/${token}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
       fetchTokens();
       log.info("Expiration du token mise à jour avec succès", {
-        id: "TOKEN_EXPIRATION_UPDATE_SUCCESS",
-        origin: "App.js",
-        token,
-        expiresAt,
+        origin: "TOKEN_EXPIRATION_UPDATE_SUCCESS",
+        "token": token,
+        "expiresAt": expiresAt,
       });
-      return true;
+      return {success: true, message: data.message, code: data.code};
     } catch (err) {
-      log.error("Échec de mise à jour de l'expiration du token", err, {
-        id: "TOKEN_EXPIRATION_UPDATE_FAIL",
-        origin: "App.js",
-        stack: err.stack,
+      log.error(err.message || "Échec de mise à jour de l'expiration du token", err, {
+        origin: "TOKEN_EXPIRATION_UPDATE_ERROR",
+        "token": token,
       });
-      return false;
+      return {success: false, error: err.message, code: err.code};
     }
   }, [fetchTokens]);
 
@@ -596,22 +573,21 @@ function App() {
         },
         body: JSON.stringify({ permissions }),
       });
-      if (!res.ok) throw new Error(`Erreur HTTP POST /api/tokens/permissions/${token}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
       fetchTokens();
-      log.info("Permissions du token mises à jour avec succès", {
-        id: "TOKEN_PERMISSIONS_UPDATE_SUCCESS",
-        origin: "App.js",
-        token,
-        permissions,
+      log.info(data.message, {
+        origin: "TOKEN_PERMISSIONS_UPDATE_SUCCESS",
+        "token": token,
+        "permissions": permissions,
       });
-      return true;
+      return {success: true, message: data.message, code: data.code};
     } catch (err) {
-      log.error("Échec de mise à jour des permissions du token", err, {
-        id: "TOKEN_PERMISSIONS_UPDATE_FAIL",
-        origin: "App.js",
-        stack: err.stack,
+      log.error(err.message || "Erreur lors de la mise à jour des permissions du token", err, {
+        origin: "TOKEN_PERMISSIONS_UPDATE_ERROR",
+        "token": token,
       });
-      return false;
+      return {success: false, error: err.message, code: err.code};
     }
   }, [fetchTokens]);
 
@@ -630,21 +606,21 @@ function App() {
         },
         body: JSON.stringify({ email }),
       });
-      if (!res.ok) throw new Error(`Erreur HTTP POST /api/invitations/send/${calendarId}`);
-      log.info("Invitation envoyée avec succès", {
-        id: "INVITATION_SEND_SUCCESS",
-        origin: "App.js",
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      log.info(data.message, {
+        origin: "INVITATION_SEND_SUCCESS",
         email,
         calendarId,
       });
-      return true;
+      return {success: true, message: data.message, code: data.code};
     } catch (err) {
-      log.error("Échec d'envoi de l'invitation", err, {
-        id: "INVITATION_SEND_FAIL",
-        origin: "App.js",
-        stack: err.stack,
+      log.error(err.message || "Échec d'envoi de l'invitation", err, {
+        origin: "INVITATION_SEND_ERROR",
+        email,
+        calendarId,
       });
-      return false;
+      return {success: false, error: err.message, code: err.code};
     }
   }, []);
 
@@ -658,23 +634,20 @@ function App() {
           Authorization: `Bearer ${token}`,
         },
       });
-      if (!res.ok) throw new Error(`Erreur HTTP GET /api/notifications`);
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
       const sortedNotifications = data.notifications.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
       setNotificationsData(sortedNotifications);
-      log.info("Notifications récupérées avec succès", {
-        id: "NOTIFICATIONS_FETCH_SUCCESS",
-        origin: "App.js",
+      log.info(data.message, {
+        origin: "NOTIFICATIONS_FETCH_SUCCESS",
         count: data?.notifications?.length,
       });
-      return true;
+      return {success: true, message: data.message, code: data.code};
     } catch (err) {
-      log.error("Échec de récupération des notifications", err, {
-        id: "NOTIFICATIONS_FETCH_FAIL",
-        origin: "App.js",
-        stack: err.stack,
+      log.error(err.message || "Échec de récupération des notifications", err, {
+        origin: "NOTIFICATIONS_FETCH_ERROR",
       });
-      return false;
+      return {success: false, error: err.message, code: err.code};
     }
   }, [setNotificationsData]);
 
@@ -688,21 +661,20 @@ function App() {
           Authorization: `Bearer ${token}`,
         },
       });
-      if (!res.ok) throw new Error(`Erreur HTTP POST /api/invitations/accept/${notificationId}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
       fetchNotifications(); 
-      log.info("Invitation acceptée avec succès", {
-        id: "INVITATION_ACCEPT_SUCCESS",
-        origin: "App.js",
+      log.info(data.message, {
+        origin: "INVITATION_ACCEPT_SUCCESS",
         notificationId,
       });
-      return true;
+      return {success: true, message: data.message, code: data.code};
     } catch (err) {
-      log.error("Échec d'acceptation de l'invitation", err, {
-        id: "INVITATION_ACCEPT_FAIL",
-        origin: "App.js",
-        stack: err.stack,
+      log.error(err.message || "Échec d'acceptation de l'invitation", err, {
+        origin: "INVITATION_ACCEPT_ERROR",
+        notificationId,
       });
-      return false;
+      return {success: false, error: err.message, code: err.code};
     }
   }, [fetchNotifications]);
 
@@ -716,21 +688,20 @@ function App() {
           Authorization: `Bearer ${token}`,
         },
       });
-      if (!res.ok) throw new Error(`Erreur HTTP POST /api/invitations/reject/${notificationId}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
       fetchNotifications();
-      log.info("Invitation rejetée avec succès", {
-        id: "INVITATION_REJECT_SUCCESS",
-        origin: "App.js",
+      log.info(data.message, {
+        origin: "INVITATION_REJECT_SUCCESS",
         notificationId,
       });
-      return true;
+      return {success: true, message: data.message, code: data.code};
     } catch (err) {
-      log.error("Échec de rejet de l'invitation", err, {
-        id: "INVITATION_REJECT_FAIL",
-        origin: "App.js",
-        stack: err.stack,
+      log.error(err.message || "Échec de rejet de l'invitation", err, {
+        origin: "INVITATION_REJECT_ERROR",
+        notificationId,
       });
-      return false;
+      return {success: false, error: err.message, code: err.code};
     }
   }, [fetchNotifications]);
 
@@ -744,21 +715,20 @@ function App() {
           Authorization: `Bearer ${token}`,
         },
       });
-      if (!res.ok) throw new Error(`Erreur HTTP POST /api/notifications/${notificationId}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
       fetchNotifications();
-      log.info("Notification marquée comme lue avec succès", {
-        id: "NOTIFICATION_READ_SUCCESS",
-        origin: "App.js",
+      log.info(data.message, {
+        origin: "NOTIFICATION_READ_SUCCESS",
         notificationId,
       });
-      return true;
+      return {success: true, message: data.message, code: data.code};
     } catch (err) {
-      log.error("Échec de marquer la notification comme lue", err, {
-        id: "NOTIFICATION_READ_FAIL",
-        origin: "App.js",
-        stack: err.stack,
+      log.error(err.message || "Échec de marquer la notification comme lue", err, {
+        origin: "NOTIFICATION_READ_ERROR",
+        notificationId,
       });
-      return false;
+      return {success: false, error: err.message, code: err.code};
     }
   }, [fetchNotifications]);
 
@@ -775,22 +745,19 @@ function App() {
           Authorization: `Bearer ${token}`,
         },
       });
-      if (!res.ok) throw new Error(`Erreur HTTP GET /api/shared/users/calendars`);
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
       setSharedCalendarsData(data.calendars);
-      log.info("Calendriers partagés récupérés avec succès", {
-        id: "SHARED_CALENDARS_FETCH_SUCCESS",
-        origin: "App.js",
+      log.info(data.message, {
+        origin: "SHARED_CALENDARS_FETCH_SUCCESS",
         count: data?.calendars?.length,
       });
-      return true;
+      return {success: true, message: data.message, code: data.code};
     } catch (err) {
-      log.error("Échec de récupération des calendriers partagés", err, {
-        id: "SHARED_CALENDARS_FETCH_FAIL",
-        origin: "App.js",
-        stack: err.stack,
+      log.error(err.message || "Échec de récupération des calendriers partagés", err, {
+        origin: "SHARED_CALENDARS_FETCH_ERROR",
       });
-      return false;
+      return {success: false, error: err.message, code: err.code};
     }
   }, [setSharedCalendarsData]);
 
@@ -804,22 +771,20 @@ function App() {
           Authorization: `Bearer ${token}`,
         },
       });
-      if (!res.ok) throw new Error(`Erreur HTTP DELETE /api/shared/users/calendars/${calendarId}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
       fetchSharedCalendars();
-      log.info("Calendrier partagé supprimé avec succès", {
-        id: "SHARED_CALENDAR_DELETE_SUCCESS",
-        origin: "App.js",
+      log.info(data.message, {
+        origin: "SHARED_CALENDAR_DELETE_SUCCESS",
         calendarId,
       });
-      return true;
+      return {success: true, message: data.message, code: data.code};
     } catch (err) {
-      log.error("Échec de suppression du calendrier partagé", err, {
-        id: "SHARED_CALENDAR_DELETE_FAIL",
-        origin: "App.js",
-        stack: err.stack,
+      log.error(err.message || "Échec de suppression du calendrier partagé", err, {
+        origin: "SHARED_CALENDAR_DELETE_ERROR",
         calendarId,
       });
-      return false;
+      return {success: false, error: err.message, code: err.code};
     }
   }, [fetchSharedCalendars]);
 
@@ -833,21 +798,20 @@ function App() {
           Authorization: `Bearer ${token}`,
         },
       });
-      if (!res.ok) throw new Error(`Erreur HTTP GET /api/shared/users/users/${calendarId}`);
       const data = await res.json();
-      log.info("Utilisateurs partagés récupérés avec succès", {
-        id: "SHARED_USERS_FETCH_SUCCESS",
-        origin: "App.js",
+      if (!res.ok) throw new Error(data.error);
+      log.info(data.message, {
+        origin: "SHARED_USERS_FETCH_SUCCESS",
         count: data?.users?.length,
+        calendarId,
       });
-      return data.users;
+      return {success: true, message: data.message, code: data.code, data: data.users};
     } catch (err) {
-      log.error("Échec de récupération des utilisateurs partagés", err, {
-        id: "SHARED_USERS_FETCH_FAIL",
-        origin: "App.js",
-        stack: err.stack,
+      log.error(err.message || "Échec de récupération des utilisateurs partagés", err, {
+        origin: "SHARED_USERS_FETCH_ERROR",
+        calendarId,
       });
-      return [];
+      return {success: false, error: err.message, code: err.code};
     }
   }, []);
 
@@ -861,23 +825,21 @@ function App() {
           Authorization: `Bearer ${token}`,
         },
       });
-      if (!res.ok) throw new Error(`Erreur HTTP DELETE /api/shared/users/${calendarId}/${userId}`);
-      log.info("Utilisateur partagé supprimé avec succès", {
-        id: "SHARED_USER_DELETE_SUCCESS",
-        origin: "App.js",
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      log.info(data.message, {
+        origin: "SHARED_USER_DELETE_SUCCESS",
         calendarId,
         userId,
       });
-      return true;
+      return {success: true, message: data.message, code: data.code};
     } catch (err) {
-      log.error("Échec de suppression de l'utilisateur partagé", err, {
-        id: "SHARED_USER_DELETE_FAIL",
-        origin: "App.js",
-        stack: err.stack,
+      log.error(err.message || "Échec de suppression de l'utilisateur partagé", err, {
+        origin: "SHARED_USER_DELETE_ERROR",
         calendarId,
         userId,
       });
-      return false;
+      return {success: false, error: err.message, code: err.code};
     }
   }, []);
 
@@ -894,17 +856,22 @@ function App() {
           Authorization: `Bearer ${token}`,
         },
       });
-      if (!res.ok) throw new Error(`Erreur HTTP GET /api/shared/users/calendars/${calendarId}`);
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
       setCalendarEvents(data.schedule.map(e => ({ title: e.title, start: e.date, color: e.color })));
-      return true
-    } catch (err) {
-      log.error("Échec de récupération du calendrier partagé par un utilisateur", err, {
-        id: "SHARED_USER_CALENDAR_FETCH_FAIL",
-        origin: "App.js",
-        stack: err.stack,
+      log.info(data.message, {
+        origin: "SHARED_USER_CALENDAR_FETCH_SUCCESS",
+        calendarId,
+        startDate,
       });
-      return false;
+      return {success: true, message: data.message, code: data.code};
+    } catch (err) {
+      log.error(err.message || "Échec de récupération du calendrier partagé par un utilisateur", err, {
+        origin: "SHARED_USER_CALENDAR_FETCH_ERROR",
+        calendarId,
+        startDate,
+      });
+      return {success: false, error: err.message, code: err.code};
     }
   }, [setCalendarEvents]);
 
@@ -918,18 +885,23 @@ function App() {
           Authorization: `Bearer ${token}`,
         },
       });
-      if (!res.ok) throw new Error(`Erreur HTTP GET /api/shared/users/calendars/${calendarId}/medicines`);
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+
       setMedicinesData(data.medicines);
       setOriginalMedicinesData(JSON.parse(JSON.stringify(data.medicines)));
-      return true;
-    } catch (err) {
-      log.error("Échec de récupération des médicaments du calendrier partagé par un utilisateur", err, {
-        id: "SHARED_USER_CALENDAR_MEDICINES_FETCH_FAIL",
-        origin: "App.js",
-        stack: err.stack,
+
+      log.info(data.message, {
+        origin: "SHARED_USER_CALENDAR_MEDICINES_FETCH_SUCCESS",
+        calendarId,
       });
-      return false;
+      return {success: true, message: data.message, code: data.code};
+    } catch (err) {
+      log.error(err.message || "Échec de récupération des médicaments du calendrier partagé par un utilisateur", err, {
+        origin: "SHARED_USER_CALENDAR_MEDICINES_FETCH_ERROR",
+        calendarId,
+      });
+      return {success: false, error: err.message, code: err.code};
     }
   }, [setMedicinesData, setOriginalMedicinesData]);
 
@@ -944,23 +916,22 @@ function App() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ medicines: medicinesData }),
-      });
-      if (!res.ok) throw new Error(`Erreur HTTP PUT /api/shared/users/calendars/${calendarId}/medicines`);
+      }); 
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
       setOriginalMedicinesData(JSON.parse(JSON.stringify(medicinesData)));
 
-      log.info("Médicaments du calendrier partagé mis à jour avec succès", {
-        id: "SHARED_USER_CALENDAR_MEDICINES_UPDATE_SUCCESS",
-        origin: "App.js",
+      log.info(data.message, {
+        origin: "SHARED_USER_CALENDAR_MEDICINES_UPDATE_SUCCESS",
         calendarId,
       });
-      return true;
+      return {success: true, message: data.message, code: data.code};
     } catch (err) {
-      log.error("Échec de mise à jour des médicaments du calendrier partagé par un utilisateur", err, {
-        id: "SHARED_USER_CALENDAR_MEDICINES_UPDATE_FAIL",
-        origin: "App.js",
-        stack: err.stack,
+      log.error(err.message || "Échec de mise à jour des médicaments du calendrier partagé par un utilisateur", err, {
+        origin: "SHARED_USER_CALENDAR_MEDICINES_UPDATE_ERROR",
+        calendarId,
       });
-      return false;
+      return {success: false, error: err.message, code: err.code};
     }
   }, [medicinesData]);
 
@@ -970,22 +941,21 @@ function App() {
   
     setMedicinesData(medicinesData.filter((_, i) => !checked.includes(i)));
   
-    const success = await updateSharedUserCalendarMedicines(calendarId);
-    if (success) {
+    const rep = await updateSharedUserCalendarMedicines(calendarId);
+    if (rep.success) {
       setChecked([]);
-      log.info("Médicaments du calendrier partagé supprimés avec succès", {
-        id: "SHARED_USER_CALENDAR_MEDICINES_DELETE_SUCCESS",
-        origin: "App.js",
+      log.info(rep.message, {
+        origin: "SHARED_USER_CALENDAR_MEDICINES_DELETE_SUCCESS",
         calendarId,
       });
+      return {success: true, message: "Médicaments supprimés avec succès", code: "SHARED_USER_CALENDAR_MEDICINES_DELETE_SUCCESS"};
     } else {
-      log.error("Échec de suppression des médicaments du calendrier partagé par un utilisateur", {
-        id: "SHARED_USER_CALENDAR_MEDICINES_DELETE_FAIL",
-        origin: "App.js",
+      log.error(rep.error, {
+        origin: "SHARED_USER_CALENDAR_MEDICINES_DELETE_ERROR",
         calendarId,
       });
+      return {success: false, error: "Erreur lors de la suppression des médicaments", code: "SHARED_USER_CALENDAR_MEDICINES_DELETE_ERROR"};
     }
-    return success;
   }, [medicinesData, checked, updateMedicines]);
 
   const sharedProps = {

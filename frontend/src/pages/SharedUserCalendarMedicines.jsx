@@ -78,8 +78,8 @@ function SharedUserCalendarMedicines({ medicines, calendars, sharedUsers }) {
     const load = async () => {
       if (authReady && currentUser && calendarId) {
         await calendars.fetchSharedCalendars();
-        const success = await sharedUsers.fetchSharedUserCalendarMedicines(calendarId);
-        setLoadingMedicines(success);
+        const rep = await sharedUsers.fetchSharedUserCalendarMedicines(calendarId);
+        setLoadingMedicines(rep.success);
       }
     };
     load();
@@ -138,12 +138,12 @@ function SharedUserCalendarMedicines({ medicines, calendars, sharedUsers }) {
               setAlertType("confirm-danger");
               setAlertMessage("❌ Confirmez-vous la suppression des médicaments sélectionnés ?");
               setOnConfirmAction(() => async () => {
-                const success = await sharedUsers.deleteSharedUserCalendarMedicines(calendarId);
-                if (success) {
-                  setAlertMessage("✅ Médicaments supprimés.");
+                const rep = await sharedUsers.deleteSharedUserCalendarMedicines(calendarId);
+                if (rep.success) {
+                  setAlertMessage("✅ "+rep.message);
                   setAlertType("success");
                 } else {
-                  setAlertMessage("❌ Erreur lors de la suppression.");
+                  setAlertMessage("❌ "+rep.error);
                   setAlertType("danger");
                   medicines.setMedicinesData(JSON.parse(JSON.stringify(medicines.originalMedicinesData)));
                 }
@@ -167,12 +167,12 @@ function SharedUserCalendarMedicines({ medicines, calendars, sharedUsers }) {
               setAlertType("confirm-safe");
               setAlertMessage("✅ Enregistrer les modifications de médicaments ?");
               setOnConfirmAction(() => async () => {
-                const success = await sharedUsers.updateSharedUserCalendarMedicines(calendarId);
-                if (success) {
-                  setAlertMessage("✅ Modifications enregistrées.");
+                const rep = await sharedUsers.updateSharedUserCalendarMedicines(calendarId);
+                if (rep.success) {
+                  setAlertMessage("✅ "+rep.message);
                   setAlertType("success");
                 } else {
-                  setAlertMessage("❌ Erreur lors de l'enregistrement des modifications.");
+                  setAlertMessage("❌ "+rep.error);
                   setAlertType("danger");
                   medicines.setMedicinesData(JSON.parse(JSON.stringify(medicines.originalMedicinesData)));
                 }

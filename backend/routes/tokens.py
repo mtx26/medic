@@ -1,5 +1,5 @@
-from flask import jsonify, request
-from logger import log_backend as logger
+from flask import request
+from response import success_response, error_response, warning_response
 from auth import verify_firebase_token
 from datetime import datetime, timezone
 import secrets
@@ -22,18 +22,23 @@ def handle_tokens():
             for doc in tokens_ref:
                 if doc.to_dict().get("owner_uid") == uid:
                     tokens.append(doc.to_dict())
-            logger.info("Tokens récupérés avec succès pour {uid}.", {
-                "origin": "TOKENS_FETCH",
-                "uid": uid
-            })
-            return jsonify({"tokens": tokens}), 200
+            return success_response(
+                message="Tokens récupérés avec succès.", 
+                code="TOKENS_FETCH", 
+                uid=uid, 
+                origin="TOKENS_FETCH", 
+                data={"tokens": tokens}
+            )
         
     except Exception as e:
-        logger.exception("Erreur dans /api/tokens", {
-            "origin": "TOKENS_ERROR",
-            "uid": uid
-        })
-        return jsonify({"error": "Erreur lors de la récupération des tokens."}), 500
+        return error_response(
+            message="Erreur lors de la récupération des tokens.", 
+            code="TOKENS_ERROR", 
+            status_code=500, 
+            uid=uid, 
+            origin="TOKENS_ERROR", 
+            error=str(e)
+        )
 
 
 # Route pour créer un lien de partage avec un token
@@ -58,11 +63,14 @@ def handle_create_token(calendar_id):
         # Verifier si le calendrier existe
         doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).get()
         if not doc.exists:
-            logger.warning("Calendrier introuvable : {calendar_id} pour {owner_uid}.", {
-                "origin": "CALENDAR_SHARED_CREATE",
-                "uid": owner_uid
-            })
-            return jsonify({"error": "Calendrier introuvable"}), 404
+            return warning_response(
+                message="Calendrier introuvable.", 
+                code="CALENDAR_NOT_FOUND", 
+                status_code=404, 
+                uid=owner_uid, 
+                origin="CALENDAR_NOT_FOUND", 
+                log_extra={"calendar_id": calendar_id}
+            )
 
         calendar_name = doc.to_dict().get("calendar_name")
 
@@ -71,11 +79,14 @@ def handle_create_token(calendar_id):
         for doc in doc_2:
             if doc.to_dict().get("owner_uid") == owner_uid:
                 if doc.to_dict().get("calendar_id") == calendar_id:
-                    logger.warning("Calendrier déjà partagé : {calendar_id} pour {owner_uid}.", {
-                        "origin": "CALENDAR_SHARED_CREATE",
-                        "uid": owner_uid
-                    })
-                    return jsonify({"error": "Calendrier déjà partagé"}), 400
+                    return warning_response(
+                        message="Calendrier déjà partagé.", 
+                        code="CALENDAR_ALREADY_SHARED", 
+                        status_code=400, 
+                        uid=owner_uid, 
+                        origin="CALENDAR_ALREADY_SHARED", 
+                        log_extra={"calendar_id": calendar_id}
+                    )
         
         # Créer un nouveau lien de partage
         token = secrets.token_hex(16)
@@ -89,18 +100,24 @@ def handle_create_token(calendar_id):
             "revoked": False
         })
 
-        logger.info("Calendrier partagé : {calendar_id} pour {owner_uid}.", {
-            "origin": "CALENDAR_SHARED_CREATE",
-            "uid": owner_uid
-        })
-        return jsonify({"message": "Calendrier partagé avec succès", "token": token}), 200
+        return success_response(
+            message="Calendrier partagé avec succès", 
+            code="TOKEN_CREATED", 
+            uid=owner_uid, 
+            origin="TOKEN_CREATE",
+            log_extra={"calendar_id": calendar_id}
+        )
 
     except Exception as e:
-        logger.exception("Erreur dans /api/tokens/{calendar_id}", {
-            "origin": "CALENDAR_SHARED_CREATE_ERROR",
-            "uid": owner_uid
-        })
-        return jsonify({"error": "Erreur lors de la création du lien de partage."}), 500
+        return error_response(
+            message="Erreur lors de la création du lien de partage.", 
+            code="TOKEN_CREATE_ERROR", 
+            status_code=500, 
+            uid=owner_uid, 
+            origin="TOKEN_CREATE_ERROR", 
+            error=str(e),
+            log_extra={"calendar_id": calendar_id}
+        )
 
 
 # Route pour révoquer un token
@@ -113,43 +130,56 @@ def handle_update_revoke_token(token):
 
         doc = db.collection("shared_tokens").document(token).get()
 
-        if doc.to_dict().get("owner_uid") != owner_uid:
-            logger.warning("Token non autorisé : {token}.", {
-                "origin": "TOKEN_REVOKE",
-                "uid": owner_uid
-            })
-            return jsonify({"error": "Token non autorisé"}), 403
-
         if not doc.exists:
-            logger.warning("Token introuvable : {token}.", {
-                "origin": "TOKEN_REVOKE",
-                "uid": owner_uid
-            })
-            return jsonify({"error": "Token introuvable"}), 404
-
+            return warning_response(
+                message="Token introuvable.", 
+                code="TOKEN_NOT_FOUND", 
+                status_code=404, 
+                uid=owner_uid, 
+                origin="TOKEN_NOT_FOUND", 
+                log_extra={"token": token}
+            )
+        
         if doc.to_dict().get("owner_uid") != owner_uid:
-            logger.warning("Token non autorisé : {token}.", {
-                "origin": "TOKEN_REVOKE",
-                "uid": owner_uid
-            })
-            return jsonify({"error": "Token non autorisé"}), 403
+            return warning_response(
+                message="Token non autorisé.", 
+                code="TOKEN_NOT_AUTHORIZED", 
+                status_code=403, 
+                uid=owner_uid, 
+                origin="TOKEN_NOT_AUTHORIZED", 
+                log_extra={"token": token}
+            )
 
         db.collection("shared_tokens").document(token).update({
             "revoked": not doc.to_dict().get("revoked")
         })
-
-        logger.info("Token révoqué : {token}.", {
-            "origin": "TOKEN_REVOKE",
-            "uid": owner_uid
-        })
-        return jsonify({"message": "Token révoqué avec succès"}), 200
+        if db.collection("shared_tokens").document(token).get().to_dict().get("revoked"):
+            return success_response(
+                message="Token révoqué avec succès", 
+                code="TOKEN_REVOKED", 
+                uid=owner_uid, 
+                origin="TOKEN_REVOKE", 
+                log_extra={"token": token}
+            )
+        else:
+            return success_response(
+                message="Token réactivé avec succès", 
+                code="TOKEN_REACTIVATED", 
+                uid=owner_uid, 
+                origin="TOKEN_REVOKE", 
+                log_extra={"token": token}
+            )
 
     except Exception as e:
-        logger.exception("Erreur dans /api/tokens/revoke/{token}", {
-            "origin": "TOKEN_REVOKE_ERROR",
-            "uid": owner_uid
-        })
-        return jsonify({"error": "Erreur lors de la révoquation du token."}), 500
+        return error_response(
+            message="Erreur lors de la révoquation du token.", 
+            code="TOKEN_REVOKE_ERROR", 
+            status_code=500, 
+            uid=owner_uid, 
+            origin="TOKEN_REVOKE_ERROR", 
+            error=str(e),
+            log_extra={"token": token}
+        )
 
 
 # Route pour mettre à jour l'expiration d'un token
@@ -163,27 +193,25 @@ def handle_update_token_expiration(token):
 
         doc = db.collection("shared_tokens").document(token).get()
 
-        if doc.to_dict().get("owner_uid") != owner_uid:
-            logger.warning("Token non autorisé : {token}.", {
-                "origin": "TOKEN_UPDATE_EXPIRATION",
-                "uid": owner_uid
-            })
-            return jsonify({"error": "Token non autorisé"}), 403
-
         if not doc.exists:
-            logger.warning("Token introuvable : {token}.", {
-                "origin": "TOKEN_UPDATE_EXPIRATION",
-                "uid": owner_uid
-            })
-            return jsonify({"error": "Token introuvable"}), 404
-
+            return warning_response(
+                message="Token introuvable.", 
+                code="TOKEN_NOT_FOUND", 
+                status_code=404, 
+                uid=owner_uid, 
+                origin="TOKEN_NOT_FOUND", 
+                log_extra={"token": token}
+            )
+        
         if doc.to_dict().get("owner_uid") != owner_uid:
-            logger.warning("Token non autorisé : {token}.", {
-                "origin": "TOKEN_UPDATE_EXPIRATION",
-                "uid": owner_uid
-            })
-            return jsonify({"error": "Token non autorisé"}), 403
-
+            return warning_response(
+                message="Token non autorisé.", 
+                code="TOKEN_NOT_AUTHORIZED", 
+                status_code=403, 
+                uid=owner_uid, 
+                origin="TOKEN_NOT_AUTHORIZED", 
+                log_extra={"token": token}
+            )
         expires_at = data.get("expiresAt")
         if not expires_at:
             db.collection("shared_tokens").document(token).update({
@@ -194,18 +222,24 @@ def handle_update_token_expiration(token):
                 "expires_at": datetime.strptime(expires_at, "%Y-%m-%dT%H:%M")
             })
 
-        logger.info("Expiration du token mise à jour : {token}.", {
-            "origin": "TOKEN_UPDATE_EXPIRATION",
-            "uid": owner_uid
-        })
-        return jsonify({"message": "Expiration du token mise à jour avec succès"}), 200
+        return success_response(
+            message="Expiration du token mise à jour avec succès", 
+            code="TOKEN_EXPIRATION_UPDATED", 
+            uid=owner_uid, 
+            origin="TOKEN_EXPIRATION_UPDATE", 
+            log_extra={"token": token}
+        )
 
     except Exception as e:
-        logger.exception("Erreur dans /api/tokens/expiration/{token}", {
-            "origin": "TOKEN_UPDATE_EXPIRATION_ERROR",
-            "uid": owner_uid
-        })
-        return jsonify({"error": "Erreur lors de la mise à jour de l'expiration du token."}), 500
+        return error_response(
+            message="Erreur lors de la mise à jour de l'expiration du token.", 
+            code="TOKEN_EXPIRATION_UPDATE_ERROR", 
+            status_code=500, 
+            uid=owner_uid, 
+            origin="TOKEN_EXPIRATION_UPDATE_ERROR", 
+            error=str(e),
+            log_extra={"token": token}
+        )
 
 
 # Route pour mettre à jour les permissions d'un token
@@ -219,57 +253,65 @@ def handle_update_token_permissions(token):
 
         doc = db.collection("shared_tokens").document(token).get()
 
-        if doc.to_dict().get("owner_uid") != owner_uid:
-            logger.warning("Token non autorisé : {token}.", {
-                "origin": "TOKEN_UPDATE_PERMISSIONS",
-                "uid": owner_uid
-            })
-            return jsonify({"error": "Token non autorisé"}), 403
-
         if not doc.exists:
-            logger.warning("Token introuvable : {token}.", {
-                "origin": "TOKEN_UPDATE_PERMISSIONS",
-                "uid": owner_uid
-            })
-            return jsonify({"error": "Token introuvable"}), 404
-
+            return warning_response(
+                message="Token introuvable.", 
+                code="TOKEN_NOT_FOUND", 
+                status_code=404, 
+                uid=owner_uid, 
+                origin="TOKEN_NOT_FOUND", 
+                log_extra={"token": token}
+            )
+        
         if doc.to_dict().get("owner_uid") != owner_uid:
-            logger.warning("Token non autorisé : {token}.", {
-                "origin": "TOKEN_UPDATE_PERMISSIONS",
-                "uid": owner_uid
-            })
-            return jsonify({"error": "Token non autorisé"}), 403
+            return warning_response(
+                message="Token non autorisé.", 
+                code="TOKEN_NOT_AUTHORIZED", 
+                status_code=403, 
+                uid=owner_uid, 
+                origin="TOKEN_NOT_AUTHORIZED", 
+                log_extra={"token": token}
+            )
 
         permissions = data.get("permissions")
         db.collection("shared_tokens").document(token).update({
             "permissions": permissions
         })
 
-        logger.info("Permissions du token mises à jour : {token}.", {
-            "origin": "TOKEN_UPDATE_PERMISSIONS",
-            "uid": owner_uid
-        })
-        return jsonify({"message": "Permissions du token mises à jour avec succès"}), 200
+        return success_response(
+            message="Permissions du token mises à jour avec succès", 
+            code="TOKEN_PERMISSIONS_UPDATED", 
+            uid=owner_uid, 
+            origin="TOKEN_PERMISSIONS_UPDATE", 
+            log_extra={"token": token}
+        )
 
     except Exception as e:
-        logger.exception("Erreur dans /api/tokens/permissions/{token}", {
-            "origin": "TOKEN_UPDATE_PERMISSIONS_ERROR",
-            "uid": owner_uid
-        })
-        return jsonify({"error": "Erreur lors de la mise à jour des permissions du token."}), 500
+        return error_response(
+            message="Erreur lors de la mise à jour des permissions du token.", 
+            code="TOKEN_PERMISSIONS_UPDATE_ERROR", 
+            status_code=500, 
+            uid=owner_uid, 
+            origin="TOKEN_PERMISSIONS_UPDATE_ERROR", 
+            error=str(e),
+            log_extra={"token": token}
+        )
 
 
 # Route pour générer un calendrier partagé pour un token
 @api.route("/api/tokens/<token>/calendar", methods=["GET"])
-def handle_read_token(token):
+def handle_generate_token_calendar(token):
     try:
         doc = db.collection("shared_tokens").document(token).get()
-        if not doc.exists():
-            logger.warning("Token invalide : {token}.", {
-                "origin": "CALENDAR_SHARED_LOAD",
-                "uid": owner_uid
-            })
-            return jsonify({"error": "Token invalide"}), 404
+        if not doc.exists:
+            return warning_response(
+                message="Token invalide.", 
+                code="TOKEN_INVALID", 
+                status_code=404, 
+                uid="without_uid", 
+                origin="TOKEN_INVALID", 
+                log_extra={"token": token}
+            )
 
         data = doc.to_dict()
         calendar_id = data.get("calendar_id")
@@ -280,51 +322,70 @@ def handle_read_token(token):
 
         if expires_at:
             if datetime.now(timezone.utc).date() > datetime.fromisoformat(expires_at).date():
-                logger.warning("Token expiré : {token}.", {
-                    "origin": "CALENDAR_SHARED_LOAD",
-                    "uid": owner_uid
-                })
-                return jsonify({"error": "Token expiré"}), 404
+                return warning_response(
+                    message="Token expiré.", 
+                    code="TOKEN_EXPIRED", 
+                    status_code=404, 
+                    uid="without_uid", 
+                    origin="TOKEN_EXPIRED", 
+                    log_extra={"token": token}
+                )
 
         if revoked:
-            logger.warning("Token révoqué : {token}.", {
-                "origin": "CALENDAR_SHARED_LOAD",
-                "uid": owner_uid
-            })
-            return jsonify({"error": "Token révoqué"}), 404
+            return warning_response(
+                message="Token révoqué.", 
+                code="TOKEN_REVOKED", 
+                status_code=404, 
+                uid="without_uid", 
+                origin="TOKEN_REVOKED", 
+                log_extra={"token": token}
+            )
 
         if "read" not in permissions:
-            logger.warning("Token sans permission de lecture : {token}.", {
-                "origin": "CALENDAR_SHARED_LOAD",
-                "uid": owner_uid
-            })
-            return jsonify({"error": "Token sans permission de lecture"}), 403
+            return warning_response(
+                message="Token sans permission de lecture.", 
+                code="TOKEN_NO_READ_PERMISSION", 
+                status_code=403, 
+                uid="without_uid", 
+                origin="TOKEN_NO_READ_PERMISSION", 
+                log_extra={"token": token}
+            )
 
         doc_2 = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).get()
         if not doc_2.exists:
-            logger.warning("Calendrier introuvable : {calendar_id}.", {
-                "origin": "CALENDAR_SHARED_LOAD",
-                "uid": owner_uid
-            })
-            return jsonify({"error": "Calendrier introuvable"}), 404
+            return warning_response(
+                message="Calendrier introuvable.", 
+                code="CALENDAR_NOT_FOUND", 
+                status_code=404, 
+                uid="without_uid", 
+                origin="CALENDAR_NOT_FOUND", 
+                log_extra={"token": token}
+            )
 
         medicines = doc_2.to_dict().get("medicines", [])
         start_str = request.args.get("startTime")
         start_date = datetime.strptime(start_str, "%Y-%m-%d").date() if start_str else datetime.now(timezone.utc).date()
 
         schedule = generate_schedule(start_date, medicines)
-        logger.info("Calendrier généré avec succès pour token {token}.", {
-            "origin": "CALENDAR_GENERATE",
-            "uid": owner_uid
-        })
-        return jsonify({"schedule": schedule, "message": "Calendrier généré avec succès"}), 200
+        return success_response(
+            message="Calendrier généré avec succès", 
+            code="CALENDAR_GENERATED", 
+            uid=owner_uid, 
+            origin="CALENDAR_GENERATED", 
+            data={"schedule": schedule},
+            log_extra={"token": token}
+        )
 
-    except Exception:
-        logger.exception("Erreur dans /api/tokens/{token}", {
-            "origin": "CALENDAR_GENERATE_ERROR",
-            "uid": owner_uid
-        })
-        return jsonify({"error": "Erreur lors de la génération du calendrier."}), 500
+    except Exception as e:
+        return error_response(
+            message="Erreur lors de la génération du calendrier.", 
+            code="CALENDAR_GENERATE_ERROR", 
+            status_code=500, 
+            uid=owner_uid, 
+            origin="CALENDAR_GENERATE_ERROR", 
+            error=str(e),
+            log_extra={"token": token}
+        )
 
 
 # Route pour supprimer un token
@@ -335,33 +396,46 @@ def handle_delete_token(token):
         owner_uid = user["uid"]
 
         doc = db.collection("shared_tokens").document(token).get()
-        if not doc.exists():
-            logger.warning("Token introuvable : {token}.", {
-                "origin": "CALENDAR_SHARED_DELETE",
-                "uid": owner_uid
-            })
-            return jsonify({"error": "Lien de partage introuvable"}), 404
+
+        if not doc.exists:
+            return warning_response(
+                message="Lien de partage introuvable", 
+                code="TOKEN_NOT_FOUND", 
+                status_code=404, 
+                uid=owner_uid, 
+                origin="TOKEN_NOT_FOUND", 
+                log_extra={"token": token}
+            )
 
         if doc.to_dict().get("owner_uid") != owner_uid:
-            logger.warning("Accès interdit pour token {token}.", {
-                "origin": "CALENDAR_SHARED_DELETE",
-                "uid": owner_uid
-            })
-            return jsonify({"error": "Lien de partage non autorisé"}), 403
+            return warning_response(
+                message="Accès interdit.", 
+                code="TOKEN_NOT_AUTHORIZED", 
+                status_code=403, 
+                uid=owner_uid, 
+                origin="TOKEN_NOT_AUTHORIZED", 
+                log_extra={"token": token}
+            )
 
         db.collection("shared_tokens").document(token).delete()
-        logger.info("Lien supprimé : {token}.", {
-            "origin": "CALENDAR_SHARED_DELETE",
-            "uid": owner_uid
-        })
-        return jsonify({"message": "Lien de partage supprimé avec succès"}), 200
+        return success_response(
+            message="Lien de partage supprimé avec succès", 
+            code="TOKEN_DELETED", 
+            uid=owner_uid, 
+            origin="TOKEN_DELETE", 
+            log_extra={"token": token}
+        )
 
-    except Exception:
-        logger.exception("Erreur dans /api/tokens/{token}", {
-            "origin": "CALENDAR_SHARED_DELETE_ERROR",
-            "uid": owner_uid
-        })
-        return jsonify({"error": "Erreur lors de la suppression du lien de partage."}), 500
+    except Exception as e:
+        return error_response(
+            message="Erreur lors de la suppression du lien de partage.", 
+            code="TOKEN_DELETE_ERROR", 
+            status_code=500, 
+            uid=owner_uid, 
+            origin="TOKEN_DELETE_ERROR", 
+            error=str(e),
+            log_extra={"token": token}
+        )
 
 
 # Route pour récupérer uniquement la liste des médicaments d'un calendrier partagé
@@ -370,71 +444,94 @@ def handle_token_medecines(token):
     try:
         if request.method == "GET":
             doc = db.collection("shared_tokens").document(token).get()
+            if not doc.exists:
+                return warning_response(
+                    message="Token invalide.", 
+                    code="TOKEN_INVALID", 
+                    status_code=404, 
+                    uid=owner_uid, 
+                    origin="TOKEN_INVALID", 
+                    log_extra={"token": token}
+                )
+
             data = doc.to_dict()
             calendar_id = data.get("calendar_id")
             calendar_name = data.get("calendar_name")
             owner_uid = data.get("owner_uid")
+
             expires_at = data.get("expires_at")
             if expires_at != None:
                 expires_at = datetime.fromisoformat(expires_at).date()
+
             revoked = data.get("revoked")
             permissions = data.get("permissions")
-
-            # Verifier si le token est valide
-            if doc.exists:
-                doc_2 = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).get()
-            else:
-                logger.warning("Token invalide : {token}.", {
-                    "origin": "MEDECINES_SHARED_LOAD",
-                    "uid": owner_uid
-                })
-                return jsonify({"error": "Token invalide"}), 404
-            
-            # Recuperer les médicaments
-            if doc_2.exists:
-                data_2 = doc_2.to_dict()
-                medicines = data_2.get("medicines", [])
-                logger.info("Médicaments récupérés de {calendar_id} chez {owner_uid} pour le token {token}.", {
-                    "origin": "MEDECINES_SHARED_LOAD",
-                    "uid": owner_uid
-                })
-            else:
-                logger.warning("Médicaments introuvable de {calendar_id} chez {owner_uid} pour le token {token}.", {
-                    "origin": "MEDECINES_SHARED_LOAD",
-                    "uid": owner_uid
-                })
-                return jsonify({"error": "Calendrier introuvable"}), 404
 
             # Verifier si le token est expiré ou si vide
             if expires_at != None:
                 now_utc = datetime.now(timezone.utc).date()
                 if now_utc > expires_at:
-                    logger.warning("Token expiré : {token}.", {
-                        "origin": "MEDECINES_SHARED_LOAD",
-                        "uid": owner_uid
-                    })
-                    return jsonify({"error": "Token expiré"}), 404
+                    return warning_response(
+                        message="Token expiré.", 
+                        code="TOKEN_EXPIRED", 
+                        status_code=404, 
+                        uid=owner_uid, 
+                        origin="TOKEN_EXPIRED", 
+                        log_extra={"token": token}
+                    )
 
             # Verifier si le token est revoké
             if revoked:
-                logger.warning("Token revoké : {token}.", {
-                    "origin": "MEDECINES_SHARED_LOAD",
-                    "uid": owner_uid
-                })
-                return jsonify({"error": "Token revoké"}), 404
+                return warning_response(
+                    message="Token revoké.", 
+                    code="TOKEN_REVOKED", 
+                    status_code=404, 
+                    uid=owner_uid, 
+                    origin="TOKEN_REVOKED", 
+                    log_extra={"token": token}
+                )
 
             # Verifier si le token a les permissions appropriées
             if "read" not in permissions:
-                logger.warning("Token sans permission de lecture : {token}.", {
-                    "origin": "MEDECINES_SHARED_LOAD",
-                    "uid": owner_uid
-                })
-                return jsonify({"error": "Token sans permission de lecture"}), 403
+                return warning_response(
+                    message="Token sans permission de lecture.", 
+                    code="TOKEN_NO_READ_PERMISSION", 
+                    status_code=403, 
+                    uid=owner_uid, 
+                    origin="TOKEN_NO_READ_PERMISSION", 
+                    log_extra={"token": token}
+                )
 
-            return jsonify({"medicines": medicines}), 200
+            
+            doc_2 = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).get()
+            if not doc_2.exists:
+                return warning_response(
+                    message="Calendrier introuvable", 
+                    code="CALENDAR_NOT_FOUND", 
+                    status_code=404, 
+                    uid=owner_uid, 
+                    origin="CALENDAR_NOT_FOUND", 
+                    log_extra={"token": token}
+                )
+            
+
+            medicines = doc_2.to_dict().get("medicines", [])
+
+            return success_response(
+                message="Médicaments récupérés.", 
+                code="MEDECINES_SHARED_LOADED", 
+                uid=owner_uid, 
+                origin="MEDECINES_SHARED_LOAD", 
+                data={"medicines": medicines},
+                log_extra={"token": token}
+            )
+
     except Exception as e:
-        logger.exception("Erreur dans /api/tokens/{token}/medecines", {
-            "origin": "MEDECINES_SHARED_ERROR",
-            "uid": owner_uid
-        })
-        return jsonify({"error": "Erreur lors de la récupération des médicaments."}), 500
+        return error_response(
+            message="Erreur lors de la récupération des médicaments.", 
+            code="MEDECINES_SHARED_ERROR", 
+            status_code=500, 
+            uid=owner_uid, 
+            origin="MEDECINES_SHARED_ERROR", 
+            error=str(e),
+            log_extra={"token": token}
+        )

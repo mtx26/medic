@@ -1,5 +1,5 @@
-from flask import jsonify, request
-from logger import log_backend as logger
+from flask import request
+from response import success_response, error_response, warning_response
 from auth import verify_firebase_token
 from firebase_admin import firestore, auth
 import secrets
@@ -17,11 +17,14 @@ def handle_send_invitation(calendar_id):
 
         doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).get()
         if not doc.exists:
-            logger.warning("Calendrier introuvable : {calendar_id}.", {
-                "origin": "INVITATION_SEND",
-                "uid": owner_uid
-            })
-            return jsonify({"error": "Calendrier introuvable"}), 404
+            return warning_response(
+                message="Calendrier introuvable", 
+                code="CALENDAR_NOT_FOUND", 
+                status_code=404, 
+                uid=owner_uid, 
+                origin="INVITATION_SEND",
+                log_extra={"calendar_id": calendar_id}
+            )
 
         calendar_name = doc.to_dict().get("calendar_name")
         
@@ -31,20 +34,26 @@ def handle_send_invitation(calendar_id):
         
         # Verif si soit même
         if owner_uid == receiver_uid:
-            logger.warning("Tentative de partage avec soi-même : {receiver_email}.", {
-                "origin": "INVITATION_SEND",
-                "uid": owner_uid
-            })
-            return jsonify({"error": "Impossible de partager avec soi-même."}), 400
+            return warning_response(
+                message="Tentative de partage avec soi-même", 
+                code="SELF_INVITATION_ERROR", 
+                status_code=400, 
+                uid=owner_uid, 
+                origin="INVITATION_SEND",
+                log_extra={"calendar_id": calendar_id}
+            )
 
         # Vérifier si l'utilisateur existe  
         doc = db.collection("users").document(receiver_uid).get()
         if not doc.exists:
-            logger.warning("Utilisateur introuvable : {receiver_email}.", {
-                "origin": "INVITATION_SEND",
-                "uid": owner_uid
-            })
-            return jsonify({"error": "Utilisateur introuvable"}), 404
+            return warning_response(
+                message="Utilisateur non trouvé", 
+                code="USER_NOT_FOUND", 
+                status_code=404, 
+                uid=owner_uid, 
+                origin="INVITATION_SEND",
+                log_extra={"calendar_id": calendar_id}
+            )
         
         # Créer un token unique pour la notification
         notification_id = secrets.token_hex(16)
@@ -69,18 +78,24 @@ def handle_send_invitation(calendar_id):
             "access": "edit"
         })
 
-        logger.info("Invitation envoyée à {receiver_email} pour le calendrier {calendar_name}.", {
-            "origin": "INVITATION_SEND",
-            "uid": owner_uid
-        })
-        return jsonify({"message": "Invitation envoyée avec succès"}), 200
+        return success_response(
+            message="Invitation envoyée avec succès", 
+            code="INVITATION_SEND_SUCCESS", 
+            uid=owner_uid, 
+            origin="INVITATION_SEND",
+            log_extra={"calendar_id": calendar_id}
+        )
 
     except Exception as e:
-        logger.exception("Erreur dans /api/invitations/send/{calendar_id}", {
-            "origin": "INVITATION_SEND",
-            "uid": owner_uid
-        })
-        return jsonify({"error": "Erreur lors de l'envoi de l'invitation."}), 500
+        return error_response(
+            message="Erreur lors de l'envoi de l'invitation.", 
+            code="INVITATION_SEND_ERROR", 
+            status_code=500, 
+            uid=owner_uid, 
+            origin="INVITATION_SEND",
+            error=str(e),
+            log_extra={"calendar_id": calendar_id}
+        )
 
 
 # Route pour accepter une invitation pour un partage de calendrier
@@ -92,19 +107,25 @@ def handle_accept_invitation(notification_id):
 
         doc = db.collection("users").document(receiver_uid).collection("notifications").document(notification_id).get()
         if not doc.exists:
-            logger.warning("Notification introuvable : {notification_id}.", {
-                "origin": "INVITATION_ACCEPT",
-                "uid": receiver_uid
-            })
-            return jsonify({"error": "Notification introuvable"}), 404
+            return warning_response(
+                message="Notification non trouvée.", 
+                code="NOTIFICATION_NOT_FOUND", 
+                status_code=404, 
+                uid=receiver_uid, 
+                origin="INVITATION_ACCEPT",
+                log_extra={"notification_id": notification_id}
+            )
         
         # Vérifier si la notification est une invitation
         if doc.to_dict().get("type") != "calendar_invitation":
-            logger.warning("Notification non valide : {notification_id}.", {
-                "origin": "INVITATION_ACCEPT",
-                "uid": receiver_uid
-            })
-            return jsonify({"error": "Notification non valide"}), 400
+            return warning_response(
+                message="Notification non valide.", 
+                code="INVALID_NOTIFICATION", 
+                status_code=400, 
+                uid=receiver_uid, 
+                origin="INVITATION_ACCEPT",
+                log_extra={"notification_id": notification_id}
+            )
         
         calendar_id = doc.to_dict().get("calendar_id")
         calendar_name = doc.to_dict().get("calendar_name")
@@ -143,18 +164,24 @@ def handle_accept_invitation(notification_id):
             "notification_id": notification_id
         })
 
-        logger.info("Invitation acceptée : {notification_id}.", {
-            "origin": "INVITATION_ACCEPT",
-            "uid": receiver_uid
-        })
-        return jsonify({"message": "Invitation acceptée avec succès"}), 200
+        return success_response(
+            message="Invitation acceptée avec succès.", 
+            code="INVITATION_ACCEPT_SUCCESS", 
+            uid=receiver_uid, 
+            origin="INVITATION_ACCEPT",
+            log_extra={"notification_id": notification_id}
+        )
 
     except Exception as e:
-        logger.exception("Erreur dans /api/invitations/accept/{notification_id}", {
-            "origin": "INVITATION_ACCEPT",
-            "uid": receiver_uid
-        })
-        return jsonify({"error": "Erreur lors de l'acceptation de l'invitation."}), 500
+        return error_response(
+            message="Erreur lors de l'acceptation de l'invitation.", 
+            code="INVITATION_ACCEPT_ERROR", 
+            status_code=500, 
+            uid=receiver_uid, 
+            origin="INVITATION_ACCEPT",
+            error=str(e),
+            log_extra={"notification_id": notification_id}
+        )
 
 
 # Route pour rejeter une invitation pour un partage de calendrier
@@ -166,19 +193,25 @@ def handle_reject_invitation(notification_id):
 
         doc = db.collection("users").document(receiver_uid).collection("notifications").document(notification_id).get()
         if not doc.exists:
-            logger.warning("Notification introuvable : {notification_id}.", {
-                "origin": "INVITATION_REJECT",
-                "uid": receiver_uid
-            })
-            return jsonify({"error": "Notification introuvable"}), 404
+            return warning_response(
+                message="Notification non trouvée.", 
+                code="NOTIFICATION_NOT_FOUND", 
+                status_code=404, 
+                uid=receiver_uid, 
+                origin="INVITATION_REJECT",
+                log_extra={"notification_id": notification_id}
+            )
 
         # Vérifier si la notification est une invitation
         if doc.to_dict().get("type") != "calendar_invitation":
-            logger.warning("Notification non valide : {notification_id}.", {
-                "origin": "INVITATION_REJECT",
-                "uid": receiver_uid
-            })
-            return jsonify({"error": "Notification non valide"}), 400
+            return warning_response(
+                message="Notification non valide.", 
+                code="INVALID_NOTIFICATION", 
+                status_code=400, 
+                uid=receiver_uid, 
+                origin="INVITATION_REJECT",
+                log_extra={"notification_id": notification_id}
+            )
 
         calendar_id = doc.to_dict().get("calendar_id")
         calendar_name = doc.to_dict().get("calendar_name")
@@ -199,15 +232,22 @@ def handle_reject_invitation(notification_id):
             "notification_id": notification_id
         })
 
-        logger.info("Invitation rejetée : {notification_id}.", {
-            "origin": "INVITATION_REJECT",
-            "uid": receiver_uid
-        })
-        return jsonify({"message": "Invitation rejetée avec succès"}), 200
+        return success_response(
+            message="Invitation rejetée avec succès.", 
+            code="INVITATION_REJECT_SUCCESS", 
+            uid=receiver_uid, 
+            origin="INVITATION_REJECT",
+            log_extra={"notification_id": notification_id}
+        )
 
     except Exception as e:
-        logger.exception("Erreur dans /api/invitations/reject/{notification_id}", {
-            "origin": "INVITATION_REJECT",
-            "uid": receiver_uid
-        })
-        return jsonify({"error": "Erreur lors de la réjection de l'invitation."}), 500
+        return error_response(
+            message="Erreur lors de la réjection de l'invitation.", 
+            code="INVITATION_REJECT_ERROR", 
+            status_code=500, 
+            uid=receiver_uid, 
+            origin="INVITATION_REJECT",
+            error=str(e),
+            log_extra={"notification_id": notification_id}
+        )
+

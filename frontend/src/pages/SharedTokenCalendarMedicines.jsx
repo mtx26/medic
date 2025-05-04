@@ -19,8 +19,8 @@ function SharedTokenCalendarMedicines({ medicines, sharedTokens }) {
   useEffect(() => {
     const fetchShared = async () => {
       if (sharedToken) {
-        const success = await sharedTokens.fetchSharedTokenMedicines(sharedToken);
-        setSuccessFetchSharedTokenMedicines(success);
+        const rep = await sharedTokens.fetchSharedTokenMedicines(sharedToken);
+        setSuccessFetchSharedTokenMedicines(rep.success);
       }
     };
   

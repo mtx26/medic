@@ -41,8 +41,8 @@ function SharedTokenCalendarView({ events, sharedTokens }) {
   useEffect(() => {
     const fetchShared = async () => {
       if (sharedToken) {
-        const success = await sharedTokens.fetchSharedTokenCalendar(sharedToken);
-        setSuccessGetSharedCalendar(success);
+        const rep = await sharedTokens.fetchSharedTokenCalendar(sharedToken);
+        setSuccessGetSharedCalendar(rep.success);
       }
     };
   

@@ -141,12 +141,12 @@ function MedicamentsPage({ medicines, calendars }) {
               setAlertType("confirm-danger");
               setAlertMessage("❌ Confirmez-vous la suppression des médicaments sélectionnés ?");
               setOnConfirmAction(() => async () => {
-                const success = await medicines.deleteSelectedMedicines(calendarId);
-                if (success) {
-                  setAlertMessage("✅ Médicaments supprimés.");
+                const rep = await medicines.deleteSelectedMedicines(calendarId);
+                if (rep.success) {
+                  setAlertMessage("✅ "+rep.message);
                   setAlertType("success");
                 } else {
-                  setAlertMessage("❌ Erreur lors de la suppression.");
+                  setAlertMessage("❌ "+rep.error);
                   setAlertType("danger");
                   medicines.setMedicinesData(JSON.parse(JSON.stringify(medicines.originalMedicinesData)));
                 }
