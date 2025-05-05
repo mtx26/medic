@@ -358,12 +358,12 @@ def handle_shared_users(calendar_id):
                     uid=owner_uid,
                     origin="SHARED_USERS_LOAD"
                 )
-            picture_url = receiver_doc.to_dict().get("photo_url")
+            photo_url = receiver_doc.to_dict().get("photo_url")
             display_name = receiver_doc.to_dict().get("display_name")
             receiver_email = receiver_doc.to_dict().get("email")
 
-            if not picture_url:
-                picture_url = "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/icons/person-circle.svg"
+            if not photo_url:
+                photo_url = "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/icons/person-circle.svg"
 
             if not verify_calendar_share(calendar_id, owner_uid, receiver_uid):
                 continue
@@ -372,7 +372,7 @@ def handle_shared_users(calendar_id):
                 "receiver_uid": receiver_uid,
                 "access": access,
                 "accepted": accepted,
-                "picture_url": picture_url,
+                "photo_url": photo_url,
                 "display_name": display_name,
                 "receiver_email": receiver_email
             })

@@ -235,7 +235,7 @@ function SelectCalendar({ calendars, sharedTokens, invitations, sharedUsers }) {
                           style={{ cursor: 'pointer' }}
                         >
                           <div className="d-flex align-items-center gap-2">
-                            <img src={user.picture_url} alt="Profil" className="rounded-circle" style={{ width: "40px", height: "40px" }}/>
+                            <img src={user.photo_url} alt="Profil" className="rounded-circle" style={{ width: "40px", height: "40px" }}/>
                             <span>
                               <strong>{user.display_name}</strong><br />
                               Accès : {user.access}

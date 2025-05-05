@@ -13,19 +13,22 @@ const API_URL = process.env.REACT_APP_API_URL;
 
 function App() {
   const [calendarEvents, setCalendarEvents] = useState([]);
-  const [selectedDate, setSelectedDate] = useState('');
-  const [eventsForDay, setEventsForDay] = useState([]);
   const [medicinesData, setMedicinesData] = useState([]);
-  const [checked, setChecked] = useState([]);
+  const [originalMedicinesData, setOriginalMedicinesData] = useState([]);
   const [tokensList, setTokensList] = useState([]);
   const [calendarsData, setCalendarsData] = useState([]);
-  const [originalMedicinesData, setOriginalMedicinesData] = useState([]);
   const [notificationsData, setNotificationsData] = useState([]);
   const [sharedCalendarsData, setSharedCalendarsData] = useState([]);
 
   const [startDate, setStartDate] = useState(() => new Date().toISOString().slice(0, 10));
 
   const { authReady, currentUser } = useContext(AuthContext);
+
+  const generateHexToken = (length = 16) =>
+    [...crypto.getRandomValues(new Uint8Array(length))]
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
+  
 
 
   // Fonction pour obtenir les calendriers
@@ -245,11 +248,16 @@ function App() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      setCalendarEvents(data.schedule.map(e => ({ title: e.title, start: e.date, color: e.color })));
+      // trier les events par titre et par date
+      const scheduleSortedByTitle = data.schedule.sort((a, b) => a.title.localeCompare(b.title));
+      const scheduleSortedByMoment = scheduleSortedByTitle.sort((a, b) => new Date(a.start) - new Date(b.start));
+
+      setCalendarEvents(scheduleSortedByMoment);
+      
       log.info(data.message, {
         origin: "CALENDAR_FETCH_SUCCESS",
         "uid": auth.currentUser.uid,
-        "eventCount": data?.length,
+        "eventCount": scheduleSortedByMoment?.length,
         "calendarId": calendarId,
       });
       return { success: true, message: data.message, code: data.code };
@@ -280,8 +288,11 @@ function App() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      setMedicinesData(data.medicines)
-      setOriginalMedicinesData(JSON.parse(JSON.stringify(data.medicines)));
+      // trier par ordre alphabétique
+      const medicinesSortedByName = data.medicines.sort((a, b) => a.name.localeCompare(b.name));
+
+      setMedicinesData(medicinesSortedByName);
+      setOriginalMedicinesData(JSON.parse(JSON.stringify(medicinesSortedByName)));
       log.info(data.message, {
         origin: "MED_FETCH_SUCCESS",
         "uid": auth.currentUser.uid,
@@ -332,15 +343,14 @@ function App() {
   }, [medicinesData, setOriginalMedicinesData]);
 
   // Fonction pour supprimer des médicaments 
-  const deleteSelectedMedicines = useCallback(async (calendarId) => {
+  const deleteSelectedMedicines = useCallback(async (calendarId, checked) => {
     if (checked.length === 0) return false;
   
-    setMedicinesData(medicinesData.filter((_, i) => !checked.includes(i)));
+    setMedicinesData(medicinesData.filter((med) => !checked.includes(med.id)));
   
     const rep = await updateMedicines(calendarId);
   
     if (rep.success) {
-      setChecked([]);
       log.info(rep.message, {
         origin: "MED_DELETE_SUCCESS",
         "uid": auth.currentUser.uid,
@@ -357,14 +367,17 @@ function App() {
       });
       return {success: false, error: "Erreur lors de la suppression des médicaments", code: rep.code};
     }
-  }, [checked, medicinesData, setMedicinesData, setChecked, updateMedicines]);
+  }, [medicinesData, setMedicinesData, updateMedicines]);
   
   // Fonction pour ajouter un nouveau médicament sanq la variable medicines
   const addMedicine = useCallback(() => {
+    // générer un id unique a 16 caractères
+    const id = generateHexToken();
     setMedicinesData([
       ...medicinesData,
-      { name: '', tablet_count: 1, time: ['morning'], interval_days: 1, start_date: '' },
+      { name: '', tablet_count: 1, time: ['morning'], interval_days: 1, start_date: '', id: id },
     ]);
+    return id;
   }, [medicinesData, setMedicinesData]);
 
 
@@ -886,9 +899,11 @@ function App() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
+      // trier par ordre alphabétique
+      const medicinesSortedByName = data.medicines.sort((a, b) => a.name.localeCompare(b.name));
 
-      setMedicinesData(data.medicines);
-      setOriginalMedicinesData(JSON.parse(JSON.stringify(data.medicines)));
+      setMedicinesData(medicinesSortedByName);
+      setOriginalMedicinesData(JSON.parse(JSON.stringify(medicinesSortedByName)));
 
       log.info(data.message, {
         origin: "SHARED_USER_CALENDAR_MEDICINES_FETCH_SUCCESS",
@@ -935,14 +950,13 @@ function App() {
   }, [medicinesData]);
 
   // Fonction pour supprimer les médicaments d’un calendrier partagé par un utilisateur
-  const deleteSharedUserCalendarMedicines = useCallback(async (calendarId) => {
+  const deleteSharedUserCalendarMedicines = useCallback(async (calendarId, checked) => {
     if (checked.length === 0) return false;
   
-    setMedicinesData(medicinesData.filter((_, i) => !checked.includes(i)));
+    setMedicinesData(medicinesData.filter((med) => !checked.includes(med.id)));
   
     const rep = await updateSharedUserCalendarMedicines(calendarId);
     if (rep.success) {
-      setChecked([]);
       log.info(rep.message, {
         origin: "SHARED_USER_CALENDAR_MEDICINES_DELETE_SUCCESS",
         calendarId,
@@ -955,7 +969,7 @@ function App() {
       });
       return {success: false, error: "Erreur lors de la suppression des médicaments", code: "SHARED_USER_CALENDAR_MEDICINES_DELETE_ERROR"};
     }
-  }, [medicinesData, checked, updateMedicines]);
+  }, [medicinesData, updateMedicines]);
 
   // Fonction pour récupérer les informations d’un utilisateur
   const fetchUserInfo = useCallback(async (userId) => {
@@ -1003,8 +1017,6 @@ function App() {
     // 🗓️ ÉVÉNEMENTS DU CALENDRIER
     events: {
       calendarEvents, setCalendarEvents,              // Événements affichés dans le calendrier
-      selectedDate, setSelectedDate,                  // Date actuellement sélectionnée
-      eventsForDay, setEventsForDay,                  // Événements filtrés pour un jour spécifique
       startDate, setStartDate,                        // Date de début pour affichage du calendrier
       calendarsData, setCalendarsData,                // (Redondant, mais peut être utile si nécessaire localement)
       fetchCalendar,                                    // Chargement des données d’un calendrier
@@ -1014,8 +1026,6 @@ function App() {
     medicines: {
       medicinesData, setMedicinesData,                          // Liste des médicaments du calendrier actif
       originalMedicinesData, setOriginalMedicinesData,          // Liste des médicaments d’origine
-      checked, setChecked,                            // Médicaments cochés pour suppression
-      //handleMedChange,                                // Fonction pour modifier un médicament
       updateMedicines,                                     // Mise à jour des médicaments dans Firestore
       deleteSelectedMedicines,                             // Suppression des médicaments sélectionnés
       addMedicine,                                         // Ajout d’un nouveau médicament
@@ -1064,13 +1074,10 @@ function App() {
   const resetAppData = () => {
     // EVENTS
     setCalendarEvents([]);
-    setSelectedDate(null);
-    setEventsForDay([]);
     setStartDate(null);
   
     // MEDICINES
     setMedicinesData([]);
-    setChecked([]);
     setOriginalMedicinesData([]);
     
     // CALENDARS

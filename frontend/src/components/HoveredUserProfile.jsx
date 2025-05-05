@@ -16,7 +16,7 @@ function HoveredUserProfile({ user, style }) {
     >
       <div className="d-flex flex-column align-items-center text-center gap-2">
         <img
-          src={user.picture_url}
+          src={user.photo_url}
           alt="Profil"
           className="rounded-circle"
           style={{ width: '70px', height: '70px', objectFit: 'cover' }}

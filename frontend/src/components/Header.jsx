@@ -97,7 +97,7 @@ function Navbar({ sharedProps }) {
                                   {hoveredNotification === notif.notification_id && (
                                     <HoveredUserProfile
                                       user={{
-                                        picture_url: notif.owner_photo_url,
+                                        photo_url: notif.owner_photo_url,
                                         display_name: notif.owner_name,
                                         receiver_email: notif.owner_email
                                       }}
@@ -145,7 +145,7 @@ function Navbar({ sharedProps }) {
                                 {hoveredNotification === notif.notification_id && (
                                   <HoveredUserProfile
                                     user={{
-                                      picture_url: notif.receiver_photo_url,
+                                      photo_url: notif.receiver_photo_url,
                                       display_name: notif.receiver_name,
                                       receiver_email: notif.receiver_email
                                     }}
@@ -182,7 +182,7 @@ function Navbar({ sharedProps }) {
                                 {hoveredNotification === notif.notification_id && (
                                   <HoveredUserProfile
                                     user={{
-                                      picture_url: notif.receiver_photo_url,
+                                      photo_url: notif.receiver_photo_url,
                                       display_name: notif.receiver_name,
                                       receiver_email: notif.receiver_email
                                     }}
@@ -219,7 +219,7 @@ function Navbar({ sharedProps }) {
                                 {hoveredNotification === notif.notification_id && (
                                   <HoveredUserProfile
                                     user={{
-                                      picture_url: notif.owner_photo_url,
+                                      photo_url: notif.owner_photo_url,
                                       display_name: notif.owner_name,
                                       receiver_email: notif.owner_email
                                     }}
@@ -256,7 +256,7 @@ function Navbar({ sharedProps }) {
                                 {hoveredNotification === notif.notification_id && (
                                   <HoveredUserProfile
                                     user={{
-                                      picture_url: notif.receiver_photo_url,
+                                      photo_url: notif.receiver_photo_url,
                                       display_name: notif.receiver_name,
                                       receiver_email: notif.receiver_email
                                     }}

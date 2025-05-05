@@ -18,29 +18,30 @@ function MedicamentsPage({ medicines, calendars }) {
   const [onConfirmAction, setOnConfirmAction] = useState(null); // État pour l'action à confirmer
 
   // 📦 Données & interface
-  const [loadingMedicines, setLoadingMedicines] = useState(); // État de chargement des médicaments
-  const [highlightedIndex, setHighlightedIndex] = useState(null); // État pour l'élément mis en évidence dans la liste
+  const [checked, setChecked] = useState([]); // Médicaments cochés pour suppression
+  const [loadingMedicines, setLoadingMedicines] = useState(undefined); // État de chargement des médicaments
+  const [highlightedId, setHighlightedId] = useState(null); // État pour l'élément mis en évidence dans la liste
   const lastMedRef = useRef(null); // Référence vers le dernier médicament affiché
 
   // 🔄 Modifications
   const hasChanges = JSON.stringify(medicines.medicinesData) !== JSON.stringify(medicines.originalMedicinesData); // Détection des changements dans les médicaments
 
-  const toggleSelection = (index) => {
-    medicines.setChecked((prev) =>
-      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
+  const toggleSelection = (id) => {
+    setChecked((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
     );
   };
 
-  const handleMedChange = (index, field, value) => {
+  const handleMedChange = (id, field, value) => {
     const updated = [...medicines.medicinesData];
     const numericFields = ['tablet_count', 'interval_days'];
   
     if (field === 'time') {
-      updated[index][field] = [value];
+      updated[id][field] = [value];
     } else if (numericFields.includes(field)) {
-      updated[index][field] = value === '' ? '' : parseFloat(value);
+      updated[id][field] = value === '' ? '' : parseFloat(value);
     } else {
-      updated[index][field] = value;
+      updated[id][field] = value;
     }
   
     medicines.setMedicinesData(updated);
@@ -124,9 +125,9 @@ function MedicamentsPage({ medicines, calendars }) {
         <div className="d-flex flex-wrap gap-2 my-3">
           <button 
             onClick={() => {
-              medicines.addMedicine();
-              setHighlightedIndex(medicines.medicinesData.length);
-              setTimeout(() => setHighlightedIndex(null), 2000);
+              const newMedId = medicines.addMedicine();
+              setHighlightedId(newMedId);
+              setTimeout(() => setHighlightedId(null), 2000);
               setTimeout(() => lastMedRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
             }}
             className="btn btn-outline-primary"
@@ -141,7 +142,7 @@ function MedicamentsPage({ medicines, calendars }) {
               setAlertType("confirm-danger");
               setAlertMessage("❌ Confirmez-vous la suppression des médicaments sélectionnés ?");
               setOnConfirmAction(() => async () => {
-                const rep = await medicines.deleteSelectedMedicines(calendarId);
+                const rep = await medicines.deleteSelectedMedicines(calendarId, checked);
                 if (rep.success) {
                   setAlertMessage("✅ "+rep.message);
                   setAlertType("success");
@@ -158,7 +159,7 @@ function MedicamentsPage({ medicines, calendars }) {
               });
             }}
             className="btn btn-outline-danger"
-            disabled={medicines.checked.length === 0}
+            disabled={checked.length === 0}
             title="Supprimer les médicaments sélectionnés"
           >
             <i className="bi bi-trash3"></i>
@@ -211,11 +212,11 @@ function MedicamentsPage({ medicines, calendars }) {
           {medicines.medicinesData.length === 0 ? (
             <div className="text-center mt-5 text-muted">❌ Aucun médicament n’a encore été ajouté pour ce calendrier.</div>
           ) : (
-            medicines.medicinesData.map((med, index) => (
+            medicines.medicinesData.map((med) => (
               <li
-                key={index}
-                ref={index === medicines.medicinesData.length - 1 ? lastMedRef : null}
-                className={`list-group-item px-2 py-3 ${index === highlightedIndex ? 'highlighted-med' : ''}`}
+                key={med.id}
+                ref={med.id === highlightedId ? lastMedRef : null}
+                className={`list-group-item px-2 py-3 ${med.id === highlightedId ? 'highlighted-med' : ''}`}
               >
                 <div className="row g-2 align-items-center">
                   {/* Checkbox */}
@@ -223,9 +224,9 @@ function MedicamentsPage({ medicines, calendars }) {
                     <input
                       className="form-check-input mt-2"
                       type="checkbox"
-                      checked={medicines.checked.includes(index)}
-                      onChange={() => toggleSelection(index)}
-                      id={`check-${index}`}
+                      checked={checked.includes(med.id)}
+                      onChange={() => toggleSelection(med.id)}
+                      id={`check-${med.id}`}
                     />
                   </div>
 
@@ -235,12 +236,12 @@ function MedicamentsPage({ medicines, calendars }) {
                       <input
                         type="text"
                         className="form-control form-control-sm"
-                        id={`name-${index}`}
+                        id={`name-${med.id}`}
                         placeholder="Nom"
                         value={med?.name || ''}
-                        onChange={(e) => handleMedChange(index, 'name', e.target.value)}
+                        onChange={(e) => handleMedChange(med.id, 'name', e.target.value)}
                       />
-                      <label htmlFor={`name-${index}`}>Nom</label>
+                      <label htmlFor={`name-${med.id}`}>Nom</label>
                     </div>
                   </div>
 
@@ -251,12 +252,12 @@ function MedicamentsPage({ medicines, calendars }) {
                         type="number"
                         step="0.25"
                         className="form-control form-control-sm"
-                        id={`comps-${index}`}
+                        id={`comps-${med.id}`}
                         placeholder="Comprimés"
                         value={med?.tablet_count ?? ''}
-                        onChange={(e) => handleMedChange(index, 'tablet_count', e.target.value)}
+                        onChange={(e) => handleMedChange(med.id, 'tablet_count', e.target.value)}
                       />
-                      <label htmlFor={`comps-${index}`}>Comprimés</label>
+                      <label htmlFor={`comps-${med.id}`}>Comprimés</label>
                     </div>
                   </div>
 
@@ -265,16 +266,16 @@ function MedicamentsPage({ medicines, calendars }) {
                     <div className="form-floating">
                       <select
                         className="form-select form-select-sm"
-                        id={`moment-${index}`}
+                        id={`moment-${med.id}`}
                         value={med?.time[0] || ''}
-                        onChange={(e) => handleMedChange(index, 'time', e.target.value)}
+                        onChange={(e) => handleMedChange(med.id, 'time', e.target.value)}
                       >
                         <option value="" disabled hidden>Choisir</option>
                         <option value="morning">Matin</option>
                         <option value="noon">Midi</option>
                         <option value="evening">Soir</option>
                       </select>
-                      <label htmlFor={`moment-${index}`}>Moment</label>
+                      <label htmlFor={`moment-${med.id}`}>Moment</label>
                     </div>
                   </div>
 
@@ -284,12 +285,12 @@ function MedicamentsPage({ medicines, calendars }) {
                       <input
                         type="number"
                         className="form-control form-control-sm"
-                        id={`interval-${index}`}
+                        id={`interval-${med.id}`}
                         placeholder="Intervalle"
                         value={med?.interval_days ?? ''}
-                        onChange={(e) => handleMedChange(index, 'interval_days', e.target.value)}
+                        onChange={(e) => handleMedChange(med.id, 'interval_days', e.target.value)}
                       />
-                      <label htmlFor={`interval-${index}`}>Intervalle</label>
+                      <label htmlFor={`interval-${med.id}`}>Intervalle</label>
                     </div>
                   </div>
 
@@ -299,12 +300,12 @@ function MedicamentsPage({ medicines, calendars }) {
                       <input
                         type="date"
                         className="form-control form-control-sm"
-                        id={`start-${index}`}
+                        id={`start-${med.id}`}
                         placeholder="Date de début"
                         value={med?.start_date || ''}
-                        onChange={(e) => handleMedChange(index, 'start_date', e.target.value)}
+                        onChange={(e) => handleMedChange(med.id, 'start_date', e.target.value)}
                       />
-                      <label htmlFor={`start-${index}`}>Date de début</label>
+                      <label htmlFor={`start-${med.id}`}>Date de début</label>
                     </div>
                   </div>
                 </div>

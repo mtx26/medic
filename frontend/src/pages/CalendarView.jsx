@@ -14,7 +14,9 @@ function CalendarPage({ events, calendars }) {
 
   // 🔐 Contexte d'authentification
   const { authReady, currentUser } = useContext(AuthContext); // Contexte de l'utilisateur connecté
-
+  
+  const [selectedDate, setSelectedDate] = useState(''); // Date sélectionnée
+  const [eventsForDay, setEventsForDay] = useState([]); // Événements filtrés pour un jour spécifique
   // 🔄 Références et chargement
   const modalRef = useRef(null); // Référence vers le modal (pour gestion focus/fermeture)
   const [loadingMedicines, setLoadingMedicines] = useState(true); // État de chargement des médicaments
@@ -24,8 +26,8 @@ function CalendarPage({ events, calendars }) {
   // Fonction pour gérer le clic sur une date
   const handleDateClick = (info) => {
     const clickedDate = info.dateStr;
-    events.setSelectedDate(clickedDate);
-    events.setEventsForDay(events.calendarEvents.filter((event) => event.start.startsWith(clickedDate)));
+    setSelectedDate(clickedDate);
+    setEventsForDay(events.calendarEvents.filter((event) => event.start.startsWith(clickedDate)));
     const modal = new window.bootstrap.Modal(modalRef.current);
     modal.show();
     
@@ -37,21 +39,18 @@ function CalendarPage({ events, calendars }) {
 
   // Fonction pour naviguer vers la date suivante ou precedente
   const navigateDay = (direction) => {
-    const current = new Date(events.selectedDate);
+    const current = new Date(selectedDate);
     current.setDate(current.getDate() + direction);
     const newDate = current.toISOString().slice(0, 10);
-    events.setSelectedDate(newDate);
-    events.setEventsForDay(events.calendarEvents.filter((event) => event.start.startsWith(newDate)));
+    setSelectedDate(newDate);
+    setEventsForDay(events.calendarEvents.filter((event) => event.start.startsWith(newDate)));
   };
 
   // Fonction pour réinitialiser les données lorsque le calendrier change
   useEffect(() => {
     const load = async () => {
       if (authReady && currentUser) {
-        calendars.setCalendarsData(null);
         await calendars.fetchCalendars(); // Recharger pour le nouvel utilisateur
-        setLoadingMedicines(false);
-      } else {
         setLoadingMedicines(false);
       }
     };
@@ -193,7 +192,7 @@ function CalendarPage({ events, calendars }) {
             <div className="modal-header">
               <h5 className="modal-title">
                 <i className="bi bi-calendar-date"></i>
-                <span> {new Date(events.selectedDate).toLocaleDateString('fr-FR', {
+                <span> {new Date(selectedDate).toLocaleDateString('fr-FR', {
                   weekday: 'long',
                   year: 'numeric',
                   month: 'long',
@@ -207,9 +206,9 @@ function CalendarPage({ events, calendars }) {
               <div className="d-flex justify-content-between align-items-center">
                 <button className="btn btn-outline-secondary btn-sm" onClick={() => navigateDay(-1)}>⬅</button>
                 <div className="flex-grow-1 mx-3">
-                  {events.eventsForDay.length > 0 ? (
+                  {eventsForDay.length > 0 ? (
                     <ul className="list-group">
-                      {events.eventsForDay.map((event, index) => (
+                      {eventsForDay.map((event, index) => (
                         <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
                           {event.title}
                           <span className="badge" style={{ backgroundColor: event.color, color: 'white' }}>

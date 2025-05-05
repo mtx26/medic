@@ -99,7 +99,7 @@ def handle_create_token(calendar_id):
         })
 
         return success_response(
-            message="Calendrier partagé avec succès", 
+            message="Lien de partage créé avec succès", 
             code="TOKEN_CREATED", 
             uid=owner_uid, 
             origin="TOKEN_CREATE",

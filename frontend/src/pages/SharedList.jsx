@@ -436,7 +436,7 @@ function SharedList({ sharedTokens, calendars, sharedUsers, invitations }) {
                         
                         {/* Image */}
                         <div className="">
-                          <img src={user.picture_url} alt="Profil" className="rounded-circle" style={{ width: "40px", height: "40px" }} />
+                          <img src={user.photo_url} alt="Profil" className="rounded-circle" style={{ width: "40px", height: "40px" }} />
                         </div>
 
                         {/* Nom */}
@@ -455,7 +455,7 @@ function SharedList({ sharedTokens, calendars, sharedUsers, invitations }) {
                         {hoveredUser === user.receiver_uid && (
                           <HoveredUserProfile
                             user={{
-                              picture_url: user.picture_url,
+                              photo_url: user.photo_url,
                               display_name: user.display_name,
                               receiver_email: user.receiver_email
                             }}

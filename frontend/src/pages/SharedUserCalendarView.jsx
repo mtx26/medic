@@ -13,6 +13,10 @@ function SharedUserCalendarView({ events, sharedUsers }) {
   const { calendarId } = useParams(); // Récupération du token de partage depuis l'URL
   const navigate = useNavigate(); // Hook de navigation
 
+  // 📍 Date sélectionnée
+  const [selectedDate, setSelectedDate] = useState(''); // Date sélectionnée
+  const [eventsForDay, setEventsForDay] = useState([]); // Événements filtrés pour un jour spécifique   
+
   // 🔄 Références et états
   const modalRef = useRef(null); // Référence vers le modal (pour fermeture ou focus)
   const [successGetSharedCalendar, setSuccessGetSharedCalendar] = useState(); // État du succès de la récupération du calendrier partagé
@@ -23,18 +27,18 @@ function SharedUserCalendarView({ events, sharedUsers }) {
   // Fonction pour gérer le clic sur une date
   const handleDateClick = (info) => {
     const clickedDate = info.dateStr;
-    events.setSelectedDate(clickedDate);
-    events.setEventsForDay(events.calendarEvents.filter((event) => event.start.startsWith(clickedDate)));
+    setSelectedDate(clickedDate);
+    setEventsForDay(events.calendarEvents.filter((event) => event.start.startsWith(clickedDate)));
     new window.bootstrap.Modal(modalRef.current).show();
   };
 
   // Fonction pour naviguer vers la date suivante ou precedente
   const navigateDay = (direction) => {
-    const current = new Date(events.selectedDate);
+    const current = new Date(selectedDate);
     current.setDate(current.getDate() + direction);
     const newDate = current.toISOString().slice(0, 10);
-    events.setSelectedDate(newDate);
-    events.setEventsForDay(events.calendarEvents.filter((event) => event.start.startsWith(newDate)));
+    setSelectedDate(newDate);
+    setEventsForDay(events.calendarEvents.filter((event) => event.start.startsWith(newDate)));
   };
   
   // Fonction pour charger le calendrier lorsque l'utilisateur est connecté
@@ -170,7 +174,7 @@ function SharedUserCalendarView({ events, sharedUsers }) {
             <div className="modal-header">
               <h5 className="modal-title">
                 <i className="bi bi-calendar-date"></i>
-                <span> {new Date(events.selectedDate).toLocaleDateString('fr-FR', {
+                <span> {new Date(selectedDate).toLocaleDateString('fr-FR', {
                   weekday: 'long',
                   year: 'numeric',
                   month: 'long',
@@ -184,9 +188,9 @@ function SharedUserCalendarView({ events, sharedUsers }) {
               <div className="d-flex justify-content-between align-items-center">
                 <button className="btn btn-outline-secondary btn-sm" onClick={() => navigateDay(-1)}>⬅</button>
                 <div className="flex-grow-1 mx-3">
-                  {events.eventsForDay.length > 0 ? (
+                  {eventsForDay.length > 0 ? (
                     <ul className="list-group">
-                      {events.eventsForDay.map((event, index) => (
+                      {eventsForDay.map((event, index) => (
                         <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
                           {event.title}
                           <span className="badge" style={{ backgroundColor: event.color, color: 'white' }}>

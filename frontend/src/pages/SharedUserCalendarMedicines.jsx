@@ -21,13 +21,14 @@ function SharedUserCalendarMedicines({ medicines, calendars, sharedUsers }) {
   const [loadingMedicines, setLoadingMedicines] = useState(); // État de chargement des médicaments
   const [highlightedIndex, setHighlightedIndex] = useState(null); // État pour l'élément mis en évidence dans la liste
   const lastMedRef = useRef(null); // Référence vers le dernier médicament affiché
+  const [checked, setChecked] = useState([]); // Médicaments cochés pour suppression
 
   // 🔄 Détection de modifications
   const hasChanges = JSON.stringify(medicines.medicinesData) !== JSON.stringify(medicines.originalMedicinesData); // Détection des changements dans les médicaments
 
 
   const toggleSelection = (index) => {
-    medicines.setChecked((prev) =>
+    setChecked((prev) =>
       prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
     );
   };
@@ -138,7 +139,7 @@ function SharedUserCalendarMedicines({ medicines, calendars, sharedUsers }) {
               setAlertType("confirm-danger");
               setAlertMessage("❌ Confirmez-vous la suppression des médicaments sélectionnés ?");
               setOnConfirmAction(() => async () => {
-                const rep = await sharedUsers.deleteSharedUserCalendarMedicines(calendarId);
+                const rep = await sharedUsers.deleteSharedUserCalendarMedicines(calendarId, checked);
                 if (rep.success) {
                   setAlertMessage("✅ "+rep.message);
                   setAlertType("success");
@@ -155,7 +156,7 @@ function SharedUserCalendarMedicines({ medicines, calendars, sharedUsers }) {
               });
             }}
             className="btn btn-outline-danger"
-            disabled={medicines.checked.length === 0}
+            disabled={checked.length === 0}
             title="Supprimer les médicaments sélectionnés"
           >
             <i className="bi bi-trash3"></i>
@@ -220,7 +221,7 @@ function SharedUserCalendarMedicines({ medicines, calendars, sharedUsers }) {
                     <input
                       className="form-check-input mt-2"
                       type="checkbox"
-                      checked={medicines.checked.includes(index)}
+                      checked={checked.includes(index)}
                       onChange={() => toggleSelection(index)}
                       id={`check-${index}`}
                     />
