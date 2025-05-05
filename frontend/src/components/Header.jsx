@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { UserContext } from "../contexts/UserContext";
 import { AuthContext } from "../contexts/LoginContext";
@@ -16,7 +16,7 @@ function Navbar({ sharedProps }) {
   const { fetchSharedCalendars } = sharedProps.calendars;
 
   const [hoveredNotification, setHoveredNotification] = useState(null);
-  
+  const refs = useRef({});
   useEffect(() => {
     if (authReady && currentUser) {
       fetchNotifications();
@@ -87,25 +87,22 @@ function Navbar({ sharedProps }) {
                               }}
                             >
                               <div className="d-flex flex-column">
-                                <div>
+                                <p className="mb-0">
                                   <i className="bi bi-person-plus-fill me-2 text-primary"></i>
-                                  <strong
-                                    onMouseEnter={() => setHoveredNotification(notif.notification_id)}
-                                    onMouseLeave={() => setHoveredNotification(null)}
-                                    style={{ cursor: "pointer" }}
-                                  >{notif.owner_name}</strong> vous invite à rejoindre son calendrier <strong>{notif.calendar_name}</strong>
-                                  {hoveredNotification === notif.notification_id && (
-                                    <HoveredUserProfile
-                                      user={{
-                                        photo_url: notif.owner_photo_url,
-                                        display_name: notif.owner_name,
-                                        email: notif.owner_email
-                                      }}
-                                      style={{ top: '110%', left: '25%', transform: 'translateX(-50%)' }}
-                                    />
-                                  )}
+                                  <HoveredUserProfile
+                                    user={{
+                                      photo_url: notif.owner_photo_url,
+                                      display_name: notif.owner_name,
+                                      email: notif.owner_email
+                                    }}
+                                    trigger={<strong>{notif.owner_name}</strong>}
+                                  />
+                                  {" "}vous invite à rejoindre son calendrier <strong>{notif.calendar_name}</strong>
+                                </p>
+
+                                <div className="d-flex gap-2">
                                   <button 
-                                    className="btn btn-sm btn-outline-primary ms-2" 
+                                    className="btn btn-sm btn-outline-primary" 
                                     onClick={async () => {
                                       await acceptInvitation(notif.notification_id)
                                       fetchSharedCalendars()
@@ -113,7 +110,7 @@ function Navbar({ sharedProps }) {
                                   >
                                     Accepter
                                   </button>
-                                  <button className="btn btn-sm btn-outline-danger ms-2" onClick={() => rejectInvitation(notif.notification_id)}>Rejeter</button>
+                                  <button className="btn btn-sm btn-outline-danger" onClick={() => rejectInvitation(notif.notification_id)}>Rejeter</button>
                                 </div>
                                 <small 
                                   className="text-muted"
@@ -133,26 +130,18 @@ function Navbar({ sharedProps }) {
                                 cursor: "pointer",
                               }}
                             >
-                              <div>
+                              <p className="mb-0">
                                 <i className="bi bi-check-circle-fill me-2 text-success"></i>
-                                <strong
-                                  onMouseEnter={() => setHoveredNotification(notif.notification_id)}
-                                  onMouseLeave={() => setHoveredNotification(null)}
-                                  style={{ cursor: "pointer" }}
-                                >
-                                  {notif.receiver_name}
-                                </strong> a accepté votre invitation pour rejoindre le calendrier <strong>{notif.calendar_name}</strong>
-                                {hoveredNotification === notif.notification_id && (
-                                  <HoveredUserProfile
-                                    user={{
-                                      photo_url: notif.receiver_photo_url,
-                                      display_name: notif.receiver_name,
-                                      email: notif.receiver_email
-                                    }}
-                                    style={{ top: '110%', left: '25%', transform: 'translateX(-50%)' }}
-                                  />
-                                )}
-                              </div>
+                                <HoveredUserProfile
+                                  user={{
+                                    photo_url: notif.receiver_photo_url,
+                                    display_name: notif.receiver_name,
+                                    email: notif.receiver_email
+                                  }}
+                                  trigger={<strong>{notif.receiver_name}</strong>}
+                                />
+                                {" "}a accepté votre invitation pour rejoindre le calendrier <strong>{notif.calendar_name}</strong>
+                              </p>
                               <small 
                                 className="text-muted"
                               >
@@ -170,26 +159,18 @@ function Navbar({ sharedProps }) {
                                 cursor: "pointer",
                               }}
                             >
-                              <div>
+                              <p className="mb-0">
                                 <i className="bi bi-x-circle-fill me-2 text-danger"></i>
-                                <strong
-                                  onMouseEnter={() => setHoveredNotification(notif.notification_id)}
-                                  onMouseLeave={() => setHoveredNotification(null)}
-                                  style={{ cursor: "pointer" }}
-                                >
-                                  {notif.receiver_name}
-                                </strong> a rejeté votre invitation pour rejoindre le calendrier <strong>{notif.calendar_name}</strong>
-                                {hoveredNotification === notif.notification_id && (
-                                  <HoveredUserProfile
-                                    user={{
-                                      photo_url: notif.receiver_photo_url,
-                                      display_name: notif.receiver_name,
-                                      email: notif.receiver_email
-                                    }}
-                                    style={{ top: '110%', left: '25%', transform: 'translateX(-50%)' }}
-                                  />
-                                )}
-                              </div>
+                                <HoveredUserProfile
+                                  user={{
+                                    photo_url: notif.receiver_photo_url,
+                                    display_name: notif.receiver_name,
+                                    email: notif.receiver_email
+                                  }}
+                                  trigger={<strong>{notif.receiver_name}</strong>}
+                                />
+                                {" "}a rejeté votre invitation pour rejoindre le calendrier <strong>{notif.calendar_name}</strong>
+                              </p>
                               <small 
                                 className="text-muted"
                               >
@@ -207,26 +188,18 @@ function Navbar({ sharedProps }) {
                                 cursor: "pointer",
                               }}
                             >
-                              <div>
+                              <p className="mb-0">
                                 <i className="bi bi-trash-fill me-2 text-danger"></i>
-                                <strong
-                                  onMouseEnter={() => setHoveredNotification(notif.notification_id)}
-                                  onMouseLeave={() => setHoveredNotification(null)}
-                                  style={{ cursor: "pointer" }}
-                                >
-                                  {notif.owner_name}
-                                </strong> a arrêté de partager le calendrier <strong>{notif.calendar_name}</strong> avec vous
-                                {hoveredNotification === notif.notification_id && (
-                                  <HoveredUserProfile
-                                    user={{
-                                      photo_url: notif.owner_photo_url,
-                                      display_name: notif.owner_name,
-                                      email: notif.owner_email
-                                    }}
-                                    style={{ top: '110%', left: '25%', transform: 'translateX(-50%)' }}
-                                  />
-                                )}
-                              </div>
+                                <HoveredUserProfile
+                                  user={{
+                                    photo_url: notif.owner_photo_url,
+                                    display_name: notif.owner_name,
+                                    email: notif.owner_email
+                                  }}
+                                  trigger={<strong>{notif.owner_name}</strong>}
+                                />
+                                {" "}a arrêté de partager le calendrier <strong>{notif.calendar_name}</strong> avec vous
+                              </p>
                               <small 
                                 className="text-muted"
                               >
@@ -244,26 +217,18 @@ function Navbar({ sharedProps }) {
                                 cursor: "pointer",
                               }}
                             >
-                              <div>
+                              <p className="mb-0">
                                 <i className="bi bi-trash-fill me-2 text-danger"></i>
-                                <strong
-                                  onMouseEnter={() => setHoveredNotification(notif.notification_id)}
-                                  onMouseLeave={() => setHoveredNotification(null)}
-                                  style={{ cursor: "pointer" }}
-                                >
-                                  {notif.receiver_name}
-                                </strong> a retiré le calendrier <strong>{notif.calendar_name}</strong> que vous lui aviez partagé.
-                                {hoveredNotification === notif.notification_id && (
-                                  <HoveredUserProfile
-                                    user={{
-                                      photo_url: notif.receiver_photo_url,
-                                      display_name: notif.receiver_name,
-                                      email: notif.receiver_email
-                                    }}
-                                    style={{ top: '110%', left: '25%', transform: 'translateX(-50%)' }}
-                                  />
-                                )}
-                              </div>
+                                <HoveredUserProfile
+                                  user={{
+                                    photo_url: notif.receiver_photo_url,
+                                    display_name: notif.receiver_name,
+                                    email: notif.receiver_email
+                                  }}
+                                  trigger={<strong>{notif.receiver_name}</strong>}
+                                />
+                                {" "}a retiré le calendrier <strong>{notif.calendar_name}</strong> que vous lui aviez partagé.
+                              </p>
                               <small 
                                 className="text-muted"
                               >

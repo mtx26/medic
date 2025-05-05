@@ -1,4 +1,4 @@
-import React, { useEffect, useContext, useState } from "react";
+import React, { useEffect, useContext, useState, useRef } from "react";
 import { AuthContext } from '../contexts/LoginContext';
 import AlertSystem from '../components/AlertSystem'; 
 import HoveredUserProfile from "../components/HoveredUserProfile";
@@ -29,6 +29,8 @@ function SharedList({ sharedTokens, calendars, sharedUsers, invitations }) {
 
   // 📅 Date du jour
   const today = new Date().toISOString().split('T')[0]; // Date du jour au format 'YYYY-MM-DD'
+
+  const refs = useRef({});
 
 
   useEffect(() => {
@@ -428,19 +430,20 @@ function SharedList({ sharedTokens, calendars, sharedUsers, invitations }) {
                     <div className="row align-items-center g-2">
 
                       <div className={`d-flex align-items-center gap-2 col-md-4`}>
-                        <div
-                          className="d-flex align-items-center gap-2"
-                          onMouseEnter={() => setHoveredUser(user.receiver_uid)}
-                          onMouseLeave={() => setHoveredUser(null)}
-                          style={{ cursor: 'pointer', position: 'relative' }}
-                        >
+                      <div
+                        className="d-flex align-items-center gap-2 position-relative"
+                        onMouseEnter={() => setHoveredUser(user.receiver_uid)}
+                        onMouseLeave={() => setHoveredUser(null)}
+                        style={{ cursor: 'pointer' }}
+                        ref={(el) => (refs.current[user.receiver_uid] = el)}
+                      >
                           {/* Image */}
                           <div>
                             <img src={user.receiver_photo_url} alt="Profil" className="rounded-circle" style={{ width: "40px", height: "40px" }} />
                           </div>
 
                           {/* Nom */}
-                          <div className="">
+                          <div>
                             <strong>
                               {user.receiver_name}
                               </strong>
@@ -450,15 +453,16 @@ function SharedList({ sharedTokens, calendars, sharedUsers, invitations }) {
                               user={{
                                 photo_url: user.receiver_photo_url,
                                 display_name: user.receiver_name,
-                                email: user.receiver_email
+                                email: user.receiver_email,
                               }}
-                              style={{ position: 'absolute', top: '0%', left: '110%', transform: 'translatey(-40%)' }}
+                              parentRef={{ current: refs.current[user.receiver_uid] }}
                             />
+
                           )}
                         </div>
 
                         {/* Statut */}
-                        <div className="">
+                        <div>
                           <span className={`badge rounded-pill ${user.accepted ? "bg-success" : "bg-warning text-dark"}`}>
                             {user.accepted ? "Accepté" : "En attente"}
                           </span>

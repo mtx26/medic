@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState, useContext, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../contexts/LoginContext';
 import AlertSystem from '../components/AlertSystem';
@@ -37,6 +37,8 @@ function SelectCalendar({ calendars, sharedTokens, invitations, sharedUsers }) {
   const [emailToInvite, setEmailToInvite] = useState(''); // État pour l'adresse e-mail à inviter
   const [sharedUsersData, setSharedUsersData] = useState([]); // État pour les données des utilisateurs ayant accès
   const [hoveredUser, setHoveredUser] = useState(null); // État pour l'utilisateur actuellement survolé
+  const refs = useRef({});
+
 
   const REACT_URL = process.env.REACT_APP_REACT_URL
 
@@ -229,33 +231,30 @@ function SelectCalendar({ calendars, sharedTokens, invitations, sharedUsers }) {
                       {sharedUsersData.map((user) => (
                         <li 
                           key={user.receiver_uid} 
-                          className="list-group-item d-flex justify-content-between align-items-center"
-                          onMouseEnter={() => setHoveredUser(user.receiver_uid)}
-                          onMouseLeave={() => setHoveredUser(null)}
-                          style={{ cursor: 'pointer' }}
+                          className="list-group-item d-flex justify-content-between align-items-center gap-2"
                         >
-                          <div className="d-flex align-items-center gap-2">
-                            <img src={user.photo_url} alt="Profil" className="rounded-circle" style={{ width: "40px", height: "40px" }}/>
-                            <span>
-                              <strong>{user.receiver_name}</strong><br />
-                              Accès : {user.access}
-                            </span>
-                            <span className={`badge ${user.accepted ? "bg-success" : "bg-warning text-dark"}`}>
-                              {user.accepted ? "Accepté" : "En attente"}
-                            </span>
-                          </div>
-
-                          {/* Tooltip */}
-                          {hoveredUser === user.receiver_uid && (
+                          <div className="d-flex align-items-center">
                             <HoveredUserProfile
                               user={{
                                 email: user.receiver_email,
                                 display_name: user.receiver_name,
                                 photo_url: user.receiver_photo_url
                               }}
-                              style={{ top: '110%', left: '25%', transform: 'translateX(-50%)' }}
+                              trigger={
+                                <div className="d-flex align-items-center gap-2" style={{ cursor: 'pointer' }}>
+                                  <img src={user.receiver_photo_url} alt="Profil" className="rounded-circle" style={{ width: '40px', height: '40px' }} />
+                                  <span>
+                                    <strong>{user.receiver_name}</strong><br />
+                                    Accès : {user.access}
+                                  </span>
+                                </div>
+                              }
                             />
-                          )}
+                            <span className={`badge rounded-pill gap-2 ${user.accepted ? "bg-success" : "bg-warning text-dark"}`}>
+                              {user.accepted ? "Accepté" : "En attente"}
+                            </span>
+                          </div>
+
                           <button
                             className="btn btn-outline-warning"
                             title="Gérer les utilisateurs partagés"
@@ -572,26 +571,23 @@ function SelectCalendar({ calendars, sharedTokens, invitations, sharedUsers }) {
                 {count[calendarData.calendar_id] ?? "..."}
               </span>
             </div>
-            <div className="text-muted small">
+            <div className="text-muted small d-flex align-items-center ">
               Propriétaire :
-              <span 
-                className="fw-semibold ms-1 relative"
-                onMouseEnter={() => setHoveredUser(calendarData.owner_uid)}
-                onMouseLeave={() => setHoveredUser(null)}
-                style={{ cursor: 'pointer' }}
-              >
-                {calendarData.owner_name}
-                {hoveredUser === calendarData.owner_uid && (
-                  <HoveredUserProfile
-                    user={{
-                      email: calendarData.owner_email,
-                      display_name: calendarData.owner_name,
-                      photo_url: calendarData.owner_photo_url
-                    }}
-                    style={{ top: '110%', left: '25%', transform: 'translateX(-50%)' }}
-                  />
-                )}
-              </span>
+              <HoveredUserProfile
+                user={{
+                  email: calendarData.owner_email,
+                  display_name: calendarData.owner_name,
+                  photo_url: calendarData.owner_photo_url
+                }}
+                trigger={
+                  <span 
+                    className="fw-semibold ms-1 position-relative"
+                    style={{ cursor: 'pointer' }}
+                  >
+                    {calendarData.owner_name}
+                  </span>
+                }
+              />
             </div>
           </div>
 
