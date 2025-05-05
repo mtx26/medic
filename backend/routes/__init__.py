@@ -11,3 +11,5 @@ from .shared_users import *
 from .tokens import *
 from .invitations import *
 from .notifications import *
+from .user import *
+from .upload import *

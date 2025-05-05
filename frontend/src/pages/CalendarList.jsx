@@ -2,6 +2,8 @@ import React, { useEffect, useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../contexts/LoginContext';
 import AlertSystem from '../components/AlertSystem';
+import HoveredUserProfile from '../components/HoveredUserProfile';
+
 
 
 
@@ -245,30 +247,10 @@ function SelectCalendar({ calendars, sharedTokens, invitations, sharedUsers }) {
 
                           {/* Tooltip */}
                           {hoveredUser === user.receiver_uid && (
-                            <div
-                              className="position-absolute shadow-lg rounded-3 bg-white border p-3"
-                              style={{
-                                zIndex: 999,
-                                top: '110%',
-                                left: '25%',
-                                transform: 'translateX(-50%)',
-                                width: '250px',
-                                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                              }}
-                            >
-                              <div className="d-flex flex-column align-items-center text-center gap-2">
-                                <img
-                                  src={user.picture_url}
-                                  alt="Profil"
-                                  className="rounded-circle"
-                                  style={{ width: '70px', height: '70px', objectFit: 'cover' }}
-                                />
-                                <div>
-                                  <h6 className="mb-0">{user.display_name}</h6>
-                                  <small className="text-muted">{user.receiver_email}</small>
-                                </div>
-                              </div>
-                            </div>
+                            <HoveredUserProfile
+                              user={user}
+                              style={{ top: '110%', left: '25%', transform: 'translateX(-50%)' }}
+                            />
                           )}
                           <button
                             className="btn btn-outline-warning"
@@ -509,7 +491,10 @@ function SelectCalendar({ calendars, sharedTokens, invitations, sharedUsers }) {
               const token = await sharedTokens.tokensList.find(
                 (t) => t.calendar_id === calendarData.calendar_id && !t.revoked && t.owner_uid === currentUser.uid
               );
-              setSharedUsersData(await sharedUsers.fetchSharedUsers(calendarData.calendar_id));
+              const rep = await sharedUsers.fetchSharedUsers(calendarData.calendar_id);
+              if (rep.success) {
+                setSharedUsersData(rep.data);
+              }
               setExistingShareToken(token || null);
               setShowShareModal(true);           // On affiche la modal
             }}
@@ -585,8 +570,10 @@ function SelectCalendar({ calendars, sharedTokens, invitations, sharedUsers }) {
             </div>
             <div className="text-muted small">
               Propriétaire :
-              <span className="fw-semibold ms-1">
-                {calendarData.owner_email ?? "Propriétaire inconnu"}
+              <span className="fw-semibold ms-1"
+              
+              >
+                {calendarData.owner_name}
               </span>
             </div>
           </div>

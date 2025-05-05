@@ -16,7 +16,7 @@ import { log } from "../utils/logger";
 
 const GoogleProvider = new GoogleAuthProvider();
 
-
+const API_URL = process.env.REACT_APP_API_URL;
 
 
 /**
@@ -27,32 +27,59 @@ export const GoogleHandleLogin = async () => {
     const result = await signInWithPopup(auth, GoogleProvider);
     const user = result.user;
 
-    // Vérifier si l'utilisateur est déjà dans Firestore
+    const fetchPhotoUrl = async (googlePhotoUrl) => {
+      const token = await user.getIdToken(); // Firebase Auth ID token
+    
+      const res = await fetch(`${API_URL}/api/upload/logo`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ googlePhotoUrl }),
+      });
+    
+      const data = await res.json();
+      console.log(data)
+      if (!res.ok) throw new Error(data.error || "Erreur de l'API");
+    
+      return data.url;
+    };    
+
     const userRef = doc(db, "users", user.uid);
     const userSnap = await getDoc(userRef);
 
     if (!userSnap.exists()) {
-      await setDoc(userRef, {
-        displayName: user.displayName || "Utilisateur",
-        photoURL: user.photoURL || "",
-        role: "user",
-        email: user.email
-      });
+      let photoUrlDB = "";
+      if (user.photoURL) {
+        try {
+          photoUrlDB = await fetchPhotoUrl(user.photoURL)
+        } catch (error) {
+          log.error(error.message, {
+            origin: "GOOGLE_HANDLE_LOGIN_ERROR",
+            "uid": user.uid,
+          });
+        }
+      }
 
+      await setDoc(userRef, {
+        display_name: user.displayName || "Utilisateur",
+        role: "user",
+        email: user.email,
+        photo_url: photoUrlDB
+      });
     }
 
     getGlobalReloadUser()(); // Rafraîchir les infos utilisateur
     log.info("Utilisateur connecté avec Google", {
-      id: "GOOGLEHANDLELOGIN",
-      origin: "authService.js",
-      user: user.uid,
+      origin: "GOOGLE_HANDLE_LOGIN_SUCCESS",
+      "uid": auth.currentUser.uid,
     });
 
-  } catch (error) {
-    log.error("Erreur de connexion avec Google", error, {
-      id: "GOOGLEHANDLELOGIN",
-      origin: "authService.js",
-      stack: error.stack,
+  } catch (err) {
+    log.error(err.message || "Erreur lors de la connexion avec Google", err, {
+      origin: "GOOGLE_HANDLE_LOGIN_ERROR",
+      "uid": auth.currentUser.uid,
     });
   }
 };
@@ -61,43 +88,55 @@ export const GoogleHandleLogin = async () => {
  * Inscription avec email et mot de passe
  */
 export const registerWithEmail = async (email, password, name) => {
-  const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-  const user = userCredential.user;
+  try {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
 
-  await setDoc(doc(db, "users", user.uid), {
-    displayName: name,
-    photoURL: "",
-    role: "user",
-    email: user.email
-  });
+    await setDoc(doc(db, "users", user.uid), {
+      display_name: name,
+      photo_url: "",
+      role: "user",
+      email: user.email
+    });
 
-  await sendEmailVerification(user);
+    await sendEmailVerification(user);
 
-  getGlobalReloadUser()(); // Rafraîchir les infos utilisateur
+    getGlobalReloadUser()(); // Rafraîchir les infos utilisateur
 
-  log.info("Utilisateur inscrit et connecté :", {
-    id: "REGISTERWITHEMAIL",
-    origin: "authService.js",
-    user: user.uid,
-  });
+    log.info("Utilisateur inscrit et connecté :", {
+      origin: "REGISTER_WITH_EMAIL_SUCCESS",
+      "uid": user.uid,
+    });
 
-  return user;
+    return user;
+  } catch (error) {
+    log.error("Erreur lors de l'inscription avec email :", error.message, {
+      origin: "REGISTER_WITH_EMAIL_ERROR",
+      "uid": auth.currentUser.uid,
+    });
+  }
 };
 
 /**
  * Connexion avec email et mot de passe
  */
 export const loginWithEmail = async (email, password) => {
-  const userCredential = await signInWithEmailAndPassword(auth, email, password);
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
 
-  getGlobalReloadUser()(); // Rafraîchir les infos utilisateur
+    getGlobalReloadUser()(); // Rafraîchir les infos utilisateur
 
-  log.info("Utilisateur connecté avec email :", {
-    id: "LOGINWITHEMAIL",
-    origin: "authService.js",
-    user: userCredential.user.uid,
-  });
-  return userCredential.user;
+    log.info("Utilisateur connecté avec email :", {
+      origin: "LOGIN_WITH_EMAIL_SUCCESS",
+      "uid": userCredential.user.uid,
+    });
+    return userCredential.user;
+  } catch (error) {
+    log.error("Erreur lors de la connexion avec email :", error.message, {
+      origin: "LOGIN_WITH_EMAIL_ERROR",
+      "uid": auth.currentUser.uid,
+    });
+  }
 };
 
 /**
@@ -107,14 +146,13 @@ export const resetPassword = async (email) => {
   try {
     await sendPasswordResetEmail(auth, email);
     log.info("Email de réinitialisation envoyé à :", email, {
-      id: "RESETPASSWORD",
-      origin: "authService.js",
+      origin: "RESET_PASSWORD_SUCCESS",
+      "uid": auth.currentUser.uid,
     });
   } catch (error) {
     log.error("Erreur lors de l'envoi de l'email de réinitialisation :", error.message, {
-      id: "RESETPASSWORD",
-      origin: "authService.js",
-      stack: error.stack,
+      origin: "RESET_PASSWORD_ERROR",
+      "uid": auth.currentUser.uid,
     });
   }
 };
@@ -129,14 +167,13 @@ export const handleLogout = async () => {
     getGlobalReloadUser()(); // Réinitialiser l'état utilisateur après la déconnexion
 
     log.info("Utilisateur déconnecté", {
-      id: "HANDLELOGOUT",
-      origin: "authService.js",
+      origin: "HANDLE_LOGOUT_SUCCESS",
+      "uid": null,
     });
   } catch (error) {
     log.error("Erreur de déconnexion :", error.message, {
-      id: "HANDLELOGOUT",
-      origin: "authService.js",
-      stack: error.stack,
+      origin: "HANDLE_LOGOUT_ERROR",
+      "uid": null,
     });
   }
 };
@@ -152,16 +189,13 @@ export const updateUserPassword = async (newPassword) => {
     await firebaseUpdatePassword(user, newPassword);
 
     log.info("Mot de passe utilisateur mis à jour", {
-      id: "UPDATEUSERPASSWORD",
-      origin: "authService.js",
-      user: user.uid,
+      origin: "UPDATE_USER_PASSWORD_SUCCESS",
+      "uid": auth.currentUser.uid,
     });
   } catch (error) {
     log.error("Erreur lors de la mise à jour du mot de passe", error.message, {
-      id: "UPDATEUSERPASSWORD",
-      origin: "authService.js",
-      stack: error.stack,
+      origin: "UPDATE_USER_PASSWORD_ERROR",
+      "uid": auth.currentUser.uid,
     });
-    throw error;
   }
 };

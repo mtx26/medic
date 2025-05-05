@@ -72,7 +72,6 @@ def handle_create_token(calendar_id):
                 log_extra={"calendar_id": calendar_id}
             )
 
-        calendar_name = doc.to_dict().get("calendar_name")
 
         # Verifier si le calendrier est déjà partagé
         doc_2 = db.collection("shared_tokens").get()
@@ -93,7 +92,6 @@ def handle_create_token(calendar_id):
         db.collection("shared_tokens").document(token).set({
             "token": token,
             "calendar_id": calendar_id,
-            "calendar_name": calendar_name,
             "owner_uid": owner_uid,
             "expires_at": expires_at,
             "permissions": permissions,
@@ -456,7 +454,6 @@ def handle_token_medecines(token):
 
             data = doc.to_dict()
             calendar_id = data.get("calendar_id")
-            calendar_name = data.get("calendar_name")
             owner_uid = data.get("owner_uid")
 
             expires_at = data.get("expires_at")

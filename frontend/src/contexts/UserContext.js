@@ -19,8 +19,8 @@ export const UserProvider = ({ children }) => {
     const userSnap = await getDoc(userRef);
 
     const newUserInfo = {
-      displayName: userSnap.exists() ? userSnap.data().displayName || user.displayName || "Utilisateur" : user.displayName || "Utilisateur",
-      photoURL: userSnap.exists() ? userSnap.data().photoURL || user.photoURL || "https://www.w3schools.com/howto/img_avatar.png" : user.photoURL || "https://www.w3schools.com/howto/img_avatar.png",
+      displayName: userSnap.exists() ? userSnap.data().display_name || user.displayName || "Utilisateur" : user.displayName || "Utilisateur",
+      photoURL: userSnap.exists() ? userSnap.data().photo_url || user.photoURL || "https://www.w3schools.com/howto/img_avatar.png" : user.photoURL || "https://www.w3schools.com/howto/img_avatar.png",
       role: userSnap.exists() ? userSnap.data().role || "user" : "user",
       uid: user.uid,
       emailVerified: user.emailVerified,

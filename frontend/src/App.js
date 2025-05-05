@@ -135,7 +135,6 @@ function App() {
       });
       const data = await res.json();
       if (!res.ok) {
-        console.log(data);
         throw new Error(data.error);
       }
       fetchCalendars();
@@ -958,6 +957,34 @@ function App() {
     }
   }, [medicinesData, checked, updateMedicines]);
 
+  // Fonction pour récupérer les informations d’un utilisateur
+  const fetchUserInfo = useCallback(async (userId) => {
+    try {
+      const token = await auth.currentUser.getIdToken();
+      const res = await fetch(`${API_URL}/api/user/info/${userId}`, {
+        method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      log.info(data.message, {
+        origin: "FETCH_USER_INFO_SUCCESS",
+        userId,
+      });
+      return {success: true, message: data.message, code: data.code, data: data.user_data};
+    } catch (err) {
+      log.error(err.message || "Échec de récupération des informations de l'utilisateur", err, {
+        origin: "FETCH_USER_INFO_ERROR",
+        userId,
+      });
+      return {success: false, error: err.message, code: err.code};
+    }
+  }, []);
+  
+
+  // 🔗 PROPS SHARED
   const sharedProps = {
     // 📅 CALENDRIERS
     calendars: {

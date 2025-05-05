@@ -2,6 +2,7 @@ from . import api
 from auth import verify_firebase_token
 from firebase_admin import firestore
 from response import success_response, error_response, warning_response
+from logger import log_backend as logger
 
 db = firestore.client()
 
@@ -14,8 +15,58 @@ def handle_notifications():
 
         notifications_ref = db.collection("users").document(uid).collection("notifications").get()
         notifications = []
+
         for doc in notifications_ref:
-            notifications.append(doc.to_dict())
+            notif_data = doc.to_dict().copy()
+
+            owner_uid = notif_data.get("owner_uid")
+            receiver_uid = notif_data.get("receiver_uid")
+            calendar_id = notif_data.get("calendar_id")
+
+            if calendar_id:
+                calendar_doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).get()
+                if calendar_doc.exists:
+                    calendar_data = calendar_doc.to_dict()
+                    notif_data.update({
+                        "calendar_name": calendar_data.get("calendar_name")
+                    })
+
+            notification_id = notif_data.get("notification_id")
+            owner_doc = db.collection("users").document(owner_uid).get()
+            receiver_doc = db.collection("users").document(receiver_uid).get()
+
+            if not owner_doc.exists:
+                db.collection("users").document(uid).collection("notifications").document(notification_id).delete()
+                logger.warning("Propriétaire de la notification introuvable, notification supprimée", {
+                    "origin": "NOTIFICATIONS_FETCH",
+                    "uid": uid,
+                    "notification_id": notification_id
+                })
+                continue
+            if not receiver_doc.exists:
+                db.collection("users").document(uid).collection("notifications").document(notification_id).delete()
+                logger.warning("Destinataire de la notification introuvable, notification supprimée", {
+                    "origin": "NOTIFICATIONS_FETCH",
+                    "uid": uid,
+                    "notification_id": notification_id
+                })
+                continue
+
+            owner_data = owner_doc.to_dict()
+            receiver_data = receiver_doc.to_dict()
+
+            notif_data.update({
+                "owner_name": owner_data.get("display_name"),
+                "owner_photo_url": owner_data.get("photo_url"),
+                "owner_email": owner_data.get("email"),
+                "receiver_name": receiver_data.get("display_name"),
+                "receiver_photo_url": receiver_data.get("photo_url"),
+                "receiver_email": receiver_data.get("email")
+
+            })
+
+            notifications.append(notif_data)
+        
 
         return success_response(
             message="Notifications récupérées avec succès", 

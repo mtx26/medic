@@ -1,6 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
+import HoveredUserProfile from "../components/HoveredUserProfile";
 
 function NotificationsPage({ notifications, invitations }) {
+
+  const [hoveredNotification, setHoveredNotification] = useState(null);
 
   return (
     <div className="container py-4">
@@ -27,11 +30,11 @@ function NotificationsPage({ notifications, invitations }) {
                 {/* Invitation reçue */}
                 {notif.type === "calendar_invitation" && (
                   <>
-                    {!notif.read ? (
+                    {!notif.accepted ? (
                       <>
                         <div>
                           <i className="bi bi-person-plus-fill me-2 text-primary"></i>
-                          <strong>{notif.sender_email}</strong> vous invite à rejoindre le calendrier <strong>{notif.calendar_name}</strong>
+                          <strong>{notif.owner_name}</strong> vous invite à rejoindre le calendrier <strong>{notif.calendar_name}</strong>
                         </div>
                         <div className="mt-2">
                           <button
@@ -51,7 +54,24 @@ function NotificationsPage({ notifications, invitations }) {
                     ) : (
                       <div>
                         <i className="bi bi-person-plus-fill me-2 text-primary"></i>
-                        Vous avez rejoint le calendrier <strong>{notif.calendar_name}</strong> de <strong>{notif.sender_email}</strong>
+                        Vous avez rejoint le calendrier <strong>{notif.calendar_name}</strong> de <strong
+                          className="position-relative d-inline-block"
+                          onMouseEnter={() => setHoveredNotification(notif.notification_id)}
+                          onMouseLeave={() => setHoveredNotification(null)}
+                          style={{ cursor: "pointer"}}
+                        >
+                          {notif.owner_name}
+                          {hoveredNotification === notif.notification_id && (
+                          <HoveredUserProfile
+                            user={{
+                              picture_url: notif.owner_photo_url,
+                              display_name: notif.owner_name,
+                              receiver_email: notif.owner_email
+                            }}
+                            style={{ position: 'absolute', top: '0%', left: '110%', transform: 'translatey(-40%)' }}
+                          />
+                        )}
+                        </strong>
                       </div>
                     )}
                   </>
@@ -61,7 +81,24 @@ function NotificationsPage({ notifications, invitations }) {
                 {notif.type === "calendar_invitation_accepted" && (
                   <div>
                     <i className="bi bi-check-circle-fill me-2 text-success"></i>
-                    <strong>{notif.receiver_email}</strong> a accepté votre invitation pour rejoindre le calendrier <strong>{notif.calendar_name}</strong>
+                    <strong
+                      className="position-relative d-inline-block"
+                      onMouseEnter={() => setHoveredNotification(notif.notification_id)}
+                      onMouseLeave={() => setHoveredNotification(null)}
+                      style={{ cursor: "pointer" }}
+                    >
+                      {notif.receiver_name}
+                      {hoveredNotification === notif.notification_id && (
+                        <HoveredUserProfile
+                          user={{
+                            picture_url: notif.receiver_photo_url,
+                            display_name: notif.receiver_name,
+                            receiver_email: notif.receiver_email
+                          }}
+                          style={{ position: 'absolute', top: '0%', left: '110%', transform: 'translatey(-40%)' }}
+                        />
+                      )}
+                    </strong> a accepté votre invitation pour rejoindre le calendrier <strong>{notif.calendar_name}</strong>
                   </div>
                 )}
 
@@ -69,7 +106,22 @@ function NotificationsPage({ notifications, invitations }) {
                 {notif.type === "calendar_invitation_rejected" && (
                   <div>
                     <i className="bi bi-x-circle-fill me-2 text-danger"></i>
-                    <strong>{notif.receiver_email}</strong> a refusé votre invitation pour rejoindre le calendrier <strong>{notif.calendar_name}</strong>
+                    <strong
+                      className="position-relative d-inline-block"
+                      onMouseEnter={() => setHoveredNotification(notif.notification_id)}
+                      onMouseLeave={() => setHoveredNotification(null)}
+                      style={{ cursor: "pointer" }}
+                    >{notif.receiver_name}</strong> a refusé votre invitation pour rejoindre le calendrier <strong>{notif.calendar_name}</strong>
+                    {hoveredNotification === notif.notification_id && (
+                      <HoveredUserProfile
+                        user={{
+                          picture_url: notif.receiver_photo_url,
+                          display_name: notif.receiver_name,
+                          receiver_email: notif.receiver_email
+                        }}
+                        style={{ top: '110%', left: '25%', transform: 'translateX(-50%)' }}
+                      />
+                    )}
                   </div>
                 )}
 
@@ -77,14 +129,48 @@ function NotificationsPage({ notifications, invitations }) {
                 {notif.type === "calendar_shared_deleted_by_owner" && (
                   <div>
                     <i className="bi bi-trash-fill me-2 text-danger"></i>
-                    <strong>{notif.owner_email}</strong> a arrêté de partager le calendrier <strong>{notif.calendar_name}</strong> avec vous
+                    <strong
+                      className="position-relative d-inline-block"
+                      onMouseEnter={() => setHoveredNotification(notif.notification_id)}
+                      onMouseLeave={() => setHoveredNotification(null)}
+                      style={{ cursor: "pointer" }}
+                    >
+                      {notif.owner_name}
+                      {hoveredNotification === notif.notification_id && (
+                        <HoveredUserProfile
+                          user={{
+                            picture_url: notif.owner_photo_url,
+                            display_name: notif.owner_name,
+                            receiver_email: notif.owner_email
+                          }}
+                          style={{ position: 'absolute', top: '0%', left: '110%', transform: 'translatey(-40%)' }}
+                        />
+                      )}
+                    </strong> a arrêté de partager le calendrier <strong>{notif.calendar_name}</strong> avec vous 
                   </div>
                 )}
 
                 {notif.type === "calendar_shared_deleted_by_receiver" && (
                   <div >
                     <i className="bi bi-trash-fill me-2 text-danger"></i>
-                    <strong>{notif.receiver_email}</strong> a retiré le calendrier <strong>{notif.calendar_name}</strong> que vous lui aviez partagé.
+                    <strong
+                      className="position-relative d-inline-block"
+                      onMouseEnter={() => setHoveredNotification(notif.notification_id)}
+                      onMouseLeave={() => setHoveredNotification(null)}
+                      style={{ cursor: "pointer" }}
+                    >
+                      {notif.receiver_name}
+                      {hoveredNotification === notif.notification_id && (
+                        <HoveredUserProfile
+                          user={{
+                            picture_url: notif.receiver_photo_url,
+                            display_name: notif.receiver_name,
+                            receiver_email: notif.receiver_email
+                          }}
+                          style={{ position: 'absolute', top: '0%', left: '110%', transform: 'translatey(-40%)' }}
+                        />
+                      )}
+                    </strong> a retiré le calendrier <strong>{notif.calendar_name}</strong> que vous lui aviez partagé.
                   </div>
                 )}
 

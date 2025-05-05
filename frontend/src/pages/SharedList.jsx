@@ -1,6 +1,7 @@
 import React, { useEffect, useContext, useState } from "react";
 import { AuthContext } from '../contexts/LoginContext';
 import AlertSystem from '../components/AlertSystem'; 
+import HoveredUserProfile from "../components/HoveredUserProfile";
 
 const REACT_URL = process.env.REACT_APP_REACT_URL;
 
@@ -24,6 +25,7 @@ function SharedList({ sharedTokens, calendars, sharedUsers, invitations }) {
   const [permissions, setPermissions] = useState([]); // Permissions associées aux partages
   const [emailsToInvite, setEmailsToInvite] = useState([]); // E-mails à inviter au partage
   const [hoveredUser, setHoveredUser] = useState(null); // Utilisateur actuellement survolé
+
 
   // 📅 Date du jour
   const today = new Date().toISOString().split('T')[0]; // Date du jour au format 'YYYY-MM-DD'
@@ -451,31 +453,16 @@ function SharedList({ sharedTokens, calendars, sharedUsers, invitations }) {
 
                         {/* Tooltip */}
                         {hoveredUser === user.receiver_uid && (
-                          <div
-                            className="position-absolute shadow-lg rounded-3 bg-white border p-3"
-                            style={{
-                              zIndex: 999,
-                              bottom: '110%',
-                              left: '50%',
-                              transform: 'translateX(-50%)',
-                              width: '250px',
-                              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                          <HoveredUserProfile
+                            user={{
+                              picture_url: user.picture_url,
+                              display_name: user.display_name,
+                              receiver_email: user.receiver_email
                             }}
-                          >
-                            <div className="d-flex flex-column align-items-center text-center gap-2">
-                              <img
-                                src={user.picture_url}
-                                alt="Profil"
-                                className="rounded-circle"
-                                style={{ width: '70px', height: '70px', objectFit: 'cover' }}
-                              />
-                              <div>
-                                <h6 className="mb-0">{user.display_name}</h6>
-                                <small className="text-muted">{user.receiver_email}</small>
-                              </div>
-                            </div>
-                          </div>
+                            style={{ position: 'absolute', bottom: '110%', left: '50%', transform: 'translateX(-50%)' }}
+                          />
                         )}
+                  
                       </div>
 
                       {/* Permissions*/}

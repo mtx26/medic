@@ -34,10 +34,31 @@ def handle_shared_calendars():
             data = user_doc.to_dict()
 
             owner_uid = data.get("owner_uid")
-            owner_email = data.get("owner_email")
             calendar_id = data.get("calendar_id")
-            calendar_name = data.get("calendar_name")
             access = data.get("access", "read")
+
+            # Récupère le calendrier nom du calendrier et le nom de l'owner
+            calendar_doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).get()
+            if not calendar_doc.exists:
+                return warning_response(
+                    message="Calendrier partagé introuvable",
+                    code="SHARED_CALENDARS_LOAD_ERROR",
+                    status_code=404,
+                    uid=uid,
+                    origin="SHARED_CALENDARS_LOAD"
+                )
+            calendar_name = calendar_doc.to_dict().get("calendar_name")
+
+            owner_doc = db.collection("users").document(owner_uid).get()
+            if not owner_doc.exists:
+                return warning_response(
+                    message="Propriétaire du calendrier introuvable",
+                    code="SHARED_CALENDARS_LOAD_ERROR",
+                    status_code=404,
+                    uid=uid,
+                    origin="SHARED_CALENDARS_LOAD"
+                )
+            owner_name = owner_doc.to_dict().get("display_name")
 
             if not verify_calendar_share(calendar_id, owner_uid, uid):
                 continue
@@ -47,7 +68,7 @@ def handle_shared_calendars():
                 "calendar_id": calendar_id,
                 "calendar_name": calendar_name,
                 "owner_uid": owner_uid,
-                "owner_email": owner_email,
+                "owner_name": owner_name,
                 "access": access
             })
 
@@ -70,7 +91,7 @@ def handle_shared_calendars():
         )
 
 
-# Route pour récupérer un calendrier partagé
+# Route pour générer un calendrier partagé
 @api.route("/api/shared/users/calendars/<calendar_id>", methods=["GET"])
 def handle_user_shared_calendar(calendar_id):
     try:
@@ -88,10 +109,7 @@ def handle_user_shared_calendar(calendar_id):
                 log_extra={"calendar_id": calendar_id}
             )
 
-        data = shared_with_doc.get().to_dict()
-        calendar_name = data.get("calendar_name")
-        owner_uid = data.get("owner_uid")
-        owner_email = data.get("owner_email")
+        owner_uid = shared_with_doc.get().to_dict().get("owner_uid")
 
         start_date = request.args.get("startTime")
         
@@ -142,7 +160,6 @@ def handle_delete_user_shared_calendar(calendar_id):
     try:
         user = verify_firebase_token()
         receiver_uid = user["uid"]
-        receiver_email = user["email"]
 
         received_calendar_doc = db.collection("users").document(receiver_uid).collection("shared_calendars").document(calendar_id)
         if not received_calendar_doc.get().exists:
@@ -156,8 +173,6 @@ def handle_delete_user_shared_calendar(calendar_id):
             )
 
         owner_uid = received_calendar_doc.get().to_dict().get("owner_uid")
-        owner_email = received_calendar_doc.get().to_dict().get("owner_email")
-        calendar_name = received_calendar_doc.get().to_dict().get("calendar_name")
 
         if not verify_calendar_share(calendar_id, owner_uid, receiver_uid):
             return warning_response(
@@ -190,12 +205,9 @@ def handle_delete_user_shared_calendar(calendar_id):
         notification_doc = db.collection("users").document(owner_uid).collection("notifications").document(notification_id)
         notification_doc.set({
             "type": "calendar_shared_deleted_by_receiver",
-            "calendar_name": calendar_name,
             "calendar_id": calendar_id,
             "timestamp": firestore.SERVER_TIMESTAMP,
-            "owner_email": owner_email,
             "owner_uid": owner_uid,
-            "receiver_email": receiver_email,
             "receiver_uid": receiver_uid,
             "notification_id": notification_id,
             "read": False
@@ -227,10 +239,9 @@ def handle_delete_user_shared_user(calendar_id, receiver_uid):
     try:
         user = verify_firebase_token()
         owner_uid = user["uid"]
-        owner_email = user["email"]
-        try:
-            receiver_email = db.collection("users").document(receiver_uid).get().to_dict().get("email")
-        except:
+
+        receiver_doc = db.collection("users").document(receiver_uid)
+        if not receiver_doc.get().exists:
             return warning_response(
                 message="Utilisateur partagé introuvable.", 
                 code="SHARED_USERS_DELETE_ERROR", 
@@ -261,7 +272,6 @@ def handle_delete_user_shared_user(calendar_id, receiver_uid):
                 log_extra={"calendar_id": calendar_id, "receiver_uid": receiver_uid}
             )
 
-        calendar_name = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).get().to_dict().get("calendar_name")
 
         received_calendar_doc = db.collection("users").document(receiver_uid).collection("shared_calendars").document(calendar_id)
         if received_calendar_doc.get().exists:
@@ -269,22 +279,36 @@ def handle_delete_user_shared_user(calendar_id, receiver_uid):
 
         shared_with_doc.delete()
 
-        notification_id = secrets.token_hex(16)
 
-        # Notification à l'utilisateur qui a partagé le calendrier
-        notification_doc = db.collection("users").document(receiver_uid).collection("notifications").document(notification_id)
-        notification_doc.set({
-            "type": "calendar_shared_deleted_by_owner",
-            "calendar_name": calendar_name,
-            "calendar_id": calendar_id,
-            "timestamp": firestore.SERVER_TIMESTAMP,
-            "owner_email": owner_email,
-            "owner_uid": owner_uid,
-            "receiver_email": receiver_email,
-            "receiver_uid": receiver_uid,
-            "notification_id": notification_id,
-            "read": False
-        })
+        # Supprimer les notif pour rejoindre le calendrier
+        notification_docs = db.collection("users").document(receiver_uid).collection("notifications").get()
+        invitation_deleted = False
+
+        for doc in notification_docs:
+            data = doc.to_dict()
+            if (
+                data.get("type") == "calendar_invitation"
+                and data.get("calendar_id") == calendar_id
+                and data.get("owner_uid") == owner_uid
+            ):
+                if not data.get("read", False):
+                    doc.reference.delete()
+                    invitation_deleted = True
+
+        # Si aucune invitation supprimée, envoyer une notification de suppression
+        if not invitation_deleted:
+            notification_id = secrets.token_hex(16)
+            notification_doc = db.collection("users").document(receiver_uid).collection("notifications").document(notification_id)
+            notification_doc.set({
+                "type": "calendar_shared_deleted_by_owner",
+                "calendar_id": calendar_id,
+                "timestamp": firestore.SERVER_TIMESTAMP,
+                "owner_uid": owner_uid,
+                "receiver_uid": receiver_uid,
+                "notification_id": notification_id,
+                "read": False
+            })
+
 
         return success_response(
             message="Utilisateur partagé supprimé avec succès.", 
@@ -323,11 +347,21 @@ def handle_shared_users(calendar_id):
             data = doc.to_dict()
 
             receiver_uid = data.get("receiver_uid")
-            receiver_email = data.get("receiver_email")
             access = data.get("access", "read")
             accepted = data.get("accepted", False)
-            picture_url = db.collection("users").document(receiver_uid).get().to_dict().get("photoURL")
-            display_name = db.collection("users").document(receiver_uid).get().to_dict().get("displayName")
+            receiver_doc = db.collection("users").document(receiver_uid).get()
+            if not receiver_doc.exists:
+                return warning_response(
+                    message="Utilisateur partagé introuvable",
+                    code="SHARED_USERS_LOAD_ERROR",
+                    status_code=404,
+                    uid=owner_uid,
+                    origin="SHARED_USERS_LOAD"
+                )
+            picture_url = receiver_doc.to_dict().get("photo_url")
+            display_name = receiver_doc.to_dict().get("display_name")
+            receiver_email = receiver_doc.to_dict().get("email")
+
             if not picture_url:
                 picture_url = "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/icons/person-circle.svg"
 
@@ -336,11 +370,11 @@ def handle_shared_users(calendar_id):
 
             shared_users_list.append({
                 "receiver_uid": receiver_uid,
-                "receiver_email": receiver_email,
                 "access": access,
                 "accepted": accepted,
                 "picture_url": picture_url,
-                "display_name": display_name
+                "display_name": display_name,
+                "receiver_email": receiver_email
             })
 
         return success_response(

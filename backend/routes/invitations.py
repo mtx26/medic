@@ -13,7 +13,6 @@ def handle_send_invitation(calendar_id):
     try:
         owner_user = verify_firebase_token()
         owner_uid = owner_user["uid"]
-        owner_email = owner_user["email"]
 
         doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).get()
         if not doc.exists:
@@ -26,7 +25,6 @@ def handle_send_invitation(calendar_id):
                 log_extra={"calendar_id": calendar_id}
             )
 
-        calendar_name = doc.to_dict().get("calendar_name")
         
         receiver_email = request.get_json(force=True).get("email")
         receiver_user = auth.get_user_by_email(receiver_email)
@@ -60,20 +58,19 @@ def handle_send_invitation(calendar_id):
 
         # Créer une notif pour l'utilisateur receveur
         db.collection("users").document(receiver_uid).collection("notifications").document(notification_id).set({
-            "calendar_name": calendar_name,
             "owner_uid": owner_uid,
-            "owner_email": owner_email,
+            "receiver_uid": receiver_uid,
             "calendar_id": calendar_id,
             "type": "calendar_invitation",
             "timestamp": firestore.SERVER_TIMESTAMP,
             "read": False,
+            "accepted": False,
             "notification_id": notification_id
         })
 
-        # Sauvegarder l'invitation dans la collection "shared_calendars" dans le calendrier de l'utilisateur expéditeur
+        # Sauvegarder l'invitation dans la collection "shared_calendars" dans le calendrier de l'utilisateur owner
         db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).collection("shared_with").document(receiver_uid).set({
             "receiver_uid": receiver_uid,
-            "receiver_email": receiver_email,
             "accepted": False,
             "access": "edit"
         })
@@ -128,16 +125,12 @@ def handle_accept_invitation(notification_id):
             )
         
         calendar_id = doc.to_dict().get("calendar_id")
-        calendar_name = doc.to_dict().get("calendar_name")
         owner_uid = doc.to_dict().get("owner_uid")
-        owner_email = doc.to_dict().get("owner_email")
 
         # Créer une entrée dans sa collection "shared_calendars" pour le calendrier partagé
         db.collection("users").document(receiver_uid).collection("shared_calendars").document(calendar_id).set({
             "calendar_id": calendar_id,
-            "calendar_name": calendar_name,
             "owner_uid": owner_uid,
-            "owner_email": owner_email,
             "access": "edit"
         })
 
@@ -150,17 +143,18 @@ def handle_accept_invitation(notification_id):
         # Dire que la notif a été lue
         db.collection("users").document(receiver_uid).collection("notifications").document(notification_id).update({
             "read": True,
+            "accepted": True
         })
 
         # Créer une notif pour l'utilisateur expéditeur
         db.collection("users").document(owner_uid).collection("notifications").document(notification_id).set({
             "receiver_uid": receiver_uid,
-            "receiver_email": user["email"],
-            "calendar_name": calendar_name,
+            "owner_uid": owner_uid,
             "calendar_id": calendar_id,
             "type": "calendar_invitation_accepted",
             "timestamp": firestore.SERVER_TIMESTAMP,
             "read": False,
+            "accepted": True,
             "notification_id": notification_id
         })
 
@@ -214,7 +208,6 @@ def handle_reject_invitation(notification_id):
             )
 
         calendar_id = doc.to_dict().get("calendar_id")
-        calendar_name = doc.to_dict().get("calendar_name")
         owner_uid = doc.to_dict().get("owner_uid")
 
         # Supprimer la notif
@@ -223,12 +216,12 @@ def handle_reject_invitation(notification_id):
         # Créer une notif pour l'utilisateur expéditeur
         db.collection("users").document(owner_uid).collection("notifications").document(notification_id).set({
             "receiver_uid": receiver_uid,
-            "receiver_email": user["email"],
-            "calendar_name": calendar_name,
+            "owner_uid": owner_uid,
             "calendar_id": calendar_id,
             "type": "calendar_invitation_rejected",
             "timestamp": firestore.SERVER_TIMESTAMP,
             "read": False,
+            "accepted": False,
             "notification_id": notification_id
         })
 

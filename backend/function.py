@@ -5,10 +5,10 @@ from firebase_admin import firestore
 
 db = firestore.client()
 
-def verify_calendar_share(calendar_name : str, owner_uid : str, receiver_uid : str) -> bool:
+def verify_calendar_share(calendar_id : str, owner_uid : str, receiver_uid : str) -> bool:
     try:
         shared_with_ref = db.collection("users").document(owner_uid) \
-            .collection("calendars").document(calendar_name) \
+            .collection("calendars").document(calendar_id) \
             .collection("shared_with").document(receiver_uid)
         
         shared_with_doc = shared_with_ref.get()
@@ -16,7 +16,7 @@ def verify_calendar_share(calendar_name : str, owner_uid : str, receiver_uid : s
             logger.warning("Accès refusé", {
                 "origin": "SHARED_VERIFY",
                 "uid": receiver_uid,
-                "calendar_name": calendar_name,
+                "calendar_id": calendar_id,
                 "owner_uid": owner_uid
             })
             return False
@@ -28,7 +28,7 @@ def verify_calendar_share(calendar_name : str, owner_uid : str, receiver_uid : s
         logger.exception("Erreur lors de la vérification du partage", {
             "origin": "SHARED_VERIFY_ERROR",
             "uid": receiver_uid,
-            "calendar_name": calendar_name, 
+            "calendar_id": calendar_id, 
             "owner_uid": owner_uid
         })
         return False
