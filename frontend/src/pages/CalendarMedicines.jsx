@@ -19,12 +19,14 @@ function MedicamentsPage({ medicines, calendars }) {
 
   // 📦 Données & interface
   const [checked, setChecked] = useState([]); // Médicaments cochés pour suppression
+  const [medicinesData, setMedicinesData] = useState([]); // Liste des médicaments du calendrier actif
+  const [originalMedicinesData, setOriginalMedicinesData] = useState([]); // Liste des médicaments d’origine
   const [loadingMedicines, setLoadingMedicines] = useState(undefined); // État de chargement des médicaments
   const [highlightedId, setHighlightedId] = useState(null); // État pour l'élément mis en évidence dans la liste
   const lastMedRef = useRef(null); // Référence vers le dernier médicament affiché
 
   // 🔄 Modifications
-  const hasChanges = JSON.stringify(medicines.medicinesData) !== JSON.stringify(medicines.originalMedicinesData); // Détection des changements dans les médicaments
+  const hasChanges = JSON.stringify(medicinesData) !== JSON.stringify(originalMedicinesData); // Détection des changements dans les médicaments
 
   const toggleSelection = (id) => {
     setChecked((prev) =>
@@ -33,7 +35,7 @@ function MedicamentsPage({ medicines, calendars }) {
   };
 
   const handleMedChange = (id, field, value) => {
-    const updated = [...medicines.medicinesData];
+    const updated = [...medicinesData];
     const numericFields = ['tablet_count', 'interval_days'];
   
     if (field === 'time') {
@@ -44,7 +46,7 @@ function MedicamentsPage({ medicines, calendars }) {
       updated[id][field] = value;
     }
   
-    medicines.setMedicinesData(updated);
+    setMedicinesData(updated);
   };
   
 
@@ -75,14 +77,18 @@ function MedicamentsPage({ medicines, calendars }) {
   
   
 
-  const allMedsValid = medicines.medicinesData.length > 0 && medicines.medicinesData.every(isMedValid);
+  const allMedsValid = medicinesData.length > 0 && medicinesData.every(isMedValid);
 
   useEffect(() => {
     const load = async () => {
       if (authReady && currentUser && calendarId) {
         calendars.setCalendarsData([]);
-        await calendars.fetchCalendars();
+        await calendars.fetchPersonalCalendars();
         const rep = await medicines.fetchCalendarMedicines(calendarId);
+        if (rep.success) {
+          setMedicinesData(rep.medicinesData);
+          setOriginalMedicinesData(rep.originalMedicinesData);
+        }
         setLoadingMedicines(rep.success);
       }
     };
@@ -125,8 +131,12 @@ function MedicamentsPage({ medicines, calendars }) {
         <div className="d-flex flex-wrap gap-2 my-3">
           <button 
             onClick={() => {
-              const newMedId = medicines.addMedicine();
-              setHighlightedId(newMedId);
+              const rep = medicines.addMedicine(medicinesData);
+              if (rep.success) {
+                setMedicinesData(rep.medicinesData);
+                setOriginalMedicinesData(rep.originalMedicinesData);
+              }
+              setHighlightedId(rep.id);
               setTimeout(() => setHighlightedId(null), 2000);
               setTimeout(() => lastMedRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
             }}
@@ -142,14 +152,14 @@ function MedicamentsPage({ medicines, calendars }) {
               setAlertType("confirm-danger");
               setAlertMessage("❌ Confirmez-vous la suppression des médicaments sélectionnés ?");
               setOnConfirmAction(() => async () => {
-                const rep = await medicines.deleteSelectedMedicines(calendarId, checked);
+                const rep = await medicines.deleteSelectedMedicines(calendarId, checked, medicinesData);
                 if (rep.success) {
                   setAlertMessage("✅ "+rep.message);
                   setAlertType("success");
                 } else {
                   setAlertMessage("❌ "+rep.error);
                   setAlertType("danger");
-                  medicines.setMedicinesData(JSON.parse(JSON.stringify(medicines.originalMedicinesData)));
+                  setMedicinesData(JSON.parse(JSON.stringify(originalMedicinesData)));
                 }
                 setTimeout(() => {
                   setAlertMessage("");
@@ -171,14 +181,16 @@ function MedicamentsPage({ medicines, calendars }) {
               setAlertType("confirm-safe");
               setAlertMessage("✅ Enregistrer les modifications de médicaments ?");
               setOnConfirmAction(() => async () => {
-                const rep = await medicines.updateMedicines(calendarId);
+                const rep = await medicines.updateMedicines(calendarId, medicinesData);
                 if (rep.success) {
                   setAlertMessage("✅ "+rep.message);
                   setAlertType("success");
+                  setMedicinesData(rep.medicinesData);
+                  setOriginalMedicinesData(rep.originalMedicinesData);
                 } else {
                   setAlertMessage("❌ "+rep.error);
                   setAlertType("danger");
-                  medicines.setMedicinesData(JSON.parse(JSON.stringify(medicines.originalMedicinesData)));
+                  setMedicinesData(JSON.parse(JSON.stringify(originalMedicinesData)));
                 }
                 setTimeout(() => {
                   setAlertMessage("");
@@ -209,10 +221,10 @@ function MedicamentsPage({ medicines, calendars }) {
         />
 
         <ul className="list-group">
-          {medicines.medicinesData.length === 0 ? (
+          {medicinesData.length === 0 ? (
             <div className="text-center mt-5 text-muted">❌ Aucun médicament n’a encore été ajouté pour ce calendrier.</div>
           ) : (
-            medicines.medicinesData.map((med) => (
+            medicinesData.map((med) => (
               <li
                 key={med.id}
                 ref={med.id === highlightedId ? lastMedRef : null}

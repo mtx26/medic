@@ -19,33 +19,35 @@ function SharedUserCalendarMedicines({ medicines, calendars, sharedUsers }) {
 
   // 📦 Données & interface
   const [loadingMedicines, setLoadingMedicines] = useState(); // État de chargement des médicaments
-  const [highlightedIndex, setHighlightedIndex] = useState(null); // État pour l'élément mis en évidence dans la liste
+  const [highlightedId, setHighlightedId] = useState(null); // État pour l'élément mis en évidence dans la liste
+  const [medicinesData, setMedicinesData] = useState([]); // Liste des médicaments du calendrier partagé
+  const [originalMedicinesData, setOriginalMedicinesData] = useState([]); // Liste des médicaments d’origine
   const lastMedRef = useRef(null); // Référence vers le dernier médicament affiché
   const [checked, setChecked] = useState([]); // Médicaments cochés pour suppression
 
   // 🔄 Détection de modifications
-  const hasChanges = JSON.stringify(medicines.medicinesData) !== JSON.stringify(medicines.originalMedicinesData); // Détection des changements dans les médicaments
+  const hasChanges = JSON.stringify(medicinesData) !== JSON.stringify(originalMedicinesData); // Détection des changements dans les médicaments
 
 
-  const toggleSelection = (index) => {
+  const toggleSelection = (id) => {
     setChecked((prev) =>
-      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
     );
   };
 
-  const handleMedChange = (index, field, value) => {
-    const updated = [...medicines.medicinesData];
+  const handleMedChange = (id, field, value) => {
+    const updated = [...medicinesData];
     const numericFields = ['tablet_count', 'interval_days'];
   
     if (field === 'time') {
-      updated[index][field] = [value];
+      updated[id][field] = [value];
     } else if (numericFields.includes(field)) {
-      updated[index][field] = value === '' ? '' : parseFloat(value);
+      updated[id][field] = value === '' ? '' : parseFloat(value);
     } else {
-      updated[index][field] = value;
+      updated[id][field] = value;
     }
   
-    medicines.setMedicinesData(updated);
+    setMedicinesData(updated);
   };
 
   const isMedValid = (med) => {
@@ -73,13 +75,17 @@ function SharedUserCalendarMedicines({ medicines, calendars, sharedUsers }) {
     return hasName && hasTabletCount && hasValidTime && hasInterval && hasValidStartDate;
   };
 
-  const allMedsValid = medicines.medicinesData.length > 0 && medicines.medicinesData.every(isMedValid);
+  const allMedsValid = medicinesData.length > 0 && medicinesData.every(isMedValid);
 
   useEffect(() => {
     const load = async () => {
       if (authReady && currentUser && calendarId) {
         await calendars.fetchSharedCalendars();
         const rep = await sharedUsers.fetchSharedUserCalendarMedicines(calendarId);
+        if (rep.success) {
+          setMedicinesData(rep.medicinesData);
+          setOriginalMedicinesData(rep.originalMedicinesData);
+        }
         setLoadingMedicines(rep.success);
       }
     };
@@ -121,10 +127,13 @@ function SharedUserCalendarMedicines({ medicines, calendars, sharedUsers }) {
 
         <div className="d-flex flex-wrap gap-2 my-3">
           <button 
-            onClick={() => {
-              medicines.addMedicine();
-              setHighlightedIndex(medicines.medicinesData.length);
-              setTimeout(() => setHighlightedIndex(null), 2000);
+            onClick={async () => {
+              const rep = await medicines.addMedicine(medicinesData);
+              if (rep.success) {
+                setMedicinesData(rep.medicinesData);
+                setHighlightedId(rep.id);
+              }
+              setTimeout(() => setHighlightedId(null), 2000);
               setTimeout(() => lastMedRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
             }}
             className="btn btn-outline-primary"
@@ -139,14 +148,15 @@ function SharedUserCalendarMedicines({ medicines, calendars, sharedUsers }) {
               setAlertType("confirm-danger");
               setAlertMessage("❌ Confirmez-vous la suppression des médicaments sélectionnés ?");
               setOnConfirmAction(() => async () => {
-                const rep = await sharedUsers.deleteSharedUserCalendarMedicines(calendarId, checked);
+                const rep = await sharedUsers.deleteSharedUserCalendarMedicines(calendarId, checked, medicinesData);
+                console.log(checked);
                 if (rep.success) {
                   setAlertMessage("✅ "+rep.message);
                   setAlertType("success");
                 } else {
                   setAlertMessage("❌ "+rep.error);
                   setAlertType("danger");
-                  medicines.setMedicinesData(JSON.parse(JSON.stringify(medicines.originalMedicinesData)));
+                  setMedicinesData(JSON.parse(JSON.stringify(originalMedicinesData)));
                 }
                 setTimeout(() => {
                   setAlertMessage("");
@@ -168,7 +178,7 @@ function SharedUserCalendarMedicines({ medicines, calendars, sharedUsers }) {
               setAlertType("confirm-safe");
               setAlertMessage("✅ Enregistrer les modifications de médicaments ?");
               setOnConfirmAction(() => async () => {
-                const rep = await sharedUsers.updateSharedUserCalendarMedicines(calendarId);
+                const rep = await sharedUsers.updateSharedUserCalendarMedicines(calendarId, medicinesData);
                 if (rep.success) {
                   setAlertMessage("✅ "+rep.message);
                   setAlertType("success");
@@ -206,14 +216,14 @@ function SharedUserCalendarMedicines({ medicines, calendars, sharedUsers }) {
         />
 
         <ul className="list-group">
-          {medicines.medicinesData.length === 0 ? (
+          {medicinesData.length === 0 ? (
             <div className="text-center mt-5 text-muted">❌ Aucun médicament n’a encore été ajouté pour ce calendrier.</div>
           ) : (
-            medicines.medicinesData.map((med, index) => (
+            medicinesData.map((med) => (
               <li
-                key={index}
-                ref={index === medicines.medicinesData.length - 1 ? lastMedRef : null}
-                className={`list-group-item px-2 py-3 ${index === highlightedIndex ? 'highlighted-med' : ''}`}
+                key={med.id}
+                ref={med.id === highlightedId ? lastMedRef : null}
+                className={`list-group-item px-2 py-3 ${med.id === highlightedId ? 'highlighted-med' : ''}`}
               >
                 <div className="row g-2 align-items-center">
                   {/* Checkbox */}
@@ -221,9 +231,9 @@ function SharedUserCalendarMedicines({ medicines, calendars, sharedUsers }) {
                     <input
                       className="form-check-input mt-2"
                       type="checkbox"
-                      checked={checked.includes(index)}
-                      onChange={() => toggleSelection(index)}
-                      id={`check-${index}`}
+                      checked={checked.includes(med.id)}
+                      onChange={() => toggleSelection(med.id)}
+                      id={`check-${med.id}`}
                     />
                   </div>
 
@@ -233,12 +243,12 @@ function SharedUserCalendarMedicines({ medicines, calendars, sharedUsers }) {
                       <input
                         type="text"
                         className="form-control form-control-sm"
-                        id={`name-${index}`}
+                        id={`name-${med.id}`}
                         placeholder="Nom"
                         value={med.name}
-                        onChange={(e) => handleMedChange(index, 'name', e.target.value)}
+                        onChange={(e) => handleMedChange(med.id, 'name', e.target.value)}
                       />
-                      <label htmlFor={`name-${index}`}>Nom</label>
+                      <label htmlFor={`name-${med.id}`}>Nom</label>
                     </div>
                   </div>
 
@@ -249,12 +259,12 @@ function SharedUserCalendarMedicines({ medicines, calendars, sharedUsers }) {
                         type="number"
                         step="0.25"
                         className="form-control form-control-sm"
-                        id={`comps-${index}`}
+                        id={`comps-${med.id}`}
                         placeholder="Comprimés"
                         value={med.tablet_count ?? ''}
-                        onChange={(e) => handleMedChange(index, 'tablet_count', e.target.value)}
+                        onChange={(e) => handleMedChange(med.id, 'tablet_count', e.target.value)}
                       />
-                      <label htmlFor={`comps-${index}`}>Comprimés</label>
+                      <label htmlFor={`comps-${med.id}`}>Comprimés</label>
                     </div>
                   </div>
 
@@ -263,16 +273,16 @@ function SharedUserCalendarMedicines({ medicines, calendars, sharedUsers }) {
                     <div className="form-floating">
                       <select
                         className="form-select form-select-sm"
-                        id={`moment-${index}`}
+                        id={`moment-${med.id}`}
                         value={med.time[0]}
-                        onChange={(e) => handleMedChange(index, 'time', e.target.value)}
+                        onChange={(e) => handleMedChange(med.id, 'time', e.target.value)}
                       >
                         <option value="" disabled hidden>Choisir</option>
                         <option value="morning">Matin</option>
                         <option value="noon">Midi</option>
                         <option value="evening">Soir</option>
                       </select>
-                      <label htmlFor={`moment-${index}`}>Moment</label>
+                      <label htmlFor={`moment-${med.id}`}>Moment</label>
                     </div>
                   </div>
 
@@ -282,12 +292,12 @@ function SharedUserCalendarMedicines({ medicines, calendars, sharedUsers }) {
                       <input
                         type="number"
                         className="form-control form-control-sm"
-                        id={`interval-${index}`}
+                        id={`interval-${med.id}`}
                         placeholder="Intervalle"
                         value={med.interval_days ?? ''}
-                        onChange={(e) => handleMedChange(index, 'interval_days', e.target.value)}
+                        onChange={(e) => handleMedChange(med.id, 'interval_days', e.target.value)}
                       />
-                      <label htmlFor={`interval-${index}`}>Intervalle</label>
+                      <label htmlFor={`interval-${med.id}`}>Intervalle</label>
                     </div>
                   </div>
 
@@ -297,12 +307,12 @@ function SharedUserCalendarMedicines({ medicines, calendars, sharedUsers }) {
                       <input
                         type="date"
                         className="form-control form-control-sm"
-                        id={`start-${index}`}
+                        id={`start-${med.id}`}
                         placeholder="Date de début"
                         value={med.start_date || ''}
-                        onChange={(e) => handleMedChange(index, 'start_date', e.target.value)}
+                        onChange={(e) => handleMedChange(med.id, 'start_date', e.target.value)}
                       />
-                      <label htmlFor={`start-${index}`}>Date de début</label>
+                      <label htmlFor={`start-${med.id}`}>Date de début</label>
                     </div>
                   </div>
                 </div>

@@ -1,13 +1,14 @@
 // CalendarPage.jsx
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useContext } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import frLocale from '@fullcalendar/core/locales/fr';
-
+import { AuthContext } from '../contexts/LoginContext';
 
 function SharedUserCalendarView({ events, sharedUsers }) {
+  const { authReady, currentUser } = useContext(AuthContext);
 
   // 📍 Paramètres d’URL et navigation
   const { calendarId } = useParams(); // Récupération du token de partage depuis l'URL
@@ -16,6 +17,7 @@ function SharedUserCalendarView({ events, sharedUsers }) {
   // 📍 Date sélectionnée
   const [selectedDate, setSelectedDate] = useState(''); // Date sélectionnée
   const [eventsForDay, setEventsForDay] = useState([]); // Événements filtrés pour un jour spécifique   
+  const [startDate, setStartDate] = useState();
 
   // 🔄 Références et états
   const modalRef = useRef(null); // Référence vers le modal (pour fermeture ou focus)
@@ -44,14 +46,15 @@ function SharedUserCalendarView({ events, sharedUsers }) {
   // Fonction pour charger le calendrier lorsque l'utilisateur est connecté
   useEffect(() => {
     const fetchShared = async () => {
-      if (calendarId) {
-        const rep = await sharedUsers.fetchSharedUserCalendar(calendarId);
-        setSuccessGetSharedCalendar(rep.success);
+      if (authReady && currentUser) {
+        if (calendarId) {
+          const rep = await sharedUsers.fetchSharedUserCalendar(calendarId);
+          setSuccessGetSharedCalendar(rep.success);
+        }
       }
     };
-  
     fetchShared();
-  }, [calendarId]);
+  }, [calendarId, authReady, currentUser]);
 
   if (successGetSharedCalendar === undefined  && calendarId) {
     return (
@@ -101,14 +104,14 @@ function SharedUserCalendarView({ events, sharedUsers }) {
                 id="datePicker"
                 type="date"
                 className="form-control"
-                value={events.startDate}
-                onChange={(e) => events.setStartDate(e.target.value)}
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
               />
             </div>
 
             <div>
               <button
-                onClick={() => events.getSharedTokenCalendar(calendarId, events.startDate)}
+                onClick={() => events.getSharedTokenCalendar(calendarId, startDate)}
                 className="btn btn-outline-primary"
               >
                 <i className="bi bi-arrow-repeat"></i>

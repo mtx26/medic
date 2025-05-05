@@ -15,8 +15,11 @@ class ContextualAdapter(logging.LoggerAdapter):
         error = kwargs.pop("error", None)
         stack = kwargs.pop("stack", None)
 
+        code = extra.pop("code", None)
         # Construction du message formaté
         final_msg = f"[{source}] [{origin}] {msg}"
+        if code:
+            final_msg += f" | Code: {code}"
         if context:
             final_msg += f" | Context: {context}"
         if error:

@@ -13,14 +13,10 @@ const API_URL = process.env.REACT_APP_API_URL;
 
 function App() {
   const [calendarEvents, setCalendarEvents] = useState([]);
-  const [medicinesData, setMedicinesData] = useState([]);
-  const [originalMedicinesData, setOriginalMedicinesData] = useState([]);
   const [tokensList, setTokensList] = useState([]);
   const [calendarsData, setCalendarsData] = useState([]);
   const [notificationsData, setNotificationsData] = useState([]);
   const [sharedCalendarsData, setSharedCalendarsData] = useState([]);
-
-  const [startDate, setStartDate] = useState(() => new Date().toISOString().slice(0, 10));
 
   const { authReady, currentUser } = useContext(AuthContext);
 
@@ -32,7 +28,7 @@ function App() {
 
 
   // Fonction pour obtenir les calendriers
-  const fetchCalendars = useCallback(async () => {
+  const fetchPersonalCalendars = useCallback(async () => {
     try {
       const token = await auth.currentUser.getIdToken();
       const res = await fetch(`${API_URL}/api/calendars`, {
@@ -74,7 +70,7 @@ function App() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      fetchCalendars();
+      fetchPersonalCalendars();
 
       log.info(data.message, {
         origin: "CALENDAR_CREATE_SUCCESS",
@@ -91,7 +87,7 @@ function App() {
       });
       return { success: false, error: err.message, code: err.code };
     }
-  }, [fetchCalendars]);
+  }, [fetchPersonalCalendars]);
 
   // Fonction pour supprimer un calendrier
   const deleteCalendar = useCallback(async (calendarId) => {
@@ -107,7 +103,7 @@ function App() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      fetchCalendars();
+      fetchPersonalCalendars();
       log.info(data.message, {
         origin: "CALENDAR_DELETE_SUCCESS",
         "uid": auth.currentUser.uid,
@@ -122,7 +118,7 @@ function App() {
       });
       return { success: false, error: err.message, code: err.code };
     }
-  }, [fetchCalendars]);
+  }, [fetchPersonalCalendars]);
 
   // Fonction pour renommer un calendrier
   const renameCalendar = useCallback(async (calendarId, newCalendarName) => {
@@ -140,7 +136,7 @@ function App() {
       if (!res.ok) {
         throw new Error(data.error);
       }
-      fetchCalendars();
+      fetchPersonalCalendars();
       log.info(data.message, {
         origin: "CALENDAR_RENAME_SUCCESS",
         "uid": auth.currentUser.uid,
@@ -157,7 +153,7 @@ function App() {
       });
       return { success: false, error: err.message, code: err.code };
     }
-  }, [fetchCalendars]);
+  }, [fetchPersonalCalendars]);
 
   // Fonction pour obtenir le nombre de médicaments d'un calendrier 
   const getMedicineCount = useCallback(async (calendarId) => {
@@ -226,7 +222,7 @@ function App() {
   
 
   // Fonction pour obtenir le calendrier lier au calendarId
-  const fetchCalendar = useCallback(async (calendarId, startDate ) => {
+  const fetchCalendarEvents = useCallback(async (calendarId, startDate ) => {
     try {
       if (!calendarId) {
         log.warn("Nom de calendrier non fourni, calendrier non chargé.", {
@@ -291,15 +287,13 @@ function App() {
       // trier par ordre alphabétique
       const medicinesSortedByName = data.medicines.sort((a, b) => a.name.localeCompare(b.name));
 
-      setMedicinesData(medicinesSortedByName);
-      setOriginalMedicinesData(JSON.parse(JSON.stringify(medicinesSortedByName)));
       log.info(data.message, {
         origin: "MED_FETCH_SUCCESS",
         "uid": auth.currentUser.uid,
         "count": data.medicines?.length,
         "calendarId": calendarId,
       });
-      return { success: true, message: data.message, code: data.code };
+      return { success: true, message: data.message, code: data.code, medicinesData: medicinesSortedByName, originalMedicinesData: JSON.parse(JSON.stringify(medicinesSortedByName)) };
     } catch (err) {
       log.error(err.message || "Erreur lors de la récupération des médicaments", err, {
         origin: "MED_FETCH_ERROR",
@@ -308,10 +302,10 @@ function App() {
       });
       return { success: false, error: err.message, code: err.code };
     }
-  }, [setMedicinesData, setOriginalMedicinesData]);
+  }, []);
   
   // Fonction pour modifier un médicament
-  const updateMedicines = useCallback(async (calendarId) => {
+  const updateMedicines = useCallback(async (calendarId, medicinesData) => {
     try {
       const token = await auth.currentUser.getIdToken();
       const res = await fetch(`${API_URL}/api/calendars/${calendarId}/medicines`, {
@@ -324,14 +318,13 @@ function App() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      setOriginalMedicinesData(JSON.parse(JSON.stringify(medicinesData)));
       log.info(data.message, {
         origin: "MED_UPDATE_SUCCESS",
         "uid": auth.currentUser.uid,
         "count": medicinesData?.length,
         "calendarId": calendarId,
       });
-      return { success: true, message: data.message, code: data.code };
+      return { success: true, message: data.message, code: data.code, medicinesData: medicinesData, originalMedicinesData: JSON.parse(JSON.stringify(medicinesData)) };
     } catch (err) {
       log.error(err.message || "Erreur lors de la modification des médicaments", err, {
         origin: "MED_UPDATE_ERROR",
@@ -340,16 +333,16 @@ function App() {
       });
       return { success: false, error: err.message, code: err.code };
     }
-  }, [medicinesData, setOriginalMedicinesData]);
+  }, []);
 
   // Fonction pour supprimer des médicaments 
-  const deleteSelectedMedicines = useCallback(async (calendarId, checked) => {
+  const deleteSelectedMedicines = useCallback(async (calendarId, checked, medicinesData) => {
     if (checked.length === 0) return false;
+    const medicinesDataFiltered = medicinesData.filter((med) => !checked.includes(String(med.id)));
+
   
-    setMedicinesData(medicinesData.filter((med) => !checked.includes(med.id)));
-  
-    const rep = await updateMedicines(calendarId);
-  
+    const rep = await updateMedicines(calendarId, medicinesDataFiltered);
+    console.log(medicinesDataFiltered)
     if (rep.success) {
       log.info(rep.message, {
         origin: "MED_DELETE_SUCCESS",
@@ -367,18 +360,18 @@ function App() {
       });
       return {success: false, error: "Erreur lors de la suppression des médicaments", code: rep.code};
     }
-  }, [medicinesData, setMedicinesData, updateMedicines]);
+  }, [updateMedicines]);
   
   // Fonction pour ajouter un nouveau médicament sanq la variable medicines
-  const addMedicine = useCallback(() => {
+  const addMedicine = useCallback((medicinesData) => {
     // générer un id unique a 16 caractères
     const id = generateHexToken();
-    setMedicinesData([
+    const newMedicinesData = [
       ...medicinesData,
       { name: '', tablet_count: 1, time: ['morning'], interval_days: 1, start_date: '', id: id },
-    ]);
-    return id;
-  }, [medicinesData, setMedicinesData]);
+    ];
+    return {success: true, message: "Médicament ajouté avec succès", code: "MED_ADD_SUCCESS", medicinesData: newMedicinesData, id: id };
+  }, []);
 
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -419,12 +412,11 @@ function App() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      setMedicinesData(data.medicines)
       log.info(data.message, {
         origin: "SHARED_MED_FETCH_SUCCESS",
         "token": token,
       });
-      return {success: true, message: data.message, code: data.code};
+      return {success: true, message: data.message, code: data.code, medicinesData: data.medicines};
     } catch (err) {
       log.error(err.message || "Échec de récupération des médicaments partagé", err, {
         origin: "SHARED_MED_FETCH_ERROR",
@@ -432,7 +424,7 @@ function App() {
       });
       return {success: false, error: err.message, code: err.code};
     }
-  }, [setMedicinesData]);
+  }, []);
 
   // Fonction pour récupérer les tokens
   const fetchTokens = useCallback(async () => {
@@ -861,6 +853,7 @@ function App() {
       if (!startDate) {
         startDate = new Date().toISOString().split('T')[0];
       }
+      console.log(startDate);
       const token = await auth.currentUser.getIdToken();
       const res = await fetch(`${API_URL}/api/shared/users/calendars/${calendarId}?startTime=${startDate}`, {
         method: "GET",
@@ -902,14 +895,11 @@ function App() {
       // trier par ordre alphabétique
       const medicinesSortedByName = data.medicines.sort((a, b) => a.name.localeCompare(b.name));
 
-      setMedicinesData(medicinesSortedByName);
-      setOriginalMedicinesData(JSON.parse(JSON.stringify(medicinesSortedByName)));
-
       log.info(data.message, {
         origin: "SHARED_USER_CALENDAR_MEDICINES_FETCH_SUCCESS",
         calendarId,
       });
-      return {success: true, message: data.message, code: data.code};
+      return {success: true, message: data.message, code: data.code, medicinesData: medicinesSortedByName, originalMedicinesData: JSON.parse(JSON.stringify(medicinesSortedByName))};
     } catch (err) {
       log.error(err.message || "Échec de récupération des médicaments du calendrier partagé par un utilisateur", err, {
         origin: "SHARED_USER_CALENDAR_MEDICINES_FETCH_ERROR",
@@ -917,10 +907,10 @@ function App() {
       });
       return {success: false, error: err.message, code: err.code};
     }
-  }, [setMedicinesData, setOriginalMedicinesData]);
+  }, []);
 
   // Fonction pour mettre à jour les médicaments d’un calendrier partagé par un utilisateur
-  const updateSharedUserCalendarMedicines = useCallback(async (calendarId) => {
+  const updateSharedUserCalendarMedicines = useCallback(async (calendarId, medicinesData) => {
     try {
       const token = await auth.currentUser.getIdToken();
       const res = await fetch(`${API_URL}/api/shared/users/calendars/${calendarId}/medicines`, {
@@ -933,13 +923,12 @@ function App() {
       }); 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      setOriginalMedicinesData(JSON.parse(JSON.stringify(medicinesData)));
 
       log.info(data.message, {
         origin: "SHARED_USER_CALENDAR_MEDICINES_UPDATE_SUCCESS",
         calendarId,
       });
-      return {success: true, message: data.message, code: data.code};
+      return {success: true, message: data.message, code: data.code, medicinesData: medicinesData, originalMedicinesData: JSON.parse(JSON.stringify(medicinesData))};
     } catch (err) {
       log.error(err.message || "Échec de mise à jour des médicaments du calendrier partagé par un utilisateur", err, {
         origin: "SHARED_USER_CALENDAR_MEDICINES_UPDATE_ERROR",
@@ -947,15 +936,15 @@ function App() {
       });
       return {success: false, error: err.message, code: err.code};
     }
-  }, [medicinesData]);
+  }, []);
 
   // Fonction pour supprimer les médicaments d’un calendrier partagé par un utilisateur
-  const deleteSharedUserCalendarMedicines = useCallback(async (calendarId, checked) => {
+  const deleteSharedUserCalendarMedicines = useCallback(async (calendarId, checked, medicinesData) => {
     if (checked.length === 0) return false;
   
-    setMedicinesData(medicinesData.filter((med) => !checked.includes(med.id)));
-  
-    const rep = await updateSharedUserCalendarMedicines(calendarId);
+    const medicinesDataFiltered = medicinesData.filter((med) => !checked.includes(String(med.id)));
+    const rep = await updateSharedUserCalendarMedicines(calendarId, medicinesDataFiltered);
+    console.log(rep);
     if (rep.success) {
       log.info(rep.message, {
         origin: "SHARED_USER_CALENDAR_MEDICINES_DELETE_SUCCESS",
@@ -969,7 +958,7 @@ function App() {
       });
       return {success: false, error: "Erreur lors de la suppression des médicaments", code: "SHARED_USER_CALENDAR_MEDICINES_DELETE_ERROR"};
     }
-  }, [medicinesData, updateMedicines]);
+  }, [updateSharedUserCalendarMedicines]);
 
   // Fonction pour récupérer les informations d’un utilisateur
   const fetchUserInfo = useCallback(async (userId) => {
@@ -1004,7 +993,7 @@ function App() {
     calendars: {
       calendarsData, setCalendarsData,                 // Liste des calendriers de l’utilisateur
       sharedCalendarsData, setSharedCalendarsData,     // Liste des calendriers partagés
-      fetchCalendars,                                  // Récupération des calendriers (Firestore)
+      fetchPersonalCalendars,                                  // Récupération des calendriers (Firestore)
       fetchSharedCalendars,                            // Récupération des calendriers partagés
       addCalendar,                                     // Création d’un nouveau calendrier
       deleteCalendar,                                  // Suppression d’un calendrier existant
@@ -1017,15 +1006,12 @@ function App() {
     // 🗓️ ÉVÉNEMENTS DU CALENDRIER
     events: {
       calendarEvents, setCalendarEvents,              // Événements affichés dans le calendrier
-      startDate, setStartDate,                        // Date de début pour affichage du calendrier
       calendarsData, setCalendarsData,                // (Redondant, mais peut être utile si nécessaire localement)
-      fetchCalendar,                                    // Chargement des données d’un calendrier
+      fetchCalendarEvents,                            // Chargement des données d’un calendrier
     },
   
     // 💊 MÉDICAMENTS
     medicines: {
-      medicinesData, setMedicinesData,                          // Liste des médicaments du calendrier actif
-      originalMedicinesData, setOriginalMedicinesData,          // Liste des médicaments d’origine
       updateMedicines,                                     // Mise à jour des médicaments dans Firestore
       deleteSelectedMedicines,                             // Suppression des médicaments sélectionnés
       addMedicine,                                         // Ajout d’un nouveau médicament
@@ -1074,11 +1060,6 @@ function App() {
   const resetAppData = () => {
     // EVENTS
     setCalendarEvents([]);
-    setStartDate(null);
-  
-    // MEDICINES
-    setMedicinesData([]);
-    setOriginalMedicinesData([]);
     
     // CALENDARS
     setCalendarsData([]);

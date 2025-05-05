@@ -47,7 +47,7 @@ function SelectCalendar({ calendars, sharedTokens, invitations, sharedUsers }) {
         if (currentUser) {
           calendars.setCalendarsData([]); // Bien vider l'ancien
           setLoadingCalendars(true);
-          await calendars.fetchCalendars(); // Recharger pour le nouvel utilisateur
+          await calendars.fetchPersonalCalendars(); // Recharger pour le nouvel utilisateur
           await calendars.fetchSharedCalendars(); // Recharger pour le nouvel utilisateur
           await sharedTokens.fetchTokens();
           setLoadingCalendars(false);

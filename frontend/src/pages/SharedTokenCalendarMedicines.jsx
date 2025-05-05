@@ -8,18 +8,16 @@ function SharedTokenCalendarMedicines({ medicines, sharedTokens }) {
 
   // ✅ État de récupération des médicaments partagés
   const [successFetchSharedTokenMedicines, setSuccessFetchSharedTokenMedicines] = useState(); // État du succès de la récupération des médicaments partagés
-
-
-
-  useEffect(() => {
-    medicines.setMedicinesData([]);
-  }, [medicines.setMedicinesData]);
+  const [medicinesData, setMedicinesData] = useState([]); // Liste des médicaments du calendrier partagé
   
   // Fonction pour charger le calendrier lorsque l'utilisateur est connecté
   useEffect(() => {
     const fetchShared = async () => {
       if (sharedToken) {
         const rep = await sharedTokens.fetchSharedTokenMedicines(sharedToken);
+        if (rep.success) {
+          setMedicinesData(rep.medicinesData);
+        }
         setSuccessFetchSharedTokenMedicines(rep.success);
       }
     };
@@ -60,13 +58,13 @@ function SharedTokenCalendarMedicines({ medicines, sharedTokens }) {
         <span> Liste des médicaments</span>
       </h4>
 
-      {medicines.medicinesData.length === 0 ? (
+      {medicinesData.length === 0 ? (
         <div className="text-center mt-5 text-muted">
           ❌ Aucun médicament n’a encore été ajouté pour ce calendrier.
         </div>
       ) : (
         <ul className="list-group mt-3">
-          {medicines.medicinesData.map((med, index) => (
+          {medicinesData.map((med, index) => (
             <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
               <div>
                 <strong>{med.name}</strong> 

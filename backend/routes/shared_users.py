@@ -129,7 +129,7 @@ def handle_user_shared_calendar(calendar_id):
             )
         
         doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id)
-        medicines = doc.get().to_dict().get("medicines", [])
+        medicines = [med.to_dict() for med in doc.collection("medicines").get()]
 
         schedule = generate_schedule(start_date, medicines)
     
@@ -403,8 +403,8 @@ def handle_shared_user_calendar_medicines(calendar_id):
         user = verify_firebase_token()
         receiver_uid = user["uid"]
 
-        doc = db.collection("users").document(receiver_uid).collection("shared_calendars").document(calendar_id)
-        if not doc.get().exists:
+        doc_1_ref = db.collection("users").document(receiver_uid).collection("shared_calendars").document(calendar_id)
+        if not doc_1_ref.get().exists:
             return warning_response(
                 message="Calendrier partagé introuvable.", 
                 code="SHARED_USER_CALENDAR_MEDICINES_LOAD_ERROR", 
@@ -414,7 +414,7 @@ def handle_shared_user_calendar_medicines(calendar_id):
                 log_extra={"calendar_id": calendar_id}
             )
 
-        owner_uid = doc.get().to_dict().get("owner_uid")
+        owner_uid = doc_1_ref.get().to_dict().get("owner_uid")
 
         if not verify_calendar_share(calendar_id, owner_uid, receiver_uid):
             return warning_response(
@@ -426,8 +426,8 @@ def handle_shared_user_calendar_medicines(calendar_id):
                 log_extra={"calendar_id": calendar_id}
             )
 
-        doc_2 = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id)
-        if not doc_2.get().exists:
+        doc_2_ref = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id)
+        if not doc_2_ref.get().exists:
             return warning_response(
                 message="Calendrier introuvable.", 
                 code="SHARED_USER_CALENDAR_MEDICINES_LOAD_ERROR", 
@@ -437,7 +437,17 @@ def handle_shared_user_calendar_medicines(calendar_id):
                 log_extra={"calendar_id": calendar_id}
             )
 
-        medicines = doc_2.get().to_dict().get("medicines", [])
+        doc_3_ref = doc_2_ref.collection("medicines")
+        if not doc_3_ref.get():
+            return success_response(
+                message="Aucun médicament dans le calendrier partagé", 
+                code="SHARED_USER_CALENDAR_MEDICINES_LOAD_SUCCESS", 
+                uid=receiver_uid, 
+                origin="SHARED_USER_CALENDAR_MEDICINES_LOAD",
+                data={"medicines": []}
+            )
+
+        medicines = [med.to_dict() for med in doc_3_ref.get()]
 
         return success_response(
             message="Médicaments récupérés avec succès", 
@@ -466,9 +476,10 @@ def handle_update_shared_user_calendar_medicines(calendar_id):
         user = verify_firebase_token()
         receiver_uid = user["uid"]
 
+        medicines = request.json.get("medicines", [])
 
-        doc = db.collection("users").document(receiver_uid).collection("shared_calendars").document(calendar_id)
-        if not doc.get().exists:
+        doc_1_ref = db.collection("users").document(receiver_uid).collection("shared_calendars").document(calendar_id)
+        if not doc_1_ref.get().exists:
             return warning_response(
                 message="Calendrier partagé introuvable.", 
                 code="SHARED_USER_CALENDAR_MEDICINES_UPDATE_ERROR", 
@@ -478,8 +489,8 @@ def handle_update_shared_user_calendar_medicines(calendar_id):
                 log_extra={"calendar_id": calendar_id}
             )
 
-        owner_uid = doc.get().to_dict().get("owner_uid")
-        
+        owner_uid = doc_1_ref.get().to_dict().get("owner_uid")
+
         if not verify_calendar_share(calendar_id, owner_uid, receiver_uid):
             return warning_response(
                 message="Accès non autorisé.", 
@@ -490,10 +501,8 @@ def handle_update_shared_user_calendar_medicines(calendar_id):
                 log_extra={"calendar_id": calendar_id}
             )
 
-        medicines = request.json.get("medicines", [])
-
-        doc_2 = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id)
-        if not doc_2.get().exists:
+        doc_2_ref = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).collection("medicines")
+        if not doc_2_ref.get():
             return warning_response(
                 message="Calendrier introuvable.", 
                 code="SHARED_USER_CALENDAR_MEDICINES_UPDATE_ERROR", 
@@ -502,8 +511,12 @@ def handle_update_shared_user_calendar_medicines(calendar_id):
                 origin="SHARED_USER_CALENDAR_MEDICINES_UPDATE",
                 log_extra={"calendar_id": calendar_id}
             )
+            
+        for med_doc in doc_2_ref.stream():
+            med_doc.reference.delete()
 
-        doc_2.update({"medicines": medicines})
+        for med in medicines:
+            doc_2_ref.document(med["id"]).set(med)
 
         return success_response(
             message="Médicaments mis à jour avec succès", 

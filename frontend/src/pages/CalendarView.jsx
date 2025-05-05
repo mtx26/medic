@@ -21,7 +21,7 @@ function CalendarPage({ events, calendars }) {
   const modalRef = useRef(null); // Référence vers le modal (pour gestion focus/fermeture)
   const [loadingMedicines, setLoadingMedicines] = useState(true); // État de chargement des médicaments
   const [loadingCalendar, setLoadingCalendar] = useState(true); // État de chargement du calendrier
-
+  const [startDate, setStartDate] = useState();
 
   // Fonction pour gérer le clic sur une date
   const handleDateClick = (info) => {
@@ -50,7 +50,7 @@ function CalendarPage({ events, calendars }) {
   useEffect(() => {
     const load = async () => {
       if (authReady && currentUser) {
-        await calendars.fetchCalendars(); // Recharger pour le nouvel utilisateur
+        await calendars.fetchPersonalCalendars(); // Recharger pour le nouvel utilisateur
         setLoadingMedicines(false);
       }
     };
@@ -60,7 +60,7 @@ function CalendarPage({ events, calendars }) {
   // Fonction pour charger le calendrier lorsque l'utilisateur est connecté
   useEffect(() => {
     if (authReady && currentUser && calendarId) {
-      events.fetchCalendar(calendarId)
+      events.fetchCalendarEvents(calendarId)
       setLoadingCalendar(false);
     }
   }, [authReady, currentUser, calendarId]);
@@ -118,14 +118,14 @@ function CalendarPage({ events, calendars }) {
                 id="datePicker"
                 type="date"
                 className="form-control"
-                value={events.startDate}
-                onChange={(e) => events.setStartDate(e.target.value)}
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
               />
             </div>
 
             <div>
               <button
-                onClick={() => events.fetchCalendar(calendarId, events.startDate)}
+                onClick={() => events.fetchCalendarEvents(calendarId, startDate)}
                 className="btn btn-outline-primary"
               >
                 <i className="bi bi-arrow-repeat"></i>

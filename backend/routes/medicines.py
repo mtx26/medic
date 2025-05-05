@@ -16,8 +16,8 @@ def get_medicines(calendar_id):
         user = verify_firebase_token()
         uid = user["uid"]
 
-        doc = db.collection("users").document(uid).collection("calendars").document(calendar_id)
-        if not doc.get().exists:
+        doc = db.collection("users").document(uid).collection("calendars").document(calendar_id).collection("medicines").get()
+        if not doc:
             return warning_response(
                 message="Calendrier introuvable", 
                 code="CALENDAR_NOT_FOUND", 
@@ -25,9 +25,8 @@ def get_medicines(calendar_id):
                 uid=uid, 
                 origin="MED_FETCH",
                 log_extra={"calendar_id": calendar_id}
-            )
-
-        medicines = doc.get().to_dict().get("medicines", [])
+            )       
+        medicines = [med.to_dict() for med in doc]
 
         return success_response(
             message="Médicaments récupérés avec succès", 
@@ -66,12 +65,23 @@ def update_medicines(calendar_id):
                 origin="MED_UPDATE",
                 log_extra={"calendar_id": calendar_id}
             )
+        
+        print(medicines)
 
 
-        db.collection("users").document(uid).collection("calendars").document(calendar_id).set({
-            "medicines": medicines,
-            "last_updated": firestore.SERVER_TIMESTAMP
-        }, merge=True)
+        doc = db.collection("users").document(uid).collection("calendars").document(calendar_id).collection("medicines")
+        if not doc.get():
+            return warning_response(
+                message="Calendrier introuvable", 
+                code="CALENDAR_NOT_FOUND", 
+                status_code=404, 
+                uid=uid, 
+                origin="MED_UPDATE",
+                log_extra={"calendar_id": calendar_id}
+            )
+
+        for med in medicines:
+            doc.document(med["id"]).set(med)
 
         return success_response(
             message="Médicaments mis à jour avec succès", 
@@ -100,19 +110,17 @@ def count_medicines():
         uid = user["uid"]
         calendar_id = request.args.get("calendarId")
 
-        doc = db.collection("users").document(uid).collection("calendars").document(calendar_id).get()
-        if not doc.exists:
-            return warning_response(
-                message="Calendrier introuvable", 
-                code="CALENDAR_NOT_FOUND", 
-                status_code=404, 
+        doc = db.collection("users").document(uid).collection("calendars").document(calendar_id).collection("medicines").get()
+        if not doc:
+            return success_response(
+                message="Médicaments récupérés avec succès", 
+                code="MED_COUNT_SUCCESS", 
                 uid=uid, 
                 origin="MED_COUNT",
+                data={"count": 0},
                 log_extra={"calendar_id": calendar_id}
             )
-
-        data = doc.to_dict()
-        medicines = data.get("medicines", [])
+        medicines = [med.to_dict() for med in doc]
         count = len(medicines)
 
         return success_response(
@@ -144,17 +152,16 @@ def count_shared_medicines():
         calendar_id = request.args.get("calendarId")
         owner_uid = request.args.get("ownerUid")
 
-        doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).get()
-        if not doc.exists:
-            return warning_response(
-                message="Calendrier introuvable", 
-                code="CALENDAR_NOT_FOUND", 
-                status_code=404, 
+        doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).collection("medicines").get()
+        if not doc:
+            return success_response(
+                message="Médicaments récupérés avec succès", 
+                code="MED_SHARED_COUNT_SUCCESS", 
                 uid=uid, 
                 origin="MED_SHARED_COUNT",
+                data={"count": 0},
                 log_extra={"calendar_id": calendar_id}
             )
-
         if not verify_calendar_share(calendar_id, owner_uid, uid):
             return warning_response(
                 message="Accès non autorisé", 
@@ -165,8 +172,7 @@ def count_shared_medicines():
                 log_extra={"calendar_id": calendar_id}
             )
 
-        data = doc.to_dict()
-        medicines = data.get("medicines", [])
+        medicines = [med.to_dict() for med in doc]
         count = len(medicines)
 
         return success_response(

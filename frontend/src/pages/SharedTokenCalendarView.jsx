@@ -16,7 +16,7 @@ function SharedTokenCalendarView({ events, sharedTokens }) {
   // 📍 Date sélectionnée
   const [selectedDate, setSelectedDate] = useState(''); // Date sélectionnée
   const [eventsForDay, setEventsForDay] = useState([]); // Événements filtrés pour un jour spécifique
-
+  const [startDate, setStartDate] = useState();
   // 🔄 Références et états
   const modalRef = useRef(null); // Référence vers le modal (pour fermeture ou focus)
   const [successGetSharedCalendar, setSuccessGetSharedCalendar] = useState(); // État du succès de la récupération du calendrier partagé
@@ -101,14 +101,14 @@ function SharedTokenCalendarView({ events, sharedTokens }) {
                 id="datePicker"
                 type="date"
                 className="form-control"
-                value={events.startDate}
-                onChange={(e) => events.setStartDate(e.target.value)}
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
               />
             </div>
 
             <div>
               <button
-                onClick={() => events.getSharedTokenCalendar(sharedToken, events.startDate)}
+                onClick={() => events.getSharedTokenCalendar(sharedToken, startDate)}
                 className="btn btn-outline-primary"
               >
                 <i className="bi bi-arrow-repeat"></i>

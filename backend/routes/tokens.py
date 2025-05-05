@@ -360,7 +360,7 @@ def handle_generate_token_calendar(token):
                 log_extra={"token": token}
             )
 
-        medicines = doc_2.to_dict().get("medicines", [])
+        medicines = [med.to_dict() for med in doc_2.collection("medicines").get()]
         start_str = request.args.get("startTime")
         start_date = datetime.strptime(start_str, "%Y-%m-%d").date() if start_str else datetime.now(timezone.utc).date()
 
@@ -511,10 +511,10 @@ def handle_token_medecines(token):
                 )
             
 
-            medicines = doc_2.to_dict().get("medicines", [])
+            medicines = [med.to_dict() for med in doc_2.collection("medicines").get()]
 
             return success_response(
-                message="Médicaments récupérés.", 
+                message="Médicaments récupérés avec succès.", 
                 code="MEDECINES_SHARED_LOADED", 
                 uid=owner_uid, 
                 origin="MEDECINES_SHARED_LOAD", 

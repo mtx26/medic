@@ -21,7 +21,8 @@ def handle_calendars():
         return success_response(
             message="Calendriers récupérés avec succès", 
             code="CALENDAR_FETCH_SUCCESS", 
-            uid=uid, origin="CALENDAR_FETCH", 
+            uid=uid, 
+            origin="CALENDAR_FETCH", 
             data={"calendars": calendars}
         )
     except Exception as e:
@@ -219,17 +220,18 @@ def handle_calendar(calendar_id):
         user = verify_firebase_token()
         owner_uid = user["uid"]
 
-        doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id)
-        if not doc.get().exists:
-            return warning_response(
-                message="Document introuvable.", 
-                code="CALENDAR_LOAD_ERROR", 
-                status_code=404, 
+        doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).collection("medicines").get()
+        if not doc:
+            return success_response(
+                message="Calendrier généré avec succès", 
+                code="CALENDAR_GENERATE_SUCCESS", 
                 uid=owner_uid, 
-                origin="CALENDAR_LOAD", 
-                log_extra={"calendar_id": calendar_id})
+                origin="CALENDAR_GENERATE", 
+                data={"medicines": 0, "schedule": []},
+                log_extra={"calendar_id": calendar_id}
+            )
         
-        medicines = doc.get().to_dict().get("medicines", [])
+        medicines = [med.to_dict() for med in doc]
         
         start_str = request.args.get("startTime")
         if not start_str:

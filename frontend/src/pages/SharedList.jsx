@@ -35,12 +35,12 @@ function SharedList({ sharedTokens, calendars, sharedUsers, invitations }) {
     const load = async () => {
       if (authReady && currentUser) {
         await sharedTokens.fetchTokens();
-        await calendars.fetchCalendars();
+        await calendars.fetchPersonalCalendars();
         setLoading(false);
       }
     };
     load();
-  }, [authReady, currentUser, calendars.fetchCalendars, sharedTokens.fetchTokens]);
+  }, [authReady, currentUser, calendars.fetchPersonalCalendars, sharedTokens.fetchTokens]);
 
   const setGroupedSharedFunction = async () => {
     const grouped = {};
