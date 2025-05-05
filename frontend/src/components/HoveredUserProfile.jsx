@@ -23,7 +23,7 @@ function HoveredUserProfile({ user, style }) {
         />
         <div>
           <h6 className="mb-0">{user.display_name}</h6>
-          <small className="text-muted">{user.receiver_email}</small>
+          <small className="text-muted">{user.email}</small>
         </div>
       </div>
     </div>

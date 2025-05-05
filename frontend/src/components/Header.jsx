@@ -99,7 +99,7 @@ function Navbar({ sharedProps }) {
                                       user={{
                                         photo_url: notif.owner_photo_url,
                                         display_name: notif.owner_name,
-                                        receiver_email: notif.owner_email
+                                        email: notif.owner_email
                                       }}
                                       style={{ top: '110%', left: '25%', transform: 'translateX(-50%)' }}
                                     />
@@ -147,7 +147,7 @@ function Navbar({ sharedProps }) {
                                     user={{
                                       photo_url: notif.receiver_photo_url,
                                       display_name: notif.receiver_name,
-                                      receiver_email: notif.receiver_email
+                                      email: notif.receiver_email
                                     }}
                                     style={{ top: '110%', left: '25%', transform: 'translateX(-50%)' }}
                                   />
@@ -184,7 +184,7 @@ function Navbar({ sharedProps }) {
                                     user={{
                                       photo_url: notif.receiver_photo_url,
                                       display_name: notif.receiver_name,
-                                      receiver_email: notif.receiver_email
+                                      email: notif.receiver_email
                                     }}
                                     style={{ top: '110%', left: '25%', transform: 'translateX(-50%)' }}
                                   />
@@ -221,7 +221,7 @@ function Navbar({ sharedProps }) {
                                     user={{
                                       photo_url: notif.owner_photo_url,
                                       display_name: notif.owner_name,
-                                      receiver_email: notif.owner_email
+                                      email: notif.owner_email
                                     }}
                                     style={{ top: '110%', left: '25%', transform: 'translateX(-50%)' }}
                                   />
@@ -258,7 +258,7 @@ function Navbar({ sharedProps }) {
                                     user={{
                                       photo_url: notif.receiver_photo_url,
                                       display_name: notif.receiver_name,
-                                      receiver_email: notif.receiver_email
+                                      email: notif.receiver_email
                                     }}
                                     style={{ top: '110%', left: '25%', transform: 'translateX(-50%)' }}
                                   />
@@ -296,6 +296,7 @@ function Navbar({ sharedProps }) {
                   id="userDropdown"
                   data-bs-toggle="dropdown"
                   aria-expanded="false"
+                  title="Mon profil"
                 >
                   {userInfo?.photoURL ? (
                     <img

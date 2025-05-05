@@ -35,15 +35,18 @@ function MedicamentsPage({ medicines, calendars }) {
   };
 
   const handleMedChange = (id, field, value) => {
-    const updated = [...medicinesData];
+    const index = medicinesData.findIndex((med) => med.id === id);
+    if (index === -1) return; // id introuvable, on ne fait rien
+  
+    const updated = [...medicinesData]; // copie du tableau
     const numericFields = ['tablet_count', 'interval_days'];
   
     if (field === 'time') {
-      updated[id][field] = [value];
+      updated[index][field] = [value];
     } else if (numericFields.includes(field)) {
-      updated[id][field] = value === '' ? '' : parseFloat(value);
+      updated[index][field] = value === '' ? '' : parseFloat(value);
     } else {
-      updated[id][field] = value;
+      updated[index][field] = value;
     }
   
     setMedicinesData(updated);
@@ -154,6 +157,8 @@ function MedicamentsPage({ medicines, calendars }) {
               setOnConfirmAction(() => async () => {
                 const rep = await medicines.deleteSelectedMedicines(calendarId, checked, medicinesData);
                 if (rep.success) {
+                  setMedicinesData(rep.medicinesData);
+                  setOriginalMedicinesData(rep.originalMedicinesData);
                   setAlertMessage("✅ "+rep.message);
                   setAlertType("success");
                 } else {

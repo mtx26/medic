@@ -318,13 +318,15 @@ function App() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
+      // trier par ordre alphabétique
+      const medicinesSortedByName = data.medicines.sort((a, b) => a.name.localeCompare(b.name));
       log.info(data.message, {
         origin: "MED_UPDATE_SUCCESS",
         "uid": auth.currentUser.uid,
         "count": medicinesData?.length,
         "calendarId": calendarId,
       });
-      return { success: true, message: data.message, code: data.code, medicinesData: medicinesData, originalMedicinesData: JSON.parse(JSON.stringify(medicinesData)) };
+      return { success: true, message: data.message, code: data.code, medicinesData: medicinesSortedByName, originalMedicinesData: JSON.parse(JSON.stringify(medicinesSortedByName)) };
     } catch (err) {
       log.error(err.message || "Erreur lors de la modification des médicaments", err, {
         origin: "MED_UPDATE_ERROR",
@@ -342,7 +344,6 @@ function App() {
 
   
     const rep = await updateMedicines(calendarId, medicinesDataFiltered);
-    console.log(medicinesDataFiltered)
     if (rep.success) {
       log.info(rep.message, {
         origin: "MED_DELETE_SUCCESS",
@@ -350,7 +351,7 @@ function App() {
         "count": checked.length,
         "calendarId": calendarId,
       });
-      return {success: true, message: "Médicaments supprimés avec succès", code: rep.code};
+      return {success: true, message: "Médicaments supprimés avec succès", code: rep.code, medicinesData: rep.medicinesData, originalMedicinesData: JSON.parse(JSON.stringify(rep.medicinesData))};
     } else {
       log.error(rep.error, {
         origin: "MED_DELETE_ERROR",
@@ -923,12 +924,14 @@ function App() {
       }); 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
+      // trier par ordre alphabétique
+      const medicinesSortedByName = data.medicines.sort((a, b) => a.name.localeCompare(b.name));
 
       log.info(data.message, {
         origin: "SHARED_USER_CALENDAR_MEDICINES_UPDATE_SUCCESS",
         calendarId,
       });
-      return {success: true, message: data.message, code: data.code, medicinesData: medicinesData, originalMedicinesData: JSON.parse(JSON.stringify(medicinesData))};
+      return {success: true, message: data.message, code: data.code, medicinesData: medicinesSortedByName, originalMedicinesData: JSON.parse(JSON.stringify(medicinesSortedByName))};
     } catch (err) {
       log.error(err.message || "Échec de mise à jour des médicaments du calendrier partagé par un utilisateur", err, {
         origin: "SHARED_USER_CALENDAR_MEDICINES_UPDATE_ERROR",
@@ -944,19 +947,19 @@ function App() {
   
     const medicinesDataFiltered = medicinesData.filter((med) => !checked.includes(String(med.id)));
     const rep = await updateSharedUserCalendarMedicines(calendarId, medicinesDataFiltered);
-    console.log(rep);
     if (rep.success) {
       log.info(rep.message, {
         origin: "SHARED_USER_CALENDAR_MEDICINES_DELETE_SUCCESS",
         calendarId,
       });
-      return {success: true, message: "Médicaments supprimés avec succès", code: "SHARED_USER_CALENDAR_MEDICINES_DELETE_SUCCESS"};
+      
+      return {success: true, message: "Médicaments supprimés avec succès", code: "SHARED_USER_CALENDAR_MEDICINES_DELETE_SUCCESS", medicinesData: rep.medicinesData};
     } else {
       log.error(rep.error, {
         origin: "SHARED_USER_CALENDAR_MEDICINES_DELETE_ERROR",
         calendarId,
       });
-      return {success: false, error: "Erreur lors de la suppression des médicaments", code: "SHARED_USER_CALENDAR_MEDICINES_DELETE_ERROR"};
+      return {success: false, error: "Erreur lors de la suppression des médicaments", code: "SHARED_USER_CALENDAR_MEDICINES_DELETE_ERROR", medicinesData: rep.medicinesData};
     }
   }, [updateSharedUserCalendarMedicines]);
 

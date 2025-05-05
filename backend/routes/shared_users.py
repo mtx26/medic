@@ -59,6 +59,10 @@ def handle_shared_calendars():
                     origin="SHARED_CALENDARS_LOAD"
                 )
             owner_name = owner_doc.to_dict().get("display_name")
+            owner_photo_url = owner_doc.to_dict().get("photo_url")
+            if not owner_photo_url:
+                owner_photo_url = "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/icons/person-circle.svg"
+            owner_email = owner_doc.to_dict().get("email")
 
             if not verify_calendar_share(calendar_id, owner_uid, uid):
                 continue
@@ -69,6 +73,8 @@ def handle_shared_calendars():
                 "calendar_name": calendar_name,
                 "owner_uid": owner_uid,
                 "owner_name": owner_name,
+                "owner_photo_url": owner_photo_url,
+                "owner_email": owner_email,
                 "access": access
             })
 
@@ -358,12 +364,12 @@ def handle_shared_users(calendar_id):
                     uid=owner_uid,
                     origin="SHARED_USERS_LOAD"
                 )
-            photo_url = receiver_doc.to_dict().get("photo_url")
-            display_name = receiver_doc.to_dict().get("display_name")
+            receiver_photo_url = receiver_doc.to_dict().get("photo_url")
+            receiver_name = receiver_doc.to_dict().get("display_name")
             receiver_email = receiver_doc.to_dict().get("email")
 
-            if not photo_url:
-                photo_url = "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/icons/person-circle.svg"
+            if not receiver_photo_url:
+                receiver_photo_url = "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/icons/person-circle.svg"
 
             if not verify_calendar_share(calendar_id, owner_uid, receiver_uid):
                 continue
@@ -372,8 +378,8 @@ def handle_shared_users(calendar_id):
                 "receiver_uid": receiver_uid,
                 "access": access,
                 "accepted": accepted,
-                "photo_url": photo_url,
-                "display_name": display_name,
+                "receiver_photo_url": receiver_photo_url,
+                "receiver_name": receiver_name,
                 "receiver_email": receiver_email
             })
 
@@ -502,15 +508,6 @@ def handle_update_shared_user_calendar_medicines(calendar_id):
             )
 
         doc_2_ref = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).collection("medicines")
-        if not doc_2_ref.get():
-            return warning_response(
-                message="Calendrier introuvable.", 
-                code="SHARED_USER_CALENDAR_MEDICINES_UPDATE_ERROR", 
-                status_code=404, 
-                uid=owner_uid, 
-                origin="SHARED_USER_CALENDAR_MEDICINES_UPDATE",
-                log_extra={"calendar_id": calendar_id}
-            )
             
         for med_doc in doc_2_ref.stream():
             med_doc.reference.delete()
@@ -523,6 +520,7 @@ def handle_update_shared_user_calendar_medicines(calendar_id):
             code="SHARED_USER_CALENDAR_MEDICINES_UPDATE_SUCCESS", 
             uid=receiver_uid, 
             origin="SHARED_USER_CALENDAR_MEDICINES_UPDATE",
+            data={"medicines": medicines},
             log_extra={"calendar_id": calendar_id}
         )
 

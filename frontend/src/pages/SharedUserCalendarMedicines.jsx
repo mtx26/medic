@@ -36,19 +36,23 @@ function SharedUserCalendarMedicines({ medicines, calendars, sharedUsers }) {
   };
 
   const handleMedChange = (id, field, value) => {
-    const updated = [...medicinesData];
+    const index = medicinesData.findIndex((med) => med.id === id);
+    if (index === -1) return; // id introuvable, on ne fait rien
+  
+    const updated = [...medicinesData]; // copie du tableau
     const numericFields = ['tablet_count', 'interval_days'];
   
     if (field === 'time') {
-      updated[id][field] = [value];
+      updated[index][field] = [value];
     } else if (numericFields.includes(field)) {
-      updated[id][field] = value === '' ? '' : parseFloat(value);
+      updated[index][field] = value === '' ? '' : parseFloat(value);
     } else {
-      updated[id][field] = value;
+      updated[index][field] = value;
     }
   
     setMedicinesData(updated);
   };
+  
 
   const isMedValid = (med) => {
     const hasName = typeof med.name === 'string' && med.name.trim() !== '';
@@ -149,8 +153,8 @@ function SharedUserCalendarMedicines({ medicines, calendars, sharedUsers }) {
               setAlertMessage("❌ Confirmez-vous la suppression des médicaments sélectionnés ?");
               setOnConfirmAction(() => async () => {
                 const rep = await sharedUsers.deleteSharedUserCalendarMedicines(calendarId, checked, medicinesData);
-                console.log(checked);
                 if (rep.success) {
+                  setMedicinesData(rep.medicinesData);
                   setAlertMessage("✅ "+rep.message);
                   setAlertType("success");
                 } else {
@@ -180,12 +184,14 @@ function SharedUserCalendarMedicines({ medicines, calendars, sharedUsers }) {
               setOnConfirmAction(() => async () => {
                 const rep = await sharedUsers.updateSharedUserCalendarMedicines(calendarId, medicinesData);
                 if (rep.success) {
+                  setMedicinesData(rep.medicinesData);
+                  setOriginalMedicinesData(rep.originalMedicinesData);
                   setAlertMessage("✅ "+rep.message);
                   setAlertType("success");
                 } else {
                   setAlertMessage("❌ "+rep.error);
                   setAlertType("danger");
-                  medicines.setMedicinesData(JSON.parse(JSON.stringify(medicines.originalMedicinesData)));
+                  setMedicinesData(JSON.parse(JSON.stringify(originalMedicinesData)));
                 }
                 setTimeout(() => {
                   setAlertMessage("");

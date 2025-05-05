@@ -427,21 +427,34 @@ function SharedList({ sharedTokens, calendars, sharedUsers, invitations }) {
                   <li key={user.receiver_uid} className="list-group-item px-3">
                     <div className="row align-items-center g-2">
 
-                      <div 
-                        className={`d-flex align-items-center gap-2 col-md-4`}
-                        onMouseEnter={() => setHoveredUser(user.receiver_uid)}
-                        onMouseLeave={() => setHoveredUser(null)}
-                        style={{ cursor: 'pointer', position: 'relative' }}
-                      >
-                        
-                        {/* Image */}
-                        <div className="">
-                          <img src={user.photo_url} alt="Profil" className="rounded-circle" style={{ width: "40px", height: "40px" }} />
-                        </div>
+                      <div className={`d-flex align-items-center gap-2 col-md-4`}>
+                        <div
+                          className="d-flex align-items-center gap-2"
+                          onMouseEnter={() => setHoveredUser(user.receiver_uid)}
+                          onMouseLeave={() => setHoveredUser(null)}
+                          style={{ cursor: 'pointer', position: 'relative' }}
+                        >
+                          {/* Image */}
+                          <div>
+                            <img src={user.receiver_photo_url} alt="Profil" className="rounded-circle" style={{ width: "40px", height: "40px" }} />
+                          </div>
 
-                        {/* Nom */}
-                        <div className="">
-                          <strong>{user.display_name}</strong>
+                          {/* Nom */}
+                          <div className="">
+                            <strong>
+                              {user.receiver_name}
+                              </strong>
+                          </div>
+                          {hoveredUser === user.receiver_uid && (
+                            <HoveredUserProfile
+                              user={{
+                                photo_url: user.receiver_photo_url,
+                                display_name: user.receiver_name,
+                                email: user.receiver_email
+                              }}
+                              style={{ position: 'absolute', top: '0%', left: '110%', transform: 'translatey(-40%)' }}
+                            />
+                          )}
                         </div>
 
                         {/* Statut */}
@@ -450,18 +463,6 @@ function SharedList({ sharedTokens, calendars, sharedUsers, invitations }) {
                             {user.accepted ? "Accepté" : "En attente"}
                           </span>
                         </div>
-
-                        {/* Tooltip */}
-                        {hoveredUser === user.receiver_uid && (
-                          <HoveredUserProfile
-                            user={{
-                              photo_url: user.photo_url,
-                              display_name: user.display_name,
-                              receiver_email: user.receiver_email
-                            }}
-                            style={{ position: 'absolute', bottom: '110%', left: '50%', transform: 'translateX(-50%)' }}
-                          />
-                        )}
                   
                       </div>
 

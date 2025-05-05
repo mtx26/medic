@@ -237,7 +237,7 @@ function SelectCalendar({ calendars, sharedTokens, invitations, sharedUsers }) {
                           <div className="d-flex align-items-center gap-2">
                             <img src={user.photo_url} alt="Profil" className="rounded-circle" style={{ width: "40px", height: "40px" }}/>
                             <span>
-                              <strong>{user.display_name}</strong><br />
+                              <strong>{user.receiver_name}</strong><br />
                               Accès : {user.access}
                             </span>
                             <span className={`badge ${user.accepted ? "bg-success" : "bg-warning text-dark"}`}>
@@ -248,7 +248,11 @@ function SelectCalendar({ calendars, sharedTokens, invitations, sharedUsers }) {
                           {/* Tooltip */}
                           {hoveredUser === user.receiver_uid && (
                             <HoveredUserProfile
-                              user={user}
+                              user={{
+                                email: user.receiver_email,
+                                display_name: user.receiver_name,
+                                photo_url: user.receiver_photo_url
+                              }}
                               style={{ top: '110%', left: '25%', transform: 'translateX(-50%)' }}
                             />
                           )}
@@ -570,10 +574,23 @@ function SelectCalendar({ calendars, sharedTokens, invitations, sharedUsers }) {
             </div>
             <div className="text-muted small">
               Propriétaire :
-              <span className="fw-semibold ms-1"
-              
+              <span 
+                className="fw-semibold ms-1 relative"
+                onMouseEnter={() => setHoveredUser(calendarData.owner_uid)}
+                onMouseLeave={() => setHoveredUser(null)}
+                style={{ cursor: 'pointer' }}
               >
                 {calendarData.owner_name}
+                {hoveredUser === calendarData.owner_uid && (
+                  <HoveredUserProfile
+                    user={{
+                      email: calendarData.owner_email,
+                      display_name: calendarData.owner_name,
+                      photo_url: calendarData.owner_photo_url
+                    }}
+                    style={{ top: '110%', left: '25%', transform: 'translateX(-50%)' }}
+                  />
+                )}
               </span>
             </div>
           </div>

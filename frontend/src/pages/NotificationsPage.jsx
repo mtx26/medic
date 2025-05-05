@@ -66,7 +66,7 @@ function NotificationsPage({ notifications, invitations }) {
                             user={{
                               photo_url: notif.owner_photo_url,
                               display_name: notif.owner_name,
-                              receiver_email: notif.owner_email
+                              email: notif.owner_email
                             }}
                             style={{ position: 'absolute', top: '0%', left: '110%', transform: 'translatey(-40%)' }}
                           />
@@ -93,7 +93,7 @@ function NotificationsPage({ notifications, invitations }) {
                           user={{
                             photo_url: notif.receiver_photo_url,
                             display_name: notif.receiver_name,
-                            receiver_email: notif.receiver_email
+                            email: notif.receiver_email
                           }}
                           style={{ position: 'absolute', top: '0%', left: '110%', transform: 'translatey(-40%)' }}
                         />
@@ -117,7 +117,7 @@ function NotificationsPage({ notifications, invitations }) {
                         user={{
                           photo_url: notif.receiver_photo_url,
                           display_name: notif.receiver_name,
-                          receiver_email: notif.receiver_email
+                          email: notif.receiver_email
                         }}
                         style={{ top: '110%', left: '25%', transform: 'translateX(-50%)' }}
                       />
@@ -141,7 +141,7 @@ function NotificationsPage({ notifications, invitations }) {
                           user={{
                             photo_url: notif.owner_photo_url,
                             display_name: notif.owner_name,
-                            receiver_email: notif.owner_email
+                            email: notif.owner_email
                           }}
                           style={{ position: 'absolute', top: '0%', left: '110%', transform: 'translatey(-40%)' }}
                         />
@@ -165,7 +165,7 @@ function NotificationsPage({ notifications, invitations }) {
                           user={{
                             photo_url: notif.receiver_photo_url,
                             display_name: notif.receiver_name,
-                            receiver_email: notif.receiver_email
+                            email: notif.receiver_email
                           }}
                           style={{ position: 'absolute', top: '0%', left: '110%', transform: 'translatey(-40%)' }}
                         />

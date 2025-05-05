@@ -24,9 +24,10 @@ def handle_user_info(search_user_id):
                 log_extra={"user_id": user_id, "search_user": search_user_id}
             )
         
-        display_name = search_user_doc.get().to_dict().get("display_name")
-        photo_url = search_user_doc.get().to_dict().get("photo_url")
-        email = search_user_doc.get().to_dict().get("email")
+        user_doc = search_user_doc.get().to_dict()
+        display_name = user_doc.get("display_name")
+        photo_url = user_doc.get("photo_url")
+        email = user_doc.get("email")
 
         if not photo_url:
             photo_url = "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/icons/person-circle.svg"

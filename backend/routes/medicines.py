@@ -18,14 +18,13 @@ def get_medicines(calendar_id):
 
         doc = db.collection("users").document(uid).collection("calendars").document(calendar_id).collection("medicines").get()
         if not doc:
-            return warning_response(
-                message="Calendrier introuvable", 
-                code="CALENDAR_NOT_FOUND", 
-                status_code=404, 
+            return success_response(
+                message="Médicaments récupérés avec succès", 
+                code="MED_FETCH_SUCCESS", 
                 uid=uid, 
                 origin="MED_FETCH",
-                log_extra={"calendar_id": calendar_id}
-            )       
+                data={"medicines": []},
+            )
         medicines = [med.to_dict() for med in doc]
 
         return success_response(
@@ -66,19 +65,12 @@ def update_medicines(calendar_id):
                 log_extra={"calendar_id": calendar_id}
             )
         
-        print(medicines)
 
 
         doc = db.collection("users").document(uid).collection("calendars").document(calendar_id).collection("medicines")
-        if not doc.get():
-            return warning_response(
-                message="Calendrier introuvable", 
-                code="CALENDAR_NOT_FOUND", 
-                status_code=404, 
-                uid=uid, 
-                origin="MED_UPDATE",
-                log_extra={"calendar_id": calendar_id}
-            )
+            
+        for med in doc.stream():
+            med.reference.delete()
 
         for med in medicines:
             doc.document(med["id"]).set(med)
@@ -88,6 +80,7 @@ def update_medicines(calendar_id):
             code="MED_UPDATE_SUCCESS", 
             uid=uid, 
             origin="MED_UPDATE",
+            data={"medicines": medicines},
             log_extra={"calendar_id": calendar_id}
         )
 
