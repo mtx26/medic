@@ -6,10 +6,13 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import frLocale from '@fullcalendar/core/locales/fr';
 import { AuthContext } from '../contexts/LoginContext';
+
 function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
 
   // 📍 Paramètres d’URL et navigation
   const navigate = useNavigate(); // Hook de navigation
+  const location = useLocation();
+  const params = useParams();
 
   // 🔐 Contexte d'authentification
   const { authReady, currentUser } = useContext(AuthContext); // Contexte de l'utilisateur connecté
@@ -42,10 +45,6 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
       setCalendarsData: null,
     }
   };
-  
-
-  const location = useLocation();
-  const params = useParams();
 
   let calendarType = 'personal';
   let calendarId = params.calendarId;

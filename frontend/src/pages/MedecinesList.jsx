@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
-function SharedTokenCalendarMedicines({ tokenCalendars }) {
+function MedicinesList({ tokenCalendars }) {
   // 📍 Paramètres d’URL et navigation
   const { sharedToken } = useParams(); // Récupération du token de partage depuis l'URL
   const navigate = useNavigate(); // Hook de navigation
@@ -81,4 +81,4 @@ function SharedTokenCalendarMedicines({ tokenCalendars }) {
   );
 }
 
-export default SharedTokenCalendarMedicines;
+export default MedicinesList;

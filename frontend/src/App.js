@@ -361,7 +361,7 @@ function App() {
   }, [updatePersonalCalendarMedicines]);
   
   // Fonction pour ajouter un nouveau médicament sanq la variable medicines
-  const addPersonalCalendarMedicine = useCallback((medicinesData) => {
+  const addMedicine = useCallback((medicinesData) => {
     // générer un id unique a 16 caractères
     const id = generateHexToken();
     const newMedicinesData = [
@@ -998,7 +998,7 @@ function App() {
       addCalendar,
       renameCalendar,
       deleteCalendar,
-      addPersonalCalendarMedicine,
+      addMedicine,
       updatePersonalCalendarMedicines,
       deletePersonalCalendarMedicines,
       calendarsData,
@@ -1018,6 +1018,7 @@ function App() {
       deleteSharedUserCalendarMedicines,
       deleteSharedUser,
       deleteSharedCalendar,
+      addMedicine,
       sharedCalendarsData,
       setSharedCalendarsData,
     },

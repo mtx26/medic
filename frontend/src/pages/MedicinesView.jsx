@@ -1,13 +1,14 @@
 // MedicamentsPage.jsx
 import React, { useEffect, useState, useContext, useRef } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { AuthContext } from '../contexts/LoginContext';
 import AlertSystem from '../components/AlertSystem';
 
-function SharedUserCalendarMedicines({ sharedUserCalendars, personalCalendars }) {
+function MedicinesView({ personalCalendars, sharedUserCalendars }) {
   // 📍 Paramètres d’URL et navigation
-  const { calendarId } = useParams(); // Récupération du nom du calendrier depuis l'URL
   const navigate = useNavigate(); // Hook de navigation
+  const location = useLocation();
+  const params = useParams();
 
   // 🔐 Contexte d'authentification
   const { authReady, currentUser } = useContext(AuthContext); // Contexte de l'utilisateur connecté
@@ -18,16 +19,49 @@ function SharedUserCalendarMedicines({ sharedUserCalendars, personalCalendars })
   const [onConfirmAction, setOnConfirmAction] = useState(null); // État pour l'action à confirmer
 
   // 📦 Données & interface
-  const [loadingMedicines, setLoadingMedicines] = useState(); // État de chargement des médicaments
-  const [highlightedId, setHighlightedId] = useState(null); // État pour l'élément mis en évidence dans la liste
-  const [medicinesData, setMedicinesData] = useState([]); // Liste des médicaments du calendrier partagé
-  const [originalMedicinesData, setOriginalMedicinesData] = useState([]); // Liste des médicaments d’origine
-  const lastMedRef = useRef(null); // Référence vers le dernier médicament affiché
   const [checked, setChecked] = useState([]); // Médicaments cochés pour suppression
+  const [medicinesData, setMedicinesData] = useState([]); // Liste des médicaments du calendrier actif
+  const [originalMedicinesData, setOriginalMedicinesData] = useState([]); // Liste des médicaments d’origine
+  const [loadingMedicines, setLoadingMedicines] = useState(undefined); // État de chargement des médicaments
+  const [highlightedId, setHighlightedId] = useState(null); // État pour l'élément mis en évidence dans la liste
+  const lastMedRef = useRef(null); // Référence vers le dernier médicament affiché
 
-  // 🔄 Détection de modifications
+  // 🔄 Modifications
   const hasChanges = JSON.stringify(medicinesData) !== JSON.stringify(originalMedicinesData); // Détection des changements dans les médicaments
 
+  const calendarSourceMap = {
+    personal: {
+      fetchMedicines: personalCalendars.fetchPersonalCalendarMedicines,
+      fetchCalendar: personalCalendars.fetchPersonalCalendars,
+      setCalendarsData: personalCalendars.setCalendarsData,
+      calendarsData: personalCalendars.calendarsData,
+      addMedicine: personalCalendars.addMedicine,
+      deleteMedicines: personalCalendars.deletePersonalCalendarMedicines,
+      updateMedicines: personalCalendars.updatePersonalCalendarMedicines,
+    },
+    sharedUser: {
+      fetchMedicines: sharedUserCalendars.fetchSharedUserCalendarMedicines,
+      fetchCalendar: sharedUserCalendars.fetchSharedCalendars,
+      setCalendarsData: sharedUserCalendars.setSharedCalendarsData,
+      calendarsData: sharedUserCalendars.sharedCalendarsData,
+      addMedicine: sharedUserCalendars.addMedicine,
+      deleteMedicines: sharedUserCalendars.deleteSharedUserCalendarMedicines,
+      updateMedicines: sharedUserCalendars.updateSharedUserCalendarMedicines,
+    },
+  };
+  
+
+  let calendarType = 'personal';
+  let calendarId = params.calendarId;
+  let basePath = 'calendars';
+
+  if (location.pathname.startsWith('/shared-user-calendar')) {
+    calendarType = 'sharedUser';
+    calendarId = params.calendarId;
+    basePath = 'shared-user-calendar';
+  }
+
+  const calendarSource = calendarSourceMap[calendarType];
 
   const toggleSelection = (id) => {
     setChecked((prev) =>
@@ -78,14 +112,17 @@ function SharedUserCalendarMedicines({ sharedUserCalendars, personalCalendars })
   
     return hasName && hasTabletCount && hasValidTime && hasInterval && hasValidStartDate;
   };
+  
+  
 
   const allMedsValid = medicinesData.length > 0 && medicinesData.every(isMedValid);
 
   useEffect(() => {
     const load = async () => {
       if (authReady && currentUser && calendarId) {
-        await sharedUserCalendars.fetchSharedCalendars();
-        const rep = await sharedUserCalendars.fetchSharedUserCalendarMedicines(calendarId);
+        calendarSource.setCalendarsData([]);
+        await calendarSource.fetchCalendar(calendarId);
+        const rep = await calendarSource.fetchMedicines(calendarId);
         if (rep.success) {
           setMedicinesData(rep.medicinesData);
           setOriginalMedicinesData(rep.originalMedicinesData);
@@ -117,7 +154,7 @@ function SharedUserCalendarMedicines({ sharedUserCalendars, personalCalendars })
         <div className="d-flex justify-content-start mb-3">
           <button
             className="btn btn-outline-primary"
-            onClick={() => navigate(`/shared-user-calendar/${calendarId}`)}
+            onClick={() => navigate(`/calendars/${calendarId}`)}
             title="Retour au calendrier"
           >
             <i className="bi bi-calendar-date"></i>
@@ -131,12 +168,13 @@ function SharedUserCalendarMedicines({ sharedUserCalendars, personalCalendars })
 
         <div className="d-flex flex-wrap gap-2 my-3">
           <button 
-            onClick={async () => {
-              const rep = await personalCalendars.addPersonalCalendarMedicine(medicinesData);
+            onClick={() => {
+              const rep = calendarSource.addMedicine(medicinesData);
               if (rep.success) {
                 setMedicinesData(rep.medicinesData);
-                setHighlightedId(rep.id);
+                setOriginalMedicinesData(rep.originalMedicinesData);
               }
+              setHighlightedId(rep.id);
               setTimeout(() => setHighlightedId(null), 2000);
               setTimeout(() => lastMedRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
             }}
@@ -152,10 +190,11 @@ function SharedUserCalendarMedicines({ sharedUserCalendars, personalCalendars })
               setAlertType("confirm-danger");
               setAlertMessage("❌ Confirmez-vous la suppression des médicaments sélectionnés ?");
               setOnConfirmAction(() => async () => {
-                const rep = await sharedUserCalendars.deleteSharedUserCalendarMedicines(calendarId, checked, medicinesData);
+                const rep = await calendarSource.deleteMedicines(calendarId, checked, medicinesData);
                 if (rep.success) {
                   setMedicinesData(rep.medicinesData);
                   setChecked([]);
+                  setOriginalMedicinesData(rep.originalMedicinesData);
                   setAlertMessage("✅ "+rep.message);
                   setAlertType("success");
                 } else {
@@ -183,12 +222,12 @@ function SharedUserCalendarMedicines({ sharedUserCalendars, personalCalendars })
               setAlertType("confirm-safe");
               setAlertMessage("✅ Enregistrer les modifications de médicaments ?");
               setOnConfirmAction(() => async () => {
-                const rep = await sharedUserCalendars.updateSharedUserCalendarMedicines(calendarId, medicinesData);
+                const rep = await calendarSource.updateMedicines(calendarId, medicinesData);
                 if (rep.success) {
-                  setMedicinesData(rep.medicinesData);
-                  setOriginalMedicinesData(rep.originalMedicinesData);
                   setAlertMessage("✅ "+rep.message);
                   setAlertType("success");
+                  setMedicinesData(rep.medicinesData);
+                  setOriginalMedicinesData(rep.originalMedicinesData);
                 } else {
                   setAlertMessage("❌ "+rep.error);
                   setAlertType("danger");
@@ -252,7 +291,7 @@ function SharedUserCalendarMedicines({ sharedUserCalendars, personalCalendars })
                         className="form-control form-control-sm"
                         id={`name-${med.id}`}
                         placeholder="Nom"
-                        value={med.name}
+                        value={med?.name || ''}
                         onChange={(e) => handleMedChange(med.id, 'name', e.target.value)}
                       />
                       <label htmlFor={`name-${med.id}`}>Nom</label>
@@ -268,7 +307,7 @@ function SharedUserCalendarMedicines({ sharedUserCalendars, personalCalendars })
                         className="form-control form-control-sm"
                         id={`comps-${med.id}`}
                         placeholder="Comprimés"
-                        value={med.tablet_count ?? ''}
+                        value={med?.tablet_count ?? ''}
                         onChange={(e) => handleMedChange(med.id, 'tablet_count', e.target.value)}
                       />
                       <label htmlFor={`comps-${med.id}`}>Comprimés</label>
@@ -281,7 +320,7 @@ function SharedUserCalendarMedicines({ sharedUserCalendars, personalCalendars })
                       <select
                         className="form-select form-select-sm"
                         id={`moment-${med.id}`}
-                        value={med.time[0]}
+                        value={med?.time[0] || ''}
                         onChange={(e) => handleMedChange(med.id, 'time', e.target.value)}
                       >
                         <option value="" disabled hidden>Choisir</option>
@@ -301,7 +340,7 @@ function SharedUserCalendarMedicines({ sharedUserCalendars, personalCalendars })
                         className="form-control form-control-sm"
                         id={`interval-${med.id}`}
                         placeholder="Intervalle"
-                        value={med.interval_days ?? ''}
+                        value={med?.interval_days ?? ''}
                         onChange={(e) => handleMedChange(med.id, 'interval_days', e.target.value)}
                       />
                       <label htmlFor={`interval-${med.id}`}>Intervalle</label>
@@ -316,7 +355,7 @@ function SharedUserCalendarMedicines({ sharedUserCalendars, personalCalendars })
                         className="form-control form-control-sm"
                         id={`start-${med.id}`}
                         placeholder="Date de début"
-                        value={med.start_date || ''}
+                        value={med?.start_date || ''}
                         onChange={(e) => handleMedChange(med.id, 'start_date', e.target.value)}
                       />
                       <label htmlFor={`start-${med.id}`}>Date de début</label>
@@ -334,4 +373,4 @@ function SharedUserCalendarMedicines({ sharedUserCalendars, personalCalendars })
   );
 }
 
-export default SharedUserCalendarMedicines;
+export default MedicinesView;
