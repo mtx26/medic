@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
-function SharedTokenCalendarMedicines({ medicines, sharedTokens }) {
+function SharedTokenCalendarMedicines({ tokenCalendars }) {
   // 📍 Paramètres d’URL et navigation
   const { sharedToken } = useParams(); // Récupération du token de partage depuis l'URL
   const navigate = useNavigate(); // Hook de navigation
@@ -14,7 +14,7 @@ function SharedTokenCalendarMedicines({ medicines, sharedTokens }) {
   useEffect(() => {
     const fetchShared = async () => {
       if (sharedToken) {
-        const rep = await sharedTokens.fetchSharedTokenMedicines(sharedToken);
+        const rep = await tokenCalendars.fetchTokenCalendarMedicines(sharedToken);
         if (rep.success) {
           setMedicinesData(rep.medicinesData);
         }

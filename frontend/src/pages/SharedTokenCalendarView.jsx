@@ -7,7 +7,7 @@ import interactionPlugin from '@fullcalendar/interaction';
 import frLocale from '@fullcalendar/core/locales/fr';
 
 
-function SharedTokenCalendarView({ events, sharedTokens }) {
+function SharedTokenCalendarView({ tokenCalendars, personalCalendars }) {
 
   // 📍 Paramètres d’URL et navigation
   const { sharedToken } = useParams(); // Récupération du token de partage depuis l'URL
@@ -28,7 +28,7 @@ function SharedTokenCalendarView({ events, sharedTokens }) {
   const handleDateClick = (info) => {
     const clickedDate = info.dateStr;
     setSelectedDate(clickedDate);
-    setEventsForDay(events.calendarEvents.filter((event) => event.start.startsWith(clickedDate)));
+    setEventsForDay(personalCalendars.calendarEvents.filter((event) => event.start.startsWith(clickedDate)));
     new window.bootstrap.Modal(modalRef.current).show();
   };
 
@@ -38,14 +38,14 @@ function SharedTokenCalendarView({ events, sharedTokens }) {
     current.setDate(current.getDate() + direction);
     const newDate = current.toISOString().slice(0, 10);
     setSelectedDate(newDate);
-    setEventsForDay(events.calendarEvents.filter((event) => event.start.startsWith(newDate)));
+    setEventsForDay(personalCalendars.calendarEvents.filter((event) => event.start.startsWith(newDate)));
   };
   
   // Fonction pour charger le calendrier lorsque l'utilisateur est connecté
   useEffect(() => {
     const fetchShared = async () => {
       if (sharedToken) {
-        const rep = await sharedTokens.fetchSharedTokenCalendar(sharedToken);
+        const rep = await tokenCalendars.fetchTokenCalendarSchedule(sharedToken);
         setSuccessGetSharedCalendar(rep.success);
       }
     };
@@ -108,7 +108,7 @@ function SharedTokenCalendarView({ events, sharedTokens }) {
 
             <div>
               <button
-                onClick={() => events.getSharedTokenCalendar(sharedToken, startDate)}
+                onClick={() => tokenCalendars.fetchTokenCalendarSchedule(sharedToken, startDate)}
                 className="btn btn-outline-primary"
               >
                 <i className="bi bi-arrow-repeat"></i>
@@ -128,7 +128,7 @@ function SharedTokenCalendarView({ events, sharedTokens }) {
       <FullCalendar
         plugins={[dayGridPlugin, interactionPlugin]}
         initialView="dayGridMonth"
-        events={events.calendarEvents}
+        events={personalCalendars.calendarEvents}
         locale={frLocale}
         firstDay={1}
         dateClick={handleDateClick}

@@ -156,7 +156,7 @@ function App() {
   }, [fetchPersonalCalendars]);
 
   // Fonction pour obtenir le nombre de médicaments d'un calendrier 
-  const getMedicineCount = useCallback(async (calendarId) => {
+  const fetchPersonalCalendarMedicineCount = useCallback(async (calendarId) => {
     try {
       const token = await auth.currentUser.getIdToken();
       const res = await fetch(`${API_URL}/api/medicines/count?calendarId=${calendarId}`, {
@@ -187,7 +187,7 @@ function App() {
   }, []);
 
   // Fonction pour obtenir le nombre de médicaments d'un calendrier partagé
-  const getSharedMedicineCount = useCallback(async (calendarId, ownerUid) => {
+  const fetchSharedUserCalendarScheduleMedicineCount = useCallback(async (calendarId, ownerUid) => {
     try {
       const token = await auth.currentUser.getIdToken();
       const res = await fetch(`${API_URL}/api/medicines/shared/count?calendarId=${calendarId}&ownerUid=${ownerUid}`, {
@@ -222,7 +222,7 @@ function App() {
   
 
   // Fonction pour obtenir le calendrier lier au calendarId
-  const fetchCalendarEvents = useCallback(async (calendarId, startDate ) => {
+  const fetchPersonalCalendarSchedule = useCallback(async (calendarId, startDate ) => {
     try {
       if (!calendarId) {
         log.warn("Nom de calendrier non fourni, calendrier non chargé.", {
@@ -273,7 +273,7 @@ function App() {
 
 
   // Fonction pour obtenir les différents médicaments
-  const fetchCalendarMedicines = useCallback(async (calendarId) => {
+  const fetchPersonalCalendarMedicines = useCallback(async (calendarId) => {
     try {
       const token = await auth.currentUser.getIdToken();
       const res = await fetch(`${API_URL}/api/calendars/${calendarId}/medicines`, {
@@ -305,7 +305,7 @@ function App() {
   }, []);
   
   // Fonction pour modifier un médicament
-  const updateMedicines = useCallback(async (calendarId, medicinesData) => {
+  const updatePersonalCalendarMedicines = useCallback(async (calendarId, medicinesData) => {
     try {
       const token = await auth.currentUser.getIdToken();
       const res = await fetch(`${API_URL}/api/calendars/${calendarId}/medicines`, {
@@ -338,12 +338,12 @@ function App() {
   }, []);
 
   // Fonction pour supprimer des médicaments 
-  const deleteSelectedMedicines = useCallback(async (calendarId, checked, medicinesData) => {
+  const deletePersonalCalendarSelectedMedicines = useCallback(async (calendarId, checked, medicinesData) => {
     if (checked.length === 0) return false;
     const medicinesDataFiltered = medicinesData.filter((med) => !checked.includes(String(med.id)));
 
   
-    const rep = await updateMedicines(calendarId, medicinesDataFiltered);
+    const rep = await updatePersonalCalendarMedicines(calendarId, medicinesDataFiltered);
     if (rep.success) {
       log.info(rep.message, {
         origin: "MED_DELETE_SUCCESS",
@@ -361,10 +361,10 @@ function App() {
       });
       return {success: false, error: "Erreur lors de la suppression des médicaments", code: rep.code};
     }
-  }, [updateMedicines]);
+  }, [updatePersonalCalendarMedicines]);
   
   // Fonction pour ajouter un nouveau médicament sanq la variable medicines
-  const addMedicine = useCallback((medicinesData) => {
+  const addPersonalCalendarMedicine = useCallback((medicinesData) => {
     // générer un id unique a 16 caractères
     const id = generateHexToken();
     const newMedicinesData = [
@@ -379,7 +379,7 @@ function App() {
 
 
   // Fonction pour recupérer un calendrier partagé par un token
-  const fetchSharedTokenCalendar = useCallback(async (token, startDate) => {
+  const fetchTokenCalendarSchedule = useCallback(async (token, startDate) => {
     try {
       if (!startDate) {
         startDate = new Date().toISOString().slice(0, 10);
@@ -406,7 +406,7 @@ function App() {
   }, [setCalendarEvents]);
 
   // Fonction pour récupérer les médicaments d'un calendrier partagé
-  const fetchSharedTokenMedicines = useCallback(async (token) => {
+  const fetchTokenCalendarMedicines = useCallback(async (token) => {
     try {
       const  res = await fetch(`${API_URL}/api/tokens/${token}/medecines`, {
         method: "GET",
@@ -849,7 +849,7 @@ function App() {
   }, []);
 
   // Fonction pour recup le calendrier partagé par un utilisateur
-  const fetchSharedUserCalendar = useCallback(async (calendarId, startDate) => {
+  const fetchSharedUserCalendarSchedule = useCallback(async (calendarId, startDate) => {
     try {
       if (!startDate) {
         startDate = new Date().toISOString().split('T')[0];
@@ -882,7 +882,7 @@ function App() {
   }, [setCalendarEvents]);
 
   // Fonction pour récupérer les médicaments d’un calendrier partagé par un utilisateur
-  const fetchSharedUserCalendarMedicines = useCallback(async (calendarId) => {
+  const fetchSharedUserCalendarScheduleMedicines = useCallback(async (calendarId) => {
     try {
       const token = await auth.currentUser.getIdToken();
       const res = await fetch(`${API_URL}/api/shared/users/calendars/${calendarId}/medicines`, {
@@ -990,75 +990,58 @@ function App() {
   }, []);
   
 
-  // 🔗 PROPS SHARED
   const sharedProps = {
-    // 📅 CALENDRIERS
-    calendars: {
-      calendarsData, setCalendarsData,                 // Liste des calendriers de l’utilisateur
-      sharedCalendarsData, setSharedCalendarsData,     // Liste des calendriers partagés
-      fetchPersonalCalendars,                                  // Récupération des calendriers (Firestore)
-      fetchSharedCalendars,                            // Récupération des calendriers partagés
-      addCalendar,                                     // Création d’un nouveau calendrier
-      deleteCalendar,                                  // Suppression d’un calendrier existant
-      deleteSharedCalendar,                            // Suppression d’un calendrier partagé
-      renameCalendar,                                  // Renommage d’un calendrier
-      getMedicineCount,                                // Nombre de médicaments dans un calendrier
-      getSharedMedicineCount,                          // Nombre de médicaments dans un calendrier partagé
+    personalCalendars: {
+      fetchPersonalCalendars,
+      addCalendar,
+      deleteCalendar,
+      renameCalendar,
+      fetchPersonalCalendarMedicineCount,
+      fetchPersonalCalendarSchedule,
+      calendarEvents,
+      setCalendarEvents,
+      setCalendarsData,
+      calendarsData,
+      updatePersonalCalendarMedicines,
+      deletePersonalCalendarSelectedMedicines,
+      addPersonalCalendarMedicine,
+      fetchPersonalCalendarMedicines,
     },
-  
-    // 🗓️ ÉVÉNEMENTS DU CALENDRIER
-    events: {
-      calendarEvents, setCalendarEvents,              // Événements affichés dans le calendrier
-      calendarsData, setCalendarsData,                // (Redondant, mais peut être utile si nécessaire localement)
-      fetchCalendarEvents,                            // Chargement des données d’un calendrier
+    sharedUserCalendars: {
+      sharedCalendarsData,
+      setSharedCalendarsData,
+      fetchSharedCalendars,
+      deleteSharedCalendar,
+      fetchSharedUserCalendarSchedule,
+      fetchSharedUserCalendarScheduleMedicines,
+      updateSharedUserCalendarMedicines,
+      deleteSharedUserCalendarMedicines,
+      fetchSharedUsers,
+      deleteSharedUser,
+      sendInvitation,
+      acceptInvitation,
+      rejectInvitation,
+      fetchSharedUserCalendarScheduleMedicineCount,
     },
-  
-    // 💊 MÉDICAMENTS
-    medicines: {
-      updateMedicines,                                     // Mise à jour des médicaments dans Firestore
-      deleteSelectedMedicines,                             // Suppression des médicaments sélectionnés
-      addMedicine,                                         // Ajout d’un nouveau médicament
-      fetchCalendarMedicines,                        // Récupération des médicaments d’un calendrier
+    tokenCalendars: {
+      tokensList,
+      setTokensList,
+      fetchTokens,
+      createToken,
+      deleteToken,
+      updateRevokeToken,
+      updateTokenExpiration,
+      updateTokenPermissions,
+      fetchTokenCalendarSchedule,
+      fetchTokenCalendarMedicines,
     },
-  
-    // 🔗 LIENS DE PARTAGE (TOKENS)
-    sharedTokens: {
-      tokensList, setTokensList,                      // Liste des tokens
-      fetchTokens,                                    // Récupération des tokens
-      createToken,                      // Création d’un lien de partage
-      deleteToken,                      // Suppression d’un lien de partage
-      updateRevokeToken,                              // Révoquer un token ou le réactiver
-      updateTokenExpiration,                          // Mettre à jour l'expiration d'un token
-      updateTokenPermissions,                         // Mettre à jour les permissions d'un token
-      fetchSharedTokenCalendar,                       // Récupération d’un calendrier partagé
-      fetchSharedTokenMedicines,                        // Récupération des médicaments partagés
-    },
-  
-    // 👥 UTILISATEURS PARTAGÉS
-    sharedUsers: {
-      fetchSharedUsers,                               // Récupération des utilisateurs partagés
-      deleteSharedUser,                               // Suppression d’un utilisateur partagé
-      fetchSharedUserCalendar,                        // Récupération d’un calendrier partagé
-      fetchSharedUserCalendarMedicines,               // Récupération des médicaments d’un calendrier partagé
-      updateSharedUserCalendarMedicines,              // Mise à jour des médicaments d’un calendrier partagé
-      deleteSharedUserCalendarMedicines,              // Suppression des médicaments d’un calendrier partagé
-    },
-  
-    // ✉️ INVITATIONS
-    invitations: {
-      sendInvitation,                                 // Envoyer une invitation à un utilisateur
-      acceptInvitation,                               // Accepter une invitation
-      rejectInvitation,                               // Rejeter une invitation
-    },
-  
-    // 🔔 NOTIFICATIONS
     notifications: {
-      notificationsData, setNotificationsData,        // Liste des notifications
-      fetchNotifications,                             // Récupération des notifications
-      readNotification,                               // Marquer une notification comme lue
+      notificationsData,
+      setNotificationsData,
+      fetchNotifications,
+      readNotification,
     },
-  };
-  
+  };  
 
   const resetAppData = () => {
     // EVENTS

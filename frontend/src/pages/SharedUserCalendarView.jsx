@@ -7,7 +7,7 @@ import interactionPlugin from '@fullcalendar/interaction';
 import frLocale from '@fullcalendar/core/locales/fr';
 import { AuthContext } from '../contexts/LoginContext';
 
-function SharedUserCalendarView({ events, sharedUsers }) {
+function SharedUserCalendarView({ sharedUserCalendars, personalCalendars }) {
   const { authReady, currentUser } = useContext(AuthContext);
 
   // 📍 Paramètres d’URL et navigation
@@ -30,7 +30,7 @@ function SharedUserCalendarView({ events, sharedUsers }) {
   const handleDateClick = (info) => {
     const clickedDate = info.dateStr;
     setSelectedDate(clickedDate);
-    setEventsForDay(events.calendarEvents.filter((event) => event.start.startsWith(clickedDate)));
+    setEventsForDay(personalCalendars.calendarEvents.filter((event) => event.start.startsWith(clickedDate)));
     new window.bootstrap.Modal(modalRef.current).show();
   };
 
@@ -40,7 +40,7 @@ function SharedUserCalendarView({ events, sharedUsers }) {
     current.setDate(current.getDate() + direction);
     const newDate = current.toISOString().slice(0, 10);
     setSelectedDate(newDate);
-    setEventsForDay(events.calendarEvents.filter((event) => event.start.startsWith(newDate)));
+    setEventsForDay(personalCalendars.calendarEvents.filter((event) => event.start.startsWith(newDate)));
   };
   
   // Fonction pour charger le calendrier lorsque l'utilisateur est connecté
@@ -48,7 +48,7 @@ function SharedUserCalendarView({ events, sharedUsers }) {
     const fetchShared = async () => {
       if (authReady && currentUser) {
         if (calendarId) {
-          const rep = await sharedUsers.fetchSharedUserCalendar(calendarId);
+          const rep = await sharedUserCalendars.fetchSharedUserCalendarScheduleSchedule(calendarId);
           setSuccessGetSharedCalendar(rep.success);
         }
       }
@@ -111,7 +111,7 @@ function SharedUserCalendarView({ events, sharedUsers }) {
 
             <div>
               <button
-                onClick={() => events.getSharedTokenCalendar(calendarId, startDate)}
+                onClick={() => tokenCalendars.fetchTokenCalendarSchedule(calendarId, startDate)}
                 className="btn btn-outline-primary"
               >
                 <i className="bi bi-arrow-repeat"></i>
@@ -131,7 +131,7 @@ function SharedUserCalendarView({ events, sharedUsers }) {
       <FullCalendar
         plugins={[dayGridPlugin, interactionPlugin]}
         initialView="dayGridMonth"
-        events={events.calendarEvents}
+        events={personalCalendars.calendarEvents}
         locale={frLocale}
         firstDay={1}
         dateClick={handleDateClick}

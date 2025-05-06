@@ -7,7 +7,7 @@ import HoveredUserProfile from '../components/HoveredUserProfile';
 
 
 
-function SelectCalendar({ calendars, sharedTokens, invitations, sharedUsers }) {
+function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
 
   const navigate = useNavigate(); 
   const { authReady, currentUser } = useContext(AuthContext); // Contexte d'authentification
@@ -47,11 +47,11 @@ function SelectCalendar({ calendars, sharedTokens, invitations, sharedUsers }) {
     const load = async () => {
       if (authReady) { // authReady doit être prêt
         if (currentUser) {
-          calendars.setCalendarsData([]); // Bien vider l'ancien
+          personalCalendars.setCalendarsData([]); // Bien vider l'ancien
           setLoadingCalendars(true);
-          await calendars.fetchPersonalCalendars(); // Recharger pour le nouvel utilisateur
-          await calendars.fetchSharedCalendars(); // Recharger pour le nouvel utilisateur
-          await sharedTokens.fetchTokens();
+          await personalCalendars.fetchPersonalCalendars(); // Recharger pour le nouvel utilisateur
+          await sharedUserCalendars.fetchSharedCalendars(); // Recharger pour le nouvel utilisateur
+          await tokenCalendars.fetchTokens();
           setLoadingCalendars(false);
         } else {
           setLoadingCalendars(false);
@@ -64,19 +64,19 @@ function SelectCalendar({ calendars, sharedTokens, invitations, sharedUsers }) {
   
   // Chargement du nombre de médicaments pour chaque calendrier
   useEffect(() => {
-    if (authReady && currentUser && calendars.calendarsData.length > 0) {
+    if (authReady && currentUser && personalCalendars.calendarsData.length > 0) {
     const loadCounts = async () => {
       const counts = {};
-      for (const calendarData of calendars.calendarsData) {
-        const rep = await calendars.getMedicineCount(calendarData.calendar_id);
+      for (const calendarData of personalCalendars.calendarsData) {
+        const rep = await personalCalendars.fetchPersonalCalendarMedicineCount(calendarData.calendar_id);
         if (rep.success) {
           counts[calendarData.calendar_id] = rep.count;
         } else {
           counts[calendarData.calendar_id] = 0;
         }
       }
-      for (const calendarData of calendars.sharedCalendarsData) {
-        const rep = await calendars.getSharedMedicineCount(calendarData.calendar_id, calendarData.owner_uid);
+      for (const calendarData of sharedUserCalendars.sharedCalendarsData) {
+        const rep = await sharedUserCalendars.fetchSharedUserCalendarScheduleMedicineCount(calendarData.calendar_id, calendarData.owner_uid);
         if (rep.success) {
           counts[calendarData.calendar_id] = rep.count;
         } else {
@@ -87,7 +87,7 @@ function SelectCalendar({ calendars, sharedTokens, invitations, sharedUsers }) {
     };
     loadCounts();
     }
-  }, [calendars.calendarsData, calendars.sharedCalendarsData, authReady, currentUser]);
+  }, [personalCalendars.calendarsData, sharedUserCalendars.sharedCalendarsData, authReady, currentUser]);
 
   if (loadingCalendars) {
     return (
@@ -233,7 +233,7 @@ function SelectCalendar({ calendars, sharedTokens, invitations, sharedUsers }) {
                           key={user.receiver_uid} 
                           className="list-group-item d-flex justify-content-between align-items-center gap-2"
                         >
-                          <div className="d-flex align-items-center">
+                          <div className="d-flex align-items-center gap-2">
                             <HoveredUserProfile
                               user={{
                                 email: user.receiver_email,
@@ -280,7 +280,7 @@ function SelectCalendar({ calendars, sharedTokens, invitations, sharedUsers }) {
                     type="button"
                     className="btn btn-outline-primary"
                     onClick={async () => {
-                      const rep = await invitations.sendInvitation(emailToInvite, calendarIdToShare);
+                      const rep = await sharedUserCalendars.sendInvitation(emailToInvite, calendarIdToShare);
                       if (rep.success) {
                         setAlertType("success");
                         setSelectedAlert("calendar");
@@ -309,7 +309,7 @@ function SelectCalendar({ calendars, sharedTokens, invitations, sharedUsers }) {
                 type="button"
                 className="btn btn-outline-primary"
                 onClick={async () => {
-                  const rep = await sharedTokens.createToken(calendarIdToShare, expiresAt, permissions);
+                  const rep = await tokenCalendars.createToken(calendarIdToShare, expiresAt, permissions);
                   if (rep.success) {
                     try {
                       await navigator.clipboard.writeText(`${REACT_URL}/shared-token-calendar/${rep.token}`);
@@ -367,7 +367,7 @@ function SelectCalendar({ calendars, sharedTokens, invitations, sharedUsers }) {
       />
       <button
       onClick={async() => {
-        const rep = await calendars.addCalendar(newCalendarName);
+        const rep = await personalCalendars.addCalendar(newCalendarName);
         if (rep.success) {
           setAlertMessage("✅ " + rep.message);
           setAlertType("success");
@@ -404,7 +404,7 @@ function SelectCalendar({ calendars, sharedTokens, invitations, sharedUsers }) {
 
     {/* Liste des calendriers */}
     <div className="list-group">
-      {calendars.calendarsData.map((calendarData, index) => (
+      {personalCalendars.calendarsData.map((calendarData, index) => (
       <div
         key={index}
         className="list-group-item"
@@ -454,7 +454,7 @@ function SelectCalendar({ calendars, sharedTokens, invitations, sharedUsers }) {
             setSelectedAlert("calendar"+calendarData.calendar_id);
             setAlertMessage("✅ Confirmez-vous le renommage du calendrier ?");
             setOnConfirmAction(() => async () => {
-              const rep = await calendars.renameCalendar(calendarData.calendar_id, renameValues[calendarData.calendar_id]); // Renommage du calendrier
+              const rep = await personalCalendars.renameCalendar(calendarData.calendar_id, renameValues[calendarData.calendar_id]); // Renommage du calendrier
               if (rep.success) {
                 setRenameValues({ ...renameValues, [calendarData.calendar_id]: "" }); // Réinitialisation du champ
                 setAlertType("success");
@@ -491,10 +491,10 @@ function SelectCalendar({ calendars, sharedTokens, invitations, sharedUsers }) {
               setCalendarNameToShare(calendarData.calendar_name);  // On retient quel calendrier partager
               setCalendarIdToShare(calendarData.calendar_id);
               setExistingShareToken(null);
-              const token = await sharedTokens.tokensList.find(
+              const token = await tokenCalendars.tokensList.find(
                 (t) => t.calendar_id === calendarData.calendar_id && !t.revoked && t.owner_uid === currentUser.uid
               );
-              const rep = await sharedUsers.fetchSharedUsers(calendarData.calendar_id);
+              const rep = await sharedUserCalendars.fetchSharedUsers(calendarData.calendar_id);
               if (rep.success) {
                 setSharedUsersData(rep.data);
               }
@@ -515,7 +515,7 @@ function SelectCalendar({ calendars, sharedTokens, invitations, sharedUsers }) {
             setSelectedAlert("calendar"+calendarData.calendar_id);
             setAlertMessage("❌ Confirmez-vous la suppression du calendrier ?");
             setOnConfirmAction(() => async () => {
-              const rep = await calendars.deleteCalendar(calendarData.calendar_id);
+              const rep = await personalCalendars.deleteCalendar(calendarData.calendar_id);
               if (rep.success) {
                 setAlertType("success");
                 setSelectedAlert("calendar"+calendarData.calendar_id);
@@ -558,7 +558,7 @@ function SelectCalendar({ calendars, sharedTokens, invitations, sharedUsers }) {
 
     {/* Liste des calendriers partagés */}  
     <div className="list-group">
-      {calendars.sharedCalendarsData.map((calendarData, index) => (
+      {sharedUserCalendars.sharedCalendarsData.map((calendarData, index) => (
       <div key={index} className="list-group-item">
         <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
           <div className="flex-grow-1">
@@ -610,7 +610,7 @@ function SelectCalendar({ calendars, sharedTokens, invitations, sharedUsers }) {
                 setSelectedAlert("sharedCalendar");
                 setAlertMessage("❌ Confirmez-vous la suppression du calendrier partagé ?");
                 setOnConfirmAction(() => async () => {
-                  const rep = await calendars.deleteSharedCalendar(calendarData.calendar_id);
+                  const rep = await sharedUserCalendars.deleteSharedCalendar(calendarData.calendar_id);
                   if (rep.success) {
                     setAlertType("success");
                     setSelectedAlert("sharedCalendar");

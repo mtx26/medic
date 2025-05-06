@@ -1,7 +1,7 @@
 import React from "react";
 import HoveredUserProfile from "../components/HoveredUserProfile";
 
-function NotificationsPage({ notifications, invitations }) {
+function NotificationsPage({ notifications, sharedUserCalendars }) {
 
   return (
     <div className="container py-4">
@@ -46,13 +46,13 @@ function NotificationsPage({ notifications, invitations }) {
                         <div className="mt-2">
                           <button
                             className="btn btn-sm btn-outline-success me-2"
-                            onClick={() => invitations.acceptInvitation(notif.notification_id)}
+                            onClick={() => sharedUserCalendars.acceptInvitation(notif.notification_id)}
                           >
                             <i className="bi bi-check-circle-fill me-2 text-success"></i> Accepter
                           </button>
                           <button
                             className="btn btn-sm btn-outline-danger"
-                            onClick={() => invitations.rejectInvitation(notif.notification_id)}
+                            onClick={() => sharedUserCalendars.rejectInvitation(notif.notification_id)}
                           >
                             <i className="bi bi-x-circle-fill me-2 text-danger"></i> Rejeter
                           </button>

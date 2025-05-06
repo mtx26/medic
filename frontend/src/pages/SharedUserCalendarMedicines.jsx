@@ -4,7 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { AuthContext } from '../contexts/LoginContext';
 import AlertSystem from '../components/AlertSystem';
 
-function SharedUserCalendarMedicines({ medicines, calendars, sharedUsers }) {
+function SharedUserCalendarMedicines({ sharedUserCalendars, personalCalendars }) {
   // 📍 Paramètres d’URL et navigation
   const { calendarId } = useParams(); // Récupération du nom du calendrier depuis l'URL
   const navigate = useNavigate(); // Hook de navigation
@@ -84,8 +84,8 @@ function SharedUserCalendarMedicines({ medicines, calendars, sharedUsers }) {
   useEffect(() => {
     const load = async () => {
       if (authReady && currentUser && calendarId) {
-        await calendars.fetchSharedCalendars();
-        const rep = await sharedUsers.fetchSharedUserCalendarMedicines(calendarId);
+        await sharedUserCalendars.fetchSharedCalendars();
+        const rep = await sharedUserCalendars.fetchSharedUserCalendarScheduleScheduleMedicines(calendarId);
         if (rep.success) {
           setMedicinesData(rep.medicinesData);
           setOriginalMedicinesData(rep.originalMedicinesData);
@@ -132,7 +132,7 @@ function SharedUserCalendarMedicines({ medicines, calendars, sharedUsers }) {
         <div className="d-flex flex-wrap gap-2 my-3">
           <button 
             onClick={async () => {
-              const rep = await medicines.addMedicine(medicinesData);
+              const rep = await personalCalendars.addPersonalCalendarMedicine(medicinesData);
               if (rep.success) {
                 setMedicinesData(rep.medicinesData);
                 setHighlightedId(rep.id);
@@ -152,7 +152,7 @@ function SharedUserCalendarMedicines({ medicines, calendars, sharedUsers }) {
               setAlertType("confirm-danger");
               setAlertMessage("❌ Confirmez-vous la suppression des médicaments sélectionnés ?");
               setOnConfirmAction(() => async () => {
-                const rep = await sharedUsers.deleteSharedUserCalendarMedicines(calendarId, checked, medicinesData);
+                const rep = await sharedUserCalendars.deleteSharedUserCalendarMedicines(calendarId, checked, medicinesData);
                 if (rep.success) {
                   setMedicinesData(rep.medicinesData);
                   setAlertMessage("✅ "+rep.message);
@@ -182,7 +182,7 @@ function SharedUserCalendarMedicines({ medicines, calendars, sharedUsers }) {
               setAlertType("confirm-safe");
               setAlertMessage("✅ Enregistrer les modifications de médicaments ?");
               setOnConfirmAction(() => async () => {
-                const rep = await sharedUsers.updateSharedUserCalendarMedicines(calendarId, medicinesData);
+                const rep = await sharedUserCalendars.updateSharedUserCalendarMedicines(calendarId, medicinesData);
                 if (rep.success) {
                   setMedicinesData(rep.medicinesData);
                   setOriginalMedicinesData(rep.originalMedicinesData);

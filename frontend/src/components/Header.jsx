@@ -12,11 +12,9 @@ function Navbar({ sharedProps }) {
   const navigate = useNavigate();
 
   const { notificationsData, fetchNotifications, readNotification } = sharedProps.notifications;
-  const { acceptInvitation, rejectInvitation } = sharedProps.invitations;
-  const { fetchSharedCalendars } = sharedProps.calendars;
+  const { acceptInvitation, rejectInvitation } = sharedProps.sharedUserCalendars;
+  const { fetchSharedCalendars } = sharedProps.personalCalendars;
 
-  const [hoveredNotification, setHoveredNotification] = useState(null);
-  const refs = useRef({});
   useEffect(() => {
     if (authReady && currentUser) {
       fetchNotifications();

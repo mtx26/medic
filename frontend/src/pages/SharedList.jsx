@@ -5,7 +5,7 @@ import HoveredUserProfile from "../components/HoveredUserProfile";
 
 const REACT_URL = process.env.REACT_APP_REACT_URL;
 
-function SharedList({ sharedTokens, calendars, sharedUsers, invitations }) {
+function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) {
   // 🔐 Contexte d'authentification
   const { authReady, currentUser } = useContext(AuthContext); // Contexte de l'utilisateur connecté
 
@@ -36,25 +36,25 @@ function SharedList({ sharedTokens, calendars, sharedUsers, invitations }) {
   useEffect(() => {
     const load = async () => {
       if (authReady && currentUser) {
-        await sharedTokens.fetchTokens();
-        await calendars.fetchPersonalCalendars();
+        await tokenCalendars.fetchTokens();
+        await personalCalendars.fetchPersonalCalendars();
         setLoading(false);
       }
     };
     load();
-  }, [authReady, currentUser, calendars.fetchPersonalCalendars, sharedTokens.fetchTokens]);
+  }, [authReady, currentUser, personalCalendars.fetchPersonalCalendars, tokenCalendars.fetchTokens]);
 
   const setGroupedSharedFunction = async () => {
     const grouped = {};
 
-    for (const calendar of calendars.calendarsData) {
+    for (const calendar of personalCalendars.calendarsData) {
       grouped[calendar.calendar_id] = {
         tokens: [],
         users: [],
         calendar_name: calendar.calendar_name,
       };
 
-      const rep = await sharedUsers.fetchSharedUsers(calendar.calendar_id);
+      const rep = await sharedUserCalendars.fetchSharedUsers(calendar.calendar_id);
       if (rep.success) {
         grouped[calendar.calendar_id].users = rep.data;
       }
@@ -63,7 +63,7 @@ function SharedList({ sharedTokens, calendars, sharedUsers, invitations }) {
       setExpiresAt(prev => ({ ...prev, [calendar.calendar_id]: null }));
     }
 
-    for (const token of sharedTokens.tokensList) {
+    for (const token of tokenCalendars.tokensList) {
       if (grouped[token.calendar_id]) {
         grouped[token.calendar_id].tokens.push(token);
       }
@@ -74,10 +74,10 @@ function SharedList({ sharedTokens, calendars, sharedUsers, invitations }) {
   };
   
   useEffect(() => {
-    if (loading === false && authReady && currentUser && calendars.calendarsData) {
+    if (loading === false && authReady && currentUser && personalCalendars.calendarsData) {
       setGroupedSharedFunction();
     }
-  }, [loading, authReady, currentUser, calendars.calendarsData, sharedTokens.tokensList]);
+  }, [loading, authReady, currentUser, personalCalendars.calendarsData, tokenCalendars.tokensList]);
   
 
   if (loading || loadingGroupedShared) {
@@ -167,7 +167,7 @@ function SharedList({ sharedTokens, calendars, sharedUsers, invitations }) {
                           onChange={async (e) => {
                             const value = e.target.value;
                             if (value === "") {
-                              const rep = await sharedTokens.updateTokenExpiration(token.token, null);
+                              const rep = await tokenCalendars.updateTokenExpiration(token.token, null);
                               if (rep.success) {
                                 setAlertType("success");
                                 setAlertMessage("✅ "+rep.message);
@@ -178,7 +178,7 @@ function SharedList({ sharedTokens, calendars, sharedUsers, invitations }) {
                                 setAlertId(token.token);
                               }
                             } else {
-                              const rep = await sharedTokens.updateTokenExpiration(token.token, new Date().toISOString().slice(0, 16));
+                              const rep = await tokenCalendars.updateTokenExpiration(token.token, new Date().toISOString().slice(0, 16));
                               if (rep.success) {
                                 setAlertType("success");
                                 setAlertMessage("✅ "+rep.message);
@@ -207,7 +207,7 @@ function SharedList({ sharedTokens, calendars, sharedUsers, invitations }) {
                                 : ""
                             }
                             onChange={async (e) => {
-                              const rep = await sharedTokens.updateTokenExpiration(token.token, e.target.value + "T00:00")
+                              const rep = await tokenCalendars.updateTokenExpiration(token.token, e.target.value + "T00:00")
                               if (rep.success) {
                                 setAlertType("success");
                                 setAlertMessage("✅ "+rep.message);
@@ -232,7 +232,7 @@ function SharedList({ sharedTokens, calendars, sharedUsers, invitations }) {
                           className="form-select"
                           value={token.permissions}
                           onChange={async (e) => {
-                            const rep = await sharedTokens.updateTokenPermissions(token.token, e.target.value);
+                            const rep = await tokenCalendars.updateTokenPermissions(token.token, e.target.value);
                             if (rep.success) {
                               setAlertType("success");
                               setAlertMessage("✅ "+rep.message);
@@ -255,7 +255,7 @@ function SharedList({ sharedTokens, calendars, sharedUsers, invitations }) {
                         <button
                           className={`btn ${token.revoked ? 'btn-outline-danger' : 'btn-outline-success'}`}
                           onClick={async () => {
-                            const rep = await sharedTokens.updateRevokeToken(token.token)
+                            const rep = await tokenCalendars.updateRevokeToken(token.token)
                             if (rep.success) {
                               setAlertType("success");
                               setAlertMessage(token.revoked ? "✅ "+rep.message : "✅ "+rep.message);
@@ -277,7 +277,7 @@ function SharedList({ sharedTokens, calendars, sharedUsers, invitations }) {
                             setAlertMessage("❌ Confirmez-vous la suppression du lien de partage ?");
                             setAlertId(token.token);
                             setOnConfirmAction(() => async () => {
-                              const rep = await sharedTokens.deleteToken(token.token)
+                              const rep = await tokenCalendars.deleteToken(token.token)
                               if (rep.success) {
                                 setAlertType("success");
                                 setAlertMessage("✅ "+rep.message);
@@ -386,7 +386,7 @@ function SharedList({ sharedTokens, calendars, sharedUsers, invitations }) {
                         className="btn btn-outline-primary"
                         title="Ajouter"
                         onClick={async () => {
-                          const rep = await sharedTokens.createToken(calendarId, expiresAt[calendarId], permissions[calendarId]);
+                          const rep = await tokenCalendars.createToken(calendarId, expiresAt[calendarId], permissions[calendarId]);
                           if (rep.success) {
                             setAlertType("success");
                             setAlertMessage("✅ "+ rep.message);
@@ -497,7 +497,7 @@ function SharedList({ sharedTokens, calendars, sharedUsers, invitations }) {
                             setAlertMessage("❌ Confirmez-vous la suppression de l'accès à ce calendrier ?");
                             setAlertId(user.receiver_uid);
                             setOnConfirmAction(() => async () => {
-                              const rep = await sharedUsers.deleteSharedUser(calendarId, user.receiver_uid)
+                              const rep = await sharedUserCalendars.deleteSharedUser(calendarId, user.receiver_uid)
                               if (rep.success) {
                                 setAlertType("success");
                                 setAlertMessage("✅ "+rep.message);
@@ -558,7 +558,7 @@ function SharedList({ sharedTokens, calendars, sharedUsers, invitations }) {
                           className="btn btn-outline-primary"
                           title="Envoyer une invitation"
                           onClick={async () => {
-                            const rep = await invitations.sendInvitation(emailsToInvite[calendarId], calendarId);
+                            const rep = await sharedUserCalendars.sendInvitation(emailsToInvite[calendarId], calendarId);
                             if (rep.success) {
 
                               setAlertType("success");

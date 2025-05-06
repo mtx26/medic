@@ -6,7 +6,7 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import frLocale from '@fullcalendar/core/locales/fr';
 import { AuthContext } from '../contexts/LoginContext';
-function CalendarPage({ events, calendars }) {
+function CalendarPage({ personalCalendars }) {
 
   // 📍 Paramètres d’URL et navigation
   const { calendarId } = useParams(); // Récupération du nom du calendrier depuis l'URL
@@ -27,7 +27,7 @@ function CalendarPage({ events, calendars }) {
   const handleDateClick = (info) => {
     const clickedDate = info.dateStr;
     setSelectedDate(clickedDate);
-    setEventsForDay(events.calendarEvents.filter((event) => event.start.startsWith(clickedDate)));
+    setEventsForDay(personalCalendars.calendarEvents.filter((event) => event.start.startsWith(clickedDate)));
     const modal = new window.bootstrap.Modal(modalRef.current);
     modal.show();
     
@@ -43,14 +43,14 @@ function CalendarPage({ events, calendars }) {
     current.setDate(current.getDate() + direction);
     const newDate = current.toISOString().slice(0, 10);
     setSelectedDate(newDate);
-    setEventsForDay(events.calendarEvents.filter((event) => event.start.startsWith(newDate)));
+    setEventsForDay(personalCalendars.calendarEvents.filter((event) => event.start.startsWith(newDate)));
   };
 
   // Fonction pour réinitialiser les données lorsque le calendrier change
   useEffect(() => {
     const load = async () => {
       if (authReady && currentUser) {
-        await calendars.fetchPersonalCalendars(); // Recharger pour le nouvel utilisateur
+        await personalCalendars.fetchPersonalCalendars(); // Recharger pour le nouvel utilisateur
         setLoadingMedicines(false);
       }
     };
@@ -60,14 +60,14 @@ function CalendarPage({ events, calendars }) {
   // Fonction pour charger le calendrier lorsque l'utilisateur est connecté
   useEffect(() => {
     if (authReady && currentUser && calendarId) {
-      events.fetchCalendarEvents(calendarId)
+      personalCalendars.fetchPersonalCalendarSchedule(calendarId)
       setLoadingCalendar(false);
     }
   }, [authReady, currentUser, calendarId]);
   
 
   // Si le calendrier n'est pas chargé, afficher un message de chargement
-  if (loadingMedicines || loadingCalendar || !events.calendarsData || events.calendarsData.length === 0) {
+  if (loadingMedicines || loadingCalendar || !personalCalendars.calendarsData || personalCalendars.calendarsData.length === 0) {
     return (
       <div className="d-flex justify-content-center align-items-center" style={{ height: '60vh' }}>
         <div className="spinner-border text-primary" role="status">
@@ -77,7 +77,7 @@ function CalendarPage({ events, calendars }) {
     );
   }
   
-  if (!(events.calendarsData || []).some(c => c.calendar_id === calendarId)) {
+  if (!(personalCalendars.calendarsData || []).some(c => c.calendar_id === calendarId)) {
     return <div className="text-center mt-5">❌ Calendrier non trouvé</div>;
   }
   
@@ -88,7 +88,7 @@ function CalendarPage({ events, calendars }) {
 
       <div className="card shadow-sm mb-4">
         <div className="card-body">
-          <h3 className="card-title mb-4">{events.calendarsData.find(c => c.calendar_id === calendarId).calendar_name}</h3>
+          <h3 className="card-title mb-4">{personalCalendars.calendarsData.find(c => c.calendar_id === calendarId).calendar_name}</h3>
           {/* Ligne 1 : Boutons d'action */}
           <div className="d-flex flex-wrap  align-items-left gap-2 mb-3">
             <button
@@ -125,7 +125,7 @@ function CalendarPage({ events, calendars }) {
 
             <div>
               <button
-                onClick={() => events.fetchCalendarEvents(calendarId, startDate)}
+                onClick={() => personalCalendars.fetchPersonalCalendarSchedule(calendarId, startDate)}
                 className="btn btn-outline-primary"
               >
                 <i className="bi bi-arrow-repeat"></i>
@@ -145,7 +145,7 @@ function CalendarPage({ events, calendars }) {
       <FullCalendar
         plugins={[dayGridPlugin, interactionPlugin]}
         initialView="dayGridMonth"
-        events={events.calendarEvents}
+        events={personalCalendars.calendarEvents}
         locale={frLocale}
         firstDay={1}
         dateClick={handleDateClick}

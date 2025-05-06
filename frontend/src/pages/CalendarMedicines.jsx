@@ -4,7 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { AuthContext } from '../contexts/LoginContext';
 import AlertSystem from '../components/AlertSystem';
 
-function MedicamentsPage({ medicines, calendars }) {
+function MedicamentsPage({ personalCalendars}) {
   // 📍 Paramètres d’URL et navigation
   const { calendarId } = useParams(); // Récupération du nom du calendrier depuis l'URL
   const navigate = useNavigate(); // Hook de navigation
@@ -85,9 +85,9 @@ function MedicamentsPage({ medicines, calendars }) {
   useEffect(() => {
     const load = async () => {
       if (authReady && currentUser && calendarId) {
-        calendars.setCalendarsData([]);
-        await calendars.fetchPersonalCalendars();
-        const rep = await medicines.fetchCalendarMedicines(calendarId);
+        personalCalendars.setCalendarsData([]);
+        await personalCalendars.fetchPersonalCalendars();
+        const rep = await personalCalendars.fetchPersonalCalendarMedicines(calendarId);
         if (rep.success) {
           setMedicinesData(rep.medicinesData);
           setOriginalMedicinesData(rep.originalMedicinesData);
@@ -134,7 +134,7 @@ function MedicamentsPage({ medicines, calendars }) {
         <div className="d-flex flex-wrap gap-2 my-3">
           <button 
             onClick={() => {
-              const rep = medicines.addMedicine(medicinesData);
+              const rep = personalCalendars.addPersonalCalendarMedicine(medicinesData);
               if (rep.success) {
                 setMedicinesData(rep.medicinesData);
                 setOriginalMedicinesData(rep.originalMedicinesData);
@@ -155,7 +155,7 @@ function MedicamentsPage({ medicines, calendars }) {
               setAlertType("confirm-danger");
               setAlertMessage("❌ Confirmez-vous la suppression des médicaments sélectionnés ?");
               setOnConfirmAction(() => async () => {
-                const rep = await medicines.deleteSelectedMedicines(calendarId, checked, medicinesData);
+                const rep = await personalCalendars.deletePersonalCalendarSelectedMedicines(calendarId, checked, medicinesData);
                 if (rep.success) {
                   setMedicinesData(rep.medicinesData);
                   setOriginalMedicinesData(rep.originalMedicinesData);
@@ -186,7 +186,7 @@ function MedicamentsPage({ medicines, calendars }) {
               setAlertType("confirm-safe");
               setAlertMessage("✅ Enregistrer les modifications de médicaments ?");
               setOnConfirmAction(() => async () => {
-                const rep = await medicines.updateMedicines(calendarId, medicinesData);
+                const rep = await personalCalendars.updatePersonalCalendarMedicines(calendarId, medicinesData);
                 if (rep.success) {
                   setAlertMessage("✅ "+rep.message);
                   setAlertType("success");
