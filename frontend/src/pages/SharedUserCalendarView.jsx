@@ -1,5 +1,5 @@
 // CalendarPage.jsx
-import React, { useEffect, useRef, useState, useContext } from 'react';
+import React, { useEffect, useContext, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
@@ -7,7 +7,7 @@ import interactionPlugin from '@fullcalendar/interaction';
 import frLocale from '@fullcalendar/core/locales/fr';
 import { AuthContext } from '../contexts/LoginContext';
 
-function SharedUserCalendarView({ sharedUserCalendars, personalCalendars }) {
+function SharedUserCalendarView({ sharedUserCalendars }) {
   const { authReady, currentUser } = useContext(AuthContext);
 
   // 📍 Paramètres d’URL et navigation
@@ -16,7 +16,7 @@ function SharedUserCalendarView({ sharedUserCalendars, personalCalendars }) {
 
   // 📍 Date sélectionnée
   const [selectedDate, setSelectedDate] = useState(''); // Date sélectionnée
-  const [eventsForDay, setEventsForDay] = useState([]); // Événements filtrés pour un jour spécifique   
+  const [eventsForDay, setEventsForDay] = useState([]); // Événements filtrés pour un jour spécifique
   const [startDate, setStartDate] = useState();
 
   // 🔄 Références et états
@@ -24,14 +24,20 @@ function SharedUserCalendarView({ sharedUserCalendars, personalCalendars }) {
   const [successGetSharedCalendar, setSuccessGetSharedCalendar] = useState(); // État du succès de la récupération du calendrier partagé
 
 
-
+  
 
   // Fonction pour gérer le clic sur une date
   const handleDateClick = (info) => {
     const clickedDate = info.dateStr;
     setSelectedDate(clickedDate);
-    setEventsForDay(personalCalendars.calendarEvents.filter((event) => event.start.startsWith(clickedDate)));
-    new window.bootstrap.Modal(modalRef.current).show();
+    setEventsForDay(sharedUserCalendars.sharedUserCalendarEvents.filter((event) => event.start.startsWith(clickedDate)));
+    const modal = new window.bootstrap.Modal(modalRef.current);
+    modal.show();
+    
+    modalRef.current.addEventListener('shown.bs.modal', () => {
+      modalRef.current.querySelector('button')?.focus();
+    }, { once: true });
+    
   };
 
   // Fonction pour naviguer vers la date suivante ou precedente
@@ -40,7 +46,7 @@ function SharedUserCalendarView({ sharedUserCalendars, personalCalendars }) {
     current.setDate(current.getDate() + direction);
     const newDate = current.toISOString().slice(0, 10);
     setSelectedDate(newDate);
-    setEventsForDay(personalCalendars.calendarEvents.filter((event) => event.start.startsWith(newDate)));
+    setEventsForDay(sharedUserCalendars.sharedUserCalendarEvents.filter((event) => event.start.startsWith(newDate)));
   };
   
   // Fonction pour charger le calendrier lorsque l'utilisateur est connecté
@@ -48,9 +54,9 @@ function SharedUserCalendarView({ sharedUserCalendars, personalCalendars }) {
     const fetchShared = async () => {
       if (authReady && currentUser) {
         if (calendarId) {
-          const rep = await sharedUserCalendars.fetchSharedUserCalendarScheduleSchedule(calendarId);
+          const rep = await sharedUserCalendars.fetchSharedUserCalendarSchedule(calendarId);
           setSuccessGetSharedCalendar(rep.success);
-        }
+    }
       }
     };
     fetchShared();
@@ -60,7 +66,7 @@ function SharedUserCalendarView({ sharedUserCalendars, personalCalendars }) {
     return (
       <div className="d-flex justify-content-center align-items-center" style={{ height: '60vh' }}>
         <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">Chargement du calendrier partagé...</span>
+          <span className="visually-hidden">Chargement des calendriers...</span>
         </div>
       </div>
     );
@@ -73,7 +79,6 @@ function SharedUserCalendarView({ sharedUserCalendars, personalCalendars }) {
       </div>
     );
   }
-
   
   
 
@@ -84,6 +89,13 @@ function SharedUserCalendarView({ sharedUserCalendars, personalCalendars }) {
         <div className="card-body">
           {/* Ligne 1 : Boutons d'action */}
           <div className="d-flex flex-wrap  align-items-left gap-2 mb-3">
+            <button
+              className="btn btn-outline-secondary"
+              onClick={() => navigate(`/calendars/`)}
+            >
+              <i className="bi bi-calendar-date"></i>
+              <span> Retour aux calendriers</span>
+            </button>
             <button
               className="btn btn-outline-secondary"
               onClick={() => navigate(`/shared-user-calendar/${calendarId}/medicines`)}
@@ -111,7 +123,7 @@ function SharedUserCalendarView({ sharedUserCalendars, personalCalendars }) {
 
             <div>
               <button
-                onClick={() => tokenCalendars.fetchTokenCalendarSchedule(calendarId, startDate)}
+                onClick={() => sharedUserCalendars.fetchSharedUserCalendarSchedule(calendarId, startDate)}
                 className="btn btn-outline-primary"
               >
                 <i className="bi bi-arrow-repeat"></i>
@@ -131,7 +143,7 @@ function SharedUserCalendarView({ sharedUserCalendars, personalCalendars }) {
       <FullCalendar
         plugins={[dayGridPlugin, interactionPlugin]}
         initialView="dayGridMonth"
-        events={personalCalendars.calendarEvents}
+        events={sharedUserCalendars.sharedUserCalendarEvents}
         locale={frLocale}
         firstDay={1}
         dateClick={handleDateClick}
@@ -169,8 +181,9 @@ function SharedUserCalendarView({ sharedUserCalendars, personalCalendars }) {
         }}
 
         
-      />  
+      />
 
+      {/* Modal pour afficher les médicaments d'une date */}
       <div className="modal fade" ref={modalRef} tabIndex="-1" id="dateModal">
         <div className="modal-dialog modal-dialog-centered">
           <div className="modal-content">
@@ -197,7 +210,7 @@ function SharedUserCalendarView({ sharedUserCalendars, personalCalendars }) {
                         <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
                           {event.title}
                           <span className="badge" style={{ backgroundColor: event.color, color: 'white' }}>
-                            {new Date(event.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            {new Date(event.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </span>
                         </li>
                       ))}

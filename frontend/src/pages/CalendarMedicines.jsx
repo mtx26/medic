@@ -155,9 +155,10 @@ function MedicamentsPage({ personalCalendars}) {
               setAlertType("confirm-danger");
               setAlertMessage("❌ Confirmez-vous la suppression des médicaments sélectionnés ?");
               setOnConfirmAction(() => async () => {
-                const rep = await personalCalendars.deletePersonalCalendarSelectedMedicines(calendarId, checked, medicinesData);
+                const rep = await personalCalendars.deletePersonalCalendarMedicines(calendarId, checked, medicinesData);
                 if (rep.success) {
                   setMedicinesData(rep.medicinesData);
+                  setChecked([]);
                   setOriginalMedicinesData(rep.originalMedicinesData);
                   setAlertMessage("✅ "+rep.message);
                   setAlertType("success");

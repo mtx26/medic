@@ -76,7 +76,7 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
         }
       }
       for (const calendarData of sharedUserCalendars.sharedCalendarsData) {
-        const rep = await sharedUserCalendars.fetchSharedUserCalendarScheduleMedicineCount(calendarData.calendar_id, calendarData.owner_uid);
+        const rep = await sharedUserCalendars.fetchSharedUserCalendarMedicineCount(calendarData.calendar_id, calendarData.owner_uid);
         if (rep.success) {
           counts[calendarData.calendar_id] = rep.count;
         } else {

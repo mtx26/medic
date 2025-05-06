@@ -85,7 +85,7 @@ function SharedUserCalendarMedicines({ sharedUserCalendars, personalCalendars })
     const load = async () => {
       if (authReady && currentUser && calendarId) {
         await sharedUserCalendars.fetchSharedCalendars();
-        const rep = await sharedUserCalendars.fetchSharedUserCalendarScheduleScheduleMedicines(calendarId);
+        const rep = await sharedUserCalendars.fetchSharedUserCalendarMedicines(calendarId);
         if (rep.success) {
           setMedicinesData(rep.medicinesData);
           setOriginalMedicinesData(rep.originalMedicinesData);
@@ -155,6 +155,7 @@ function SharedUserCalendarMedicines({ sharedUserCalendars, personalCalendars })
                 const rep = await sharedUserCalendars.deleteSharedUserCalendarMedicines(calendarId, checked, medicinesData);
                 if (rep.success) {
                   setMedicinesData(rep.medicinesData);
+                  setChecked([]);
                   setAlertMessage("✅ "+rep.message);
                   setAlertType("success");
                 } else {

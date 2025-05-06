@@ -13,6 +13,7 @@ const API_URL = process.env.REACT_APP_API_URL;
 
 function App() {
   const [calendarEvents, setCalendarEvents] = useState([]);
+  const [sharedUserCalendarEvents, setSharedUserCalendarEvents] = useState([]);
   const [tokensList, setTokensList] = useState([]);
   const [calendarsData, setCalendarsData] = useState([]);
   const [notificationsData, setNotificationsData] = useState([]);
@@ -187,7 +188,7 @@ function App() {
   }, []);
 
   // Fonction pour obtenir le nombre de médicaments d'un calendrier partagé
-  const fetchSharedUserCalendarScheduleMedicineCount = useCallback(async (calendarId, ownerUid) => {
+  const fetchSharedUserCalendarMedicineCount = useCallback(async (calendarId, ownerUid) => {
     try {
       const token = await auth.currentUser.getIdToken();
       const res = await fetch(`${API_URL}/api/medicines/shared/count?calendarId=${calendarId}&ownerUid=${ownerUid}`, {
@@ -338,7 +339,7 @@ function App() {
   }, []);
 
   // Fonction pour supprimer des médicaments 
-  const deletePersonalCalendarSelectedMedicines = useCallback(async (calendarId, checked, medicinesData) => {
+  const deletePersonalCalendarMedicines = useCallback(async (calendarId, checked, medicinesData) => {
     if (checked.length === 0) return false;
     const medicinesDataFiltered = medicinesData.filter((med) => !checked.includes(String(med.id)));
 
@@ -854,7 +855,6 @@ function App() {
       if (!startDate) {
         startDate = new Date().toISOString().split('T')[0];
       }
-      console.log(startDate);
       const token = await auth.currentUser.getIdToken();
       const res = await fetch(`${API_URL}/api/shared/users/calendars/${calendarId}?startTime=${startDate}`, {
         method: "GET",
@@ -864,7 +864,8 @@ function App() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      setCalendarEvents(data.schedule.map(e => ({ title: e.title, start: e.date, color: e.color })));
+      setSharedUserCalendarEvents(data.schedule);
+      console.log(data.schedule);
       log.info(data.message, {
         origin: "SHARED_USER_CALENDAR_FETCH_SUCCESS",
         calendarId,
@@ -879,10 +880,10 @@ function App() {
       });
       return {success: false, error: err.message, code: err.code};
     }
-  }, [setCalendarEvents]);
+  }, [setSharedUserCalendarEvents]);
 
   // Fonction pour récupérer les médicaments d’un calendrier partagé par un utilisateur
-  const fetchSharedUserCalendarScheduleMedicines = useCallback(async (calendarId) => {
+  const fetchSharedUserCalendarMedicines = useCallback(async (calendarId) => {
     try {
       const token = await auth.currentUser.getIdToken();
       const res = await fetch(`${API_URL}/api/shared/users/calendars/${calendarId}/medicines`, {
@@ -993,55 +994,61 @@ function App() {
   const sharedProps = {
     personalCalendars: {
       fetchPersonalCalendars,
-      addCalendar,
-      deleteCalendar,
-      renameCalendar,
-      fetchPersonalCalendarMedicineCount,
       fetchPersonalCalendarSchedule,
+      fetchPersonalCalendarMedicines,
+      fetchPersonalCalendarMedicineCount,
+      addCalendar,
+      renameCalendar,
+      deleteCalendar,
+      addPersonalCalendarMedicine,
+      updatePersonalCalendarMedicines,
+      deletePersonalCalendarMedicines,
+      calendarsData,
+      setCalendarsData,
       calendarEvents,
       setCalendarEvents,
-      setCalendarsData,
-      calendarsData,
-      updatePersonalCalendarMedicines,
-      deletePersonalCalendarSelectedMedicines,
-      addPersonalCalendarMedicine,
-      fetchPersonalCalendarMedicines,
     },
+  
     sharedUserCalendars: {
-      sharedCalendarsData,
-      setSharedCalendarsData,
       fetchSharedCalendars,
-      deleteSharedCalendar,
       fetchSharedUserCalendarSchedule,
-      fetchSharedUserCalendarScheduleMedicines,
-      updateSharedUserCalendarMedicines,
-      deleteSharedUserCalendarMedicines,
+      fetchSharedUserCalendarMedicines,
+      fetchSharedUserCalendarMedicineCount,
       fetchSharedUsers,
-      deleteSharedUser,
       sendInvitation,
       acceptInvitation,
       rejectInvitation,
-      fetchSharedUserCalendarScheduleMedicineCount,
+      updateSharedUserCalendarMedicines,
+      deleteSharedUserCalendarMedicines,
+      deleteSharedUser,
+      deleteSharedCalendar,
+      sharedCalendarsData,
+      setSharedCalendarsData,
+      sharedUserCalendarEvents,
+      setSharedUserCalendarEvents,
     },
+  
     tokenCalendars: {
-      tokensList,
-      setTokensList,
       fetchTokens,
-      createToken,
-      deleteToken,
-      updateRevokeToken,
-      updateTokenExpiration,
-      updateTokenPermissions,
       fetchTokenCalendarSchedule,
       fetchTokenCalendarMedicines,
+      createToken,
+      updateTokenPermissions,
+      updateTokenExpiration,
+      updateRevokeToken,
+      deleteToken,
+      tokensList,
+      setTokensList,
     },
+  
     notifications: {
-      notificationsData,
-      setNotificationsData,
       fetchNotifications,
       readNotification,
+      notificationsData,
+      setNotificationsData,
     },
-  };  
+  };
+  
 
   const resetAppData = () => {
     // EVENTS
