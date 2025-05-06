@@ -36,8 +36,6 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
   // 👥 Partage ciblé par utilisateur
   const [emailToInvite, setEmailToInvite] = useState(''); // État pour l'adresse e-mail à inviter
   const [sharedUsersData, setSharedUsersData] = useState([]); // État pour les données des utilisateurs ayant accès
-  const [hoveredUser, setHoveredUser] = useState(null); // État pour l'utilisateur actuellement survolé
-  const refs = useRef({});
 
 
   const REACT_URL = process.env.REACT_APP_REACT_URL

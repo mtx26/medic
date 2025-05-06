@@ -349,14 +349,14 @@ def handle_generate_token_calendar(token):
                 log_extra={"token": token}
             )
 
-        doc_2 = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).get()
-        if not doc_2.exists:
+        doc_2 = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id)
+        if not doc_2.get().exists:
             return warning_response(
                 message="Calendrier introuvable.", 
                 code="CALENDAR_NOT_FOUND", 
                 status_code=404, 
                 uid="without_uid", 
-                origin="CALENDAR_NOT_FOUND", 
+                origin="CALENDAR_TOKEN_GENERATED", 
                 log_extra={"token": token}
             )
 
@@ -367,9 +367,9 @@ def handle_generate_token_calendar(token):
         schedule = generate_schedule(start_date, medicines)
         return success_response(
             message="Calendrier généré avec succès", 
-            code="CALENDAR_GENERATED", 
+            code="CALENDAR_GENERATED_SUCCESS", 
             uid=owner_uid, 
-            origin="CALENDAR_GENERATED", 
+            origin="CALENDAR_TOKEN_GENERATED", 
             data={"schedule": schedule},
             log_extra={"token": token}
         )
@@ -377,10 +377,10 @@ def handle_generate_token_calendar(token):
     except Exception as e:
         return error_response(
             message="Erreur lors de la génération du calendrier.", 
-            code="CALENDAR_GENERATE_ERROR", 
+            code="CALENDAR_TOKEN_GENERATE_ERROR", 
             status_code=500, 
             uid=owner_uid, 
-            origin="CALENDAR_GENERATE_ERROR", 
+            origin="CALENDAR_TOKEN_GENERATE", 
             error=str(e),
             log_extra={"token": token}
         )
@@ -401,7 +401,7 @@ def handle_delete_token(token):
                 code="TOKEN_NOT_FOUND", 
                 status_code=404, 
                 uid=owner_uid, 
-                origin="TOKEN_NOT_FOUND", 
+                origin="TOKEN_DELETE", 
                 log_extra={"token": token}
             )
 
@@ -411,14 +411,14 @@ def handle_delete_token(token):
                 code="TOKEN_NOT_AUTHORIZED", 
                 status_code=403, 
                 uid=owner_uid, 
-                origin="TOKEN_NOT_AUTHORIZED", 
+                origin="TOKEN_DELETE", 
                 log_extra={"token": token}
             )
 
         db.collection("shared_tokens").document(token).delete()
         return success_response(
             message="Lien de partage supprimé avec succès", 
-            code="TOKEN_DELETED", 
+            code="TOKEN_DELETE_SUCCESS", 
             uid=owner_uid, 
             origin="TOKEN_DELETE", 
             log_extra={"token": token}
@@ -430,7 +430,7 @@ def handle_delete_token(token):
             code="TOKEN_DELETE_ERROR", 
             status_code=500, 
             uid=owner_uid, 
-            origin="TOKEN_DELETE_ERROR", 
+            origin="TOKEN_DELETE", 
             error=str(e),
             log_extra={"token": token}
         )
@@ -448,7 +448,7 @@ def handle_token_medecines(token):
                     code="TOKEN_INVALID", 
                     status_code=404, 
                     uid=owner_uid, 
-                    origin="TOKEN_INVALID", 
+                    origin="TOKEN_MEDECINES_LOAD", 
                     log_extra={"token": token}
                 )
 
@@ -472,7 +472,7 @@ def handle_token_medecines(token):
                         code="TOKEN_EXPIRED", 
                         status_code=404, 
                         uid=owner_uid, 
-                        origin="TOKEN_EXPIRED", 
+                        origin="TOKEN_MEDECINES_LOAD", 
                         log_extra={"token": token}
                     )
 
@@ -483,7 +483,7 @@ def handle_token_medecines(token):
                     code="TOKEN_REVOKED", 
                     status_code=404, 
                     uid=owner_uid, 
-                    origin="TOKEN_REVOKED", 
+                    origin="TOKEN_MEDECINES_LOAD", 
                     log_extra={"token": token}
                 )
 
@@ -494,19 +494,19 @@ def handle_token_medecines(token):
                     code="TOKEN_NO_READ_PERMISSION", 
                     status_code=403, 
                     uid=owner_uid, 
-                    origin="TOKEN_NO_READ_PERMISSION", 
+                    origin="TOKEN_MEDECINES_LOAD", 
                     log_extra={"token": token}
                 )
 
             
-            doc_2 = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).get()
-            if not doc_2.exists:
+            doc_2 = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id)
+            if not doc_2.get().exists:
                 return warning_response(
                     message="Calendrier introuvable", 
                     code="CALENDAR_NOT_FOUND", 
                     status_code=404, 
                     uid=owner_uid, 
-                    origin="CALENDAR_NOT_FOUND", 
+                    origin="TOKEN_MEDECINES_LOAD", 
                     log_extra={"token": token}
                 )
             
@@ -517,7 +517,7 @@ def handle_token_medecines(token):
                 message="Médicaments récupérés avec succès.", 
                 code="MEDECINES_SHARED_LOADED", 
                 uid=owner_uid, 
-                origin="MEDECINES_SHARED_LOAD", 
+                origin="TOKEN_MEDECINES_LOAD", 
                 data={"medicines": medicines},
                 log_extra={"token": token}
             )
@@ -528,7 +528,7 @@ def handle_token_medecines(token):
             code="MEDECINES_SHARED_ERROR", 
             status_code=500, 
             uid=owner_uid, 
-            origin="MEDECINES_SHARED_ERROR", 
+            origin="TOKEN_MEDECINES_LOAD", 
             error=str(e),
             log_extra={"token": token}
         )

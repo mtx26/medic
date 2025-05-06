@@ -16,11 +16,8 @@ import CalendarList from '../pages/CalendarList';
 import SharedList from '../pages/SharedList';
 
 import SharedTokenCalendarMedicines from '../pages/SharedTokenCalendarMedicines';
-import SharedTokenCalendarView from '../pages/SharedTokenCalendarView';
 
 import SharedUserCalendarMedicines from '../pages/SharedUserCalendarMedicines';
-import SharedUserCalendarView from '../pages/SharedUserCalendarView';
-
 import NotFound from '../pages/NotFound';
 
 function PrivateRoute({ element }) {
@@ -55,10 +52,10 @@ function AppRoutes({ sharedProps }) {
       <Route path="/shared-calendar" element={<PrivateRoute element={<SharedList {...sharedProps} />} />} />
 
       <Route path="/shared-token-calendar/:sharedToken/medicines" element={<SharedTokenCalendarMedicines {...sharedProps} />} />
-      <Route path="/shared-token-calendar/:sharedToken" element={<SharedTokenCalendarView {...sharedProps} />} />
+      <Route path="/shared-token-calendar/:sharedToken" element={<CalendarView {...sharedProps} />} />
 
       <Route path="/shared-user-calendar/:calendarId/medicines" element={<SharedUserCalendarMedicines {...sharedProps} />} />
-      <Route path="/shared-user-calendar/:calendarId" element={<SharedUserCalendarView {...sharedProps} />} />
+      <Route path="/shared-user-calendar/:calendarId" element={<CalendarView {...sharedProps} />} />
 
       <Route path="/" element={<Navigate to="/calendars" />} />
       <Route path="*" element={<NotFound />} />

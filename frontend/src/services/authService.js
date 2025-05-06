@@ -40,7 +40,6 @@ export const GoogleHandleLogin = async () => {
       });
     
       const data = await res.json();
-      console.log(data)
       if (!res.ok) throw new Error(data.error || "Erreur de l'API");
     
       return data.url;

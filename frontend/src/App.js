@@ -12,8 +12,6 @@ import { useCallback } from 'react';
 const API_URL = process.env.REACT_APP_API_URL;
 
 function App() {
-  const [calendarEvents, setCalendarEvents] = useState([]);
-  const [sharedUserCalendarEvents, setSharedUserCalendarEvents] = useState([]);
   const [tokensList, setTokensList] = useState([]);
   const [calendarsData, setCalendarsData] = useState([]);
   const [notificationsData, setNotificationsData] = useState([]);
@@ -248,8 +246,6 @@ function App() {
       // trier les events par titre et par date
       const scheduleSortedByTitle = data.schedule.sort((a, b) => a.title.localeCompare(b.title));
       const scheduleSortedByMoment = scheduleSortedByTitle.sort((a, b) => new Date(a.start) - new Date(b.start));
-
-      setCalendarEvents(scheduleSortedByMoment);
       
       log.info(data.message, {
         origin: "CALENDAR_FETCH_SUCCESS",
@@ -257,7 +253,7 @@ function App() {
         "eventCount": scheduleSortedByMoment?.length,
         "calendarId": calendarId,
       });
-      return { success: true, message: data.message, code: data.code };
+      return { success: true, message: data.message, code: data.code, schedule: scheduleSortedByMoment };
     } catch (err) {
       log.error(err.message || "Erreur lors de la récupération du calendrier", err, {
         origin: "CALENDAR_FETCH_ERROR",
@@ -265,9 +261,9 @@ function App() {
         "calendarId": calendarId,
         "startDate": startDate,
       });
-      return { success: false, error: err.message, code: err.code };
+      return { success: false, error: err.message, code: err.code, schedule: [] };
     }
-  }, [setCalendarEvents]);
+  }, []);
 
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -391,20 +387,22 @@ function App() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      setCalendarEvents(data.schedule.map(e => ({ title: e.title, start: e.date, color: e.color })));
+      const scheduleSortedByTitle = data.schedule.sort((a, b) => a.title.localeCompare(b.title));
+      const scheduleSortedByMoment = scheduleSortedByTitle.sort((a, b) => new Date(a.start) - new Date(b.start));
       log.info(data.message, {
         origin: "SHARED_CALENDAR_FETCH_SUCCESS",
         "token": token,
+        "eventCount": scheduleSortedByMoment?.length,
       });
-      return {success: true, message: data.message, code: data.code};
+      return {success: true, message: data.message, code: data.code, schedule: scheduleSortedByMoment};
     } catch (err) {
       log.error(err.message || "Échec de récupération du calendrier partagé", err, {
         origin: "SHARED_CALENDAR_FETCH_ERROR",
         "token": token,
       });
-      return {success: false, error: err.message, code: err.code};
+      return {success: false, error: err.message, code: err.code, schedule: []};
     }
-  }, [setCalendarEvents]);
+  }, []);
 
   // Fonction pour récupérer les médicaments d'un calendrier partagé
   const fetchTokenCalendarMedicines = useCallback(async (token) => {
@@ -864,23 +862,23 @@ function App() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      setSharedUserCalendarEvents(data.schedule);
-      console.log(data.schedule);
+      const scheduleSortedByTitle = data.schedule.sort((a, b) => a.title.localeCompare(b.title));
+      const scheduleSortedByMoment = scheduleSortedByTitle.sort((a, b) => new Date(a.start) - new Date(b.start));
       log.info(data.message, {
         origin: "SHARED_USER_CALENDAR_FETCH_SUCCESS",
         calendarId,
         startDate,
       });
-      return {success: true, message: data.message, code: data.code};
+      return {success: true, message: data.message, code: data.code, schedule: scheduleSortedByMoment};
     } catch (err) {
       log.error(err.message || "Échec de récupération du calendrier partagé par un utilisateur", err, {
         origin: "SHARED_USER_CALENDAR_FETCH_ERROR",
         calendarId,
         startDate,
       });
-      return {success: false, error: err.message, code: err.code};
+      return {success: false, error: err.message, code: err.code, schedule: []};
     }
-  }, [setSharedUserCalendarEvents]);
+  }, []);
 
   // Fonction pour récupérer les médicaments d’un calendrier partagé par un utilisateur
   const fetchSharedUserCalendarMedicines = useCallback(async (calendarId) => {
@@ -1005,8 +1003,6 @@ function App() {
       deletePersonalCalendarMedicines,
       calendarsData,
       setCalendarsData,
-      calendarEvents,
-      setCalendarEvents,
     },
   
     sharedUserCalendars: {
@@ -1024,8 +1020,6 @@ function App() {
       deleteSharedCalendar,
       sharedCalendarsData,
       setSharedCalendarsData,
-      sharedUserCalendarEvents,
-      setSharedUserCalendarEvents,
     },
   
     tokenCalendars: {
@@ -1051,8 +1045,6 @@ function App() {
   
 
   const resetAppData = () => {
-    // EVENTS
-    setCalendarEvents([]);
     
     // CALENDARS
     setCalendarsData([]);

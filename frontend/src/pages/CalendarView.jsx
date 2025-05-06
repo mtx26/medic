@@ -1,15 +1,14 @@
 // CalendarPage.jsx
 import React, { useEffect, useContext, useRef, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import frLocale from '@fullcalendar/core/locales/fr';
 import { AuthContext } from '../contexts/LoginContext';
-function CalendarPage({ personalCalendars }) {
+function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
 
   // 📍 Paramètres d’URL et navigation
-  const { calendarId } = useParams(); // Récupération du nom du calendrier depuis l'URL
   const navigate = useNavigate(); // Hook de navigation
 
   // 🔐 Contexte d'authentification
@@ -17,17 +16,62 @@ function CalendarPage({ personalCalendars }) {
   
   const [selectedDate, setSelectedDate] = useState(''); // Date sélectionnée
   const [eventsForDay, setEventsForDay] = useState([]); // Événements filtrés pour un jour spécifique
+  const [calendarEvents, setCalendarEvents] = useState([]); // Événements du calendrier
   // 🔄 Références et chargement
   const modalRef = useRef(null); // Référence vers le modal (pour gestion focus/fermeture)
-  const [loadingMedicines, setLoadingMedicines] = useState(true); // État de chargement des médicaments
-  const [loadingCalendar, setLoadingCalendar] = useState(true); // État de chargement du calendrier
+  const [loadingCalendar, setLoadingCalendar] = useState(undefined); // État de chargement du calendrier
   const [startDate, setStartDate] = useState();
+
+  const calendarSourceMap = {
+    personal: {
+      fetchCalendars: personalCalendars.fetchPersonalCalendars,
+      fetchSchedule: personalCalendars.fetchPersonalCalendarSchedule,
+      calendarsData: personalCalendars.calendarsData,
+      setCalendarsData: personalCalendars.setCalendarsData,
+    },
+    sharedUser: {
+      fetchCalendars: sharedUserCalendars.fetchSharedCalendars,
+      fetchSchedule: sharedUserCalendars.fetchSharedUserCalendarSchedule,
+      calendarsData: sharedUserCalendars.sharedCalendarsData,
+      setCalendarsData: sharedUserCalendars.setSharedCalendarsData,
+    },
+    token: {
+      fetchCalendars: tokenCalendars.fetchTokens,
+      fetchSchedule: tokenCalendars.fetchTokenCalendarSchedule,
+      calendarsData: null,
+      setCalendarsData: null,
+    }
+  };
+  
+
+  const location = useLocation();
+  const params = useParams();
+
+  let calendarType = 'personal';
+  let calendarId = params.calendarId;
+  let basePath = 'calendars';
+
+  if (location.pathname.startsWith('/shared-user-calendar')) {
+    calendarType = 'sharedUser';
+    calendarId = params.calendarId;
+    basePath = 'shared-user-calendar';
+  } else if (location.pathname.startsWith('/shared-token-calendar')) {
+    calendarType = 'token';
+    calendarId = params.sharedToken;
+    basePath = 'shared-token-calendar';
+  }
+
+  const calendarSource = calendarSourceMap[calendarType];
+
+  const currentCalendar = Array.isArray(calendarSource.calendarsData)
+  ? calendarSource.calendarsData.find(c => c.calendar_id === calendarId)
+  : null;
 
   // Fonction pour gérer le clic sur une date
   const handleDateClick = (info) => {
     const clickedDate = info.dateStr;
     setSelectedDate(clickedDate);
-    setEventsForDay(personalCalendars.calendarEvents.filter((event) => event.start.startsWith(clickedDate)));
+    setEventsForDay(calendarEvents.filter((event) => event.start.startsWith(clickedDate)));
     const modal = new window.bootstrap.Modal(modalRef.current);
     modal.show();
     
@@ -43,42 +87,44 @@ function CalendarPage({ personalCalendars }) {
     current.setDate(current.getDate() + direction);
     const newDate = current.toISOString().slice(0, 10);
     setSelectedDate(newDate);
-    setEventsForDay(personalCalendars.calendarEvents.filter((event) => event.start.startsWith(newDate)));
+    setEventsForDay(calendarEvents.filter((event) => event.start.startsWith(newDate)));
   };
-
-  // Fonction pour réinitialiser les données lorsque le calendrier change
-  useEffect(() => {
-    const load = async () => {
-      if (authReady && currentUser) {
-        await personalCalendars.fetchPersonalCalendars(); // Recharger pour le nouvel utilisateur
-        setLoadingMedicines(false);
-      }
-    };
-    load();
-  }, [authReady, currentUser]); // 🔥 écouter authReady ET currentUser
   
   // Fonction pour charger le calendrier lorsque l'utilisateur est connecté
   useEffect(() => {
     if (authReady && currentUser && calendarId) {
-      personalCalendars.fetchPersonalCalendarSchedule(calendarId)
-      setLoadingCalendar(false);
+      const load = async () => {
+        setCalendarEvents([]); // reset
+        setLoadingCalendar(undefined); // relancer le spinner
+  
+        const rep = await calendarSource.fetchSchedule(calendarId);
+        if (rep.success) {
+          setCalendarEvents(rep.schedule);
+        }
+        setLoadingCalendar(rep.success);
+      };
+      load();
     }
   }, [authReady, currentUser, calendarId]);
   
+  
 
-  // Si le calendrier n'est pas chargé, afficher un message de chargement
-  if (loadingMedicines || loadingCalendar || !personalCalendars.calendarsData || personalCalendars.calendarsData.length === 0) {
+  if (loadingCalendar === undefined && calendarId) {
     return (
       <div className="d-flex justify-content-center align-items-center" style={{ height: '60vh' }}>
         <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">Chargement des calendriers...</span>
+          <span className="visually-hidden">Chargement du calendrier partagé...</span>
         </div>
       </div>
     );
   }
   
-  if (!(personalCalendars.calendarsData || []).some(c => c.calendar_id === calendarId)) {
-    return <div className="text-center mt-5">❌ Calendrier non trouvé</div>;
+  if (loadingCalendar === false && calendarId) {
+    return (
+      <div className="alert alert-danger text-center mt-5" role="alert">
+        ❌ Ce lien de calendrier partagé est invalide ou a expiré.
+      </div>
+    );
   }
   
   
@@ -88,7 +134,7 @@ function CalendarPage({ personalCalendars }) {
 
       <div className="card shadow-sm mb-4">
         <div className="card-body">
-          <h3 className="card-title mb-4">{personalCalendars.calendarsData.find(c => c.calendar_id === calendarId).calendar_name}</h3>
+          <h3 className="card-title mb-4">{currentCalendar?.calendar_name || 'Nom introuvable'}</h3>
           {/* Ligne 1 : Boutons d'action */}
           <div className="d-flex flex-wrap  align-items-left gap-2 mb-3">
             <button
@@ -100,7 +146,7 @@ function CalendarPage({ personalCalendars }) {
             </button>
             <button
               className="btn btn-outline-secondary"
-              onClick={() => navigate(`/calendars/${calendarId}/medicines`)}
+              onClick={() => navigate(`/${basePath}/${calendarId}/medicines`)}
             >
               <i className="bi bi-capsule"></i>
               <span> Liste des médicaments</span>
@@ -125,7 +171,12 @@ function CalendarPage({ personalCalendars }) {
 
             <div>
               <button
-                onClick={() => personalCalendars.fetchPersonalCalendarSchedule(calendarId, startDate)}
+                onClick={async () => {
+                  const rep = await calendarSource.fetchSchedule(calendarId, startDate);
+                  if (rep.success) {
+                    setCalendarEvents(rep.schedule);
+                  }
+                }}                
                 className="btn btn-outline-primary"
               >
                 <i className="bi bi-arrow-repeat"></i>
@@ -145,7 +196,7 @@ function CalendarPage({ personalCalendars }) {
       <FullCalendar
         plugins={[dayGridPlugin, interactionPlugin]}
         initialView="dayGridMonth"
-        events={personalCalendars.calendarEvents}
+        events={calendarEvents}
         locale={frLocale}
         firstDay={1}
         dateClick={handleDateClick}
