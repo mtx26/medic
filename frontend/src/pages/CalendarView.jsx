@@ -244,129 +244,137 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
           </div>
         </div>
       </div>
-
-      
-      <div>
-        <h4 className="mb-4">
-          <i className="bi bi-calendar-week"></i> Tableau hebdomadaire
-        </h4>
-        {calendarTable.map((table, index) => (
-          <div className="card border border-secondary-subtle mb-4" key={index}>
-            <div className="card-header bg-light fw-semibold text-dark">
-              <i className="bi bi-capsule me-2"></i>{table.title}
-            </div>
-            <div className="card-body p-0">
-              <div className="table-responsive">
-                <table className="table table-sm table-bordered text-center align-middle mb-0">
-                  <thead className="table-light">
-                    <tr>
-                      <th className="min-width-100">Moment</th>
-                      {days.map((day) => (
-                        <th key={day} className="min-width-60">{day}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {Object.entries(table.cells).map(([moment, momentsObj]) => (
-                      <tr key={moment}>
-                        <td><strong>{moment}</strong></td>
-                        {days.map((day) => (
-                          <td key={day}>
-                            {momentsObj[day] && (
-                              <span className="text-muted small px-2 py-1 rounded d-inline-block">
-                                {momentsObj[day]}
-                              </span>
-                            )}
-                          </td>
+      {calendarTable.length > 0 ? (
+        <>
+          <div>
+            <h4 className="mb-4">
+              <i className="bi bi-calendar-week"></i> Tableau hebdomadaire
+            </h4>
+            {calendarTable.map((table, index) => (
+              <div className="card border border-secondary-subtle mb-4" key={index}>
+                <div className="card-header bg-light fw-semibold text-dark">
+                  <i className="bi bi-capsule me-2"></i>{table.title}
+                </div>
+                <div className="card-body p-0">
+                  <div className="table-responsive">
+                    <table className="table table-sm table-bordered text-center align-middle mb-0">
+                      <thead className="table-light">
+                        <tr>
+                          <th>Moment</th>
+                          {days.map((day) => (
+                            <th key={day}>{day}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {Object.entries(table.cells).map(([moment, momentsObj]) => (
+                          <tr key={moment}>
+                            <td style={{ minWidth: "70px" }}>
+                              <strong>{moment}</strong>
+                            </td>
+                            {days.map((day) => (
+                              <td key={day}>
+                                {momentsObj[day] && (
+                                  <span className="text-muted small px-2 py-1 rounded d-inline-block">
+                                    {momentsObj[day]}
+                                  </span>
+                                )}
+                              </td>
+                            ))}
+                          </tr>
                         ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+
+          <div className="card shadow-sm mb-4">
+            <div className="card-body">
+              <div className="d-flex flex-wrap align-items-end  gap-3">
+                <div style={{ minWidth: "220px" }}>
+                  <label htmlFor="datePicker" className="form-label fw-semibold">
+                    <i className="bi bi-calendar-date"></i>
+                    <span> Date de début :</span>
+                  </label>
+                  <input
+                    id="datePicker"
+                    type="date"
+                    className="form-control"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                  />
+                </div>
+
+                <div>
+                  <button
+                    onClick={async () => {
+                      const rep = await calendarSource.fetchSchedule(calendarId, startDate);
+                      if (rep.success) {
+                        setCalendarEvents(rep.schedule);
+                      }
+                    }}                
+                    className="btn btn-outline-primary"
+                  >
+                    <i className="bi bi-arrow-repeat"></i>
+                    <span> Charger le calendrier</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="alert alert-info mt-4 mb-0" role="alert">
+                <i className="bi bi-pin-angle-fill"></i>
+                <span> Cliquez sur un jour du calendrier pour voir les médicaments associés dans une fenêtre.</span>
               </div>
             </div>
           </div>
-        ))}
-      </div>
 
 
-      <div className="card shadow-sm mb-4">
-        <div className="card-body">
-          <div className="d-flex flex-wrap align-items-end  gap-3">
-            <div style={{ minWidth: "220px" }}>
-              <label htmlFor="datePicker" className="form-label fw-semibold">
-                <i className="bi bi-calendar-date"></i>
-                <span> Date de début :</span>
-              </label>
-              <input
-                id="datePicker"
-                type="date"
-                className="form-control"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-              />
-            </div>
+          <FullCalendar
+            plugins={[dayGridPlugin, interactionPlugin]}
+            initialView="dayGridMonth"
+            events={memoizedEvents}
+            locale={frLocale}
+            firstDay={1}
+            dateClick={handleDateClick}
+            height="auto"
 
-            <div>
-              <button
-                onClick={async () => {
-                  const rep = await calendarSource.fetchSchedule(calendarId, startDate);
-                  if (rep.success) {
-                    setCalendarEvents(rep.schedule);
-                  }
-                }}                
-                className="btn btn-outline-primary"
-              >
-                <i className="bi bi-arrow-repeat"></i>
-                <span> Charger le calendrier</span>
-              </button>
-            </div>
-          </div>
+            // click sur les événements
+            eventClick={(info) => {
+              const clickedDate = info.event.startStr.slice(0, 10); // format YYYY-MM-DD
+              handleDateClick({ dateStr: clickedDate });
+            }}
 
-          <div className="alert alert-info mt-4 mb-0" role="alert">
-            <i className="bi bi-pin-angle-fill"></i>
-            <span> Cliquez sur un jour du calendrier pour voir les médicaments associés dans une fenêtre.</span>
-          </div>
+            // semaine actuelle en vert clair
+            dayCellDidMount={(info) => {
+              const today = new Date();
+              const startOfWeek = new Date(today);
+              startOfWeek.setDate(today.getDate() - ((today.getDay() + 6) % 7) - 1);
+              const endOfWeek = new Date(startOfWeek);
+              endOfWeek.setDate(startOfWeek.getDate() + 7);
+            
+              const cellDate = new Date(info.date.toDateString());
+            
+              const isToday =
+                cellDate.getFullYear() === today.getFullYear() &&
+                cellDate.getMonth() === today.getMonth() &&
+                cellDate.getDate() === today.getDate();
+            
+              if (!isToday && cellDate >= startOfWeek && cellDate <= endOfWeek) {
+                info.el.classList.add('highlight-week'); // ✅ Plus performant
+              }
+            }}
+          />
+        </>
+      ) : (
+        <div className="alert alert-info mt-4 mb-0" role="alert">
+          <i className="bi bi-pin-angle-fill"></i>
+          <span> Aucun médicament prévu pour le moment.</span>
         </div>
-      </div>
-
-
-      <FullCalendar
-        plugins={[dayGridPlugin, interactionPlugin]}
-        initialView="dayGridMonth"
-        events={memoizedEvents}
-        locale={frLocale}
-        firstDay={1}
-        dateClick={handleDateClick}
-        height="auto"
-
-        // click sur les événements
-        eventClick={(info) => {
-          const clickedDate = info.event.startStr.slice(0, 10); // format YYYY-MM-DD
-          handleDateClick({ dateStr: clickedDate });
-        }}
-
-        // semaine actuelle en vert clair
-        dayCellDidMount={(info) => {
-          const today = new Date();
-          const startOfWeek = new Date(today);
-          startOfWeek.setDate(today.getDate() - ((today.getDay() + 6) % 7) - 1);
-          const endOfWeek = new Date(startOfWeek);
-          endOfWeek.setDate(startOfWeek.getDate() + 7);
-        
-          const cellDate = new Date(info.date.toDateString());
-        
-          const isToday =
-            cellDate.getFullYear() === today.getFullYear() &&
-            cellDate.getMonth() === today.getMonth() &&
-            cellDate.getDate() === today.getDate();
-        
-          if (!isToday && cellDate >= startOfWeek && cellDate <= endOfWeek) {
-            info.el.classList.add('highlight-week'); // ✅ Plus performant
-          }
-        }}
-        
-      />
+      )}
 
       {/* Modal pour afficher les médicaments d'une date */}
       <div className="modal fade" ref={modalRef} tabIndex="-1" id="dateModal">

@@ -316,10 +316,15 @@ function App() {
   const addMedicine = useCallback((medicinesData) => {
     // générer un id unique a 16 caractères
     const id = generateHexToken();
+    if (medicinesData.length === 0) {
+      const newMedicinesData = [{ name: '', tablet_count: 1, time: ['morning'], interval_days: 1, start_date: '', id: id }];
+      return {success: true, message: "Médicament ajouté avec succès", code: "MED_ADD_SUCCESS", medicinesData: newMedicinesData, id: id };
+    }
     const newMedicinesData = [
       ...medicinesData,
       { name: '', tablet_count: 1, time: ['morning'], interval_days: 1, start_date: '', id: id },
     ];
+
     return {success: true, message: "Médicament ajouté avec succès", code: "MED_ADD_SUCCESS", medicinesData: newMedicinesData, id: id };
   }, []);
 

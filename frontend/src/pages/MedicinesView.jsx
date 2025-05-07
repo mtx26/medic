@@ -160,7 +160,6 @@ function MedicinesView({ personalCalendars, sharedUserCalendars }) {
               const rep = calendarSource.addMedicine(medicinesData);
               if (rep.success) {
                 setMedicinesData(rep.medicinesData);
-                setOriginalMedicinesData(JSON.parse(JSON.stringify(rep.originalMedicinesData)));
               }
               setHighlightedId(rep.id);
               setTimeout(() => setHighlightedId(null), 2000);
