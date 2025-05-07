@@ -55,14 +55,25 @@ def handle_notifications():
             owner_data = owner_doc.to_dict()
             receiver_data = receiver_doc.to_dict()
 
-            notif_data.update({
-                "owner_name": owner_data.get("display_name"),
-                "owner_photo_url": owner_data.get("photo_url"),
-                "owner_email": owner_data.get("email"),
-                "receiver_name": receiver_data.get("display_name"),
-                "receiver_photo_url": receiver_data.get("photo_url"),
-                "receiver_email": receiver_data.get("email")
+            owner_name = owner_data.get("display_name")
+            owner_email = owner_data.get("email")
+            owner_photo_url = owner_data.get("photo_url")
+            if not owner_photo_url:
+                owner_photo_url = "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/icons/person-circle.svg"
 
+            receiver_name = receiver_data.get("display_name")
+            receiver_email = receiver_data.get("email")
+            receiver_photo_url = receiver_data.get("photo_url")
+            if not receiver_photo_url:
+                receiver_photo_url = "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/icons/person-circle.svg"
+
+            notif_data.update({
+                "owner_name": owner_name,
+                "owner_photo_url": owner_photo_url,
+                "owner_email": owner_email,
+                "receiver_name": receiver_name,
+                "receiver_photo_url": receiver_photo_url,
+                "receiver_email": receiver_email
             })
 
             notifications.append(notif_data)

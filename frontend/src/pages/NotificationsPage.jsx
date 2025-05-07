@@ -1,7 +1,9 @@
 import React from "react";
 import HoveredUserProfile from "../components/HoveredUserProfile";
+import { useNavigate } from "react-router-dom";
 
 function NotificationsPage({ notifications, sharedUserCalendars }) {
+  const navigate = useNavigate();
 
   return (
     <div className="container py-4">
@@ -46,7 +48,10 @@ function NotificationsPage({ notifications, sharedUserCalendars }) {
                         <div className="mt-2">
                           <button
                             className="btn btn-sm btn-outline-success me-2"
-                            onClick={() => sharedUserCalendars.acceptInvitation(notif.notification_id)}
+                            onClick={async () => {
+                              await sharedUserCalendars.acceptInvitation(notif.notification_id);
+                              navigate(`/shared-user-calendar/${notif.calendar_id}`);
+                            }}  
                           >
                             <i className="bi bi-check-circle-fill me-2 text-success"></i> Accepter
                           </button>

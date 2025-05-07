@@ -49,7 +49,7 @@ export const GoogleHandleLogin = async () => {
     const userSnap = await getDoc(userRef);
 
     if (!userSnap.exists()) {
-      let photoUrlDB = "";
+      let photoUrlDB = null;
       if (user.photoURL) {
         try {
           photoUrlDB = await fetchPhotoUrl(user.photoURL)

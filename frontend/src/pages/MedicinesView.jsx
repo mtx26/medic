@@ -32,7 +32,6 @@ function MedicinesView({ personalCalendars, sharedUserCalendars }) {
   const calendarSourceMap = {
     personal: {
       fetchMedicines: personalCalendars.fetchPersonalCalendarMedicines,
-      fetchCalendar: personalCalendars.fetchPersonalCalendars,
       setCalendarsData: personalCalendars.setCalendarsData,
       calendarsData: personalCalendars.calendarsData,
       addMedicine: personalCalendars.addMedicine,
@@ -41,7 +40,6 @@ function MedicinesView({ personalCalendars, sharedUserCalendars }) {
     },
     sharedUser: {
       fetchMedicines: sharedUserCalendars.fetchSharedUserCalendarMedicines,
-      fetchCalendar: sharedUserCalendars.fetchSharedCalendars,
       setCalendarsData: sharedUserCalendars.setSharedCalendarsData,
       calendarsData: sharedUserCalendars.sharedCalendarsData,
       addMedicine: sharedUserCalendars.addMedicine,
@@ -121,7 +119,6 @@ function MedicinesView({ personalCalendars, sharedUserCalendars }) {
     const load = async () => {
       if (authReady && currentUser && calendarId) {
         calendarSource.setCalendarsData([]);
-        await calendarSource.fetchCalendar(calendarId);
         const rep = await calendarSource.fetchMedicines(calendarId);
         if (rep.success) {
           setMedicinesData(rep.medicinesData);

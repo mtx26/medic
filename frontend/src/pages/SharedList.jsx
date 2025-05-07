@@ -34,15 +34,10 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
 
 
   useEffect(() => {
-    const load = async () => {
-      if (authReady && currentUser) {
-        await tokenCalendars.fetchTokens();
-        await personalCalendars.fetchPersonalCalendars();
-        setLoading(false);
-      }
-    };
-    load();
-  }, [authReady, currentUser, personalCalendars.fetchPersonalCalendars, tokenCalendars.fetchTokens]);
+    if (authReady && currentUser) {
+      setLoading(false);
+    }
+  }, [authReady, currentUser]);
 
   const setGroupedSharedFunction = async () => {
     const grouped = {};
@@ -133,6 +128,7 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                             <i className="bi bi-link-45deg"></i>
                           </span>
                           <input
+                            id={"tokenLink"+token.token}
                             type="text"
                             className="form-control"
                             value={`${REACT_URL}/shared-token-calendar/${token.token}`}
@@ -162,6 +158,7 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                       {/* Jamais + Expiration */}
                       <div className={`d-flex align-items-center gap-2 col-md-4`}>
                         <select
+                          id={"tokenExpiration"+token.token}
                           className="form-select"
                           value={token.expires_at === null ? "" : "date"}
                           onChange={async (e) => {
@@ -198,6 +195,7 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
 
                         {token.expires_at !== null && (
                           <input
+                            id={"tokenDate"+token.token}
                             type="date"
                             className="form-control"
                             style={{ minWidth: "120px" }}
@@ -229,6 +227,7 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                       {/* Permissions */}
                       <div className="col-md-2">
                         <select
+                          id={"tokenPermissions"+token.token}
                           className="form-select"
                           value={token.permissions}
                           onChange={async (e) => {
@@ -330,6 +329,7 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                           <i className="bi bi-link-45deg"></i>
                         </span>
                         <input
+                          id={"newTokenLink"+calendarId}
                           type="text"
                           className="form-control text-muted bg-light"
                           value="Nouveau lien de partage"
@@ -342,6 +342,7 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                       {/* Jamais + Expiration */}
                       <div className={`d-flex align-items-center gap-2 ${expiresAt[calendarId] === null ? 'col-md-2' : 'col-md-4'}`}>
                         <select
+                          id={"newTokenExpiration"+calendarId}
                           className="form-select"
                           value={expiresAt[calendarId] === null ? '' : 'date'}
                           title="Expire jamais"
@@ -354,6 +355,7 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                         </select>
                         {expiresAt[calendarId] !== null && (
                           <input
+                            id={"newTokenDate"+calendarId}
                             type="date"
                             className="form-control"
                             style={{ minWidth: "120px" }}
@@ -368,6 +370,7 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                       {/* Permissions */}
                       <div className="col-md-2">
                         <select
+                          id={"newTokenPermissions"+calendarId}
                           className="form-select"
                           value={permissions[calendarId]}
                           title="Permissions"
@@ -428,38 +431,27 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                   )}
                   <li key={user.receiver_uid} className="list-group-item px-3">
                     <div className="row align-items-center g-2">
-
                       <div className={`d-flex align-items-center gap-2 col-md-4`}>
-                      <div
-                        className="d-flex align-items-center gap-2 position-relative"
-                        onMouseEnter={() => setHoveredUser(user.receiver_uid)}
-                        onMouseLeave={() => setHoveredUser(null)}
-                        style={{ cursor: 'pointer' }}
-                        ref={(el) => (refs.current[user.receiver_uid] = el)}
-                      >
-                          {/* Image */}
-                          <div>
-                            <img src={user.receiver_photo_url} alt="Profil" className="rounded-circle" style={{ width: "40px", height: "40px" }} />
-                          </div>
+                        <HoveredUserProfile
+                          user={{
+                            photo_url: user.receiver_photo_url,
+                            display_name: user.receiver_name,
+                            email: user.receiver_email,
+                          }}
+                          trigger={
+                            <div className="d-flex align-items-center gap-2">
+                              <div>
+                                <img src={user.receiver_photo_url} alt="Profil" className="rounded-circle" style={{ width: "40px", height: "40px" }} />
+                              </div>
 
-                          {/* Nom */}
-                          <div>
-                            <strong>
-                              {user.receiver_name}
-                              </strong>
-                          </div>
-                          {hoveredUser === user.receiver_uid && (
-                            <HoveredUserProfile
-                              user={{
-                                photo_url: user.receiver_photo_url,
-                                display_name: user.receiver_name,
-                                email: user.receiver_email,
-                              }}
-                              parentRef={{ current: refs.current[user.receiver_uid] }}
-                            />
-
-                          )}
-                        </div>
+                              <div>
+                                <strong>
+                                  {user.receiver_name}
+                                </strong>
+                              </div>
+                            </div>
+                          }
+                        />
 
                         {/* Statut */}
                         <div>
@@ -467,26 +459,25 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                             {user.accepted ? "Accepté" : "En attente"}
                           </span>
                         </div>
-                  
                       </div>
-
                       {/* Permissions*/}
                       <div className="col-md-2 offset-md-4">
-                          <select
-                            className="form-select"
-                            value={user.access}
-                            onChange={(e) => {
-                              setAlertType("info");
-                              setAlertMessage("Vous ne pouvez pas modifier l'accès d'un utilisateur partagé.");
-                              setAlertId(user.receiver_uid);
-                            }}
-                            title="Accès"
-                            disabled={true}
-                          >
-                            <option value="read">Lecture seule</option>
-                            <option value="edit">Lecture + Édition</option>
-                          </select>
-                        </div>
+                        <select
+                          id={"sharedUserAccess"+user.receiver_uid}
+                          className="form-select"
+                          value={user.access}
+                          onChange={(e) => {
+                            setAlertType("info");
+                            setAlertMessage("Vous ne pouvez pas modifier l'accès d'un utilisateur partagé.");
+                            setAlertId(user.receiver_uid);
+                          }}
+                          title="Accès"
+                          disabled={true}
+                        >
+                          <option value="read">Lecture seule</option>
+                          <option value="edit">Lecture + Édition</option>
+                        </select>
+                      </div>
 
                       {/* 🗑️ Supprimer */}
                       <div className="col-md-2 d-flex justify-content-end">
@@ -548,6 +539,7 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                     <div className="col-md-6">
                       <div className="input-group">
                         <input
+                          id={"emailToInvite"+calendarId}
                           type="email"
                           className="form-control"
                           placeholder="Email du destinataire"

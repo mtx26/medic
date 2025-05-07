@@ -1,5 +1,5 @@
 // CalendarPage.jsx
-import React, { useEffect, useContext, useRef, useState } from 'react';
+import React, { useEffect, useContext, useRef, useState, useMemo } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
@@ -29,19 +29,16 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
 
   const calendarSourceMap = {
     personal: {
-      fetchCalendars: personalCalendars.fetchPersonalCalendars,
       fetchSchedule: personalCalendars.fetchPersonalCalendarSchedule,
       calendarsData: personalCalendars.calendarsData,
       setCalendarsData: personalCalendars.setCalendarsData,
     },
     sharedUser: {
-      fetchCalendars: sharedUserCalendars.fetchSharedCalendars,
       fetchSchedule: sharedUserCalendars.fetchSharedUserCalendarSchedule,
       calendarsData: sharedUserCalendars.sharedCalendarsData,
       setCalendarsData: sharedUserCalendars.setSharedCalendarsData,
     },
     token: {
-      fetchCalendars: tokenCalendars.fetchTokens,
       fetchSchedule: tokenCalendars.fetchTokenCalendarSchedule,
       calendarsData: null,
       setCalendarsData: null,
@@ -75,11 +72,6 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
     setEventsForDay(calendarEvents.filter((event) => event.start.startsWith(clickedDate)));
     const modal = new window.bootstrap.Modal(modalRef.current);
     modal.show();
-    
-    modalRef.current.addEventListener('shown.bs.modal', () => {
-      modalRef.current.querySelector('button')?.focus();
-    }, { once: true });
-    
   };
 
   // Fonction pour naviguer vers la date suivante ou precedente
@@ -93,25 +85,25 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
   
   // Fonction pour charger le calendrier lorsque l'utilisateur est connecté
   useEffect(() => {
-    if (authReady && currentUser && calendarId) {
-      const load = async () => {
-        setCalendarEvents([]); // reset
-        setLoadingCalendar(undefined); // relancer le spinner
-        await calendarSource.fetchCalendars();
+    if (!authReady || !calendarId) return;
+    const load = async () => {
+      if (calendarType === 'token' || currentUser) {
         const rep = await calendarSource.fetchSchedule(calendarId);
         if (rep.success) {
           setCalendarEvents(rep.schedule);
         }
         setLoadingCalendar(!rep.success);
-      };
-      load();
-    }
+      } else {
+        setLoadingCalendar(true);
+      }
+    };
+
+    load();
   }, [authReady, currentUser, calendarId]);
 
 
   //map juste 7 fois
   const days = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
-  const moments = ["Matin", "Midi", "Soir"];
   const hours = { 8: "Matin", 12: "Midi", 18: "Soir" };
 
   useEffect(() => {
@@ -154,6 +146,13 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
     }
   }, [calendarEvents, loadingCalendar]);
   
+  const memoizedEvents = useMemo(() => {
+    return calendarEvents.map((event) => ({
+      title: `${event.title} (${event.dose})`,
+      start: event.start,
+      color: event.color,
+    }));
+  }, [calendarEvents]);
   
   
   
@@ -205,47 +204,47 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
 
       
       <div>
-  <h4 className="mb-4">
-    <i className="bi bi-calendar-week"></i> Tableau hebdomadaire
-  </h4>
-  {calendarTable.map((table, index) => (
-    <div className="card border border-secondary-subtle mb-4" key={index}>
-      <div className="card-header bg-light fw-semibold text-dark">
-        <i className="bi bi-capsule me-2"></i>{table.title}
+        <h4 className="mb-4">
+          <i className="bi bi-calendar-week"></i> Tableau hebdomadaire
+        </h4>
+        {calendarTable.map((table, index) => (
+          <div className="card border border-secondary-subtle mb-4" key={index}>
+            <div className="card-header bg-light fw-semibold text-dark">
+              <i className="bi bi-capsule me-2"></i>{table.title}
+            </div>
+            <div className="card-body p-0">
+              <div className="table-responsive">
+                <table className="table table-sm table-bordered text-center align-middle mb-0">
+                  <thead className="table-light">
+                    <tr>
+                      <th className="min-width-100">Moment</th>
+                      {days.map((day) => (
+                        <th key={day} className="min-width-60">{day}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Object.entries(table.cells).map(([moment, momentsObj]) => (
+                      <tr key={moment}>
+                        <td><strong>{moment}</strong></td>
+                        {days.map((day) => (
+                          <td key={day}>
+                            {momentsObj[day] && (
+                              <span className="text-muted small px-2 py-1 rounded d-inline-block">
+                                {momentsObj[day]}
+                              </span>
+                            )}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
-      <div className="card-body p-0">
-        <div className="table-responsive">
-          <table className="table table-sm table-bordered text-center align-middle mb-0">
-            <thead className="table-light">
-              <tr>
-                <th className="min-width-100">Moment</th>
-                {days.map((day) => (
-                  <th key={day} className="min-width-60">{day}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {Object.entries(table.cells).map(([moment, momentsObj]) => (
-                <tr key={moment}>
-                  <td><strong>{moment}</strong></td>
-                  {days.map((day) => (
-                    <td key={day}>
-                      {momentsObj[day] && (
-                        <span className="text-muted small px-2 py-1 rounded d-inline-block">
-                          {momentsObj[day]}
-                        </span>
-                      )}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  ))}
-</div>
 
 
       <div className="card shadow-sm mb-4">
@@ -292,11 +291,7 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
       <FullCalendar
         plugins={[dayGridPlugin, interactionPlugin]}
         initialView="dayGridMonth"
-        events={calendarEvents.map((event) => ({
-          title: `${event.title} (${event.dose})`,
-          start: event.start,
-          color: event.color,
-        }))}
+        events={memoizedEvents}
         locale={frLocale}
         firstDay={1}
         dateClick={handleDateClick}
@@ -311,28 +306,22 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
         // semaine actuelle en vert clair
         dayCellDidMount={(info) => {
           const today = new Date();
-      
-          // Trouver le lundi (début de la semaine)
           const startOfWeek = new Date(today);
           startOfWeek.setDate(today.getDate() - ((today.getDay() + 6) % 7) - 1);
-      
-          // Trouver le dimanche (fin de la semaine)
           const endOfWeek = new Date(startOfWeek);
           endOfWeek.setDate(startOfWeek.getDate() + 7);
-      
-          // Comparer avec la date de la cellule
-          const cellDate = new Date(info.date.toDateString()); // nettoyage heure
-      
+        
+          const cellDate = new Date(info.date.toDateString());
+        
           const isToday =
-          cellDate.getFullYear() === today.getFullYear() &&
-          cellDate.getMonth() === today.getMonth() &&
-          cellDate.getDate() === today.getDate();
-    
+            cellDate.getFullYear() === today.getFullYear() &&
+            cellDate.getMonth() === today.getMonth() &&
+            cellDate.getDate() === today.getDate();
+        
           if (!isToday && cellDate >= startOfWeek && cellDate <= endOfWeek) {
-            info.el.style.backgroundColor = '#d0f5d8'; // vert clair
+            info.el.classList.add('highlight-week'); // ✅ Plus performant
           }
         }}
-
         
       />
 
@@ -361,7 +350,7 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
                     <ul className="list-group">
                       {eventsForDay.map((event, index) => (
                         <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
-                          {event.title}
+                          {`${event.title} (${event.dose})`}
                           <span className="badge" style={{ backgroundColor: event.color, color: 'white' }}>
                             {new Date(event.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </span>

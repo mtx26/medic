@@ -59,10 +59,10 @@ def handle_shared_calendars():
                     origin="SHARED_CALENDARS_LOAD"
                 )
             owner_name = owner_doc.to_dict().get("display_name")
+            owner_email = owner_doc.to_dict().get("email")
             owner_photo_url = owner_doc.to_dict().get("photo_url")
             if not owner_photo_url:
                 owner_photo_url = "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/icons/person-circle.svg"
-            owner_email = owner_doc.to_dict().get("email")
 
             if not verify_calendar_share(calendar_id, owner_uid, uid):
                 continue

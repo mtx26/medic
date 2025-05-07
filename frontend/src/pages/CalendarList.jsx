@@ -25,7 +25,7 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
   const [selectedAlert, setSelectedAlert] = useState(null); // État pour l'alerte sélectionnée
 
   // 🔗 Partage de calendrier (par lien ou utilisateur)
-  const [showShareModal, setShowShareModal] = useState(false); // État pour l'ouverture du modal de partage
+  const shareModalRef = useRef(null);
   const [calendarNameToShare, setCalendarNameToShare] = useState(''); // État pour le calendrier à partager
   const [calendarIdToShare, setCalendarIdToShare] = useState(''); // État pour le calendrier à partager
   const [shareMethod, setShareMethod] = useState('link'); // État pour la méthode de partage (par défaut : lien)
@@ -40,23 +40,16 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
 
   const REACT_URL = process.env.REACT_APP_REACT_URL
 
+  const closeShareModal = () => {
+    const modal = window.bootstrap.Modal.getInstance(shareModalRef.current);
+    if (modal) modal.hide();
+  };
+
 
   useEffect(() => {
-    const load = async () => {
-      if (authReady) { // authReady doit être prêt
-        if (currentUser) {
-          personalCalendars.setCalendarsData([]); // Bien vider l'ancien
-          setLoadingCalendars(true);
-          await personalCalendars.fetchPersonalCalendars(); // Recharger pour le nouvel utilisateur
-          await sharedUserCalendars.fetchSharedCalendars(); // Recharger pour le nouvel utilisateur
-          await tokenCalendars.fetchTokens();
-          setLoadingCalendars(false);
-        } else {
-          setLoadingCalendars(false);
-        }
-      }
-    };
-    load();
+    if (authReady && currentUser) {
+      setLoadingCalendars(false);
+    }
   }, [authReady, currentUser]);
   
   
@@ -101,240 +94,244 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
 
   return (
 <div className="container align-items-center d-flex flex-column gap-3">
+   
   {/* Modal pour partager un calendrier */}
-  {showShareModal && (
-    <div className="modal d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-      <div className="modal-dialog">
-        <div className="modal-content">
-          <div className="modal-header">
-            <h5 className="modal-title">Partager le calendrier <strong>{calendarNameToShare}</strong></h5>
-            <button type="button" className="btn-close" onClick={() => setShowShareModal(false)}></button>
-          </div>
-          <div className="modal-body">
+  <div className="modal fade" ref={shareModalRef} tabIndex="-1" id="shareModal">
+    <div className="modal-dialog">
+      <div className="modal-content">
+        <div className="modal-header">
+          <h5 className="modal-title">Partager le calendrier <strong>{calendarNameToShare}</strong></h5>
+          <button type="button" className="btn-close" onClick={closeShareModal}></button>
+        </div>
+        <div className="modal-body">
 
-            {/* Choix du mode */}
-            <div className="mb-4 text-center">
-              <div className="btn-group" role="group" aria-label="Méthode de partage">
-                <button
-                  type="button"
-                  className={`btn ${shareMethod === 'link' ? 'btn-primary' : 'btn-outline-primary'}`}
-                  onClick={() => setShareMethod('link')}
-                >
-                  <i className="bi bi-link"></i> Lien
-                </button>
-                <button
-                  type="button"
-                  className={`btn ${shareMethod === 'account' ? 'btn-primary' : 'btn-outline-primary'}`}
-                  onClick={() => setShareMethod('account')}
-                >
-                  <i className="bi bi-person-plus-fill"></i> Compte
-                </button>
-              </div>
-            </div>
-
-            {/* PARTAGE PAR LIEN */}
-            {shareMethod === 'link' ? (
-              <div className="d-flex flex-column gap-3">
-                {existingShareToken ? (
-                  <>
-                    <p>Un lien existe déjà pour ce calendrier.</p>
-                    <div className="input-group">
-                      <input
-                        type="text"
-                        className="form-control"
-                        value={`${REACT_URL}/shared-token-calendar/${existingShareToken.token}`}
-                        readOnly
-                      />
-                      <button
-                        className="btn btn-outline-warning"
-                        onClick={() => navigate(`/shared-calendar`)}
-                        title="Gérer le lien"
-                      >
-                        <i className="bi bi-gear"></i>
-                      </button>
-                      <button
-                        className="btn btn-outline-primary"
-                        onClick={async () => {
-                          try {
-                            await navigator.clipboard.writeText(`${REACT_URL}/shared-token-calendar/${existingShareToken.token}`);
-                            setAlertType("success");
-                            setSelectedAlert("calendar");
-                            setAlertMessage("🔗 Lien existant copié dans le presse-papiers !");
-                            setShowShareModal(false);
-                          } catch (error) {
-                            setAlertType("danger");
-                            setSelectedAlert("calendar");
-                            setAlertMessage("❌ Erreur lors de la copie du lien.");
-                          }
-                        }}
-                        title="Copier le lien"
-                      >
-                        <i className="bi bi-clipboard"></i>
-                      </button>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <p>Un lien sera généré pour <strong>{calendarNameToShare}</strong>.</p>
-                    <div>
-                      <label className="form-label">Expiration du lien</label>
-                      <select
-                        className="form-select mb-2"
-                        value={expiresAt === null ? '' : 'date'}
-                        onChange={(e) => {
-                          setExpiresAt(e.target.value === '' ? null : '');
-                        }}
-                        title="Date d'expiration"
-                      >
-                        <option value="">Jamais</option>
-                        <option value="date">Choisir une date</option>
-                      </select>
-
-                      {expiresAt !== null && (
-                        <input
-                          type="datetime-local"
-                          className="form-control"
-                          value={expiresAt}
-                          onChange={(e) => setExpiresAt(e.target.value)}
-                          title="Date d'expiration"
-                        />
-                      )}
-                    </div>
-
-                    <div>
-                      <label className="form-label">Permissions</label>
-                      <select
-                        className="form-select"
-                        value={permissions}
-                        onChange={(e) => setPermissions(e.target.value)}
-                        title="Permissions"
-                      >
-                        <option value="read">Lecture seule</option>
-                        <option value="edit">Lecture + Édition</option>
-                      </select>
-                    </div>
-                  </>
-                )}
-              </div>
-            ) : (
-              // PARTAGE PAR COMPTE
-              <div>
-                {sharedUsersData.length > 0 && (
-                  <>
-                    <div className="d-flex align-items-center gap-2 mb-2">
-                      <h5 className="mb-0">Utilisateurs partagés</h5>
-                    </div>
-
-                    <ul className="list-group mb-3">
-                      {sharedUsersData.map((user) => (
-                        <li 
-                          key={user.receiver_uid} 
-                          className="list-group-item d-flex justify-content-between align-items-center gap-2"
-                        >
-                          <div className="d-flex align-items-center gap-2">
-                            <HoveredUserProfile
-                              user={{
-                                email: user.receiver_email,
-                                display_name: user.receiver_name,
-                                photo_url: user.receiver_photo_url
-                              }}
-                              trigger={
-                                <div className="d-flex align-items-center gap-2" style={{ cursor: 'pointer' }}>
-                                  <img src={user.receiver_photo_url} alt="Profil" className="rounded-circle" style={{ width: '40px', height: '40px' }} />
-                                  <span>
-                                    <strong>{user.receiver_name}</strong><br />
-                                    Accès : {user.access}
-                                  </span>
-                                </div>
-                              }
-                            />
-                            <span className={`badge rounded-pill gap-2 ${user.accepted ? "bg-success" : "bg-warning text-dark"}`}>
-                              {user.accepted ? "Accepté" : "En attente"}
-                            </span>
-                          </div>
-
-                          <button
-                            className="btn btn-outline-warning"
-                            title="Gérer les utilisateurs partagés"
-                            onClick={() => navigate('/shared-calendar')}
-                          >
-                            <i className="bi bi-gear"></i>
-                          </button>
-
-                        </li>
-                      ))}
-                    </ul>
-                  </>
-                )}
-                <p>Envoyer une invitation pour accéder à <strong>{calendarNameToShare}</strong>.</p>
-                <div className="input-group">
-                  <input
-                    type="email"
-                    className="form-control"
-                    placeholder="Email du destinataire"
-                    onChange={(e) => setEmailToInvite(e.target.value)}
-                  />
-                  <button
-                    type="button"
-                    className="btn btn-outline-primary"
-                    onClick={async () => {
-                      const rep = await sharedUserCalendars.sendInvitation(emailToInvite, calendarIdToShare);
-                      if (rep.success) {
-                        setAlertType("success");
-                        setSelectedAlert("calendar");
-                        setAlertMessage("✅ "+ rep.message);
-                      } else {
-                        setAlertType("danger");
-                        setSelectedAlert("calendar");
-                        setAlertMessage("❌ "+ rep.error);
-                      }
-                      setShowShareModal(false);
-                    }}
-                  >
-                    Partager
-                  </button>
-                </div>
-              </div>
-            )}
-
-          </div>
-
-          {/* Footer seulement si nécessaire */}
-          <div className="modal-footer">
-            <button type="button" className="btn btn-outline-secondary" onClick={() => setShowShareModal(false)}>Fermer</button>
-            {!existingShareToken && shareMethod === 'link' && (
+          {/* Choix du mode */}
+          <div className="mb-4 text-center">
+            <div className="btn-group" role="group" aria-label="Méthode de partage">
               <button
                 type="button"
-                className="btn btn-outline-primary"
-                onClick={async () => {
-                  const rep = await tokenCalendars.createToken(calendarIdToShare, expiresAt, permissions);
-                  if (rep.success) {
-                    try {
-                      await navigator.clipboard.writeText(`${REACT_URL}/shared-token-calendar/${rep.token}`);
+                className={`btn ${shareMethod === 'link' ? 'btn-primary' : 'btn-outline-primary'}`}
+                onClick={() => setShareMethod('link')}
+              >
+                <i className="bi bi-link"></i> Lien
+              </button>
+              <button
+                type="button"
+                className={`btn ${shareMethod === 'account' ? 'btn-primary' : 'btn-outline-primary'}`}
+                onClick={() => setShareMethod('account')}
+              >
+                <i className="bi bi-person-plus-fill"></i> Compte
+              </button>
+            </div>
+          </div>
+
+          {/* PARTAGE PAR LIEN */}
+          {shareMethod === 'link' ? (
+            <div className="d-flex flex-column gap-3">
+              {existingShareToken ? (
+                <>
+                  <p>Un lien existe déjà pour ce calendrier.</p>
+                  <div className="input-group">
+                    <input
+                      id="tokenLink"
+                      type="text"
+                      className="form-control"
+                      value={`${REACT_URL}/shared-token-calendar/${existingShareToken.token}`}
+                      readOnly
+                    />
+                    <button
+                      className="btn btn-outline-warning"
+                      onClick={() => navigate(`/shared-calendar`)}
+                      title="Gérer le lien"
+                    >
+                      <i className="bi bi-gear"></i>
+                    </button>
+                    <button
+                      className="btn btn-outline-primary"
+                      onClick={async () => {
+                        try {
+                          await navigator.clipboard.writeText(`${REACT_URL}/shared-token-calendar/${existingShareToken.token}`);
+                          setAlertType("success");
+                          setSelectedAlert("calendar");
+                          setAlertMessage("🔗 Lien existant copié dans le presse-papiers !");
+                          closeShareModal();
+                        } catch (error) {
+                          setAlertType("danger");
+                          setSelectedAlert("calendar");
+                          setAlertMessage("❌ Erreur lors de la copie du lien.");
+                        }
+                      }}
+                      title="Copier le lien"
+                    >
+                      <i className="bi bi-clipboard"></i>
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p>Un lien sera généré pour <strong>{calendarNameToShare}</strong>.</p>
+                  <div>
+                    <label className="form-label" htmlFor="newTokenExpiration">Expiration du lien</label>
+                    <select
+                      id="newTokenExpiration"
+                      className="form-select mb-2"
+                      value={expiresAt === null ? '' : 'date'}
+                      onChange={(e) => {
+                        setExpiresAt(e.target.value === '' ? null : '');
+                      }}
+                      title="Date d'expiration"
+                    >
+                      <option value="">Jamais</option>
+                      <option value="date">Choisir une date</option>
+                    </select>
+
+                    {expiresAt !== null && (
+                      <input
+                        id="newTokenDate"
+                        type="datetime-local"
+                        className="form-control"
+                        value={expiresAt}
+                        onChange={(e) => setExpiresAt(e.target.value)}
+                        title="Date d'expiration"
+                      />
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="form-label" htmlFor="newTokenPermissions">Permissions</label>
+                    <select
+                      id="newTokenPermissions"
+                      className="form-select"
+                      value={permissions}
+                      onChange={(e) => setPermissions(e.target.value)}
+                      title="Permissions"
+                    >
+                      <option value="read">Lecture seule</option>
+                      <option value="edit">Lecture + Édition</option>
+                    </select>
+                  </div>
+                </>
+              )}
+            </div>
+          ) : (
+            // PARTAGE PAR COMPTE
+            <div>
+              {sharedUsersData.length > 0 && (
+                <>
+                  <div className="d-flex align-items-center gap-2 mb-2">
+                    <h5 className="mb-0">Utilisateurs partagés</h5>
+                  </div>
+
+                  <ul className="list-group mb-3">
+                    {sharedUsersData.map((user) => (
+                      <li 
+                        key={user.receiver_uid} 
+                        className="list-group-item d-flex justify-content-between align-items-center gap-2"
+                      >
+                        <div className="d-flex align-items-center gap-2">
+                          <HoveredUserProfile
+                            user={{
+                              email: user.receiver_email,
+                              display_name: user.receiver_name,
+                              photo_url: user.receiver_photo_url
+                            }}
+                            trigger={
+                              <div className="d-flex align-items-center gap-2" style={{ cursor: 'pointer' }}>
+                                <img src={user.receiver_photo_url} alt="Profil" className="rounded-circle" style={{ width: '40px', height: '40px' }} />
+                                <span>
+                                  <strong>{user.receiver_name}</strong><br />
+                                  Accès : {user.access}
+                                </span>
+                              </div>
+                            }
+                          />
+                          <span className={`badge rounded-pill gap-2 ${user.accepted ? "bg-success" : "bg-warning text-dark"}`}>
+                            {user.accepted ? "Accepté" : "En attente"}
+                          </span>
+                        </div>
+
+                        <button
+                          className="btn btn-outline-warning"
+                          title="Gérer les utilisateurs partagés"
+                          onClick={() => navigate('/shared-calendar')}
+                        >
+                          <i className="bi bi-gear"></i>
+                        </button>
+
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
+              <p>Envoyer une invitation pour accéder à <strong>{calendarNameToShare}</strong>.</p>
+              <div className="input-group">
+                <input
+                  id="emailToInvite"
+                  type="email"
+                  className="form-control"
+                  placeholder="Email du destinataire"
+                  onChange={(e) => setEmailToInvite(e.target.value)}
+                />
+                <button
+                  type="button"
+                  className="btn btn-outline-primary"
+                  onClick={async () => {
+                    const rep = await sharedUserCalendars.sendInvitation(emailToInvite, calendarIdToShare);
+                    if (rep.success) {
                       setAlertType("success");
                       setSelectedAlert("calendar");
                       setAlertMessage("✅ "+ rep.message);
-                    } catch (error) {
+                    } else {
                       setAlertType("danger");
                       setSelectedAlert("calendar");
-                      setAlertMessage("❌ Erreur lors de la copie du lien.");
+                      setAlertMessage("❌ "+ rep.error);
                     }
-                  } else {
+                    closeShareModal();
+                  }}
+                >
+                  Partager
+                </button>
+              </div>
+            </div>
+          )}
+
+        </div>
+
+        {/* Footer seulement si nécessaire */}
+        <div className="modal-footer">
+          <button type="button" className="btn btn-outline-secondary" onClick={closeShareModal}>Fermer</button>
+          {!existingShareToken && shareMethod === 'link' && (
+            <button
+              type="button"
+              className="btn btn-outline-primary"
+              onClick={async () => {
+                const rep = await tokenCalendars.createToken(calendarIdToShare, expiresAt, permissions);
+                if (rep.success) {
+                  try {
+                    await navigator.clipboard.writeText(`${REACT_URL}/shared-token-calendar/${rep.token}`);
+                    setAlertType("success");
+                    setSelectedAlert("calendar");
+                    setAlertMessage("✅ "+ rep.message);
+                  } catch (error) {
                     setAlertType("danger");
                     setSelectedAlert("calendar");
-                    setAlertMessage("❌ " + rep.error);
+                    setAlertMessage("❌ Erreur lors de la copie du lien.");
                   }
-                  setShowShareModal(false);
-                }}
-              >
-                Partager
-              </button>
-            )}
-          </div>
+                } else {
+                  setAlertType("danger");
+                  setSelectedAlert("calendar");
+                  setAlertMessage("❌ " + rep.error);
+                }
+                closeShareModal();
+              }}
+            >
+              Partager
+            </button>
+          )}
         </div>
       </div>
     </div>
-  )}
+  </div>
 
 
   <div className="card p-3 shadow-sm w-100" style={{ maxWidth: '800px' }}>
@@ -357,6 +354,7 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
     {/* Champ pour ajouter un nouveau calendrier */}
     <div className="input-group mb-4">
       <input
+      id="newCalendarName"
       type="text"
       className="form-control"
       placeholder="Nom du calendrier"
@@ -436,6 +434,7 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
         {/* Partie pour renommer un calendrier */}
         <div className="input-group input-group w-100 w-md-auto">
           <input
+          id={"renameCalendarName"+calendarData.calendar_id}
           type="text"
           className="form-control form-control"
           placeholder="Nouveau nom"
@@ -497,7 +496,10 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
                 setSharedUsersData(rep.data);
               }
               setExistingShareToken(token || null);
-              setShowShareModal(true);           // On affiche la modal
+              setTimeout(() => {
+                const modal = new window.bootstrap.Modal(shareModalRef.current);
+                modal.show();
+              }, 0);
             }}
           >
             <i className="bi bi-box-arrow-up"></i>

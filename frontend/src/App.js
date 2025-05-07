@@ -8,6 +8,8 @@ import { log } from './utils/logger';
 import { auth } from './services/firebase';
 import { AuthContext } from './contexts/LoginContext';
 import { useCallback } from 'react';
+import { onSnapshot, query, where, collection, orderBy } from "firebase/firestore";
+import { db } from "./services/firebase";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -27,33 +29,48 @@ function App() {
 
 
   // Fonction pour obtenir les calendriers
-  const fetchPersonalCalendars = useCallback(async () => {
-    try {
-      const token = await auth.currentUser.getIdToken();
-      const res = await fetch(`${API_URL}/api/calendars`, {
-        method: "GET",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-      // trier les calendriers par ordre alphabétique
-      const sortedCalendars = data.calendars.sort((a, b) => a.calendar_name.localeCompare(b.calendar_name));
-      setCalendarsData(sortedCalendars);
-      log.info(data.message, {
-        origin: "CALENDARS_FETCH_SUCCESS",
-        "uid": auth.currentUser.uid,
-        "count": data.calendars?.length,
-      });
-      return { success: true, message: data.message, code: data.code };
-
-    } catch (err) {
-      log.error(err.message || "Erreur lors de la récupération des calendriers", err, {
-        origin: "CALENDARS_FETCH_ERROR",
-        "uid": auth.currentUser.uid,
-      });
-      return { success: false, error: err.message, code: err.code };
-    }
-  }, [setCalendarsData]);
+  useEffect(() => {
+    if (!(authReady && currentUser)) return;
+  
+    const user = auth.currentUser;
+    if (!user) return;
+  
+    const calendarsRef = collection(db, "users", user.uid, "calendars");
+  
+    const unsubscribe = onSnapshot(calendarsRef, async () => {
+      try {
+        const token = await user.getIdToken();
+        const res = await fetch(`${API_URL}/api/calendars`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+  
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+  
+        const sortedCalendars = data.calendars.sort((a, b) =>
+          a.calendar_name.localeCompare(b.calendar_name)
+        );
+        setCalendarsData(sortedCalendars);
+  
+        log.info(data.message, {
+          origin: "CALENDARS_REALTIME_UPDATE",
+          uid: user.uid,
+          count: data.calendars?.length,
+        });
+      } catch (err) {
+        log.error(err.message || "Échec de mise à jour en temps réel des calendriers", err, {
+          origin: "CALENDARS_REALTIME_ERROR",
+          uid: user?.uid,
+        });
+      }
+    });
+  
+    return () => unsubscribe();
+  }, [authReady, currentUser, setCalendarsData]);
+  
 
   // Fonction pour ajouter un calendrier
   const addCalendar = useCallback(async (calendarName) => {
@@ -69,7 +86,6 @@ function App() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      fetchPersonalCalendars();
 
       log.info(data.message, {
         origin: "CALENDAR_CREATE_SUCCESS",
@@ -86,7 +102,7 @@ function App() {
       });
       return { success: false, error: err.message, code: err.code };
     }
-  }, [fetchPersonalCalendars]);
+  }, []);
 
   // Fonction pour supprimer un calendrier
   const deleteCalendar = useCallback(async (calendarId) => {
@@ -102,7 +118,6 @@ function App() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      fetchPersonalCalendars();
       log.info(data.message, {
         origin: "CALENDAR_DELETE_SUCCESS",
         "uid": auth.currentUser.uid,
@@ -117,7 +132,7 @@ function App() {
       });
       return { success: false, error: err.message, code: err.code };
     }
-  }, [fetchPersonalCalendars]);
+  }, []);
 
   // Fonction pour renommer un calendrier
   const renameCalendar = useCallback(async (calendarId, newCalendarName) => {
@@ -135,7 +150,6 @@ function App() {
       if (!res.ok) {
         throw new Error(data.error);
       }
-      fetchPersonalCalendars();
       log.info(data.message, {
         origin: "CALENDAR_RENAME_SUCCESS",
         "uid": auth.currentUser.uid,
@@ -152,7 +166,7 @@ function App() {
       });
       return { success: false, error: err.message, code: err.code };
     }
-  }, [fetchPersonalCalendars]);
+  }, []);
 
   // Fonction pour obtenir le nombre de médicaments d'un calendrier 
   const fetchPersonalCalendarMedicineCount = useCallback(async (calendarId) => {
@@ -414,44 +428,58 @@ function App() {
       if (!res.ok) throw new Error(data.error);
       log.info(data.message, {
         origin: "SHARED_MED_FETCH_SUCCESS",
+        "uid": "without uid",
         "token": token,
       });
       return {success: true, message: data.message, code: data.code, medicinesData: data.medicines};
     } catch (err) {
       log.error(err.message || "Échec de récupération des médicaments partagé", err, {
         origin: "SHARED_MED_FETCH_ERROR",
+        "uid": "without uid",
         "token": token,
       });
       return {success: false, error: err.message, code: err.code};
     }
   }, []);
 
-  // Fonction pour récupérer les tokens
-  const fetchTokens = useCallback(async () => {
-    try {
-      const token = await auth.currentUser.getIdToken();
-      const res = await fetch(`${API_URL}/api/tokens`, {
-        method: "GET",
-      headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-      const sortedTokens = data.tokens.sort((a, b) => a.calendar_name.localeCompare(b.calendar_name));
-      setTokensList(sortedTokens);
-      log.info(data.message, {
-        origin: "TOKENS_FETCH_SUCCESS",
-        "uid": auth.currentUser.uid,
-        "count": data.tokens?.length,
-      });
-      return {success: true, message: data.message, code: data.code};
-    } catch (err) {
-      log.error(err.message || "Échec de récupération des tokens", err, {
-        origin: "TOKENS_FETCH_ERROR",
-        "uid": auth.currentUser.uid,
-      });
-      return {success: false, error: err.message, code: err.code};
-    }
-  }, [setTokensList]);
+  // Fonction pour récupérer les tokens en temps réel
+  useEffect(() => {
+    if (!(authReady && currentUser)) return;
+  
+    const user = auth.currentUser;
+    if (!user) return;
+  
+    const q = query(
+      collection(db, "shared_tokens"),
+      where("owner_uid", "==", user.uid)
+    );
+  
+    const unsubscribe = onSnapshot(q, async () => {
+      try {
+        const token = await user.getIdToken();
+        const res = await fetch(`${API_URL}/api/tokens`, {
+          method: "GET",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+        setTokensList(data.tokens);
+        log.info(data.message, {
+          origin: "TOKENS_FETCH_SUCCESS",
+          uid: user.uid,
+          count: data.tokens.length,
+        });
+      } catch (err) {
+        log.error(err.message || "Échec de récupération des tokens", err, {
+          origin: "TOKENS_FETCH_ERROR",
+          uid: user?.uid,
+        });
+      }
+    });
+  
+    return () => unsubscribe();
+  }, [authReady, currentUser, setTokensList]);
+  
 
   // Fonction pour créer un lien de partage
   const createToken = useCallback(async (calendarId, expiresAt, permissions) => {
@@ -472,7 +500,6 @@ function App() {
         "calendarId": calendarId,
         "token": data.token,
       });
-      fetchTokens();
       return {success: true, token: data.token, message: data.message, code: data.code};
     } catch (err) {
       log.error(err.message || "Échec de création du lien de partage", err, {
@@ -481,7 +508,7 @@ function App() {
       });
       return {success: false, token: null, error: err.message, code: err.code};
     }
-  }, [fetchTokens]);
+  }, []);
 
   // Fonction pour supprimer un lien de partage
   const deleteToken = useCallback(async (token) => {
@@ -495,7 +522,6 @@ function App() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      fetchTokens();
       log.info(data.message, {
         origin: "SHARED_CALENDAR_DELETE_SUCCESS",
         "token": token,
@@ -508,7 +534,7 @@ function App() {
       });
       return {success: false, error: err.message, code: err.code};
     }
-  }, [fetchTokens]);
+  }, []);
   
   // Fonction pour revoker un token
   const updateRevokeToken = useCallback(async (token) => {
@@ -522,7 +548,6 @@ function App() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      fetchTokens();
       log.info(data.message, {
         origin: "TOKEN_REVOKE_SUCCESS",
         "token": token,
@@ -535,7 +560,7 @@ function App() {
       });
       return {success: false, error: err.message, code: err.code};
     }
-  }, [fetchTokens]);
+  }, []);
 
   // Fonction pour mettre à jour l'expiration d'un token
   const updateTokenExpiration = useCallback(async (token, expiresAt) => {
@@ -550,7 +575,6 @@ function App() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      fetchTokens();
       log.info("Expiration du token mise à jour avec succès", {
         origin: "TOKEN_EXPIRATION_UPDATE_SUCCESS",
         "token": token,
@@ -564,7 +588,7 @@ function App() {
       });
       return {success: false, error: err.message, code: err.code};
     }
-  }, [fetchTokens]);
+  }, []);
 
   // Fonction pour mettre à jour les permissions d'un token
   const updateTokenPermissions = useCallback(async (token, permissions) => {
@@ -579,7 +603,6 @@ function App() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      fetchTokens();
       log.info(data.message, {
         origin: "TOKEN_PERMISSIONS_UPDATE_SUCCESS",
         "token": token,
@@ -593,7 +616,7 @@ function App() {
       });
       return {success: false, error: err.message, code: err.code};
     }
-  }, [fetchTokens]);
+  }, []);
 
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -628,32 +651,54 @@ function App() {
     }
   }, []);
 
-  // Fonction pour récupérer les notifications
-  const fetchNotifications = useCallback(async () => {
-    try {
-      const token = await auth.currentUser.getIdToken();
-      const res = await fetch(`${API_URL}/api/notifications`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-      const sortedNotifications = data.notifications.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-      setNotificationsData(sortedNotifications);
-      log.info(data.message, {
-        origin: "NOTIFICATIONS_FETCH_SUCCESS",
-        count: data?.notifications?.length,
-      });
-      return {success: true, message: data.message, code: data.code};
-    } catch (err) {
-      log.error(err.message || "Échec de récupération des notifications", err, {
-        origin: "NOTIFICATIONS_FETCH_ERROR",
-      });
-      return {success: false, error: err.message, code: err.code};
-    }
-  }, [setNotificationsData]);
+  // Fonction pour récupérer les notifications en temps réel
+  useEffect(() => {
+    if (!(authReady && currentUser)) return;
+  
+    const user = auth.currentUser;
+    if (!user) return;
+  
+    const q = query(
+      collection(db, "users", user.uid, "notifications"),
+      orderBy("timestamp", "desc")
+    );
+  
+    const unsubscribe = onSnapshot(q, async () => {
+      try {
+        const token = await user.getIdToken();
+  
+        const res = await fetch(`${API_URL}/api/notifications`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+  
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+  
+        const sortedNotifications = data.notifications.sort(
+          (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
+        );
+        setNotificationsData(sortedNotifications);
+  
+        log.info(data.message, {
+          origin: "NOTIFICATIONS_FETCH_SUCCESS",
+          uid: user.uid,
+          count: data.notifications?.length,
+        });
+      } catch (err) {
+        log.error(err.message || "Échec de récupération des notifications enrichies", err, {
+          origin: "NOTIFICATIONS_FETCH_ERROR",
+          uid: user?.uid,
+        });
+      }
+    });
+  
+    return () => unsubscribe();
+  }, [authReady, currentUser, setNotificationsData]);
+  
+  
 
   // Fonction pour accepter une invitation
   const acceptInvitation = useCallback(async (notificationId) => {
@@ -667,7 +712,6 @@ function App() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      fetchNotifications(); 
       log.info(data.message, {
         origin: "INVITATION_ACCEPT_SUCCESS",
         notificationId,
@@ -680,7 +724,7 @@ function App() {
       });
       return {success: false, error: err.message, code: err.code};
     }
-  }, [fetchNotifications]);
+  }, []);
 
   // Fonction pour rejeter une invitation
   const rejectInvitation = useCallback(async (notificationId) => {
@@ -694,7 +738,6 @@ function App() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      fetchNotifications();
       log.info(data.message, {
         origin: "INVITATION_REJECT_SUCCESS",
         notificationId,
@@ -707,7 +750,7 @@ function App() {
       });
       return {success: false, error: err.message, code: err.code};
     }
-  }, [fetchNotifications]);
+  }, []);
 
   // Fonction pour marquer une notification comme lue
   const readNotification = useCallback(async (notificationId) => {
@@ -721,7 +764,6 @@ function App() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      fetchNotifications();
       log.info(data.message, {
         origin: "NOTIFICATION_READ_SUCCESS",
         notificationId,
@@ -734,36 +776,51 @@ function App() {
       });
       return {success: false, error: err.message, code: err.code};
     }
-  }, [fetchNotifications]);
+  }, []);
 
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   // Fonction pour récupérer les calendriers partagés
-  const fetchSharedCalendars = useCallback(async () => {
-    try {
-      const token = await auth.currentUser.getIdToken();
-      const res = await fetch(`${API_URL}/api/shared/users/calendars`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-      setSharedCalendarsData(data.calendars);
-      log.info(data.message, {
-        origin: "SHARED_CALENDARS_FETCH_SUCCESS",
-        count: data?.calendars?.length,
-      });
-      return {success: true, message: data.message, code: data.code};
-    } catch (err) {
-      log.error(err.message || "Échec de récupération des calendriers partagés", err, {
-        origin: "SHARED_CALENDARS_FETCH_ERROR",
-      });
-      return {success: false, error: err.message, code: err.code};
-    }
-  }, [setSharedCalendarsData]);
+  useEffect(() => {
+    if (!(authReady && currentUser)) return;
+  
+    const user = auth.currentUser;
+    if (!user) return;
+  
+    const q = collection(db, "users", user.uid, "shared_calendars");
+  
+    const unsubscribe = onSnapshot(q, async () => {
+      try {
+        const token = await user.getIdToken();
+        const res = await fetch(`${API_URL}/api/shared/users/calendars`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+  
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+  
+        setSharedCalendarsData(data.calendars);
+  
+        log.info(data.message, {
+          origin: "SHARED_CALENDARS_FETCH_SUCCESS",
+          uid: user.uid,
+          count: data.calendars?.length,
+        });
+      } catch (err) {
+        log.error(err.message || "Échec de récupération des calendriers partagés", err, {
+          origin: "SHARED_CALENDARS_FETCH_ERROR",
+          uid: user?.uid,
+        });
+      }
+    });
+  
+    return () => unsubscribe();
+  }, [authReady, currentUser, setSharedCalendarsData]);
+  
 
   // Fonction pour supprimer un calendrier partagé pour le receiver
   const deleteSharedCalendar = useCallback(async (calendarId) => {
@@ -777,7 +834,6 @@ function App() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      fetchSharedCalendars();
       log.info(data.message, {
         origin: "SHARED_CALENDAR_DELETE_SUCCESS",
         calendarId,
@@ -790,7 +846,7 @@ function App() {
       });
       return {success: false, error: err.message, code: err.code};
     }
-  }, [fetchSharedCalendars]);
+  }, []);
 
   // Fonction pour récupérer les différentes utilisateurs ayant accès à un calendrier
   const fetchSharedUsers = useCallback(async (calendarId) => {
@@ -991,7 +1047,6 @@ function App() {
 
   const sharedProps = {
     personalCalendars: {
-      fetchPersonalCalendars,
       fetchPersonalCalendarSchedule,
       fetchPersonalCalendarMedicines,
       fetchPersonalCalendarMedicineCount,
@@ -1006,7 +1061,6 @@ function App() {
     },
   
     sharedUserCalendars: {
-      fetchSharedCalendars,
       fetchSharedUserCalendarSchedule,
       fetchSharedUserCalendarMedicines,
       fetchSharedUserCalendarMedicineCount,
@@ -1024,7 +1078,6 @@ function App() {
     },
   
     tokenCalendars: {
-      fetchTokens,
       fetchTokenCalendarSchedule,
       fetchTokenCalendarMedicines,
       createToken,
@@ -1037,7 +1090,6 @@ function App() {
     },
   
     notifications: {
-      fetchNotifications,
       readNotification,
       notificationsData,
       setNotificationsData,

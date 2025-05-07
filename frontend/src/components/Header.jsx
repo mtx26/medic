@@ -1,25 +1,16 @@
 import React, { useContext, useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { UserContext } from "../contexts/UserContext";
-import { AuthContext } from "../contexts/LoginContext";
 import { handleLogout } from "../services/authService";
 import { useNavigate } from "react-router-dom";
 import HoveredUserProfile from "./HoveredUserProfile";
 
 function Navbar({ sharedProps }) {
   const { userInfo } = useContext(UserContext);
-  const { authReady, currentUser } = useContext(AuthContext);
   const navigate = useNavigate();
 
-  const { notificationsData, fetchNotifications, readNotification } = sharedProps.notifications;
+  const { notificationsData, readNotification } = sharedProps.notifications;
   const { acceptInvitation, rejectInvitation } = sharedProps.sharedUserCalendars;
-  const { fetchSharedCalendars } = sharedProps.personalCalendars;
-
-  useEffect(() => {
-    if (authReady && currentUser) {
-      fetchNotifications();
-    }
-  }, [authReady, currentUser, fetchNotifications]);
 
 
   return (
@@ -61,7 +52,7 @@ function Navbar({ sharedProps }) {
                 >
                   <i className="bi bi-bell fs-5"></i>
                   {notificationsData.filter(notif => !notif.read).length > 0 && (
-                    <span className="position-absolute top-1 start-100 translate-middle badge rounded-pill bg-danger">
+                    <span className="position-absolute top-10 start-90 translate-middle badge rounded-pill bg-danger fs-7">
                       {notificationsData.filter(notif => !notif.read).length}
                     </span>
                   )}
@@ -103,7 +94,7 @@ function Navbar({ sharedProps }) {
                                     className="btn btn-sm btn-outline-primary" 
                                     onClick={async () => {
                                       await acceptInvitation(notif.notification_id)
-                                      fetchSharedCalendars()
+                                      navigate(`/shared-user-calendar/${notif.calendar_id}`)
                                     }}
                                   >
                                     Accepter
@@ -304,13 +295,18 @@ function Navbar({ sharedProps }) {
           </Link>
 
           <button
-            className="navbar-toggler"
+            className="navbar-toggler position-relative"
             type="button"
             data-bs-toggle="offcanvas"
             data-bs-target="#offcanvasNavbar"
             aria-controls="offcanvasNavbar"
           >
             <span className="navbar-toggler-icon"></span>
+            {notificationsData.filter(notif => !notif.read).length > 0 && (
+              <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger fs-7">
+                {notificationsData.filter(notif => !notif.read).length}
+              </span>
+            )}
           </button>
 
           <div
@@ -360,7 +356,7 @@ function Navbar({ sharedProps }) {
                     <div className="position-relative d-inline-block me-2">
                       <i className="bi bi-bell fs-5"></i>
                       {notificationsData.filter(notif => !notif.read).length > 0 && (
-                        <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger fs-14">
+                        <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger fs-7">
                           {notificationsData.filter(notif => !notif.read).length}
                         </span>
                       )}
