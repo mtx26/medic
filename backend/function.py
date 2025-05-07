@@ -78,25 +78,29 @@ def generate_schedule(start_date, medications):
                 # format pour fullcalendar
                 pils_data = {}
 
-                name = f"{med['name']} ({med['tablet_count']})"
+                name = med['name']
+                dose = med['tablet_count']
 
                 if med["time"] == ["morning"]:
                     pils_data = {
                         "title" : name,
                         "start" : current_date.strftime("%Y-%m-%dT08:00:00"),
-                        "color" : "#f87171" # rouge clair
+                        "color" : "#f87171", # rouge clair
+                        "dose" : dose
                     }
                 elif med["time"] == ["noon"]:
                     pils_data = {
                         "title" : name,
                         "start" : current_date.strftime("%Y-%m-%dT12:00:00"),
-                        "color" : "#34d399" # vert clair
+                        "color" : "#34d399", # vert clair
+                        "dose" : dose
                     }
                 elif med["time"] == ["evening"]:
                     pils_data = {
                         "title" : name,
                         "start" : current_date.strftime("%Y-%m-%dT18:00:00"),
-                        "color" : "#60a5fa" # bleu clair
+                        "color" : "#60a5fa", # bleu clair
+                        "dose" : dose
                     }
                 schedule.append(pils_data)
 

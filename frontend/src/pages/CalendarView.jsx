@@ -9,7 +9,7 @@ import { AuthContext } from '../contexts/LoginContext';
 
 function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
 
-  // 📍 Paramètres d’URL et navigation
+  // 📍 Paramètres d'URL et navigation
   const navigate = useNavigate(); // Hook de navigation
   const location = useLocation();
   const params = useParams();
@@ -20,9 +20,11 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
   const [selectedDate, setSelectedDate] = useState(''); // Date sélectionnée
   const [eventsForDay, setEventsForDay] = useState([]); // Événements filtrés pour un jour spécifique
   const [calendarEvents, setCalendarEvents] = useState([]); // Événements du calendrier
+  const [calendarTable, setCalendarTable] = useState([]); // Événements du calendrier
   // 🔄 Références et chargement
   const modalRef = useRef(null); // Référence vers le modal (pour gestion focus/fermeture)
   const [loadingCalendar, setLoadingCalendar] = useState(undefined); // État de chargement du calendrier
+  const [loadingTable, setLoadingTable] = useState(undefined); // État de chargement du tableau
   const [startDate, setStartDate] = useState();
 
   const calendarSourceMap = {
@@ -95,20 +97,68 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
       const load = async () => {
         setCalendarEvents([]); // reset
         setLoadingCalendar(undefined); // relancer le spinner
-  
+        await calendarSource.fetchCalendars();
         const rep = await calendarSource.fetchSchedule(calendarId);
         if (rep.success) {
           setCalendarEvents(rep.schedule);
         }
-        setLoadingCalendar(rep.success);
+        setLoadingCalendar(!rep.success);
       };
       load();
     }
   }, [authReady, currentUser, calendarId]);
+
+
+  //map juste 7 fois
+  const days = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
+  const moments = ["Matin", "Midi", "Soir"];
+  const hours = { 8: "Matin", 12: "Midi", 18: "Soir" };
+
+  useEffect(() => {
+    if (!loadingCalendar) {
+      const result = [];
+      const daysVus = new Set();
+  
+      for (const event of calendarEvents) {
+        const date = new Date(event.start);
+        // jour qui commence par lundi
+        const day = days[(date.getDay() + 6) % 7];
+        const moment = hours[date.getHours()];
+        if (!moment) continue;
+  
+        if (!daysVus.has(day) && daysVus.size >= 7) continue;
+        daysVus.add(day);
+  
+        const title = event.title;
+        const dose = event.dose;
+  
+        let med = result.find((r) => r.title === title);
+        if (!med) {
+          med = {
+            title: title,
+            cells: {}
+          };
+          result.push(med);
+        }
+        if (!med.cells[moment]) {
+          med.cells[moment] = {};
+        }
+  
+        med.cells[moment][day] = dose;
+      }
+      // trier les moments par ordre alphabétique
+      const sortedResult =  result.sort((a, b) => a.title.localeCompare(b.title));
+  
+      setCalendarTable(sortedResult);
+      setLoadingTable(false);
+    }
+  }, [calendarEvents, loadingCalendar]);
+  
+  
   
   
 
-  if (loadingCalendar === undefined && calendarId) {
+  if (loadingCalendar === undefined || loadingTable === undefined && calendarId) {
     return (
       <div className="d-flex justify-content-center align-items-center" style={{ height: '60vh' }}>
         <div className="spinner-border text-primary" role="status">
@@ -118,7 +168,7 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
     );
   }
   
-  if (loadingCalendar === false && calendarId) {
+  if (loadingCalendar === true && calendarId) {
     return (
       <div className="alert alert-danger text-center mt-5" role="alert">
         ❌ Ce lien de calendrier partagé est invalide ou a expiré.
@@ -130,7 +180,6 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
 
   return (
     <div>
-
       <div className="card shadow-sm mb-4">
         <div className="card-body">
           <h3 className="card-title mb-4">{currentCalendar?.calendar_name || 'Nom introuvable'}</h3>
@@ -151,8 +200,56 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
               <span> Liste des médicaments</span>
             </button>
           </div>
+        </div>
+      </div>
 
-          {/* Ligne 2 : Sélection date + bouton charger */}
+      
+      <div>
+  <h4 className="mb-4">
+    <i className="bi bi-calendar-week"></i> Tableau hebdomadaire
+  </h4>
+  {calendarTable.map((table, index) => (
+    <div className="card border border-secondary-subtle mb-4" key={index}>
+      <div className="card-header bg-light fw-semibold text-dark">
+        <i className="bi bi-capsule me-2"></i>{table.title}
+      </div>
+      <div className="card-body p-0">
+        <div className="table-responsive">
+          <table className="table table-sm table-bordered text-center align-middle mb-0">
+            <thead className="table-light">
+              <tr>
+                <th className="min-width-100">Moment</th>
+                {days.map((day) => (
+                  <th key={day} className="min-width-60">{day}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {Object.entries(table.cells).map(([moment, momentsObj]) => (
+                <tr key={moment}>
+                  <td><strong>{moment}</strong></td>
+                  {days.map((day) => (
+                    <td key={day}>
+                      {momentsObj[day] && (
+                        <span className="text-muted small px-2 py-1 rounded d-inline-block">
+                          {momentsObj[day]}
+                        </span>
+                      )}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  ))}
+</div>
+
+
+      <div className="card shadow-sm mb-4">
+        <div className="card-body">
           <div className="d-flex flex-wrap align-items-end  gap-3">
             <div style={{ minWidth: "220px" }}>
               <label htmlFor="datePicker" className="form-label fw-semibold">
@@ -195,7 +292,11 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
       <FullCalendar
         plugins={[dayGridPlugin, interactionPlugin]}
         initialView="dayGridMonth"
-        events={calendarEvents}
+        events={calendarEvents.map((event) => ({
+          title: `${event.title} (${event.dose})`,
+          start: event.start,
+          color: event.color,
+        }))}
         locale={frLocale}
         firstDay={1}
         dateClick={handleDateClick}
