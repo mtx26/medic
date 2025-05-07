@@ -220,28 +220,39 @@ def handle_calendar_schedule(calendar_id):
         user = verify_firebase_token()
         owner_uid = user["uid"]
 
-        doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).collection("medicines")
-        if not doc.get():
+        start_date = request.args.get("startTime")
+        if not start_date:
+            start_date = datetime.now(timezone.utc).date()
+        else:
+            start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
+        
+        doc_1 = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id)
+        if not doc_1.get().exists:
+            return warning_response(
+                message="Calendrier introuvable", 
+                code="CALENDAR_GENERATE_ERROR", 
+                status_code=404, 
+                uid=owner_uid, 
+                origin="CALENDAR_GENERATE", 
+                log_extra={"calendar_id": calendar_id}
+                )
+
+        calendar_name = doc_1.get().to_dict().get("calendar_name")
+
+        doc_2 = doc_1.collection("medicines")
+        if not doc_2.get():
             return success_response(
                 message="Calendrier généré avec succès", 
                 code="CALENDAR_GENERATE_SUCCESS", 
                 uid=owner_uid, 
                 origin="CALENDAR_GENERATE", 
-                data={"medicines": 0, "schedule": []},
+                data={"medicines": 0, "schedule": [], "calendar_name": calendar_name},
                 log_extra={"calendar_id": calendar_id}
             )
         
-        medicines = [med.to_dict() for med in doc.get()]
-        
-        start_str = request.args.get("startTime")
-        if not start_str:
-            start_date = datetime.now(timezone.utc).date()
-        else:
-            start_date = datetime.strptime(start_str, "%Y-%m-%d").date()
+        medicines = [med.to_dict() for med in doc_2.get()]
 
         schedule = generate_schedule(start_date, medicines)
-
-        calendar_name = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).get().to_dict().get("calendar_name")
 
         return success_response(
             message="Calendrier généré avec succès", 

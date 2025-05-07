@@ -300,6 +300,12 @@ def handle_update_token_permissions(token):
 @api.route("/api/tokens/<token>/schedule", methods=["GET"])
 def handle_generate_token_schedule(token):
     try:
+        start_date = request.args.get("startTime")
+        if not start_date:
+            start_date = datetime.now(timezone.utc).date()
+        else:
+            start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
+
         doc = db.collection("shared_tokens").document(token).get()
         if not doc.exists:
             return warning_response(
@@ -312,6 +318,7 @@ def handle_generate_token_schedule(token):
             )
 
         data = doc.to_dict()
+
         calendar_id = data.get("calendar_id")
         owner_uid = data.get("owner_uid")
         expires_at = data.get("expires_at")
@@ -349,8 +356,8 @@ def handle_generate_token_schedule(token):
                 log_extra={"token": token}
             )
 
-        doc_2 = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id)
-        if not doc_2.get().exists:
+        doc_1 = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id)
+        if not doc_1.get().exists:
             return warning_response(
                 message="Calendrier introuvable.", 
                 code="CALENDAR_NOT_FOUND", 
@@ -360,13 +367,22 @@ def handle_generate_token_schedule(token):
                 log_extra={"token": token}
             )
 
-        medicines = [med.to_dict() for med in doc_2.collection("medicines").get()]
-        calendar_name = doc_2.get().to_dict().get("calendar_name")
+        calendar_name = doc_1.get().to_dict().get("calendar_name")
 
-        start_str = request.args.get("startTime")
-        start_date = datetime.strptime(start_str, "%Y-%m-%d").date() if start_str else datetime.now(timezone.utc).date()
+        doc_2 = doc_1.collection("medicines")
+        if not doc_2.get():
+            return success_response(
+                message="Aucun médicament dans le calendrier partagé", 
+                code="SHARED_CALENDARS_LOAD_SUCCESS", 
+                uid=uid, 
+                origin="SHARED_CALENDARS_LOAD",
+                data={"schedule": [], "calendar_name": calendar_name}
+            )
+
+        medicines = [med.to_dict() for med in doc_2.get()]
 
         schedule = generate_schedule(start_date, medicines)
+
         return success_response(
             message="Calendrier généré avec succès", 
             code="CALENDAR_GENERATED_SUCCESS", 

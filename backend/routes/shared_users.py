@@ -168,8 +168,14 @@ def handle_user_shared_calendar_schedule(calendar_id):
         user = verify_firebase_token()
         uid = user["uid"]
 
-        shared_with_doc = db.collection("users").document(uid).collection("shared_calendars").document(calendar_id)
-        if not shared_with_doc.get().exists:
+        start_date = request.args.get("startTime")
+        if not start_date:
+            start_date = datetime.now(timezone.utc).date()
+        else:
+            start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
+
+        doc = db.collection("users").document(uid).collection("shared_calendars").document(calendar_id)
+        if not doc.get().exists:
             return warning_response(
                 message="Calendrier partagé introuvable.", 
                 code="SHARED_CALENDARS_LOAD_ERROR", 
@@ -179,14 +185,20 @@ def handle_user_shared_calendar_schedule(calendar_id):
                 log_extra={"calendar_id": calendar_id}
             )
 
-        owner_uid = shared_with_doc.get().to_dict().get("owner_uid")
+        owner_uid = doc.get().to_dict().get("owner_uid")
 
-        start_date = request.args.get("startTime")
-        
-        if not start_date:
-            start_date = datetime.now(timezone.utc).date()
-        else:
-            start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
+        doc_1 = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id)
+        if not doc_1.get().exists:
+            return warning_response(
+                message="Calendrier partagé introuvable.", 
+                code="SHARED_CALENDARS_LOAD_ERROR", 
+                status_code=404, 
+                uid=uid, 
+                origin="SHARED_CALENDARS_LOAD",
+                log_extra={"calendar_id": calendar_id}
+            )
+
+        calendar_name = doc_1.get().to_dict().get("calendar_name")
 
         if not verify_calendar_share(calendar_id, owner_uid, uid):
             return warning_response(
@@ -197,11 +209,18 @@ def handle_user_shared_calendar_schedule(calendar_id):
                 origin="SHARED_CALENDARS_LOAD",
                 log_extra={"calendar_id": calendar_id}
             )
-        
-        doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id)
 
-        medicines = [med.to_dict() for med in doc.collection("medicines").get()]
-        calendar_name = doc.get().to_dict().get("calendar_name")
+        doc_2 = doc_1.collection("medicines")
+        if not doc_2.get():
+            return success_response(
+                message="Aucun médicament dans le calendrier partagé", 
+                code="SHARED_CALENDARS_LOAD_SUCCESS", 
+                uid=uid, 
+                origin="SHARED_CALENDARS_LOAD",
+                data={"schedule": [], "calendar_name": calendar_name}
+            )
+
+        medicines = [med.to_dict() for med in doc_2.get()]
 
         schedule = generate_schedule(start_date, medicines)
     
