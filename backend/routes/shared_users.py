@@ -96,10 +96,74 @@ def handle_shared_calendars():
             error=str(e)
         )
 
-
-# Route pour générer un calendrier partagé
+# Route pour récupérer les informations d'un calendrier partagé
 @api.route("/api/shared/users/calendars/<calendar_id>", methods=["GET"])
 def handle_user_shared_calendar(calendar_id):
+    try:
+        user = verify_firebase_token()
+        receiver_uid = user["uid"]
+
+        shared_with_doc = db.collection("users").document(receiver_uid).collection("shared_calendars").document(calendar_id)
+        if not shared_with_doc.get().exists:
+            return warning_response(
+                message="Calendrier partagé introuvable.", 
+                code="SHARED_CALENDARS_LOAD_ERROR", 
+                status_code=404, 
+                uid=receiver_uid,
+                origin="SHARED_CALENDARS_LOAD",
+                log_extra={"calendar_id": calendar_id}
+            )
+
+        data = shared_with_doc.get().to_dict()
+        owner_uid = data.get("owner_uid")
+        access = data.get("access", "read")
+
+        if not verify_calendar_share(calendar_id, owner_uid, receiver_uid):
+            return warning_response(
+                message="Accès non autorisé.",
+                code="SHARED_CALENDARS_LOAD_ERROR",
+                status_code=403,
+                uid=receiver_uid,
+                origin="SHARED_CALENDARS_LOAD",
+                log_extra={"calendar_id": calendar_id}
+            )
+
+        calendar_doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).get()
+        if not calendar_doc.exists:
+            return warning_response(
+                message="Calendrier partagé introuvable",
+                code="SHARED_CALENDARS_LOAD_ERROR",
+                status_code=404,
+                uid=receiver_uid,
+                origin="SHARED_CALENDARS_LOAD",
+                log_extra={"calendar_id": calendar_id}
+            )
+        
+        calendar_name = calendar_doc.to_dict().get("calendar_name")
+
+        return success_response(
+            message="Calendrier partagé récupéré avec succès",
+            code="SHARED_CALENDARS_LOAD_SUCCESS",
+            uid=receiver_uid,
+            origin="SHARED_CALENDARS_LOAD",
+            data={"calendar_id": calendar_id, "calendar_name": calendar_name, "access": access, "owner_uid": owner_uid},
+            log_extra={"calendar_id": calendar_id}
+        )
+
+    except Exception as e:
+        return error_response(
+            message="Erreur lors de la récupération des informations du calendrier partagé.",
+            code="SHARED_CALENDARS_ERROR",
+            status_code=500,
+            uid=receiver_uid,
+            origin="SHARED_CALENDARS_LOAD",
+            error=str(e),
+            log_extra={"calendar_id": calendar_id}
+        )
+
+# Route pour générer un calendrier partagé
+@api.route("/api/shared/users/calendars/<calendar_id>/schedule", methods=["GET"])
+def handle_user_shared_calendar_schedule(calendar_id):
     try:
         user = verify_firebase_token()
         uid = user["uid"]

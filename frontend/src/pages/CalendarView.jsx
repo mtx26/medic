@@ -5,7 +5,7 @@ import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import frLocale from '@fullcalendar/core/locales/fr';
-import { AuthContext } from '../contexts/LoginContext';
+import { UserContext } from '../contexts/UserContext';
 import HoveredUserProfile from '../components/HoveredUserProfile';
 
 function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
@@ -16,7 +16,7 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
   const params = useParams();
 
   // 🔐 Contexte d'authentification
-  const { authReady, currentUser } = useContext(AuthContext); // Contexte de l'utilisateur connecté
+  const { authReady, currentUser } = useContext(UserContext); // Contexte de l'utilisateur connecté
   
   const [selectedDate, setSelectedDate] = useState(''); // Date sélectionnée
   const [eventsForDay, setEventsForDay] = useState([]); // Événements filtrés pour un jour spécifique
@@ -198,7 +198,7 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
             <h3 className="card-title">{calendarName}</h3>
 
             {calendarType === 'sharedUser' && (
-              <div className="badge bg-primary mb-3">
+              <div className="badge bg-info mb-3">
                 Calendrier partagé par 
                 {" "}
 
@@ -223,7 +223,7 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
               </div>
             )}
             {calendarType === 'token' && (
-              <div className="badge bg-primary mb-3">Accès via lien de partage public</div>
+              <div className="badge bg-info mb-3">Accès via lien de partage public</div>
             )}
           </div>
           <div className="d-flex flex-wrap  align-items-left gap-2 mb-3">

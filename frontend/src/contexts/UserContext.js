@@ -7,50 +7,60 @@ const UserContext = createContext(null);
 let globalReloadUser = () => {};
 
 export const UserProvider = ({ children }) => {
-  const [userInfo, setUserInfo] = useState(() => {
-    return JSON.parse(sessionStorage.getItem("userInfo")) || null;
-  });
+  const [currentUser, setCurrentUser] = useState(null);
+  const [authReady, setAuthReady] = useState(false);
+  const [userInfo, setUserInfo] = useState(() =>
+    JSON.parse(sessionStorage.getItem("userInfo")) || null
+  );
 
   const reloadUser = async () => {
     const user = auth.currentUser;
     if (!user) return;
 
-    const userRef = doc(db, "users", user.uid);
-    const userSnap = await getDoc(userRef);
+    try {
+      const userRef = doc(db, "users", user.uid);
+      const snap = await getDoc(userRef);
+      const data = snap.exists() ? snap.data() : {};
 
-    const newUserInfo = {
-      displayName: userSnap.exists() ? userSnap.data().display_name || user.displayName || "Utilisateur" : user.displayName || "Utilisateur",
-      photoURL: userSnap.exists() ? userSnap.data().photo_url || user.photoURL || "https://www.w3schools.com/howto/img_avatar.png" : user.photoURL || "https://www.w3schools.com/howto/img_avatar.png",
-      role: userSnap.exists() ? userSnap.data().role || "user" : "user",
-      uid: user.uid,
-      emailVerified: user.emailVerified,
-      email: user.email,
-      providerData: user.providerData,
-    };
+      const info = {
+        displayName: data.display_name || user.displayName || "Utilisateur",
+        photoURL: data.photo_url || user.photoURL || "https://www.w3schools.com/howto/img_avatar.png",
+        role: data.role || "user",
+        uid: user.uid,
+        emailVerified: user.emailVerified,
+        email: user.email,
+        providerData: user.providerData,
+      };
 
-    setUserInfo(newUserInfo);
-    sessionStorage.setItem("userInfo", JSON.stringify(newUserInfo));
+      setUserInfo(info);
+      sessionStorage.setItem("userInfo", JSON.stringify(info));
+    } catch (error) {
+      console.error("[UserContext] Erreur lors du chargement Firestore :", error);
+    }
   };
 
-  globalReloadUser = reloadUser; // ✅ Stocker `reloadUser` globalement
+  globalReloadUser = reloadUser;
 
   useEffect(() => {
-    return onAuthStateChanged(auth, (user) => {
-      if (user) reloadUser();
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      setCurrentUser(user);
+      setAuthReady(true);
+      if (user) await reloadUser();
       else {
         setUserInfo(null);
         sessionStorage.removeItem("userInfo");
       }
     });
+
+    return () => unsubscribe();
   }, []);
 
   return (
-    <UserContext.Provider value={{ userInfo }}>
+    <UserContext.Provider value={{ authReady, currentUser, userInfo }}>
       {children}
     </UserContext.Provider>
   );
 };
-export { UserContext };
 
-// 🔹 Fonction pour récupérer `reloadUser` globalement
+export { UserContext };
 export const getGlobalReloadUser = () => globalReloadUser;

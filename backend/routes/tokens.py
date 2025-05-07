@@ -297,8 +297,8 @@ def handle_update_token_permissions(token):
 
 
 # Route pour générer un calendrier partagé pour un token
-@api.route("/api/tokens/<token>/calendar", methods=["GET"])
-def handle_generate_token_calendar(token):
+@api.route("/api/tokens/<token>/schedule", methods=["GET"])
+def handle_generate_token_schedule(token):
     try:
         doc = db.collection("shared_tokens").document(token).get()
         if not doc.exists:
@@ -387,6 +387,74 @@ def handle_generate_token_calendar(token):
             log_extra={"token": token}
         )
 
+# Route pour obtenir les métadonnées d’un token public
+@api.route("/api/tokens/<token>", methods=["GET"])
+def get_token_metadata(token):
+    try:
+        doc = db.collection("shared_tokens").document(token).get()
+        if not doc.exists:
+            return warning_response(
+                message="Token invalide.",
+                code="TOKEN_INVALID",
+                status_code=404,
+                uid="without_uid",
+                origin="TOKEN_METADATA_LOAD",
+                log_extra={"token": token}
+            )
+
+        data = doc.to_dict()
+        calendar_id = data.get("calendar_id")
+        owner_uid = data.get("owner_uid")
+        expires_at = data.get("expires_at")
+        revoked = data.get("revoked")
+        permissions = data.get("permissions")
+
+        # Vérification simple
+        if expires_at:
+            now = datetime.now(timezone.utc).date()
+            if now > datetime.fromisoformat(expires_at).date():
+                return warning_response(
+                    message="Token expiré.",
+                    code="TOKEN_EXPIRED",
+                    status_code=403,
+                    uid="without_uid",
+                    origin="TOKEN_METADATA_LOAD",
+                    log_extra={"token": token}
+                )
+
+        if revoked:
+            return warning_response(
+                message="Token révoqué.",
+                code="TOKEN_REVOKED",
+                status_code=403,
+                uid="without_uid",
+                origin="TOKEN_METADATA_LOAD",
+                log_extra={"token": token}
+            )
+
+        return success_response(
+            message="Métadonnées du token récupérées avec succès.",
+            code="TOKEN_METADATA_SUCCESS",
+            origin="TOKEN_METADATA_LOAD",
+            uid="without_uid",
+            data={
+                "calendar_id": calendar_id,
+                "owner_uid": owner_uid,
+            },
+            log_extra={"token": token}
+        )
+
+    except Exception as e:
+        return error_response(
+            message="Erreur lors de la récupération des métadonnées.",
+            code="TOKEN_METADATA_ERROR",
+            status_code=500,
+            error=str(e),
+            origin="TOKEN_METADATA_LOAD",
+            uid="without_uid",
+            log_extra={"token": token}
+        )
+
 
 # Route pour supprimer un token
 @api.route("/api/tokens/<token>", methods=["DELETE"])
@@ -438,99 +506,81 @@ def handle_delete_token(token):
         )
 
 
-# Route pour récupérer uniquement la liste des médicaments d'un calendrier partagé
-@api.route("/api/tokens/<token>/medecines", methods=["GET"])
-def handle_token_medecines(token):
+# Route pour obtenir les médicaments d’un token public
+@api.route("/api/tokens/<token>/medicines", methods=["GET"])
+def handle_token_medicines(token):
     try:
-        if request.method == "GET":
-            doc = db.collection("shared_tokens").document(token).get()
-            if not doc.exists:
-                return warning_response(
-                    message="Token invalide.", 
-                    code="TOKEN_INVALID", 
-                    status_code=404, 
-                    uid=owner_uid, 
-                    origin="TOKEN_MEDECINES_LOAD", 
-                    log_extra={"token": token}
-                )
-
-            data = doc.to_dict()
-            calendar_id = data.get("calendar_id")
-            owner_uid = data.get("owner_uid")
-
-            expires_at = data.get("expires_at")
-            if expires_at != None:
-                expires_at = datetime.fromisoformat(expires_at).date()
-
-            revoked = data.get("revoked")
-            permissions = data.get("permissions")
-
-            # Verifier si le token est expiré ou si vide
-            if expires_at != None:
-                now_utc = datetime.now(timezone.utc).date()
-                if now_utc > expires_at:
-                    return warning_response(
-                        message="Token expiré.", 
-                        code="TOKEN_EXPIRED", 
-                        status_code=404, 
-                        uid=owner_uid, 
-                        origin="TOKEN_MEDECINES_LOAD", 
-                        log_extra={"token": token}
-                    )
-
-            # Verifier si le token est revoké
-            if revoked:
-                return warning_response(
-                    message="Token revoké.", 
-                    code="TOKEN_REVOKED", 
-                    status_code=404, 
-                    uid=owner_uid, 
-                    origin="TOKEN_MEDECINES_LOAD", 
-                    log_extra={"token": token}
-                )
-
-            # Verifier si le token a les permissions appropriées
-            if "read" not in permissions:
-                return warning_response(
-                    message="Token sans permission de lecture.", 
-                    code="TOKEN_NO_READ_PERMISSION", 
-                    status_code=403, 
-                    uid=owner_uid, 
-                    origin="TOKEN_MEDECINES_LOAD", 
-                    log_extra={"token": token}
-                )
-
-            
-            doc_2 = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id)
-            if not doc_2.get().exists:
-                return warning_response(
-                    message="Calendrier introuvable", 
-                    code="CALENDAR_NOT_FOUND", 
-                    status_code=404, 
-                    uid=owner_uid, 
-                    origin="TOKEN_MEDECINES_LOAD", 
-                    log_extra={"token": token}
-                )
-            
-
-            medicines = [med.to_dict() for med in doc_2.collection("medicines").get()]
-
-            return success_response(
-                message="Médicaments récupérés avec succès.", 
-                code="MEDECINES_SHARED_LOADED", 
-                uid=owner_uid, 
-                origin="TOKEN_MEDECINES_LOAD", 
-                data={"medicines": medicines},
+        doc = db.collection("shared_tokens").document(token).get()
+        if not doc.exists:
+            return warning_response(
+                message="Token invalide.", 
+                code="TOKEN_INVALID", 
+                status_code=404, 
+                origin="TOKEN_MEDICINES_LOAD", 
                 log_extra={"token": token}
             )
 
+        data = doc.to_dict()
+        calendar_id = data.get("calendar_id")
+        owner_uid = data.get("owner_uid")
+        expires_at = data.get("expires_at")
+        revoked = data.get("revoked")
+        permissions = data.get("permissions")
+
+        # Vérifications
+        if expires_at and datetime.now(timezone.utc).date() > datetime.fromisoformat(expires_at).date():
+            return warning_response(
+                message="Token expiré.",
+                code="TOKEN_EXPIRED",
+                status_code=403,
+                origin="TOKEN_MEDICINES_LOAD",
+                log_extra={"token": token}
+            )
+
+        if revoked:
+            return warning_response(
+                message="Token révoqué.",
+                code="TOKEN_REVOKED",
+                status_code=403,
+                origin="TOKEN_MEDICINES_LOAD",
+                log_extra={"token": token}
+            )
+
+        if "read" not in permissions:
+            return warning_response(
+                message="Token sans permission de lecture.",
+                code="TOKEN_NO_READ_PERMISSION",
+                status_code=403,
+                origin="TOKEN_MEDICINES_LOAD",
+                log_extra={"token": token}
+            )
+
+        cal_ref = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id)
+        if not cal_ref.get().exists:
+            return warning_response(
+                message="Calendrier introuvable.",
+                code="CALENDAR_NOT_FOUND",
+                status_code=404,
+                origin="TOKEN_MEDICINES_LOAD",
+                log_extra={"token": token}
+            )
+
+        medicines = [doc.to_dict() for doc in cal_ref.collection("medicines").get()]
+
+        return success_response(
+            message="Médicaments récupérés avec succès.",
+            code="MEDICINES_SHARED_LOADED",
+            origin="TOKEN_MEDICINES_LOAD",
+            data={"medicines": medicines},
+            log_extra={"token": token}
+        )
+
     except Exception as e:
         return error_response(
-            message="Erreur lors de la récupération des médicaments.", 
-            code="MEDECINES_SHARED_ERROR", 
-            status_code=500, 
-            uid=owner_uid, 
-            origin="TOKEN_MEDECINES_LOAD", 
+            message="Erreur lors de la récupération des médicaments.",
+            code="MEDICINES_SHARED_ERROR",
+            status_code=500,
             error=str(e),
+            origin="TOKEN_MEDICINES_LOAD",
             log_extra={"token": token}
         )

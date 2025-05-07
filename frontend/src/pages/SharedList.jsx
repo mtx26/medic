@@ -1,5 +1,5 @@
 import React, { useEffect, useContext, useState, useRef } from "react";
-import { AuthContext } from '../contexts/LoginContext';
+import { UserContext } from '../contexts/UserContext';
 import AlertSystem from '../components/AlertSystem'; 
 import HoveredUserProfile from "../components/HoveredUserProfile";
 
@@ -7,7 +7,7 @@ const REACT_URL = process.env.REACT_APP_REACT_URL;
 
 function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) {
   // 🔐 Contexte d'authentification
-  const { authReady, currentUser } = useContext(AuthContext); // Contexte de l'utilisateur connecté
+  const { authReady, currentUser } = useContext(UserContext); // Contexte de l'utilisateur connecté
 
   // ⚠️ Alertes et confirmations
   const [alertType, setAlertType] = useState(""); // Type d'alerte (ex. success, error)
@@ -276,16 +276,7 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                             setAlertMessage("❌ Supprimer le lien ?");
                             setAlertId(token.token);
                             setOnConfirmAction(() => async () => {
-                              const rep = await tokenCalendars.deleteToken(token.token)
-                              if (rep.success) {
-                                setAlertType("success");
-                                setAlertMessage("✅ "+rep.message);
-                                setAlertId(token.token);
-                              } else {
-                                setAlertType("danger");
-                                setAlertMessage("❌ "+rep.error);
-                                setAlertId(token.token);
-                              }
+                              await tokenCalendars.deleteToken(token.token)
                             });
                           }}
                           title="Supprimer"
@@ -452,16 +443,16 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                             </div>
                           }
                         />
+                      </div>
 
-                        {/* Statut */}
-                        <div>
-                          <span className={`badge rounded-pill ${user.accepted ? "bg-success" : "bg-warning text-dark"}`}>
-                            {user.accepted ? "Accepté" : "En attente"}
-                          </span>
-                        </div>
+                      {/* Statut */}
+                      <div className="col-md-2">
+                        <span className={`badge rounded-pill ${user.accepted ? "bg-success" : "bg-warning text-dark"}`}>
+                          {user.accepted ? "Accepté" : "En attente"}
+                        </span>
                       </div>
                       {/* Permissions*/}
-                      <div className="col-md-2 offset-md-4">
+                      <div className="col-md-2 offset-md-2">
                         <select
                           id={"sharedUserAccess"+user.receiver_uid}
                           className="form-select"

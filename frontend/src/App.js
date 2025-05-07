@@ -6,10 +6,15 @@ import Footer from './components/Footer';
 import AppRoutes from './routes/AppRouter';
 import { log } from './utils/logger';
 import { auth } from './services/firebase';
-import { AuthContext } from './contexts/LoginContext';
+import { UserContext } from './contexts/UserContext';
 import { useCallback } from 'react';
-import { onSnapshot, query, where, collection, orderBy } from "firebase/firestore";
-import { db } from "./services/firebase";
+import { useRealtimeCalendars, useRealtimeSharedCalendars } from './hooks/useRealtimeCalendars';
+import { useRealtimeNotifications } from './hooks/useRealtimeNotifications';
+import { useRealtimeTokens } from './hooks/useRealtimeTokens';
+// import TestFirestore from './scrip';
+import { setLogLevel } from "firebase/firestore";
+
+// setLogLevel("debug");
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -19,58 +24,24 @@ function App() {
   const [notificationsData, setNotificationsData] = useState([]);
   const [sharedCalendarsData, setSharedCalendarsData] = useState([]);
 
-  const { authReady, currentUser } = useContext(AuthContext);
+  const { currentUser, authReady } = useContext(UserContext);
 
-  const generateHexToken = (length = 16) =>
-    [...crypto.getRandomValues(new Uint8Array(length))]
-      .map(b => b.toString(16).padStart(2, '0'))
-      .join('');
-  
+  const [loadingStates, setLoadingStates] = useState({
+    calendars: true,
+    sharedCalendars: true,
+    tokens: true,
+    notifications: true,
+  });
+  const isInitialLoading = Object.values(loadingStates).some((v) => v);
 
-
-  // Fonction pour obtenir les calendriers
-  useEffect(() => {
-    if (!(authReady && currentUser)) return;
+  const generateHexToken = (length = 16) => [...crypto.getRandomValues(new Uint8Array(length))].map(b => b.toString(16).padStart(2, '0')).join('');
   
-    const user = auth.currentUser;
-    if (!user) return;
+  // TestFirestore();
   
-    const calendarsRef = collection(db, "users", user.uid, "calendars");
-  
-    const unsubscribe = onSnapshot(calendarsRef, async () => {
-      try {
-        const token = await user.getIdToken();
-        const res = await fetch(`${API_URL}/api/calendars`, {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-  
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error);
-  
-        const sortedCalendars = data.calendars.sort((a, b) =>
-          a.calendar_name.localeCompare(b.calendar_name)
-        );
-        setCalendarsData(sortedCalendars);
-  
-        log.info(data.message, {
-          origin: "CALENDARS_REALTIME_UPDATE",
-          uid: user.uid,
-          count: data.calendars?.length,
-        });
-      } catch (err) {
-        log.error(err.message || "Échec de mise à jour en temps réel des calendriers", err, {
-          origin: "CALENDARS_REALTIME_ERROR",
-          uid: user?.uid,
-        });
-      }
-    });
-  
-    return () => unsubscribe();
-  }, [authReady, currentUser, setCalendarsData]);
-  
+  useRealtimeCalendars(setCalendarsData, setLoadingStates);
+  useRealtimeSharedCalendars(setSharedCalendarsData, setLoadingStates);
+  useRealtimeNotifications(setNotificationsData, setLoadingStates);
+  useRealtimeTokens(setTokensList, setLoadingStates);
 
   // Fonction pour ajouter un calendrier
   const addCalendar = useCallback(async (calendarName) => {
@@ -249,7 +220,7 @@ function App() {
       }
 
       const token = await auth.currentUser.getIdToken();
-      const res = await fetch(`${API_URL}/api/calendars/${calendarId}/calendar?startTime=${startDate}`, {
+      const res = await fetch(`${API_URL}/api/calendars/${calendarId}/schedule?startTime=${startDate}`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -281,39 +252,6 @@ function App() {
 
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-  // Fonction pour obtenir les différents médicaments
-  const fetchPersonalCalendarMedicines = useCallback(async (calendarId) => {
-    try {
-      const token = await auth.currentUser.getIdToken();
-      const res = await fetch(`${API_URL}/api/calendars/${calendarId}/medicines`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-      // trier par ordre alphabétique
-      const medicinesSortedByName = data.medicines.sort((a, b) => a.name.localeCompare(b.name));
-
-      log.info(data.message, {
-        origin: "MED_FETCH_SUCCESS",
-        "uid": auth.currentUser.uid,
-        "count": data.medicines?.length,
-        "calendarId": calendarId,
-      });
-      return { success: true, message: data.message, code: data.code, medicinesData: medicinesSortedByName, originalMedicinesData: JSON.parse(JSON.stringify(medicinesSortedByName)) };
-    } catch (err) {
-      log.error(err.message || "Erreur lors de la récupération des médicaments", err, {
-        origin: "MED_FETCH_ERROR",
-        "uid": auth.currentUser.uid,
-        "calendarId": calendarId,
-      });
-      return { success: false, error: err.message, code: err.code };
-    }
-  }, []);
   
   // Fonction pour modifier un médicament
   const updatePersonalCalendarMedicines = useCallback(async (calendarId, medicinesData) => {
@@ -396,7 +334,7 @@ function App() {
         startDate = new Date().toISOString().slice(0, 10);
       }
       
-      const res = await fetch(`${API_URL}/api/tokens/${token}/calendar?startTime=${startDate}`, {
+      const res = await fetch(`${API_URL}/api/tokens/${token}/schedule?startTime=${startDate}`, {
         method: "GET",
       });
       const data = await res.json();
@@ -417,70 +355,7 @@ function App() {
       return {success: false, error: err.message, code: err.code, schedule: [], calendarName: ""};
     }
   }, []);
-
-  // Fonction pour récupérer les médicaments d'un calendrier partagé
-  const fetchTokenCalendarMedicines = useCallback(async (token) => {
-    try {
-      const  res = await fetch(`${API_URL}/api/tokens/${token}/medecines`, {
-        method: "GET",
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-      log.info(data.message, {
-        origin: "SHARED_MED_FETCH_SUCCESS",
-        "uid": "without uid",
-        "token": token,
-      });
-      return {success: true, message: data.message, code: data.code, medicinesData: data.medicines};
-    } catch (err) {
-      log.error(err.message || "Échec de récupération des médicaments partagé", err, {
-        origin: "SHARED_MED_FETCH_ERROR",
-        "uid": "without uid",
-        "token": token,
-      });
-      return {success: false, error: err.message, code: err.code};
-    }
-  }, []);
-
-  // Fonction pour récupérer les tokens en temps réel
-  useEffect(() => {
-    if (!(authReady && currentUser)) return;
   
-    const user = auth.currentUser;
-    if (!user) return;
-  
-    const q = query(
-      collection(db, "shared_tokens"),
-      where("owner_uid", "==", user.uid)
-    );
-  
-    const unsubscribe = onSnapshot(q, async () => {
-      try {
-        const token = await user.getIdToken();
-        const res = await fetch(`${API_URL}/api/tokens`, {
-          method: "GET",
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error);
-        setTokensList(data.tokens);
-        log.info(data.message, {
-          origin: "TOKENS_FETCH_SUCCESS",
-          uid: user.uid,
-          count: data.tokens.length,
-        });
-      } catch (err) {
-        log.error(err.message || "Échec de récupération des tokens", err, {
-          origin: "TOKENS_FETCH_ERROR",
-          uid: user?.uid,
-        });
-      }
-    });
-  
-    return () => unsubscribe();
-  }, [authReady, currentUser, setTokensList]);
-  
-
   // Fonction pour créer un lien de partage
   const createToken = useCallback(async (calendarId, expiresAt, permissions) => {
     try {
@@ -651,55 +526,6 @@ function App() {
     }
   }, []);
 
-  // Fonction pour récupérer les notifications en temps réel
-  useEffect(() => {
-    if (!(authReady && currentUser)) return;
-  
-    const user = auth.currentUser;
-    if (!user) return;
-  
-    const q = query(
-      collection(db, "users", user.uid, "notifications"),
-      orderBy("timestamp", "desc")
-    );
-  
-    const unsubscribe = onSnapshot(q, async () => {
-      try {
-        const token = await user.getIdToken();
-  
-        const res = await fetch(`${API_URL}/api/notifications`, {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-  
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error);
-  
-        const sortedNotifications = data.notifications.sort(
-          (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
-        );
-        setNotificationsData(sortedNotifications);
-  
-        log.info(data.message, {
-          origin: "NOTIFICATIONS_FETCH_SUCCESS",
-          uid: user.uid,
-          count: data.notifications?.length,
-        });
-      } catch (err) {
-        log.error(err.message || "Échec de récupération des notifications enrichies", err, {
-          origin: "NOTIFICATIONS_FETCH_ERROR",
-          uid: user?.uid,
-        });
-      }
-    });
-  
-    return () => unsubscribe();
-  }, [authReady, currentUser, setNotificationsData]);
-  
-  
-
   // Fonction pour accepter une invitation
   const acceptInvitation = useCallback(async (notificationId) => {
     try {
@@ -780,47 +606,6 @@ function App() {
 
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-  // Fonction pour récupérer les calendriers partagés
-  useEffect(() => {
-    if (!(authReady && currentUser)) return;
-  
-    const user = auth.currentUser;
-    if (!user) return;
-  
-    const q = collection(db, "users", user.uid, "shared_calendars");
-  
-    const unsubscribe = onSnapshot(q, async () => {
-      try {
-        const token = await user.getIdToken();
-        const res = await fetch(`${API_URL}/api/shared/users/calendars`, {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-  
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error);
-  
-        setSharedCalendarsData(data.calendars);
-  
-        log.info(data.message, {
-          origin: "SHARED_CALENDARS_FETCH_SUCCESS",
-          uid: user.uid,
-          count: data.calendars?.length,
-        });
-      } catch (err) {
-        log.error(err.message || "Échec de récupération des calendriers partagés", err, {
-          origin: "SHARED_CALENDARS_FETCH_ERROR",
-          uid: user?.uid,
-        });
-      }
-    });
-  
-    return () => unsubscribe();
-  }, [authReady, currentUser, setSharedCalendarsData]);
-  
 
   // Fonction pour supprimer un calendrier partagé pour le receiver
   const deleteSharedCalendar = useCallback(async (calendarId) => {
@@ -910,7 +695,7 @@ function App() {
         startDate = new Date().toISOString().split('T')[0];
       }
       const token = await auth.currentUser.getIdToken();
-      const res = await fetch(`${API_URL}/api/shared/users/calendars/${calendarId}?startTime=${startDate}`, {
+      const res = await fetch(`${API_URL}/api/shared/users/calendars/${calendarId}/schedule?startTime=${startDate}`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -933,35 +718,6 @@ function App() {
         startDate,
       });
       return {success: false, error: err.message, code: err.code, schedule: [], calendarName: ""};
-    }
-  }, []);
-
-  // Fonction pour récupérer les médicaments d’un calendrier partagé par un utilisateur
-  const fetchSharedUserCalendarMedicines = useCallback(async (calendarId) => {
-    try {
-      const token = await auth.currentUser.getIdToken();
-      const res = await fetch(`${API_URL}/api/shared/users/calendars/${calendarId}/medicines`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-      // trier par ordre alphabétique
-      const medicinesSortedByName = data.medicines.sort((a, b) => a.name.localeCompare(b.name));
-
-      log.info(data.message, {
-        origin: "SHARED_USER_CALENDAR_MEDICINES_FETCH_SUCCESS",
-        calendarId,
-      });
-      return {success: true, message: data.message, code: data.code, medicinesData: medicinesSortedByName, originalMedicinesData: JSON.parse(JSON.stringify(medicinesSortedByName))};
-    } catch (err) {
-      log.error(err.message || "Échec de récupération des médicaments du calendrier partagé par un utilisateur", err, {
-        origin: "SHARED_USER_CALENDAR_MEDICINES_FETCH_ERROR",
-        calendarId,
-      });
-      return {success: false, error: err.message, code: err.code};
     }
   }, []);
 
@@ -1048,7 +804,6 @@ function App() {
   const sharedProps = {
     personalCalendars: {
       fetchPersonalCalendarSchedule,
-      fetchPersonalCalendarMedicines,
       fetchPersonalCalendarMedicineCount,
       addCalendar,
       renameCalendar,
@@ -1062,7 +817,6 @@ function App() {
   
     sharedUserCalendars: {
       fetchSharedUserCalendarSchedule,
-      fetchSharedUserCalendarMedicines,
       fetchSharedUserCalendarMedicineCount,
       fetchSharedUsers,
       sendInvitation,
@@ -1079,7 +833,6 @@ function App() {
   
     tokenCalendars: {
       fetchTokenCalendarSchedule,
-      fetchTokenCalendarMedicines,
       createToken,
       updateTokenPermissions,
       updateTokenExpiration,
@@ -1114,7 +867,7 @@ function App() {
 
   useEffect(() => {
     if (authReady && currentUser === null) {
-      resetAppData(); // 🔥 Reset tout
+      resetAppData();
     }
   }, [authReady, currentUser]);
   
@@ -1123,9 +876,18 @@ function App() {
   return (
     <Router>
       <Navbar sharedProps={sharedProps}/>
-      <div className="container mt-4">
-        <AppRoutes sharedProps={sharedProps} />
-      </div>
+      {isInitialLoading && (
+        <div className="d-flex justify-content-center align-items-center" style={{ height: '60vh' }}>
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Chargement des médicaments...</span>
+          </div>
+        </div>
+      )}
+      {!isInitialLoading && (
+        <div className="container mt-4">
+          <AppRoutes sharedProps={sharedProps} />
+        </div>
+      )}
       <Footer />
     </Router>
   );

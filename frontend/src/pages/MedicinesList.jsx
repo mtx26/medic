@@ -1,31 +1,18 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-
+import { useRealtimeTokenMedicines } from '../hooks/useRealtimeMedicines';
 function MedicinesList({ tokenCalendars }) {
   // 📍 Paramètres d’URL et navigation
   const { sharedToken } = useParams(); // Récupération du token de partage depuis l'URL
   const navigate = useNavigate(); // Hook de navigation
 
   // ✅ État de récupération des médicaments partagés
-  const [successFetchSharedTokenMedicines, setSuccessFetchSharedTokenMedicines] = useState(); // État du succès de la récupération des médicaments partagés
+  const [loadingMedicines, setLoadingMedicines] = useState(undefined);
   const [medicinesData, setMedicinesData] = useState([]); // Liste des médicaments du calendrier partagé
-  
-  // Fonction pour charger le calendrier lorsque l'utilisateur est connecté
-  useEffect(() => {
-    const fetchShared = async () => {
-      if (sharedToken) {
-        const rep = await tokenCalendars.fetchTokenCalendarMedicines(sharedToken);
-        if (rep.success) {
-          setMedicinesData(rep.medicinesData);
-        }
-        setSuccessFetchSharedTokenMedicines(rep.success);
-      }
-    };
-  
-    fetchShared();
-  }, [sharedToken]);
 
-  if (successFetchSharedTokenMedicines === undefined && sharedToken) {
+  useRealtimeTokenMedicines(sharedToken, setMedicinesData, setLoadingMedicines);
+
+  if (loadingMedicines === undefined && sharedToken) {
     return (
       <div className="d-flex justify-content-center align-items-center" style={{ height: '60vh' }}>
         <div className="spinner-border text-primary" role="status">
@@ -35,7 +22,7 @@ function MedicinesList({ tokenCalendars }) {
     );
   }
   
-  if (successFetchSharedTokenMedicines === false && sharedToken) {
+  if (loadingMedicines === false && sharedToken) {
     return (
       <div className="alert alert-danger text-center mt-5" role="alert">
         ❌ Ce lien de calendrier partagé est invalide ou a expiré.

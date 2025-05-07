@@ -1,6 +1,6 @@
 import * as Popover from "@radix-ui/react-popover";
 import { useState } from "react";
-import useIsTouchDevice from "../hook/useIsTouchDevice";
+import useIsTouchDevice from "../hooks/useIsTouchDevice";
 
 export default function HoveredUserProfile({ user, trigger, containerRef = null }) {
   const [open, setOpen] = useState(false);

@@ -2,14 +2,14 @@ import React, { useState, useEffect, useContext } from 'react';
 import { sendEmailVerification } from 'firebase/auth';
 import { auth } from "../services/firebase";
 import { useNavigate } from "react-router-dom";
-import { UserContext, getGlobalReloadUser } from "../contexts/UserContext"; // ✅ Import UserContext
+import { UserContext, getGlobalReloadUser } from "../contexts/UserContext";
 import AlertSystem from "../components/AlertSystem";
 import { log } from "../utils/logger";
-import { getFirebaseAuthErrorMessage } from "../utils/getFirebaseAuthErrorMessage";
+import { getFirebaseErrorMessage } from "../utils/FirebaseErrorMessage";
 
 function VerifyEmail() {
   // 🔐 Contexte utilisateur
-  const { userInfo } = useContext(UserContext); // Utiliser UserContext pour accéder aux infos utilisateur
+  const { userInfo } = useContext(UserContext);
 
   // ⚠️ Alertes
   const [alertMessage, setAlertMessage] = useState(null); // Message d'alerte
@@ -52,7 +52,7 @@ function VerifyEmail() {
           origin: "VerifyEmail.jsx",
           error,
         });
-        setAlertMessage(getFirebaseAuthErrorMessage(error.code));
+        setAlertMessage("❌ " + getFirebaseErrorMessage(error.code));
         setAlertType("danger");
       }
     } else {

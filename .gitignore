@@ -35,3 +35,4 @@ frontend/src/styles/test.scss
 __pycache__/
 backend/test/
 frontend/massReplace.js
+frontend/src/test/

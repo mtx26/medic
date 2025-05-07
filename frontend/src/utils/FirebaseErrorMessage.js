@@ -1,4 +1,4 @@
-export function getFirebaseAuthErrorMessage(code) {
+export function getFirebaseErrorMessage(code) {
   switch (code) {
     case "auth/email-already-in-use":
       return "Cette adresse e-mail est déjà utilisée.";

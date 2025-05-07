@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { GoogleHandleLogin, registerWithEmail, loginWithEmail, handleLogout } from "../services/authService";
 import AlertSystem from "../components/AlertSystem";
-import { getFirebaseAuthErrorMessage } from "../utils/getFirebaseAuthErrorMessage";
+import { getFirebaseErrorMessage } from "../utils/FirebaseErrorMessage";
 import { log } from "../utils/logger";
 import { auth } from "../services/firebase";
 import { useNavigate } from "react-router-dom";
@@ -102,7 +102,7 @@ function Auth() {
                   origin: "App.js",
                   stack: err.stack,
                 });
-                setAlertMessage(getFirebaseAuthErrorMessage(err.code));
+                setAlertMessage("❌ " + getFirebaseErrorMessage(err.code));
                 setAlertType("danger");
               }
             }}

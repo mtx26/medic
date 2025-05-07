@@ -68,6 +68,10 @@ html {
   padding-right: 1rem !important; /* ou ce que tu veux */
 }
 
+body.modal-open {
+  padding-right: 0 !important;
+}
+
 
 
 

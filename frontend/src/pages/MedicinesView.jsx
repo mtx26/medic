@@ -1,8 +1,9 @@
 // MedicamentsPage.jsx
 import React, { useEffect, useState, useContext, useRef } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import { AuthContext } from '../contexts/LoginContext';
+import { UserContext } from '../contexts/UserContext';
 import AlertSystem from '../components/AlertSystem';
+import { useRealtimeMedicinesSwitcher } from '../hooks/useRealtimeMedicinesSwitcher';
 
 function MedicinesView({ personalCalendars, sharedUserCalendars }) {
   // 📍 Paramètres d’URL et navigation
@@ -11,7 +12,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars }) {
   const params = useParams();
 
   // 🔐 Contexte d'authentification
-  const { authReady, currentUser } = useContext(AuthContext); // Contexte de l'utilisateur connecté
+  const { authReady, currentUser } = useContext(UserContext); // Contexte de l'utilisateur connecté
 
   // ⚠️ Alertes et confirmations
   const [alertType, setAlertType] = useState(""); // État pour le type d'alerte
@@ -31,7 +32,6 @@ function MedicinesView({ personalCalendars, sharedUserCalendars }) {
 
   const calendarSourceMap = {
     personal: {
-      fetchMedicines: personalCalendars.fetchPersonalCalendarMedicines,
       setCalendarsData: personalCalendars.setCalendarsData,
       calendarsData: personalCalendars.calendarsData,
       addMedicine: personalCalendars.addMedicine,
@@ -39,7 +39,6 @@ function MedicinesView({ personalCalendars, sharedUserCalendars }) {
       updateMedicines: personalCalendars.updatePersonalCalendarMedicines,
     },
     sharedUser: {
-      fetchMedicines: sharedUserCalendars.fetchSharedUserCalendarMedicines,
       setCalendarsData: sharedUserCalendars.setSharedCalendarsData,
       calendarsData: sharedUserCalendars.sharedCalendarsData,
       addMedicine: sharedUserCalendars.addMedicine,
@@ -115,20 +114,13 @@ function MedicinesView({ personalCalendars, sharedUserCalendars }) {
 
   const allMedsValid = medicinesData.length > 0 && medicinesData.every(isMedValid);
 
-  useEffect(() => {
-    const load = async () => {
-      if (authReady && currentUser && calendarId) {
-        const rep = await calendarSource.fetchMedicines(calendarId);
-        if (rep.success) {
-          setMedicinesData(rep.medicinesData);
-          setOriginalMedicinesData(rep.originalMedicinesData);
-        }
-        setLoadingMedicines(rep.success);
-      }
-    };
-    load();
-  }, [authReady, currentUser, calendarId]);
-
+  useRealtimeMedicinesSwitcher(
+    calendarType,
+    calendarId,
+    setMedicinesData,
+    setOriginalMedicinesData,
+    setLoadingMedicines
+  );  
 
   if (loadingMedicines === undefined && calendarId) {
     return (
@@ -150,7 +142,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars }) {
         <div className="d-flex justify-content-start mb-3">
           <button
             className="btn btn-outline-primary"
-            onClick={() => navigate(`/calendars/${calendarId}`)}
+            onClick={() => navigate(`/${basePath}/${calendarId}`)}
             title="Retour au calendrier"
           >
             <i className="bi bi-calendar-date"></i>
@@ -168,7 +160,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars }) {
               const rep = calendarSource.addMedicine(medicinesData);
               if (rep.success) {
                 setMedicinesData(rep.medicinesData);
-                setOriginalMedicinesData(rep.originalMedicinesData);
+                setOriginalMedicinesData(JSON.parse(JSON.stringify(rep.originalMedicinesData)));
               }
               setHighlightedId(rep.id);
               setTimeout(() => setHighlightedId(null), 2000);
@@ -190,7 +182,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars }) {
                 if (rep.success) {
                   setMedicinesData(rep.medicinesData);
                   setChecked([]);
-                  setOriginalMedicinesData(rep.originalMedicinesData);
+                  setOriginalMedicinesData(JSON.parse(JSON.stringify(rep.originalMedicinesData)));
                   setAlertMessage("✅ "+rep.message);
                   setAlertType("success");
                 } else {
@@ -223,7 +215,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars }) {
                   setAlertMessage("✅ "+rep.message);
                   setAlertType("success");
                   setMedicinesData(rep.medicinesData);
-                  setOriginalMedicinesData(rep.originalMedicinesData);
+                  setOriginalMedicinesData(JSON.parse(JSON.stringify(rep.originalMedicinesData)));
                 } else {
                   setAlertMessage("❌ "+rep.error);
                   setAlertType("danger");

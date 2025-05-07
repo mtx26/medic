@@ -214,8 +214,8 @@ def handle_rename_calendar():
   
 
 # Route pour générer le calendrier 
-@api.route("/api/calendars/<calendar_id>/calendar", methods=["GET"])
-def handle_calendar(calendar_id):
+@api.route("/api/calendars/<calendar_id>/schedule", methods=["GET"])
+def handle_calendar_schedule(calendar_id):
     try:
         user = verify_firebase_token()
         owner_uid = user["uid"]

@@ -15,7 +15,7 @@ import CalendarView from '../pages/CalendarView';
 import CalendarList from '../pages/CalendarList';
 import SharedList from '../pages/SharedList';
 
-import MedicinesList from '../pages/MedecinesList';
+import MedicinesList from '../pages/MedicinesList';
 
 import NotFound from '../pages/NotFound';
 

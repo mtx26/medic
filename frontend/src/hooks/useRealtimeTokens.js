@@ -1,0 +1,49 @@
+import { useContext, useEffect } from 'react';
+import { UserContext } from '../contexts/UserContext';
+import { auth, db } from '../services/firebase';
+import { onSnapshot, query, where, collection } from 'firebase/firestore';
+import { log } from '../utils/logger';
+
+const API_URL = process.env.REACT_APP_API_URL;
+
+export const useRealtimeTokens = (setTokensList, setLoadingStates) => { 
+	const { currentUser, authReady } = useContext(UserContext);
+
+	useEffect(() => {
+		if (!(authReady && currentUser)) return;
+
+		const user = auth.currentUser;
+		if (!user) return;
+
+		const q = query(
+			collection(db, "shared_tokens"),
+			where("owner_uid", "==", user.uid)
+		);
+
+		const unsubscribe = onSnapshot(q, async () => {
+			try {
+				const token = await user.getIdToken();
+				const res = await fetch(`${API_URL}/api/tokens`, {
+					method: "GET",
+					headers: { Authorization: `Bearer ${token}` },
+				});
+				const data = await res.json();
+				if (!res.ok) throw new Error(data.error);
+				setTokensList(data.tokens);
+				setLoadingStates(prev => ({ ...prev, tokens: false }));
+				log.info(data.message, {
+					origin: "TOKENS_FETCH_SUCCESS",
+					uid: user.uid,
+					count: data.tokens.length,
+				});
+			} catch (err) {
+				log.error(err.message || "Échec de récupération des tokens", err, {
+					origin: "TOKENS_FETCH_ERROR",
+					uid: user?.uid,
+				});
+			}
+		});
+		
+		return () => unsubscribe();
+	}, [authReady, currentUser, setTokensList, setLoadingStates]);
+}
