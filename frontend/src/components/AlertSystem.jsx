@@ -1,52 +1,72 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
 function AlertSystem({ type = "info", message, onClose, onConfirm = null, duration = 3000 }) {
   const isConfirm = type.startsWith("confirm");
+  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    if (!message || isConfirm) return;
-    const timer = setTimeout(() => onClose(), duration);
-    return () => clearTimeout(timer);
+    if (!message) return;
+    setVisible(true); // déclenche l'animation d'apparition
+
+    if (!isConfirm) {
+      const timer = setTimeout(() => {
+        setVisible(false);
+        setTimeout(onClose, 400);
+      }, duration);
+      return () => clearTimeout(timer);
+    }
   }, [message, duration, isConfirm, onClose]);
 
   if (!message) return null;
 
-  const bootstrapType = type === "confirm-danger" ? "danger"
-                    : type === "confirm-safe" ? "success"
-                    : type;
+  const bootstrapType = type === "confirm-danger" ? "danger" : type === "confirm-safe" ? "success" : type;
 
-return (
-  <div
-    className={`alert alert-${bootstrapType} alert-dismissible fade show d-flex flex-column flex-sm-row justify-content-between align-items-center text-center text-sm-start`}
-    role="alert"
-  >
-    <div className="w-100">{message}</div>
+  return (
+    <div className={`alert-wrapper ${visible ? 'show' : ''}`}>
+      <div
+        className={`alert alert-${bootstrapType} ${!isConfirm ? 'alert-dismissible' : ''} no-dismiss-padding`}
+        role="alert"
+      >
+        <div className="d-flex flex-column flex-sm-row justify-content-between gap-3">
+          <div className="flex-fill">{message}</div>
 
-    {isConfirm ? (
-      <div className="d-flex gap-2 mt-2 mt-sm-0 ms-sm-3 justify-content-center">
-        <button
-          className={`btn btn-sm btn-${bootstrapType}`}
-          onClick={() => {
-            onConfirm?.();
-            onClose();
-          }}
-        >
-          Oui
-        </button>
-        <button className="btn btn-sm btn-outline-secondary" onClick={onClose}>
-          Annuler
-        </button>
+          {isConfirm ? (
+            <div className="d-flex flex-row flex-wrap gap-2 justify-content-center justify-content-sm-end">
+              <button
+                className={`btn btn-sm btn-${bootstrapType}`}
+                onClick={() => {
+                  onConfirm?.();
+                  setVisible(false);
+                  setTimeout(onClose, 400);
+                }}
+              >
+                Oui
+              </button>
+              <button
+                className="btn btn-sm btn-outline-secondary"
+                onClick={() => {
+                  setVisible(false);
+                  setTimeout(onClose, 400);
+                }}
+              >
+                Annuler
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              className="btn-close"
+              onClick={() => {
+                setVisible(false);
+                setTimeout(onClose, 400);
+              }}
+            ></button>
+          )}
+        </div>
       </div>
-    ) : (
-      <button
-        type="button"
-        className="btn-close mt-2 mt-sm-0"
-        onClick={onClose}
-      ></button>
-    )}
-  </div>
-);
 
+    </div>
+  );
 }
 
 export default AlertSystem;

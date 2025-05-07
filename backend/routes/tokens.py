@@ -361,6 +361,8 @@ def handle_generate_token_calendar(token):
             )
 
         medicines = [med.to_dict() for med in doc_2.collection("medicines").get()]
+        calendar_name = doc_2.get().to_dict().get("calendar_name")
+
         start_str = request.args.get("startTime")
         start_date = datetime.strptime(start_str, "%Y-%m-%d").date() if start_str else datetime.now(timezone.utc).date()
 
@@ -370,7 +372,7 @@ def handle_generate_token_calendar(token):
             code="CALENDAR_GENERATED_SUCCESS", 
             uid=owner_uid, 
             origin="CALENDAR_TOKEN_GENERATED", 
-            data={"schedule": schedule},
+            data={"schedule": schedule, "calendar_name": calendar_name},
             log_extra={"token": token}
         )
 

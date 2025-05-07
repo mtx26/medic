@@ -1,35 +1,49 @@
 import * as Popover from "@radix-ui/react-popover";
 import { useState } from "react";
+import useIsTouchDevice from "../hook/useIsTouchDevice";
 
-export default function HoveredUserProfile({ user, trigger }) {
+export default function HoveredUserProfile({ user, trigger, containerRef = null }) {
   const [open, setOpen] = useState(false);
+  
+  const isTouchDevice = useIsTouchDevice();
+
 
   // gestion mobile : click toggle
   const handleClick = () => {
-    if (window.innerWidth <= 768) setOpen((prev) => !prev);
+    if (isTouchDevice) setOpen((prev) => !prev);
   };
 
   // gestion desktop : hover in/out
   const handleMouseEnter = () => {
-    if (window.innerWidth > 768) setOpen(true);
+    if (!isTouchDevice) setOpen(true);
   };
   const handleMouseLeave = () => {
-    if (window.innerWidth > 768) setOpen(false);
+    if (!isTouchDevice) setOpen(false);
   };
 
   return (
     <Popover.Root open={open} onOpenChange={setOpen}>
       <Popover.Trigger asChild>
-        <span
-          onClick={handleClick}
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
+      <span
+        onClick={handleClick}
+        onPointerEnter={handleMouseEnter}
+        onPointerLeave={handleMouseLeave}
+      >
+        <span 
+          style={{
+            cursor: "pointer",
+            textDecoration: open ? "underline" : "none",
+            color: open ? "#0d6efd" : "inherit",
+            transition: "color 0.2s, text-decoration 0.2s"
+          }}
+          className="d-flex align-items-center gap-1"
         >
-          <span style={{ cursor: "pointer" }}>{trigger}</span>
+          {trigger} <i className="bi bi-info-circle" style={{ fontSize: "0.9em", color: "#6c757d" }}></i>
         </span>
+      </span>
       </Popover.Trigger>
 
-      <Popover.Portal>
+      <Popover.Portal container={containerRef?.current}>
         <Popover.Content
           sideOffset={8}
           align="center"
@@ -39,8 +53,9 @@ export default function HoveredUserProfile({ user, trigger }) {
             zIndex: 9999,
             boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
           }}
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
+          onClick={handleClick}
+          onPointerEnter={handleMouseEnter}
+          onPointerLeave={handleMouseLeave}
         >
           <div className="d-flex flex-column align-items-center text-center gap-2">
             <img

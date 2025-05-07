@@ -6,6 +6,7 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import frLocale from '@fullcalendar/core/locales/fr';
 import { AuthContext } from '../contexts/LoginContext';
+import HoveredUserProfile from '../components/HoveredUserProfile';
 
 function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
 
@@ -21,6 +22,9 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
   const [eventsForDay, setEventsForDay] = useState([]); // Événements filtrés pour un jour spécifique
   const [calendarEvents, setCalendarEvents] = useState([]); // Événements du calendrier
   const [calendarTable, setCalendarTable] = useState([]); // Événements du calendrier
+  const [calendarName, setCalendarName] = useState(''); // Nom du calendrier
+  const [ownerUser, setOwnerUser] = useState(null); // Utilisateur propriétaire du calendrier
+
   // 🔄 Références et chargement
   const modalRef = useRef(null); // Référence vers le modal (pour gestion focus/fermeture)
   const [loadingCalendar, setLoadingCalendar] = useState(undefined); // État de chargement du calendrier
@@ -61,10 +65,6 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
 
   const calendarSource = calendarSourceMap[calendarType];
 
-  const currentCalendar = Array.isArray(calendarSource.calendarsData)
-  ? calendarSource.calendarsData.find(c => c.calendar_id === calendarId)
-  : null;
-
   // Fonction pour gérer le clic sur une date
   const handleDateClick = (info) => {
     const clickedDate = info.dateStr;
@@ -91,6 +91,7 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
         const rep = await calendarSource.fetchSchedule(calendarId);
         if (rep.success) {
           setCalendarEvents(rep.schedule);
+          setCalendarName(rep.calendarName);
         }
         setLoadingCalendar(!rep.success);
       } else {
@@ -153,9 +154,21 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
       color: event.color,
     }));
   }, [calendarEvents]);
-  
-  
-  
+
+  useEffect(() => {
+    if (!currentUser || !calendarId) return;
+
+    if (calendarType === 'sharedUser') {
+      if (calendarSource.calendarsData.find((calendar) => calendar.calendar_id === calendarId)) {
+        const owner_user = calendarSource.calendarsData.find((calendar) => calendar.calendar_id === calendarId);
+        setOwnerUser({
+          email: owner_user.owner_email,
+          display_name: owner_user.owner_name,
+          photo_url: owner_user.owner_photo_url
+        });
+      }
+    }
+  }, [calendarType, calendarSource.calendarsData, calendarId]);
 
   if (loadingCalendar === undefined || loadingTable === undefined && calendarId) {
     return (
@@ -181,22 +194,52 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
     <div>
       <div className="card shadow-sm mb-4">
         <div className="card-body">
-          <h3 className="card-title mb-4">{currentCalendar?.calendar_name || 'Nom introuvable'}</h3>
-          {/* Ligne 1 : Boutons d'action */}
+          <div className="mb-3">
+            <h3 className="card-title">{calendarName}</h3>
+
+            {calendarType === 'sharedUser' && (
+              <div className="badge bg-primary mb-3">
+                Calendrier partagé par 
+                {" "}
+
+              {ownerUser ? (
+                <>
+                  <HoveredUserProfile 
+                    user={{
+                      email: ownerUser.email,
+                      display_name: ownerUser.display_name,
+                      photo_url: ownerUser.photo_url
+                    }}
+                    trigger={
+                      <span>
+                        {ownerUser.display_name}
+                      </span>
+                    }
+                  />
+                </>
+              ) : (
+                "un utilisateur"
+              )}
+              </div>
+            )}
+            {calendarType === 'token' && (
+              <div className="badge bg-primary mb-3">Accès via lien de partage public</div>
+            )}
+          </div>
           <div className="d-flex flex-wrap  align-items-left gap-2 mb-3">
             <button
               className="btn btn-outline-secondary"
-              onClick={() => navigate(`/calendars/`)}
+              onClick={() => navigate(`/calendars`)}
             >
               <i className="bi bi-calendar-date"></i>
-              <span> Retour aux calendriers</span>
+              <span> Calendriers</span>
             </button>
             <button
               className="btn btn-outline-secondary"
               onClick={() => navigate(`/${basePath}/${calendarId}/medicines`)}
             >
               <i className="bi bi-capsule"></i>
-              <span> Liste des médicaments</span>
+              <span> Médicaments</span>
             </button>
           </div>
         </div>

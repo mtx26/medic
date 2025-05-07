@@ -235,7 +235,7 @@ function App() {
   
 
   // Fonction pour obtenir le calendrier lier au calendarId
-  const fetchPersonalCalendarSchedule = useCallback(async (calendarId, startDate ) => {
+  const fetchPersonalCalendarSchedule = useCallback(async (calendarId, startDate = null) => {
     try {
       if (!calendarId) {
         log.warn("Nom de calendrier non fourni, calendrier non chargé.", {
@@ -267,7 +267,7 @@ function App() {
         "eventCount": scheduleSortedByMoment?.length,
         "calendarId": calendarId,
       });
-      return { success: true, message: data.message, code: data.code, schedule: scheduleSortedByMoment };
+      return { success: true, message: data.message, code: data.code, schedule: scheduleSortedByMoment, calendarName: data.calendar_name };
     } catch (err) {
       log.error(err.message || "Erreur lors de la récupération du calendrier", err, {
         origin: "CALENDAR_FETCH_ERROR",
@@ -275,7 +275,7 @@ function App() {
         "calendarId": calendarId,
         "startDate": startDate,
       });
-      return { success: false, error: err.message, code: err.code, schedule: [] };
+      return { success: false, error: err.message, code: err.code, schedule: [], calendarName: "" };
     }
   }, []);
 
@@ -390,7 +390,7 @@ function App() {
 
 
   // Fonction pour recupérer un calendrier partagé par un token
-  const fetchTokenCalendarSchedule = useCallback(async (token, startDate) => {
+  const fetchTokenCalendarSchedule = useCallback(async (token, startDate = null) => {
     try {
       if (!startDate) {
         startDate = new Date().toISOString().slice(0, 10);
@@ -408,13 +408,13 @@ function App() {
         "token": token,
         "eventCount": scheduleSortedByMoment?.length,
       });
-      return {success: true, message: data.message, code: data.code, schedule: scheduleSortedByMoment};
+      return {success: true, message: data.message, code: data.code, schedule: scheduleSortedByMoment, calendarName: data.calendar_name};
     } catch (err) {
       log.error(err.message || "Échec de récupération du calendrier partagé", err, {
         origin: "SHARED_CALENDAR_FETCH_ERROR",
         "token": token,
       });
-      return {success: false, error: err.message, code: err.code, schedule: []};
+      return {success: false, error: err.message, code: err.code, schedule: [], calendarName: ""};
     }
   }, []);
 
@@ -904,7 +904,7 @@ function App() {
   }, []);
 
   // Fonction pour recup le calendrier partagé par un utilisateur
-  const fetchSharedUserCalendarSchedule = useCallback(async (calendarId, startDate) => {
+  const fetchSharedUserCalendarSchedule = useCallback(async (calendarId, startDate = null) => {
     try {
       if (!startDate) {
         startDate = new Date().toISOString().split('T')[0];
@@ -925,14 +925,14 @@ function App() {
         calendarId,
         startDate,
       });
-      return {success: true, message: data.message, code: data.code, schedule: scheduleSortedByMoment};
+      return {success: true, message: data.message, code: data.code, schedule: scheduleSortedByMoment, calendarName: data.calendar_name};
     } catch (err) {
       log.error(err.message || "Échec de récupération du calendrier partagé par un utilisateur", err, {
         origin: "SHARED_USER_CALENDAR_FETCH_ERROR",
         calendarId,
         startDate,
       });
-      return {success: false, error: err.message, code: err.code, schedule: []};
+      return {success: false, error: err.message, code: err.code, schedule: [], calendarName: ""};
     }
   }, []);
 

@@ -135,7 +135,9 @@ def handle_user_shared_calendar(calendar_id):
             )
         
         doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id)
+
         medicines = [med.to_dict() for med in doc.collection("medicines").get()]
+        calendar_name = doc.get().to_dict().get("calendar_name")
 
         schedule = generate_schedule(start_date, medicines)
     
@@ -144,7 +146,7 @@ def handle_user_shared_calendar(calendar_id):
             code="SHARED_CALENDARS_LOAD_SUCCESS", 
             uid=uid, 
             origin="SHARED_CALENDARS_LOAD",
-            data={"schedule": schedule},
+            data={"schedule": schedule, "calendar_name": calendar_name},
             log_extra={"calendar_id": calendar_id}
         )
 

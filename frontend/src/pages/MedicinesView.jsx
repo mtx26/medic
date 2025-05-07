@@ -118,7 +118,6 @@ function MedicinesView({ personalCalendars, sharedUserCalendars }) {
   useEffect(() => {
     const load = async () => {
       if (authReady && currentUser && calendarId) {
-        calendarSource.setCalendarsData([]);
         const rep = await calendarSource.fetchMedicines(calendarId);
         if (rep.success) {
           setMedicinesData(rep.medicinesData);
@@ -185,7 +184,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars }) {
           <button
             onClick={() => {
               setAlertType("confirm-danger");
-              setAlertMessage("❌ Confirmez-vous la suppression des médicaments sélectionnés ?");
+              setAlertMessage("❌ Supprimer les médicaments ?");
               setOnConfirmAction(() => async () => {
                 const rep = await calendarSource.deleteMedicines(calendarId, checked, medicinesData);
                 if (rep.success) {
@@ -217,7 +216,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars }) {
           <button
             onClick={() => {
               setAlertType("confirm-safe");
-              setAlertMessage("✅ Enregistrer les modifications de médicaments ?");
+              setAlertMessage("✅ Enregistrer les modifications ?");
               setOnConfirmAction(() => async () => {
                 const rep = await calendarSource.updateMedicines(calendarId, medicinesData);
                 if (rep.success) {

@@ -220,8 +220,8 @@ def handle_calendar(calendar_id):
         user = verify_firebase_token()
         owner_uid = user["uid"]
 
-        doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).collection("medicines").get()
-        if not doc:
+        doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).collection("medicines")
+        if not doc.get():
             return success_response(
                 message="Calendrier généré avec succès", 
                 code="CALENDAR_GENERATE_SUCCESS", 
@@ -231,7 +231,7 @@ def handle_calendar(calendar_id):
                 log_extra={"calendar_id": calendar_id}
             )
         
-        medicines = [med.to_dict() for med in doc]
+        medicines = [med.to_dict() for med in doc.get()]
         
         start_str = request.args.get("startTime")
         if not start_str:
@@ -240,12 +240,15 @@ def handle_calendar(calendar_id):
             start_date = datetime.strptime(start_str, "%Y-%m-%d").date()
 
         schedule = generate_schedule(start_date, medicines)
+
+        calendar_name = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).get().to_dict().get("calendar_name")
+
         return success_response(
             message="Calendrier généré avec succès", 
             code="CALENDAR_GENERATE_SUCCESS", 
             uid=owner_uid, 
             origin="CALENDAR_GENERATE", 
-            data={"medicines": len(medicines), "schedule": schedule},
+            data={"medicines": len(medicines), "schedule": schedule, "calendar_name": calendar_name},
             log_extra={"calendar_id": calendar_id}
         )
 

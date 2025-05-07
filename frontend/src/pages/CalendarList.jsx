@@ -39,10 +39,18 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
 
 
   const REACT_URL = process.env.REACT_APP_REACT_URL
+  
+  const openShareModal = () => {
+    setTimeout(() => {
+      const modal = new window.bootstrap.Modal(shareModalRef.current);
+      modal.show();
+    }, 0);
+  };
 
   const closeShareModal = () => {
     const modal = window.bootstrap.Modal.getInstance(shareModalRef.current);
     if (modal) modal.hide();
+    document.activeElement?.blur();
   };
 
 
@@ -153,7 +161,7 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
                           await navigator.clipboard.writeText(`${REACT_URL}/shared-token-calendar/${existingShareToken.token}`);
                           setAlertType("success");
                           setSelectedAlert("calendar");
-                          setAlertMessage("🔗 Lien existant copié dans le presse-papiers !");
+                          setAlertMessage("🔗 Lien copié !");
                           closeShareModal();
                         } catch (error) {
                           setAlertType("danger");
@@ -226,7 +234,7 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
                     {sharedUsersData.map((user) => (
                       <li 
                         key={user.receiver_uid} 
-                        className="list-group-item d-flex justify-content-between align-items-center gap-2"
+                        className="list-group-item d-flex gap-2 justify-content-between"
                       >
                         <div className="d-flex align-items-center gap-2">
                           <HoveredUserProfile
@@ -236,28 +244,31 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
                               photo_url: user.receiver_photo_url
                             }}
                             trigger={
-                              <div className="d-flex align-items-center gap-2" style={{ cursor: 'pointer' }}>
+                              <span className="d-flex align-items-center gap-2" style={{ cursor: 'pointer' }}>
                                 <img src={user.receiver_photo_url} alt="Profil" className="rounded-circle" style={{ width: '40px', height: '40px' }} />
                                 <span>
                                   <strong>{user.receiver_name}</strong><br />
                                   Accès : {user.access}
                                 </span>
-                              </div>
+                              </span>
                             }
+                            containerRef={shareModalRef}
                           />
+                        </div>
+
+                        <div className="d-flex align-items-center gap-2">
                           <span className={`badge rounded-pill gap-2 ${user.accepted ? "bg-success" : "bg-warning text-dark"}`}>
                             {user.accepted ? "Accepté" : "En attente"}
                           </span>
+
+                          <button
+                            className="btn btn-outline-warning"
+                            title="Gérer les utilisateurs partagés"
+                            onClick={() => navigate('/shared-calendar')}
+                          >
+                            <i className="bi bi-gear"></i>
+                          </button>
                         </div>
-
-                        <button
-                          className="btn btn-outline-warning"
-                          title="Gérer les utilisateurs partagés"
-                          onClick={() => navigate('/shared-calendar')}
-                        >
-                          <i className="bi bi-gear"></i>
-                        </button>
-
                       </li>
                     ))}
                   </ul>
@@ -449,7 +460,7 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
           onClick={() => {
             setAlertType("confirm-safe");
             setSelectedAlert("calendar"+calendarData.calendar_id);
-            setAlertMessage("✅ Confirmez-vous le renommage du calendrier ?");
+            setAlertMessage("✅ Renommer le calendrier ?");
             setOnConfirmAction(() => async () => {
               const rep = await personalCalendars.renameCalendar(calendarData.calendar_id, renameValues[calendarData.calendar_id]); // Renommage du calendrier
               if (rep.success) {
@@ -496,10 +507,7 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
                 setSharedUsersData(rep.data);
               }
               setExistingShareToken(token || null);
-              setTimeout(() => {
-                const modal = new window.bootstrap.Modal(shareModalRef.current);
-                modal.show();
-              }, 0);
+              openShareModal();
             }}
           >
             <i className="bi bi-box-arrow-up"></i>
@@ -513,7 +521,7 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
           onClick={() => {
             setAlertType("confirm-danger");
             setSelectedAlert("calendar"+calendarData.calendar_id);
-            setAlertMessage("❌ Confirmez-vous la suppression du calendrier ?");
+            setAlertMessage("❌ Supprimer le calendrier ?");
             setOnConfirmAction(() => async () => {
               const rep = await personalCalendars.deleteCalendar(calendarData.calendar_id);
               if (rep.success) {
@@ -608,7 +616,7 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
               onClick={() => {
                 setAlertType("confirm-danger");
                 setSelectedAlert("sharedCalendar");
-                setAlertMessage("❌ Confirmez-vous la suppression du calendrier partagé ?");
+                setAlertMessage("❌ Supprimer le calendrier partagé ?");
                 setOnConfirmAction(() => async () => {
                   const rep = await sharedUserCalendars.deleteSharedCalendar(calendarData.calendar_id);
                   if (rep.success) {

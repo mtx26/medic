@@ -140,11 +140,11 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                               try {
                                 await navigator.clipboard.writeText(`${REACT_URL}/shared-token-calendar/${token.token}`);
                                 setAlertType("success");
-                                setAlertMessage("👍 Lien de partage copié dans le presse-papiers.");
+                                setAlertMessage("🔗 Lien copié !");
                                 setAlertId(token.token);
                               } catch (error) {
                                 setAlertType("danger");
-                                setAlertMessage("❌ Une erreur est survenue lors de la copie du lien de partage.");
+                                setAlertMessage("❌ Erreur lors de la copie du lien.");
                                 setAlertId(token.token);
                               }
                             }}
@@ -273,7 +273,7 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                           className="btn btn-outline-danger"
                           onClick={() => {
                             setAlertType("confirm-danger");
-                            setAlertMessage("❌ Confirmez-vous la suppression du lien de partage ?");
+                            setAlertMessage("❌ Supprimer le lien ?");
                             setAlertId(token.token);
                             setOnConfirmAction(() => async () => {
                               const rep = await tokenCalendars.deleteToken(token.token)
@@ -485,7 +485,7 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                           className="btn btn-outline-danger"
                           onClick={() => {
                             setAlertType("confirm-danger");
-                            setAlertMessage("❌ Confirmez-vous la suppression de l'accès à ce calendrier ?");
+                            setAlertMessage("❌ Supprimer l'accès ?");
                             setAlertId(user.receiver_uid);
                             setOnConfirmAction(() => async () => {
                               const rep = await sharedUserCalendars.deleteSharedUser(calendarId, user.receiver_uid)

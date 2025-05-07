@@ -48,5 +48,30 @@ code {
   font-size: 0.75rem;
 }
 
+.alert-wrapper {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease, opacity 0.4s ease;
+}
+
+.alert-wrapper.show {
+  max-height: 500px;
+  opacity: 1;
+}
+
+html {
+  overflow-y: scroll;
+}
+
+.no-dismiss-padding {
+  padding-right: 1rem !important; /* ou ce que tu veux */
+}
+
+
+
+
+
+
 
 
