@@ -1,8 +1,9 @@
 import { useEffect, useContext } from "react";
-import { auth, db } from "../services/firebase";
-import { onSnapshot, query, where, collection, orderBy } from "firebase/firestore";
+import { auth, db, analytics } from "../services/firebase";
+import { onSnapshot, collection } from "firebase/firestore";
 import { log } from "../utils/logger";
 import { UserContext } from '../contexts/UserContext';
+import { logEvent } from "firebase/analytics";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -36,6 +37,10 @@ export const useRealtimeCalendars = (setCalendarsData, setLoadingStates) => {
 				setCalendarsData(sortedCalendars);
 				setLoadingStates(prev => ({ ...prev, calendars: false }));
 
+				logEvent(analytics, 'fetch_calendars', {
+					uid: user.uid,
+					count: data.calendars?.length,
+				});
 				log.info(data.message, {
 					origin: "CALENDARS_REALTIME_UPDATE",
 					uid: user.uid,
@@ -80,14 +85,18 @@ export const useRealtimeSharedCalendars = (setSharedCalendarsData, setLoadingSta
 				
         setSharedCalendarsData(data.calendars);
 				setLoadingStates(prev => ({ ...prev, sharedCalendars: false }));
-  
+
+				logEvent(analytics, 'fetch_shared_calendars', {
+					uid: user.uid,
+					count: data.calendars?.length,
+				});
         log.info(data.message, {
           origin: "SHARED_CALENDARS_FETCH_SUCCESS",
           uid: user.uid,
           count: data.calendars?.length,
         });
       } catch (err) {
-				setLoadingStates(prev => ({ ...prev, sharedCalendars: true }));
+		setLoadingStates(prev => ({ ...prev, sharedCalendars: true }));
         log.error(err.message || "Échec de récupération des calendriers partagés", err, {
           origin: "SHARED_CALENDARS_FETCH_ERROR",
           uid: user?.uid,

@@ -1,4 +1,4 @@
-import React, { useEffect, useContext, useState, useRef } from "react";
+import React, { useEffect, useContext, useState, useCallback } from "react";
 import { UserContext } from '../contexts/UserContext';
 import AlertSystem from '../components/AlertSystem'; 
 import HoveredUserProfile from "../components/HoveredUserProfile";
@@ -24,13 +24,11 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
   const [expiresAt, setExpiresAt] = useState([]); // Dates d'expiration des liens partagés
   const [permissions, setPermissions] = useState([]); // Permissions associées aux partages
   const [emailsToInvite, setEmailsToInvite] = useState([]); // E-mails à inviter au partage
-  const [hoveredUser, setHoveredUser] = useState(null); // Utilisateur actuellement survolé
 
 
   // 📅 Date du jour
   const today = new Date().toISOString().split('T')[0]; // Date du jour au format 'YYYY-MM-DD'
 
-  const refs = useRef({});
 
 
   useEffect(() => {
@@ -39,7 +37,7 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
     }
   }, [authReady, currentUser]);
 
-  const setGroupedSharedFunction = async () => {
+  const setGroupedSharedFunction = useCallback(async () => {
     const grouped = {};
 
     for (const calendar of personalCalendars.calendarsData) {
@@ -66,13 +64,14 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
 
     setGroupedShared(grouped);
     setLoadingGroupedShared(false);
-  };
+  }, [personalCalendars.calendarsData, sharedUserCalendars, tokenCalendars.tokensList]);
+  
   
   useEffect(() => {
     if (loading === false && authReady && currentUser && personalCalendars.calendarsData) {
       setGroupedSharedFunction();
     }
-  }, [loading, authReady, currentUser, personalCalendars.calendarsData, tokenCalendars.tokensList]);
+  }, [loading, authReady, currentUser, personalCalendars.calendarsData, tokenCalendars.tokensList, setGroupedSharedFunction]);
   
 
   if (loading || loadingGroupedShared) {
@@ -199,11 +198,7 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                             type="date"
                             className="form-control"
                             style={{ minWidth: "120px" }}
-                            value={
-                              token.expires_at
-                                ? today
-                                : ""
-                            }
+                            value={new Date(token.expires_at).toISOString().split("T")[0]}
                             onChange={async (e) => {
                               const rep = await tokenCalendars.updateTokenExpiration(token.token, e.target.value + "T00:00")
                               if (rep.success) {
@@ -405,8 +400,8 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
             <ul className="list-group">
               <h6 className="mt-4">Utilisateurs partagés :</h6>
               {data.users.map((user) => (
-                <div key={user.receiver_uid}>
-                  {alertMessage && alertId === user.receiver_uid && (
+                <div key={user.receiver_uid + "-" + calendarId}>
+                  {alertMessage && alertId === user.receiver_uid + "-" + calendarId && (
                       <AlertSystem
                       type={alertType}
                       message={alertMessage}
@@ -420,7 +415,7 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                       }}
                     />
                   )}
-                  <li key={user.receiver_uid} className="list-group-item px-3">
+                  <li key={user.receiver_uid + "-" + calendarId} className="list-group-item px-3">
                     <div className="row align-items-center g-2">
                       <div className={`d-flex align-items-center gap-2 col-md-4`}>
                         <HoveredUserProfile
@@ -460,7 +455,7 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                           onChange={(e) => {
                             setAlertType("info");
                             setAlertMessage("Vous ne pouvez pas modifier l'accès d'un utilisateur partagé.");
-                            setAlertId(user.receiver_uid);
+                            setAlertId(user.receiver_uid + "-" + calendarId);
                           }}
                           title="Accès"
                           disabled={true}
@@ -477,20 +472,20 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                           onClick={() => {
                             setAlertType("confirm-danger");
                             setAlertMessage("❌ Supprimer l'accès ?");
-                            setAlertId(user.receiver_uid);
+                            setAlertId(user.receiver_uid + "-" + calendarId);
                             setOnConfirmAction(() => async () => {
                               const rep = await sharedUserCalendars.deleteSharedUser(calendarId, user.receiver_uid)
                               if (rep.success) {
                                 setAlertType("success");
                                 setAlertMessage("✅ "+rep.message);
-                                setAlertId(user.receiver_uid);
+                                setAlertId(user.receiver_uid + "-" + calendarId);
                                 setTimeout(async () => {
                                   await setGroupedSharedFunction();
                                 }, 1000);
                               } else {
                                 setAlertType("danger");
                                 setAlertMessage("❌ "+rep.error);
-                                setAlertId(user.receiver_uid);
+                                setAlertId(user.receiver_uid + "-" + calendarId);
                               }
                             });                            
                           }}

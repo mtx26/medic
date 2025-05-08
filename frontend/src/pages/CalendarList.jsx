@@ -4,7 +4,8 @@ import { UserContext } from '../contexts/UserContext';
 import AlertSystem from '../components/AlertSystem';
 import HoveredUserProfile from '../components/HoveredUserProfile';
 import ShareCalendarModal from '../components/ShareCalendarModal';
-
+import { analytics } from '../services/firebase';
+import { logEvent } from 'firebase/analytics';
 
 
 
@@ -68,7 +69,7 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
     };
     loadCounts();
     }
-  }, [personalCalendars.calendarsData, sharedUserCalendars.sharedCalendarsData, authReady, currentUser]);
+  }, [personalCalendars, sharedUserCalendars, authReady, currentUser]);
 
   if (loadingCalendars) {
     return (

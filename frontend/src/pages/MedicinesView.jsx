@@ -1,7 +1,6 @@
 // MedicamentsPage.jsx
-import React, { useEffect, useState, useContext, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import { UserContext } from '../contexts/UserContext';
 import AlertSystem from '../components/AlertSystem';
 import { useRealtimeMedicinesSwitcher } from '../hooks/useRealtimeMedicinesSwitcher';
 
@@ -10,9 +9,6 @@ function MedicinesView({ personalCalendars, sharedUserCalendars }) {
   const navigate = useNavigate(); // Hook de navigation
   const location = useLocation();
   const params = useParams();
-
-  // 🔐 Contexte d'authentification
-  const { authReady, currentUser } = useContext(UserContext); // Contexte de l'utilisateur connecté
 
   // ⚠️ Alertes et confirmations
   const [alertType, setAlertType] = useState(""); // État pour le type d'alerte

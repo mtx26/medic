@@ -127,7 +127,10 @@ const ShareCalendarModal = forwardRef(({
                       />
                       <button
                         className="btn btn-outline-warning"
-                        onClick={() => navigate('/shared-calendar')}
+                        onClick={() => {
+                          navigate('/shared-calendar');
+                          ref.current.close();
+                        }}
                         title="Gérer le lien"
                       >
                         <i className="bi bi-gear"></i>

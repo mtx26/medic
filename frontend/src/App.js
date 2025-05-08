@@ -5,6 +5,8 @@ import Navbar from './components/Header';
 import Footer from './components/Footer';
 import AppRoutes from './routes/AppRouter';
 import { log } from './utils/logger';
+import { analytics } from './services/firebase';
+import { logEvent } from 'firebase/analytics';
 import { auth } from './services/firebase';
 import { UserContext } from './contexts/UserContext';
 import { useCallback } from 'react';
@@ -12,7 +14,7 @@ import { useRealtimeCalendars, useRealtimeSharedCalendars } from './hooks/useRea
 import { useRealtimeNotifications } from './hooks/useRealtimeNotifications';
 import { useRealtimeTokens } from './hooks/useRealtimeTokens';
 // import TestFirestore from './scrip';
-import { setLogLevel } from "firebase/firestore";
+// import { setLogLevel } from "firebase/firestore";
 
 // setLogLevel("debug");
 
@@ -57,7 +59,10 @@ function App() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-
+      logEvent(analytics, 'add_calendar', {
+        calendarName: calendarName,
+        uid: auth.currentUser.uid,
+      });
       log.info(data.message, {
         origin: "CALENDAR_CREATE_SUCCESS",
         "uid": auth.currentUser.uid,
@@ -89,6 +94,10 @@ function App() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
+      logEvent(analytics, 'delete_calendar', {
+        calendarId: calendarId,
+        uid: auth.currentUser.uid,
+      });
       log.info(data.message, {
         origin: "CALENDAR_DELETE_SUCCESS",
         "uid": auth.currentUser.uid,
@@ -121,6 +130,11 @@ function App() {
       if (!res.ok) {
         throw new Error(data.error);
       }
+      logEvent(analytics, 'rename_calendar', {
+        calendarId: calendarId,
+        uid: auth.currentUser.uid,
+        newCalendarName: newCalendarName,
+      });
       log.info(data.message, {
         origin: "CALENDAR_RENAME_SUCCESS",
         "uid": auth.currentUser.uid,
@@ -153,6 +167,11 @@ function App() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
+      logEvent(analytics, 'fetch_personal_calendar_medicine_count', {
+        calendarId: calendarId,
+        uid: auth.currentUser.uid,
+        count: data.count,
+      });
       log.info(data.message, {
         origin: "MED_COUNT_SUCCESS",
         "uid": auth.currentUser.uid,
@@ -182,6 +201,11 @@ function App() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
+      logEvent(analytics, 'fetch_shared_user_calendar_medicine_count', {
+        calendarId: calendarId,
+        uid: auth.currentUser.uid,
+        count: data.count,
+      });
       log.info(data.message, {
         origin: "MED_SHARED_COUNT_SUCCESS",
         "uid": auth.currentUser.uid,
@@ -228,6 +252,11 @@ function App() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
+      logEvent(analytics, 'fetch_personal_calendar_schedule', {
+        calendarId: calendarId,
+        uid: auth.currentUser.uid,
+        count: data.count,
+      });
       // trier les events par titre et par date
       const scheduleSortedByTitle = data.schedule.sort((a, b) => a.title.localeCompare(b.title));
       const scheduleSortedByMoment = scheduleSortedByTitle.sort((a, b) => new Date(a.start) - new Date(b.start));
@@ -267,6 +296,11 @@ function App() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
+      logEvent(analytics, 'update_personal_calendar_medicines', {
+        calendarId: calendarId,
+        uid: auth.currentUser.uid,
+        medicinesData: medicinesData,
+      });
       // trier par ordre alphabétique
       const medicinesSortedByName = data.medicines.sort((a, b) => a.name.localeCompare(b.name));
       log.info(data.message, {
@@ -346,6 +380,11 @@ function App() {
       if (!res.ok) throw new Error(data.error);
       const scheduleSortedByTitle = data.schedule.sort((a, b) => a.title.localeCompare(b.title));
       const scheduleSortedByMoment = scheduleSortedByTitle.sort((a, b) => new Date(a.start) - new Date(b.start));
+      logEvent(analytics, 'fetch_token_calendar_schedule', {
+        token: token,
+        uid: auth.currentUser.uid,
+        count: scheduleSortedByMoment?.length,
+      });
       log.info(data.message, {
         origin: "SHARED_CALENDAR_FETCH_SUCCESS",
         "token": token,
@@ -375,6 +414,11 @@ function App() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
+      logEvent(analytics, 'create_token', {
+        calendarId: calendarId,
+        uid: auth.currentUser.uid,
+        token: data.token,
+      });
       log.info(data.message, {
         origin: "SHARED_CALENDAR_CREATE_SUCCESS",
         "calendarId": calendarId,
@@ -402,6 +446,10 @@ function App() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
+      logEvent(analytics, 'delete_token', {
+        token: token,
+        uid: auth.currentUser.uid,
+      });
       log.info(data.message, {
         origin: "SHARED_CALENDAR_DELETE_SUCCESS",
         "token": token,
@@ -428,6 +476,10 @@ function App() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
+      logEvent(analytics, 'revoke_token', {
+        token: token,
+        uid: auth.currentUser.uid,
+      });
       log.info(data.message, {
         origin: "TOKEN_REVOKE_SUCCESS",
         "token": token,
@@ -455,6 +507,11 @@ function App() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
+      logEvent(analytics, 'update_token_expiration', {
+        token: token,
+        uid: auth.currentUser.uid,
+        expiresAt: expiresAt,
+      });
       log.info("Expiration du token mise à jour avec succès", {
         origin: "TOKEN_EXPIRATION_UPDATE_SUCCESS",
         "token": token,
@@ -483,6 +540,11 @@ function App() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
+      logEvent(analytics, 'update_token_permissions', {
+        token: token,
+        uid: auth.currentUser.uid,
+        permissions: permissions,
+      });
       log.info(data.message, {
         origin: "TOKEN_PERMISSIONS_UPDATE_SUCCESS",
         "token": token,
@@ -515,6 +577,11 @@ function App() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
+      logEvent(analytics, 'send_invitation', {
+        email: email,
+        uid: auth.currentUser.uid,
+        calendarId: calendarId,
+      });
       log.info(data.message, {
         origin: "INVITATION_SEND_SUCCESS",
         email,
@@ -543,6 +610,10 @@ function App() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
+      logEvent(analytics, 'accept_invitation', {
+        notificationId: notificationId,
+        uid: auth.currentUser.uid,
+      });
       log.info(data.message, {
         origin: "INVITATION_ACCEPT_SUCCESS",
         notificationId,
@@ -569,6 +640,10 @@ function App() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
+      logEvent(analytics, 'reject_invitation', {
+        notificationId: notificationId,
+        uid: auth.currentUser.uid,
+      });
       log.info(data.message, {
         origin: "INVITATION_REJECT_SUCCESS",
         notificationId,
@@ -595,6 +670,10 @@ function App() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
+      logEvent(analytics, 'read_notification', {
+        notificationId: notificationId,
+        uid: auth.currentUser.uid,
+      });
       log.info(data.message, {
         origin: "NOTIFICATION_READ_SUCCESS",
         notificationId,
@@ -624,6 +703,10 @@ function App() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
+      logEvent(analytics, 'delete_shared_calendar', {
+        calendarId: calendarId,
+        uid: auth.currentUser.uid,
+      });
       log.info(data.message, {
         origin: "SHARED_CALENDAR_DELETE_SUCCESS",
         calendarId,
@@ -650,6 +733,11 @@ function App() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
+      logEvent(analytics, 'fetch_shared_users', {
+        calendarId: calendarId,
+        uid: auth.currentUser.uid,
+        count: data?.users?.length,
+      });
       log.info(data.message, {
         origin: "SHARED_USERS_FETCH_SUCCESS",
         count: data?.users?.length,
@@ -677,6 +765,11 @@ function App() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
+      logEvent(analytics, 'delete_shared_user', {
+        calendarId: calendarId,
+        uid: auth.currentUser.uid,
+        userId: userId,
+      });
       log.info(data.message, {
         origin: "SHARED_USER_DELETE_SUCCESS",
         calendarId,
@@ -710,6 +803,11 @@ function App() {
       if (!res.ok) throw new Error(data.error);
       const scheduleSortedByTitle = data.schedule.sort((a, b) => a.title.localeCompare(b.title));
       const scheduleSortedByMoment = scheduleSortedByTitle.sort((a, b) => new Date(a.start) - new Date(b.start));
+      logEvent(analytics, 'fetch_shared_user_calendar_schedule', {
+        calendarId: calendarId,
+        uid: auth.currentUser.uid,
+        count: scheduleSortedByMoment?.length,
+      });
       log.info(data.message, {
         origin: "SHARED_USER_CALENDAR_FETCH_SUCCESS",
         calendarId,
@@ -742,7 +840,11 @@ function App() {
       if (!res.ok) throw new Error(data.error);
       // trier par ordre alphabétique
       const medicinesSortedByName = data.medicines.sort((a, b) => a.name.localeCompare(b.name));
-
+      logEvent(analytics, 'update_shared_user_calendar_medicines', {
+        calendarId: calendarId,
+        uid: auth.currentUser.uid,
+        medicinesData: medicinesSortedByName,
+      });
       log.info(data.message, {
         origin: "SHARED_USER_CALENDAR_MEDICINES_UPDATE_SUCCESS",
         calendarId,
@@ -780,6 +882,7 @@ function App() {
   }, [updateSharedUserCalendarMedicines]);
 
   // Fonction pour récupérer les informations d’un utilisateur
+  /*
   const fetchUserInfo = useCallback(async (userId) => {
     try {
       const token = await auth.currentUser.getIdToken();
@@ -804,6 +907,7 @@ function App() {
       return {success: false, error: err.message, code: err.code};
     }
   }, []);
+  */
   
 
   const sharedProps = {
@@ -875,6 +979,7 @@ function App() {
       resetAppData();
     }
   }, [authReady, currentUser]);
+
   
   
 

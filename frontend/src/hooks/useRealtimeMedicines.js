@@ -1,9 +1,9 @@
-import { useEffect, useContext, useCallback } from "react";
-import { collection, onSnapshot, doc } from "firebase/firestore";
-import { auth, db} from "../services/firebase";
+import { useEffect, useContext } from "react";
+import { collection, onSnapshot } from "firebase/firestore";
+import { auth, db, analytics } from "../services/firebase";
 import { UserContext } from "../contexts/UserContext";
 import { log } from "../utils/logger";
-
+import { logEvent } from "firebase/analytics";
 const API_URL = process.env.REACT_APP_API_URL;
 
 /*
@@ -63,7 +63,11 @@ export const useRealtimePersonalMedicines = (
 
 				setLoadingMedicines(true);
 				
-
+				logEvent(analytics, 'fetch_personal_calendar_medicines', {
+					uid: user.uid,
+					count: data.medicines.length,
+					calendarId,
+				});
         log.info(data.message, {
           origin: "REALTIME_MEDICINES_SUCCESS",
           uid: user.uid,
@@ -81,11 +85,7 @@ export const useRealtimePersonalMedicines = (
     });
 
     return () => unsubscribe();
-  }, [
-    authReady,
-    currentUser,
-    calendarId,
-  ]);
+  }, [authReady, currentUser, calendarId, setMedicinesData, setOriginalMedicinesData, setLoadingMedicines]);
 };
 
 
@@ -127,7 +127,10 @@ export const useRealtimeTokenMedicines = (
 			  setMedicinesData(sorted);
         
         setLoadingMedicines(true);
-  
+				
+				logEvent(analytics, 'fetch_token_calendar_medicines', {
+					count: data.medicines.length,
+				});
 			  log.info(data.message, {
 				origin: "REALTIME_TOKEN_MEDICINES_SUCCESS",
 				token,
@@ -200,6 +203,11 @@ export const useRealtimeSharedUserMedicines = (calendarId, setMedicinesData, set
 						setOriginalMedicinesData(JSON.parse(JSON.stringify(sorted)));
 						setLoadingMedicines(true);
 
+						logEvent(analytics, 'fetch_shared_user_calendar_medicines', {
+							uid: user.uid,
+							count: data.medicines.length,
+							calendarId,
+						});
 						log.info(data.message, {
 							origin: "REALTIME_SHARED_USER_MEDICINES_SUCCESS",
 							uid: user.uid,

@@ -1,6 +1,6 @@
 import { useContext, useEffect } from 'react';
 import { UserContext } from '../contexts/UserContext';
-import { auth, db } from '../services/firebase';
+import { auth, db, analytics } from '../services/firebase';
 import { onSnapshot, query, collection, orderBy } from 'firebase/firestore';
 import { log } from '../utils/logger';
 

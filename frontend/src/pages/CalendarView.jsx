@@ -100,12 +100,12 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
     };
 
     load();
-  }, [authReady, currentUser, calendarId]);
+  }, [authReady, currentUser, calendarId, calendarSource, calendarType]);
 
 
   //map juste 7 fois
-  const days = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
-  const hours = { 8: "Matin", 12: "Midi", 18: "Soir" };
+  const days = useMemo(() => ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"], []);
+  const hours = useMemo(() => { return { 8: "Matin", 12: "Midi", 18: "Soir" } }, []);
 
   useEffect(() => {
     if (!loadingCalendar) {
@@ -145,7 +145,7 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
       setCalendarTable(sortedResult);
       setLoadingTable(false);
     }
-  }, [calendarEvents, loadingCalendar]);
+  }, [calendarEvents, loadingCalendar, calendarType, days, hours]);
   
   const memoizedEvents = useMemo(() => {
     return calendarEvents.map((event) => ({
@@ -168,9 +168,9 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
         });
       }
     }
-  }, [calendarType, calendarSource.calendarsData, calendarId]);
+  }, [calendarType, calendarSource.calendarsData, calendarId, currentUser]);
 
-  if (loadingCalendar === undefined || loadingTable === undefined && calendarId) {
+  if (( loadingCalendar === undefined || loadingTable === undefined )&& calendarId) {
     return (
       <div className="d-flex justify-content-center align-items-center" style={{ height: '60vh' }}>
         <div className="spinner-border text-primary" role="status">

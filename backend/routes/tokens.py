@@ -211,6 +211,7 @@ def handle_update_token_expiration(token):
                 log_extra={"token": token}
             )
         expires_at = data.get("expiresAt")
+        print(expires_at)
         if not expires_at:
             db.collection("shared_tokens").document(token).update({
                 "expires_at": None
