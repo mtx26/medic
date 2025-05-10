@@ -62,11 +62,10 @@ function Footer() {
                   <li>
                     <i className="bi bi-envelope me-2 text-primary"></i>
                     <a 
-                      onClick={() => window.open("mailto:mtx_26@hotmail.com", "_blank")} 
+                      href="mailto:mtx_26@hotmail.com" 
                       className="text-muted text-decoration-none link-hover"
                       target="_blank"
                       rel="noopener noreferrer"
-                      style={{ cursor: "pointer" }}
                     >
                       Contact
                     </a>
