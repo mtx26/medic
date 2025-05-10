@@ -88,7 +88,7 @@ function Footer() {
 
           {/* Logo + copyright */}
           <div className="col-md-4 text-md-end text-center">
-            <div className="fw-bold text-primary fs-5">💊 Medic</div>
+            <div className="fw-bold text-primary fs-5">💊 MediTime</div>
             <div className="text-muted small">© {currentYear} — Tous droits réservés</div>
           </div>
         </div>

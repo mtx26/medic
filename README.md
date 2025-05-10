@@ -1,10 +1,10 @@
-# Medic
+# MediTime
 
 ![Backend CI](https://github.com/mtx26/medic/actions/workflows/backend-ci.yml/badge.svg)
 ![Frontend CI](https://github.com/mtx26/medic/actions/workflows/frontend-ci.yml/badge.svg)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=mtx26_medic&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=mtx26_medic)
 
-**Medic** est une application de gestion des calendriers de prise de médicaments, construite avec React (frontend), Flask (backend) et Firebase (authentification et stockage).
+**MediTime** est une application de gestion des calendriers de prise de médicaments, construite avec React (frontend), Flask (backend) et Firebase (authentification et stockage).
 
 ## 🚀 Fonctionnalités
 
@@ -18,7 +18,7 @@
 ## 📁 Structure du projet
 
 ```
-Medic/
+MediTime/
 ├── frontend/         # Application React (interface)
 ├── backend/          # API Flask avec Firebase et Firestore
 ├── launch.bat        # Script de démarrage local (Windows)

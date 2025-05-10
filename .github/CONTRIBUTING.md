@@ -1,6 +1,6 @@
-# Guide de contribution – Medic
+# Guide de contribution – MediTime
 
-Merci de contribuer à Medic, une application de gestion de calendriers médicaux.
+Merci de contribuer à MediTime, une application de gestion de calendriers médicaux.
 
 ## Prérequis
 

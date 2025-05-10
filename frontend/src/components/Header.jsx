@@ -19,7 +19,7 @@ function Navbar({ sharedProps }) {
       <nav className="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm py-2 d-none d-lg-flex">
         <div className="container">
           <Link to="/" className="navbar-brand fw-bold text-primary fs-4">
-            <i className="bi bi-capsule"></i> Medic
+            <i className="bi bi-capsule"></i> MediTime
           </Link>
 
           <div className="collapse navbar-collapse justify-content-end">
@@ -291,7 +291,7 @@ function Navbar({ sharedProps }) {
       <nav className="navbar navbar-light bg-white border-bottom shadow-sm py-2 d-lg-none">
         <div className="container-fluid">
           <Link to="/" className="navbar-brand fw-bold text-primary fs-4">
-            <i className="bi bi-capsule"></i> Medic
+            <i className="bi bi-capsule"></i> MediTime
           </Link>
 
           <button

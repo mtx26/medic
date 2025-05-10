@@ -1,4 +1,4 @@
-# Politique de sécurité – Medic
+# Politique de sécurité – MediTime
 
 Même si ce projet est privé, sa sécurité est essentielle.
 
