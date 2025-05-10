@@ -4,8 +4,8 @@ import { UserContext } from '../contexts/UserContext';
 import AlertSystem from '../components/AlertSystem';
 import HoveredUserProfile from '../components/HoveredUserProfile';
 import ShareCalendarModal from '../components/ShareCalendarModal';
-import { analytics } from '../services/firebase';
-import { logEvent } from 'firebase/analytics';
+//import { analytics } from '../services/firebase';
+//import { logEvent } from 'firebase/analytics';
 
 
 

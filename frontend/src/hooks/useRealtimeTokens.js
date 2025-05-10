@@ -1,8 +1,9 @@
 import { useContext, useEffect } from 'react';
 import { UserContext } from '../contexts/UserContext';
-import { auth, db } from '../services/firebase';
+import { auth, db, analytics } from '../services/firebase';
 import { onSnapshot, query, where, collection } from 'firebase/firestore';
 import { log } from '../utils/logger';
+import { logEvent } from 'firebase/analytics';
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -37,6 +38,10 @@ export const useRealtimeTokens = (setTokensList, setLoadingStates) => {
 				if (!res.ok) throw new Error(data.error);
 				setTokensList(data.tokens);
 				setLoadingStates(prev => ({ ...prev, tokens: false }));
+				logEvent(analytics, 'fetch_tokens', {
+					uid: user.uid,
+					count: data.tokens?.length,
+				});
 				log.info(data.message, {
 					origin: "TOKENS_FETCH_SUCCESS",
 					uid: user.uid,

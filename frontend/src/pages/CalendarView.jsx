@@ -104,7 +104,7 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
     };
 
     load();
-  }, [authReady, currentUser, calendarId, calendarType, calendarSource.fetchSchedule]);
+  }, [authReady, currentUser, calendarId, calendarType, calendarSource]);
 
   const memoizedEvents = useMemo(() => {
     return calendarEvents.map((event) => ({

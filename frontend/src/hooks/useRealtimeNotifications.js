@@ -3,6 +3,7 @@ import { UserContext } from '../contexts/UserContext';
 import { auth, db, analytics } from '../services/firebase';
 import { onSnapshot, query, collection, orderBy } from 'firebase/firestore';
 import { log } from '../utils/logger';
+import { logEvent } from 'firebase/analytics';
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -45,6 +46,10 @@ export const useRealtimeNotifications = (setNotificationsData, setLoadingStates)
         );
         setNotificationsData(sortedNotifications);
 				setLoadingStates(prev => ({ ...prev, notifications: false }));
+        logEvent(analytics, 'fetch_notifications', {
+          uid: user.uid,
+          count: data.notifications?.length,
+        });
         log.info(data.message, {
           origin: "NOTIFICATIONS_FETCH_SUCCESS",
           uid: user.uid,

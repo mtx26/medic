@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import { GoogleHandleLogin, registerWithEmail, loginWithEmail, handleLogout } from "../services/authService";
+import { GoogleHandleLogin, registerWithEmail, loginWithEmail } from "../services/authService";
 import AlertSystem from "../components/AlertSystem";
 import { getFirebaseErrorMessage } from "../utils/FirebaseErrorMessage";
 import { log } from "../utils/logger";
 import { auth } from "../services/firebase";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 
 
@@ -24,7 +24,6 @@ function Auth() {
 
 
   const location = useLocation();
-  const navigate = useNavigate();
 
   useEffect(() => {
     setActiveTab(location.pathname === "/register" ? "register" : "login");
@@ -151,7 +150,7 @@ function Auth() {
 
             {activeTab === "login" && (
               <div className="mb-3 text-end">
-                <a onClick={() => navigate("/reset-password")} className="text-decoration-none">Mot de passe oublié ?</a>
+                <Link to="/reset-password" className="text-decoration-none">Mot de passe oublié ?</Link>
               </div>
             )}
 
@@ -159,7 +158,7 @@ function Auth() {
               <div className="form-check mb-3 text-left">
                 <input className="form-check-input" type="checkbox" required id="terms" />
                 <label className="form-check-label" htmlFor="terms">
-                  J’accepte les <a onClick={() => navigate("/terms")} className="text-decoration-none">conditions générales</a>
+                  J’accepte les <Link to="/terms" className="text-decoration-none">conditions générales</Link>
                 </label>
               </div>
             )}
