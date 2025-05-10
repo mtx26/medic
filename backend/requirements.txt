@@ -5,4 +5,4 @@ Flask_Cors==5.0.0
 protobuf==6.30.2
 python-dotenv==1.1.0
 requests==2.32.3
-gunicorn
+gunicorn==23.0.0
