@@ -1,0 +1,17 @@
+name: 🐛 Bug Report
+description: Déclare un bug rencontré dans l'application
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: textarea
+    attributes:
+      label: Description du bug
+      description: Décris clairement ce qui ne fonctionne pas.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Étapes pour reproduire
+      description: Donne les étapes pour reproduire le bug.
+    validations:
+      required: false
