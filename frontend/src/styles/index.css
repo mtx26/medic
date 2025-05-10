@@ -78,6 +78,18 @@ body.modal-open {
   min-width: 50px;
 }
 
+.striped-bootstrap .list-group-item:nth-child(odd) {
+  background-color: #f8f9fa; /* gris clair */
+}
+
+.striped-bootstrap .list-group-item:nth-child(even) {
+  background-color: #ffffff; /* blanc */
+}
+
+.striped-bootstrap .list-group-item:hover {
+  background-color: #e9ecef;
+}
+
 #root {
   height: 100%;
 }

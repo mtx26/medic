@@ -229,12 +229,12 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
           }}
         />
 
-        <ul className="list-group">
-          {medicinesData.length === 0 ? (
-            <div className="text-center mt-5 text-muted">❌ Aucun médicament n’a encore été ajouté pour ce calendrier.</div>
-          ) : (
-            medicinesData.map((med) => (
-              <li
+        {medicinesData.length === 0 ? (
+          <div className="text-center mt-5 text-muted">❌ Aucun médicament n’a encore été ajouté pour ce calendrier.</div>
+        ) : (
+          <ul className="list-group striped-bootstrap">
+              {medicinesData.map((med) => (
+                <li
                 key={med.id}
                 ref={med.id === highlightedId ? lastMedRef : null}
                 className={`list-group-item px-2 py-3 ${med.id === highlightedId ? 'highlighted-med' : ''}`}
@@ -332,9 +332,9 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
                 </div>
 
               </li>
-            ))
-          )}
-        </ul>
+            ))}
+          </ul>
+        )}
 
       </div>
     </div>
