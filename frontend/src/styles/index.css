@@ -1,4 +1,5 @@
 body {
+  height: 100%;
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
@@ -62,6 +63,7 @@ code {
 
 html {
   overflow-y: scroll;
+  height: 100%;
 }
 
 .no-dismiss-padding {
@@ -75,6 +77,11 @@ body.modal-open {
 .table td, .table th {
   min-width: 50px;
 }
+
+#root {
+  height: 100%;
+}
+
 
 
 

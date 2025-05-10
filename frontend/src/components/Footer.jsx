@@ -1,26 +1,91 @@
-// Footer.js
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useContext } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { UserContext } from "../contexts/UserContext";
 
 function Footer() {
+  const location = useLocation();
+  const { authReady } = useContext(UserContext);
+  const navigate = useNavigate();
+
+  const hiddenFooterRoutes = [
+    "/login",
+    "/register",
+    "/reset-password",
+    "/verify-email",
+  ];
+
+  const shouldShowFooter = !hiddenFooterRoutes.includes(location.pathname);
+  if (!shouldShowFooter) return null;
+
+  const currentYear = new Date().getFullYear();
+
   return (
-    <footer className="bg-light border-top mt-5 py-3 text-center">
+    <footer className="bg-light border-top mt-5 pt-4 pb-3">
       <div className="container">
-        <p className="mb-1 text-muted">
-          © {new Date().getFullYear()} Medic Copresser — Tous droits réservés.
-        </p>
-        <div className="d-flex justify-content-center gap-3">
-          <Link to="/about" className="text-decoration-none text-muted">
-            À propos
-          </Link>
-          <Link to="/terms" className="text-decoration-none text-muted">
-            Conditions d'utilisation
-          </Link>
-          <Link to="/privacy" className="text-decoration-none text-muted">
-            Confidentialité
-          </Link>
+        <div className="row gy-4 align-items-center">
+
+          {/* Colonne liens */}
+          <div className="col-md-8">
+            <div className="row gy-2">
+              <div className="col-sm-6">
+                <ul className="list-unstyled">
+                  <li>
+                    <i className="bi bi-info-circle me-2 text-primary"></i>
+                    <Link to="/about" className="text-muted text-decoration-none link-hover">À propos</Link>
+                  </li>
+                  <li>
+                    <i className="bi bi-file-earmark-text me-2 text-primary"></i>
+                    <Link to="/terms" className="text-muted text-decoration-none link-hover">Conditions d'utilisation</Link>
+                  </li>
+                  <li>
+                    <i className="bi bi-shield-lock me-2 text-primary"></i>
+                    <Link to="/privacy" className="text-muted text-decoration-none link-hover">Confidentialité</Link>
+                  </li>
+                </ul>
+              </div>
+              {authReady && (
+                <div className="col-sm-6">
+                  <ul className="list-unstyled">
+                    <li>
+                      <i className="bi bi-calendar2-week me-2 text-primary"></i>
+                      <Link to="/calendars" className="text-muted text-decoration-none link-hover">Mes calendriers</Link>
+                    </li>
+                    <li>
+                      <i className="bi bi-person-gear me-2 text-primary"></i>
+                      <Link to="/account" className="text-muted text-decoration-none link-hover">Mon compte</Link>
+                    </li>
+                  </ul>
+                </div>
+              )}
+              <div className="col-sm-6">
+                <ul className="list-unstyled">
+                  <li>
+                    <i className="bi bi-envelope me-2 text-primary"></i>
+                    <a onClick={() => window.open("mailto:mtx_26@hotmail.com", "_blank")} className="text-muted text-decoration-none link-hover" style={{ cursor: "pointer" }}>Contact</a>
+                  </li>
+                  <li>
+                    <i className="bi bi-github me-2 text-primary"></i>
+                    <a onClick={() => window.open("https://github.com/mtx26/medic", "_blank")} className="text-muted text-decoration-none link-hover" style={{ cursor: "pointer" }}>GitHub</a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          {/* Logo + copyright */}
+          <div className="col-md-4 text-md-end text-center">
+            <div className="fw-bold text-primary fs-5">💊 Medic</div>
+            <div className="text-muted small">© {currentYear} — Tous droits réservés</div>
+          </div>
         </div>
       </div>
+
+      {/* Style pour le hover souligné */}
+      <style>{`
+        .link-hover:hover {
+          text-decoration: underline;
+        }
+      `}</style>
     </footer>
   );
 }

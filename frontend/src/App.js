@@ -985,20 +985,23 @@ function App() {
 
   return (
     <Router>
-      <Navbar sharedProps={sharedProps}/>
-      {isInitialLoading && (
-        <div className="d-flex justify-content-center align-items-center" style={{ height: '60vh' }}>
-          <div className="spinner-border text-primary" role="status">
-            <span className="visually-hidden">Chargement des médicaments...</span>
-          </div>
-        </div>
-      )}
-      {!isInitialLoading && (
-        <div className="container mt-4">
-          <AppRoutes sharedProps={sharedProps} />
-        </div>
-      )}
-      <Footer />
+      <div className="d-flex flex-column min-vh-100">
+        <Navbar sharedProps={sharedProps}/>
+        <main className="flex-grow-1 d-flex flex-column">
+          {isInitialLoading ? (
+            <div className="flex-grow-1 d-flex justify-content-center align-items-center">
+              <div className="spinner-border text-primary" role="status">
+                <span className="visually-hidden">Chargement des médicaments...</span>
+              </div>
+            </div>
+          ) : (
+            <div className="container mt-4">
+              <AppRoutes sharedProps={sharedProps} />
+            </div>
+          )}
+        </main>
+        <Footer />
+      </div>
     </Router>
   );
 }
