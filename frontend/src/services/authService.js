@@ -29,14 +29,16 @@ export const GoogleHandleLogin = async () => {
 
     const fetchPhotoUrl = async (googlePhotoUrl) => {
       const token = await user.getIdToken(); // Firebase Auth ID token
+
+      const blob = await fetch(user.photoURL).then(r => r.blob());
+
+      const formData = new FormData();
+      formData.append("file", blob, "photo.jpg");
     
       const res = await fetch(`${API_URL}/api/upload/logo`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ googlePhotoUrl }),
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
       });
     
       const data = await res.json();

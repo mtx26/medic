@@ -38,54 +38,57 @@ export const useRealtimePersonalMedicines = (
 ) => {
   const { currentUser, authReady } = useContext(UserContext);
 
-  useEffect(() => {
-    if (!authReady || !currentUser || !calendarId) return;
+	  useEffect(() => {
+		if (!authReady || !currentUser || !calendarId) {
+				setLoadingMedicines(false);
+				return;
+			}
 
-    const user = auth.currentUser;
-    const medRef = collection(db, "users", user.uid, "calendars", calendarId, "medicines");
+		const user = auth.currentUser;
+		const medRef = collection(db, "users", user.uid, "calendars", calendarId, "medicines");
 
-    const unsubscribe = onSnapshot(medRef, async () => {
+		const unsubscribe = onSnapshot(medRef, async () => {
 
-      try {
-        const token = await user.getIdToken();
-        const res = await fetch(`${API_URL}/api/calendars/${calendarId}/medicines`, {
-          method: "GET",
-          headers: { Authorization: `Bearer ${token}` },
-        });
+		try {
+			const token = await user.getIdToken();
+			const res = await fetch(`${API_URL}/api/calendars/${calendarId}/medicines`, {
+			method: "GET",
+			headers: { Authorization: `Bearer ${token}` },
+			});
 
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error);
+			const data = await res.json();
+			if (!res.ok) throw new Error(data.error);
 
-				const sorted = data.medicines.sort((a, b) => a.name.localeCompare(b.name));
+					const sorted = data.medicines.sort((a, b) => a.name.localeCompare(b.name));
 
-				setMedicinesData(sorted);
-				setOriginalMedicinesData(JSON.parse(JSON.stringify(sorted)));
+					setMedicinesData(sorted);
+					setOriginalMedicinesData(JSON.parse(JSON.stringify(sorted)));
 
-				setLoadingMedicines(true);
-				
-				logEvent(analytics, 'fetch_personal_calendar_medicines', {
-					uid: user.uid,
-					count: data.medicines.length,
-					calendarId,
-				});
-        log.info(data.message, {
-          origin: "REALTIME_MEDICINES_SUCCESS",
-          uid: user.uid,
-          count: data.medicines.length,
-          calendarId,
-        });
-      } catch (err) {
-        setLoadingMedicines(false);
-        log.error(err.message || "Erreur en récupérant les médicaments", err, {
-          origin: "REALTIME_MEDICINES_ERROR",
-          uid: user?.uid,
-          calendarId,
-        });
-      }
-    });
+					setLoadingMedicines(true);
+					
+					logEvent(analytics, 'fetch_personal_calendar_medicines', {
+						uid: user.uid,
+						count: data.medicines.length,
+						calendarId,
+					});
+			log.info(data.message, {
+			origin: "REALTIME_MEDICINES_SUCCESS",
+			uid: user.uid,
+			count: data.medicines.length,
+			calendarId,
+			});
+		} catch (err) {
+			setLoadingMedicines(false);
+			log.error(err.message || "Erreur en récupérant les médicaments", err, {
+			origin: "REALTIME_MEDICINES_ERROR",
+			uid: user?.uid,
+			calendarId,
+			});
+		}
+		});
 
-    return () => unsubscribe();
-  }, [authReady, currentUser, calendarId, setMedicinesData, setOriginalMedicinesData, setLoadingMedicines]);
+		return () => unsubscribe();
+	  }, [authReady, currentUser, calendarId, setMedicinesData, setOriginalMedicinesData, setLoadingMedicines]);
 };
 
 
@@ -125,8 +128,8 @@ export const useRealtimeTokenMedicines = (
 			  const sorted = data.medicines.sort((a, b) => a.name.localeCompare(b.name));
 
 			  setMedicinesData(sorted);
-        
-        setLoadingMedicines(true);
+		
+		setLoadingMedicines(true);
 				
 				logEvent(analytics, 'fetch_token_calendar_medicines', {
 					count: data.medicines.length,
@@ -137,7 +140,7 @@ export const useRealtimeTokenMedicines = (
 				count: data.medicines?.length,
 			  });
 			} catch (err) {
-        setLoadingMedicines(false);
+		setLoadingMedicines(false);
 			  log.error(err.message || "Erreur lors de la récupération des médicaments via token", err, {
 				origin: "REALTIME_TOKEN_MEDICINES_FETCH_ERROR",
 				token,
@@ -145,7 +148,7 @@ export const useRealtimeTokenMedicines = (
 			}
 		  });
 		} catch (err) {
-      setLoadingMedicines(false);
+	  setLoadingMedicines(false);
 		  log.error(err.message || "Erreur lors de l'initialisation du listener token", err, {
 			origin: "REALTIME_TOKEN_INIT_ERROR",
 			token,
@@ -166,11 +169,16 @@ export const useRealtimeSharedUserMedicines = (calendarId, setMedicinesData, set
 	const { currentUser, authReady } = useContext(UserContext);
 
 	useEffect(() => {
-		if (!calendarId || !authReady || !currentUser) return;
+		if (!calendarId || !authReady || !currentUser) {
+			setLoadingMedicines(false);
+			return;
+		}
 
-		if (!calendarId) return;
 		const user = auth.currentUser;
-		if (!user) return;
+		if (!user) {
+			setLoadingMedicines(false);
+			return;
+		}
 
 		const initListener = async () => {
 			try {

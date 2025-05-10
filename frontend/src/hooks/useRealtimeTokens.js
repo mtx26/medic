@@ -10,10 +10,16 @@ export const useRealtimeTokens = (setTokensList, setLoadingStates) => {
 	const { currentUser, authReady } = useContext(UserContext);
 
 	useEffect(() => {
-		if (!(authReady && currentUser)) return;
+		if (!(authReady && currentUser)) {
+			setLoadingStates(prev => ({ ...prev, tokens: false }));
+			return;
+		}
 
 		const user = auth.currentUser;
-		if (!user) return;
+		if (!user) {
+			setLoadingStates(prev => ({ ...prev, tokens: false }));
+			return;
+		}
 
 		const q = query(
 			collection(db, "shared_tokens"),

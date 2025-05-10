@@ -10,10 +10,16 @@ export const useRealtimeNotifications = (setNotificationsData, setLoadingStates)
 	const { currentUser, authReady } = useContext(UserContext);
 
 	useEffect(() => {
-		if (!(authReady && currentUser)) return;
+		if (!(authReady && currentUser)) {
+			setLoadingStates(prev => ({ ...prev, notifications: false }));
+			return;
+		}
   
     const user = auth.currentUser;
-    if (!user) return;
+    if (!user) {
+			setLoadingStates(prev => ({ ...prev, notifications: false }));
+			return;
+		}
   
     const q = query(
       collection(db, "users", user.uid, "notifications"),

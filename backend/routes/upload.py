@@ -12,8 +12,8 @@ def upload_logo():
         user = verify_firebase_token()
         uid = user["uid"]
 
-        googlePhotoUrl = request.json.get("googlePhotoUrl")        
-        if not googlePhotoUrl:
+        file = request.files.get("file")   
+        if not file:
             return warning_response(
                 message="Aucune URL de photo Google fournie",
                 code="NO_GOOGLE_PHOTO_URL_PROVIDED",
@@ -21,12 +21,9 @@ def upload_logo():
                 uid=uid,
                 origin="UPLOAD_LOGO"
             )
-
-        response = requests.get(googlePhotoUrl)
-        response.raise_for_status()
-        image_bytes = response.content
-
-        result = upload(image_bytes)
+        
+        result = upload(file)   
+        
         print(result["url"])
         return success_response(
             message="Image téléchargée avec succès",
