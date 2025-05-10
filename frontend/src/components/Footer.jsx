@@ -1,11 +1,10 @@
 import React, { useContext } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { UserContext } from "../contexts/UserContext";
 
 function Footer() {
   const location = useLocation();
   const { authReady } = useContext(UserContext);
-  const navigate = useNavigate();
 
   const hiddenFooterRoutes = [
     "/login",
