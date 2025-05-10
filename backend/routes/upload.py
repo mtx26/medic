@@ -22,6 +22,54 @@ def upload_logo():
                 origin="UPLOAD_LOGO"
             )
 
+        from urllib.parse import urlparse
+        import socket
+
+        # Define a whitelist of allowed domains
+        allowed_domains = {"photos.google.com", "lh3.googleusercontent.com"}
+
+        # Parse the URL
+        parsed_url = urlparse(googlePhotoUrl)
+        if not parsed_url.scheme or not parsed_url.netloc:
+            return warning_response(
+                message="URL invalide",
+                code="INVALID_URL",
+                status_code=400,
+                uid=uid,
+                origin="UPLOAD_LOGO"
+            )
+
+        # Validate the domain
+        domain = parsed_url.netloc
+        if domain not in allowed_domains:
+            return warning_response(
+                message="Domaine non autorisé",
+                code="UNAUTHORIZED_DOMAIN",
+                status_code=403,
+                uid=uid,
+                origin="UPLOAD_LOGO"
+            )
+
+        # Resolve the IP address and ensure it is not private/internal
+        try:
+            ip_address = socket.gethostbyname(domain)
+            if ip_address.startswith("10.") or ip_address.startswith("192.168.") or ip_address.startswith("172.16.") or ip_address.startswith("127."):
+                return warning_response(
+                    message="Adresse IP non autorisée",
+                    code="UNAUTHORIZED_IP",
+                    status_code=403,
+                    uid=uid,
+                    origin="UPLOAD_LOGO"
+                )
+        except socket.gaierror:
+            return warning_response(
+                message="Impossible de résoudre le domaine",
+                code="DOMAIN_RESOLUTION_FAILED",
+                status_code=400,
+                uid=uid,
+                origin="UPLOAD_LOGO"
+            )
+
         response = requests.get(googlePhotoUrl)
         response.raise_for_status()
         image_bytes = response.content
