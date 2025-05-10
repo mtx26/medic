@@ -35,9 +35,14 @@ jobs:
 
       - name: Créer le fichier .env
         run: |
-          echo "FIREBASE_SERVICE_ACCOUNT=${FIREBASE_SERVICE_ACCOUNT}" >> .env
-          echo "SECRET_KEY=${SECRET_KEY}" >> .env
+          echo "SECRET_KEY=${SECRET_KEY}" > .env
           echo "ENV=${ENV}" >> .env
+          echo 'FIREBASE_SERVICE_ACCOUNT<<EOF' >> .env
+          echo "${FIREBASE_SERVICE_ACCOUNT}" >> .env
+          echo 'EOF' >> .env
 
-      - name: Vérifier le lancement de Flask
+      - name: Debug .env
+        run: cat .env
+
+      - name: Lancer Flask
         run: python app.py --help
