@@ -1,5 +1,8 @@
 # Medic
 
+![Backend CI](https://github.com/mtx26/medic/actions/workflows/backend-ci.yml/badge.svg)
+![Frontend CI](https://github.com/mtx26/medic/actions/workflows/frontend-ci.yml/badge.svg)
+
 **Medic** est une application de gestion des calendriers de prise de médicaments, construite avec React (frontend), Flask (backend) et Firebase (authentification et stockage).
 
 ## 🚀 Fonctionnalités
@@ -15,10 +18,10 @@
 
 ```
 Medic/
-├── frontend/         # React app
-├── backend/          # Flask API avec Firebase
-├── launch.bat        # Script de démarrage automatique Windows
-└── .github/          # Fichiers de configuration GitHub
+├── frontend/         # Application React (interface)
+├── backend/          # API Flask avec Firebase et Firestore
+├── launch.bat        # Script de démarrage local (Windows)
+└── .github/          # Workflows GitHub et fichiers de contribution
 ```
 
 ## 🛠️ Installation rapide
@@ -40,7 +43,7 @@ npm start
 ## 🧠 Technologies utilisées
 
 - React + Bootstrap
-- Flask + Firestore SDK
+- Flask + Firebase Admin SDK + Firestore
 - Firebase Authentication
 - GitHub Actions (CI)
 - ReportLab, FullCalendar, RSuite
@@ -48,3 +51,8 @@ npm start
 ## 📄 Licence
 
 Ce projet est privé. Voir le fichier [LICENSE](./LICENSE) pour plus d’informations.
+```
+
+💡 J’ai remplacé `<utilisateur>/<repo>` par `mtx26/medic` dans les badges.
+
+Souhaites-tu aussi que je t’ajoute une section `📸 Captures d’écran` ou `📬 Contact` ?
