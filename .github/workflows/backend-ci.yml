@@ -44,5 +44,6 @@ jobs:
       - name: Debug .env
         run: cat .env
 
-      - name: Lancer Flask
-        run: python app.py --help
+      - name: Vérifier que Flask se lance
+        run: python app.py --check
+
