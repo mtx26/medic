@@ -3,7 +3,7 @@ from auth import verify_firebase_token
 from datetime import datetime, timezone
 from flask import request
 from firebase_admin import firestore
-from function import generate_schedule
+from function import generate_schedule, generate_table
 import secrets
 from response import success_response, error_response, warning_response
 
@@ -246,20 +246,21 @@ def handle_calendar_schedule(calendar_id):
                 code="CALENDAR_GENERATE_SUCCESS", 
                 uid=owner_uid, 
                 origin="CALENDAR_GENERATE", 
-                data={"medicines": 0, "schedule": [], "calendar_name": calendar_name},
+                data={"medicines": 0, "schedule": [], "calendar_name": calendar_name, "table": {}},
                 log_extra={"calendar_id": calendar_id}
             )
         
         medicines = [med.to_dict() for med in doc_2.get()]
 
         schedule = generate_schedule(start_date, medicines)
+        table = generate_table(start_date, medicines)
 
         return success_response(
             message="Calendrier généré avec succès", 
             code="CALENDAR_GENERATE_SUCCESS", 
             uid=owner_uid, 
             origin="CALENDAR_GENERATE", 
-            data={"medicines": len(medicines), "schedule": schedule, "calendar_name": calendar_name},
+            data={"medicines": len(medicines), "schedule": schedule, "calendar_name": calendar_name, "table": table},
             log_extra={"calendar_id": calendar_id}
         )
 

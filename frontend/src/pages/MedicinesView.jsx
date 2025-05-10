@@ -3,8 +3,10 @@ import React, { useState, useRef } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import AlertSystem from '../components/AlertSystem';
 import { useRealtimeMedicinesSwitcher } from '../hooks/useRealtimeMedicinesSwitcher';
+import { getCalendarSourceMap } from '../utils/calendarSourceMap';
 
-function MedicinesView({ personalCalendars, sharedUserCalendars }) {
+
+function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
   // 📍 Paramètres d’URL et navigation
   const navigate = useNavigate(); // Hook de navigation
   const location = useLocation();
@@ -25,23 +27,6 @@ function MedicinesView({ personalCalendars, sharedUserCalendars }) {
 
   // 🔄 Modifications
   const hasChanges = JSON.stringify(medicinesData) !== JSON.stringify(originalMedicinesData); // Détection des changements dans les médicaments
-
-  const calendarSourceMap = {
-    personal: {
-      setCalendarsData: personalCalendars.setCalendarsData,
-      calendarsData: personalCalendars.calendarsData,
-      addMedicine: personalCalendars.addMedicine,
-      deleteMedicines: personalCalendars.deletePersonalCalendarMedicines,
-      updateMedicines: personalCalendars.updatePersonalCalendarMedicines,
-    },
-    sharedUser: {
-      setCalendarsData: sharedUserCalendars.setSharedCalendarsData,
-      calendarsData: sharedUserCalendars.sharedCalendarsData,
-      addMedicine: sharedUserCalendars.addMedicine,
-      deleteMedicines: sharedUserCalendars.deleteSharedUserCalendarMedicines,
-      updateMedicines: sharedUserCalendars.updateSharedUserCalendarMedicines,
-    },
-  };
   
 
   let calendarType = 'personal';
@@ -54,7 +39,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars }) {
     basePath = 'shared-user-calendar';
   }
 
-  const calendarSource = calendarSourceMap[calendarType];
+  const calendarSource = getCalendarSourceMap(personalCalendars, sharedUserCalendars, tokenCalendars)[calendarType];
 
   const toggleSelection = (id) => {
     setChecked((prev) =>

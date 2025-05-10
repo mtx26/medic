@@ -105,3 +105,57 @@ def generate_schedule(start_date, medications):
                 schedule.append(pils_data)
 
     return schedule
+
+def generate_table(start_date, medications):
+    """
+    [
+        {
+            "title": "Doliprane",
+            "cells": {
+            "Matin": {
+                "Lun": "1",
+                "Mer": "2"
+            }
+            }
+        },
+        {
+            "title": "Spasfon",
+            "cells": {
+            "Soir": {
+                "Jeu": "0.5"
+            }
+            }
+        },
+        ...
+    ] 
+    """
+
+    moment_map = {
+        "morning": "Matin",
+        "noon": "Midi",
+        "evening": "Soir"
+    }
+
+    monday = start_date - timedelta(days=start_date.weekday())
+    total_day = 7
+    calendar_table = []
+
+    for med in medications:
+        table = {}
+        for i in range(total_day):
+            current_date = monday + timedelta(days=i)
+            day = current_date.strftime("%a")
+
+            if is_medication_due(med, current_date):
+                for moment in med["time"]:
+                    if moment not in table:
+                        table[moment] = {}
+                    table[moment][day] = med["tablet_count"]
+
+        if table:
+            calendar_table.append({
+                "title": med["name"],
+                "cells": table
+            })
+
+    return calendar_table

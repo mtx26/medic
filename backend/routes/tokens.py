@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 import secrets
 from . import api
 from firebase_admin import firestore
-from function import generate_schedule
+from function import generate_schedule, generate_table
 
 db = firestore.client()
 
@@ -377,19 +377,21 @@ def handle_generate_token_schedule(token):
                 code="SHARED_CALENDARS_LOAD_SUCCESS", 
                 uid=uid, 
                 origin="SHARED_CALENDARS_LOAD",
-                data={"schedule": [], "calendar_name": calendar_name}
+                data={"medicines": 0, "schedule": [], "calendar_name": calendar_name, "table": {}}
             )
 
         medicines = [med.to_dict() for med in doc_2.get()]
 
         schedule = generate_schedule(start_date, medicines)
+        table = generate_table(start_date, medicines)
+
 
         return success_response(
             message="Calendrier généré avec succès", 
             code="CALENDAR_GENERATED_SUCCESS", 
             uid=owner_uid, 
             origin="CALENDAR_TOKEN_GENERATED", 
-            data={"schedule": schedule, "calendar_name": calendar_name},
+            data={"medicines": len(medicines), "schedule": schedule, "calendar_name": calendar_name, "table": table},
             log_extra={"token": token}
         )
 

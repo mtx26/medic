@@ -182,7 +182,7 @@ def count_shared_medicines():
             message="Erreur lors du comptage des médicaments.", 
             code="MED_SHARED_COUNT_ERROR", 
             status_code=500, 
-            uid=uid, 
+            uid=uid,
             origin="MED_SHARED_COUNT",
             error=str(e)
         )

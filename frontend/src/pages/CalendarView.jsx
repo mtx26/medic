@@ -7,6 +7,8 @@ import interactionPlugin from '@fullcalendar/interaction';
 import frLocale from '@fullcalendar/core/locales/fr';
 import { UserContext } from '../contexts/UserContext';
 import HoveredUserProfile from '../components/HoveredUserProfile';
+import { formatWeekString, getMondayFromWeek } from "../utils/dateUtils";
+import { getCalendarSourceMap } from "../utils/calendarSourceMap";
 
 function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
 
@@ -27,27 +29,27 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
 
   // 🔄 Références et chargement
   const modalRef = useRef(null); // Référence vers le modal (pour gestion focus/fermeture)
-  const [loadingCalendar, setLoadingCalendar] = useState(undefined); // État de chargement du calendrier
-  const [loadingTable, setLoadingTable] = useState(undefined); // État de chargement du tableau
-  const [startDate, setStartDate] = useState();
+  const [loading, setLoading] = useState(undefined); // État de chargement du calendrier
+  
+  const [startDate, setStartDate] = useState(new Date().toISOString().slice(0, 10));
+  const [startWeek, setStartWeek] = useState(formatWeekString(new Date()));
 
-  const calendarSourceMap = {
-    personal: {
-      fetchSchedule: personalCalendars.fetchPersonalCalendarSchedule,
-      calendarsData: personalCalendars.calendarsData,
-      setCalendarsData: personalCalendars.setCalendarsData,
-    },
-    sharedUser: {
-      fetchSchedule: sharedUserCalendars.fetchSharedUserCalendarSchedule,
-      calendarsData: sharedUserCalendars.sharedCalendarsData,
-      setCalendarsData: sharedUserCalendars.setSharedCalendarsData,
-    },
-    token: {
-      fetchSchedule: tokenCalendars.fetchTokenCalendarSchedule,
-      calendarsData: null,
-      setCalendarsData: null,
-    }
-  };
+
+  const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const days_map = {
+    "Mon": "Lun",
+    "Tue": "Mar",
+    "Wed": "Mer",
+    "Thu": "Jeu",
+    "Fri": "Ven",
+    "Sat": "Sam",
+    "Sun": "Dim"
+  }
+  const moment_map = {
+    "morning": "Matin",
+    "noon": "Midi",
+    "evening": "Soir"
+  }
 
   let calendarType = 'personal';
   let calendarId = params.calendarId;
@@ -63,7 +65,7 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
     basePath = 'shared-token-calendar';
   }
 
-  const calendarSource = calendarSourceMap[calendarType];
+  const calendarSource = getCalendarSourceMap(personalCalendars, sharedUserCalendars, tokenCalendars)[calendarType];
 
   // Fonction pour gérer le clic sur une date
   const handleDateClick = (info) => {
@@ -92,61 +94,18 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
         if (rep.success) {
           setCalendarEvents(rep.schedule);
           setCalendarName(rep.calendarName);
+          setCalendarTable(rep.table);
+          console.log(rep.table);
         }
-        setLoadingCalendar(!rep.success);
+        setLoading(!rep.success);
       } else {
-        setLoadingCalendar(true);
+        setLoading(true);
       }
     };
 
     load();
-  }, [authReady, currentUser, calendarId, calendarSource, calendarType]);
+  }, [authReady, currentUser, calendarId, calendarType, calendarSource.fetchSchedule]);
 
-
-  //map juste 7 fois
-  const days = useMemo(() => ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"], []);
-  const hours = useMemo(() => { return { 8: "Matin", 12: "Midi", 18: "Soir" } }, []);
-
-  useEffect(() => {
-    if (!loadingCalendar) {
-      const result = [];
-      const daysVus = new Set();
-  
-      for (const event of calendarEvents) {
-        const date = new Date(event.start);
-        // jour qui commence par lundi
-        const day = days[(date.getDay() + 6) % 7];
-        const moment = hours[date.getHours()];
-        if (!moment) continue;
-  
-        if (!daysVus.has(day) && daysVus.size >= 7) continue;
-        daysVus.add(day);
-  
-        const title = event.title;
-        const dose = event.dose;
-  
-        let med = result.find((r) => r.title === title);
-        if (!med) {
-          med = {
-            title: title,
-            cells: {}
-          };
-          result.push(med);
-        }
-        if (!med.cells[moment]) {
-          med.cells[moment] = {};
-        }
-  
-        med.cells[moment][day] = dose;
-      }
-      // trier les moments par ordre alphabétique
-      const sortedResult =  result.sort((a, b) => a.title.localeCompare(b.title));
-  
-      setCalendarTable(sortedResult);
-      setLoadingTable(false);
-    }
-  }, [calendarEvents, loadingCalendar, calendarType, days, hours]);
-  
   const memoizedEvents = useMemo(() => {
     return calendarEvents.map((event) => ({
       title: `${event.title} (${event.dose})`,
@@ -170,7 +129,7 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
     }
   }, [calendarType, calendarSource.calendarsData, calendarId, currentUser]);
 
-  if (( loadingCalendar === undefined || loadingTable === undefined )&& calendarId) {
+  if ( loading === undefined && calendarId) {
     return (
       <div className="d-flex justify-content-center align-items-center" style={{ height: '60vh' }}>
         <div className="spinner-border text-primary" role="status">
@@ -180,7 +139,7 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
     );
   }
   
-  if (loadingCalendar === true && calendarId) {
+  if ( loading === true && calendarId) {
     return (
       <div className="alert alert-danger text-center mt-5" role="alert">
         ❌ Ce lien de calendrier partagé est invalide ou a expiré.
@@ -244,12 +203,54 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
           </div>
         </div>
       </div>
+
       {calendarTable.length > 0 ? (
         <>
-          <div>
-            <h4 className="mb-4">
-              <i className="bi bi-calendar-week"></i> Tableau hebdomadaire
-            </h4>
+
+          {/* Régénérer le calendrier */}
+          <div className="card shadow-sm mb-4">
+            <div className="card-body">
+              <div className="d-flex flex-wrap align-items-end gap-3">
+                <div style={{ minWidth: "220px" }}>
+                  <label htmlFor="weekPicker" className="form-label fw-semibold">
+                    <i className="bi bi-calendar-date"></i>
+                    <span> Semaine de début :</span>
+                  </label>
+                  <input
+                    id="weekPicker"
+                    type="week"
+                    className="form-control"
+                    value={startWeek}
+                    onChange={(e) => {
+                      const monday = getMondayFromWeek(e.target.value);
+                      setStartWeek(e.target.value);
+                      setStartDate(monday.toISOString().slice(0, 10));
+                    }}
+                  />
+                </div>
+                <div>
+                  <button
+                    onClick={async () => {
+                      const rep = await calendarSource.fetchSchedule(calendarId, startDate);
+                      if (rep.success) {
+                        setCalendarEvents(rep.schedule);
+                        setCalendarTable(rep.table);
+                      }
+                    }}                
+                    className="btn btn-outline-primary"
+                  >
+                    <i className="bi bi-arrow-repeat me-2"></i>
+                    <span>Mettre à jour le tableau</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+          {/* Tableau hebdomadaire */}
+          <div className="mb-5">
+            <h4 className="mb-4"><i className="bi bi-table"></i> Tableau hebdomadaire</h4>
             {calendarTable.map((table, index) => (
               <div className="card border border-secondary-subtle mb-4" key={index}>
                 <div className="card-header bg-light fw-semibold text-dark">
@@ -257,12 +258,12 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
                 </div>
                 <div className="card-body p-0">
                   <div className="table-responsive">
-                    <table className="table table-sm table-bordered text-center align-middle mb-0">
+                    <table className="table table-sm table-bordered text-center align-middle mb-0 table-striped">
                       <thead className="table-light">
                         <tr>
                           <th>Moment</th>
                           {days.map((day) => (
-                            <th key={day}>{day}</th>
+                            <th key={day}>{days_map[day]}</th>
                           ))}
                         </tr>
                       </thead>
@@ -270,7 +271,7 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
                         {Object.entries(table.cells).map(([moment, momentsObj]) => (
                           <tr key={moment}>
                             <td style={{ minWidth: "70px" }}>
-                              <strong>{moment}</strong>
+                              <strong>{moment_map[moment]}</strong>
                             </td>
                             {days.map((day) => (
                               <td key={day}>
@@ -290,84 +291,50 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
               </div>
             ))}
           </div>
-
-
-          <div className="card shadow-sm mb-4">
-            <div className="card-body">
-              <div className="d-flex flex-wrap align-items-end  gap-3">
-                <div style={{ minWidth: "220px" }}>
-                  <label htmlFor="datePicker" className="form-label fw-semibold">
-                    <i className="bi bi-calendar-date"></i>
-                    <span> Date de début :</span>
-                  </label>
-                  <input
-                    id="datePicker"
-                    type="date"
-                    className="form-control"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                  />
-                </div>
-
-                <div>
-                  <button
-                    onClick={async () => {
-                      const rep = await calendarSource.fetchSchedule(calendarId, startDate);
-                      if (rep.success) {
-                        setCalendarEvents(rep.schedule);
-                      }
-                    }}                
-                    className="btn btn-outline-primary"
-                  >
-                    <i className="bi bi-arrow-repeat"></i>
-                    <span> Charger le calendrier</span>
-                  </button>
-                </div>
-              </div>
-
-              <div className="alert alert-info mt-4 mb-0" role="alert">
-                <i className="bi bi-pin-angle-fill"></i>
-                <span> Cliquez sur un jour du calendrier pour voir les médicaments associés dans une fenêtre.</span>
-              </div>
+          
+          {/* Calendrier mensuel */}
+          <div>
+            <h4 className="mb-4"><i className="bi bi-calendar-week"></i> Calendrier mensuel</h4>
+            <div className="alert alert-info mt-4 mb-4" role="alert">
+              <i className="bi bi-pin-angle-fill"></i>
+              <span> Cliquez sur un jour du calendrier pour voir les médicaments associés dans une fenêtre.</span>
             </div>
+            <FullCalendar
+              plugins={[dayGridPlugin, interactionPlugin]}
+              initialView="dayGridMonth"
+              events={memoizedEvents}
+              locale={frLocale}
+              firstDay={1}
+              dateClick={handleDateClick}
+              height="auto"
+
+              // click sur les événements
+              eventClick={(info) => {
+                const clickedDate = info.event.startStr.slice(0, 10); // format YYYY-MM-DD
+                handleDateClick({ dateStr: clickedDate });
+              }}
+
+              // semaine actuelle en vert clair
+              dayCellDidMount={(info) => {
+                const today = new Date();
+                const startOfWeek = new Date(today);
+                startOfWeek.setDate(today.getDate() - ((today.getDay() + 6) % 7) - 1);
+                const endOfWeek = new Date(startOfWeek);
+                endOfWeek.setDate(startOfWeek.getDate() + 7);
+              
+                const cellDate = new Date(info.date.toDateString());
+              
+                const isToday =
+                  cellDate.getFullYear() === today.getFullYear() &&
+                  cellDate.getMonth() === today.getMonth() &&
+                  cellDate.getDate() === today.getDate();
+              
+                if (!isToday && cellDate >= startOfWeek && cellDate <= endOfWeek) {
+                  info.el.classList.add('highlight-week'); // ✅ Plus performant
+                }
+              }}
+            />
           </div>
-
-
-          <FullCalendar
-            plugins={[dayGridPlugin, interactionPlugin]}
-            initialView="dayGridMonth"
-            events={memoizedEvents}
-            locale={frLocale}
-            firstDay={1}
-            dateClick={handleDateClick}
-            height="auto"
-
-            // click sur les événements
-            eventClick={(info) => {
-              const clickedDate = info.event.startStr.slice(0, 10); // format YYYY-MM-DD
-              handleDateClick({ dateStr: clickedDate });
-            }}
-
-            // semaine actuelle en vert clair
-            dayCellDidMount={(info) => {
-              const today = new Date();
-              const startOfWeek = new Date(today);
-              startOfWeek.setDate(today.getDate() - ((today.getDay() + 6) % 7) - 1);
-              const endOfWeek = new Date(startOfWeek);
-              endOfWeek.setDate(startOfWeek.getDate() + 7);
-            
-              const cellDate = new Date(info.date.toDateString());
-            
-              const isToday =
-                cellDate.getFullYear() === today.getFullYear() &&
-                cellDate.getMonth() === today.getMonth() &&
-                cellDate.getDate() === today.getDate();
-            
-              if (!isToday && cellDate >= startOfWeek && cellDate <= endOfWeek) {
-                info.el.classList.add('highlight-week'); // ✅ Plus performant
-              }
-            }}
-          />
         </>
       ) : (
         <div className="alert alert-info mt-4 mb-0" role="alert">

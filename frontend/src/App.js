@@ -267,7 +267,7 @@ function App() {
         "eventCount": scheduleSortedByMoment?.length,
         "calendarId": calendarId,
       });
-      return { success: true, message: data.message, code: data.code, schedule: scheduleSortedByMoment, calendarName: data.calendar_name };
+      return { success: true, message: data.message, code: data.code, schedule: scheduleSortedByMoment, calendarName: data.calendar_name, table: data.table};
     } catch (err) {
       log.error(err.message || "Erreur lors de la récupération du calendrier", err, {
         origin: "CALENDAR_FETCH_ERROR",
@@ -275,7 +275,7 @@ function App() {
         "calendarId": calendarId,
         "startDate": startDate,
       });
-      return { success: false, error: err.message, code: err.code, schedule: [], calendarName: "" };
+      return { success: false, error: err.message, code: err.code, schedule: [], calendarName: "", table: {} };
     }
   }, []);
 
@@ -390,13 +390,13 @@ function App() {
         "token": token,
         "eventCount": scheduleSortedByMoment?.length,
       });
-      return {success: true, message: data.message, code: data.code, schedule: scheduleSortedByMoment, calendarName: data.calendar_name};
+      return {success: true, message: data.message, code: data.code, schedule: scheduleSortedByMoment, calendarName: data.calendar_name, table: data.table};
     } catch (err) {
       log.error(err.message || "Échec de récupération du calendrier partagé", err, {
         origin: "SHARED_CALENDAR_FETCH_ERROR",
         "token": token,
       });
-      return {success: false, error: err.message, code: err.code, schedule: [], calendarName: ""};
+      return {success: false, error: err.message, code: err.code, schedule: [], calendarName: "", table: {}};
     }
   }, []);
   
@@ -813,14 +813,14 @@ function App() {
         calendarId,
         startDate,
       });
-      return {success: true, message: data.message, code: data.code, schedule: scheduleSortedByMoment, calendarName: data.calendar_name};
+      return {success: true, message: data.message, code: data.code, schedule: scheduleSortedByMoment, calendarName: data.calendar_name, table: data.table};
     } catch (err) {
       log.error(err.message || "Échec de récupération du calendrier partagé par un utilisateur", err, {
         origin: "SHARED_USER_CALENDAR_FETCH_ERROR",
         calendarId,
         startDate,
       });
-      return {success: false, error: err.message, code: err.code, schedule: [], calendarName: ""};
+      return {success: false, error: err.message, code: err.code, schedule: [], calendarName: "", table: {}};
     }
   }, []);
 

@@ -1,8 +1,14 @@
 import logging
 import os
 from logging.handlers import RotatingFileHandler
+from dotenv import load_dotenv
 
 os.makedirs("logs", exist_ok=True)
+
+env_loaded = load_dotenv()
+
+env = os.environ.get("ENV", "production")
+
 
 # === Logger Contextual ===
 class ContextualAdapter(logging.LoggerAdapter):
@@ -53,7 +59,7 @@ class ColoredFileFormatter(logging.Formatter):
 base_logger = logging.getLogger("medic_logger")
 base_logger.setLevel(logging.DEBUG)
 
-file_handler = RotatingFileHandler("logs/app.log", maxBytes=1_000_000, backupCount=5)
+file_handler = RotatingFileHandler("logs/app.log", maxBytes=1_000_000, backupCount=5, delay=True)
 file_formatter = ColoredFileFormatter("%(asctime)s [%(levelname)s] %(message)s", "%Y-%m-%d %H:%M:%S")
 file_handler.setFormatter(file_formatter)
 
@@ -61,7 +67,9 @@ console_handler = logging.StreamHandler()
 console_formatter = ColoredFileFormatter("%(asctime)s [%(levelname)s] %(message)s", "%H:%M:%S")
 console_handler.setFormatter(console_formatter)
 
-base_logger.addHandler(file_handler)
+if env == "development":
+    base_logger.addHandler(file_handler)
+
 base_logger.addHandler(console_handler)
 
 # === Loggers contextualisés ===

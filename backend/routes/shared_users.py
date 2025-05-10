@@ -3,7 +3,7 @@ from auth import verify_firebase_token
 from datetime import datetime, timezone
 from . import api
 from firebase_admin import firestore, auth
-from function import verify_calendar_share, generate_schedule
+from function import verify_calendar_share, generate_schedule, generate_table
 import secrets
 from response import success_response, error_response, warning_response
 
@@ -217,19 +217,20 @@ def handle_user_shared_calendar_schedule(calendar_id):
                 code="SHARED_CALENDARS_LOAD_SUCCESS", 
                 uid=uid, 
                 origin="SHARED_CALENDARS_LOAD",
-                data={"schedule": [], "calendar_name": calendar_name}
+                data={"medicines": 0, "schedule": [], "calendar_name": calendar_name, "table": {}}
             )
 
         medicines = [med.to_dict() for med in doc_2.get()]
 
         schedule = generate_schedule(start_date, medicines)
+        table = generate_table(start_date, medicines)
     
         return success_response(
             message="Calendrier partagé récupéré avec succès", 
             code="SHARED_CALENDARS_LOAD_SUCCESS", 
             uid=uid, 
             origin="SHARED_CALENDARS_LOAD",
-            data={"schedule": schedule, "calendar_name": calendar_name},
+            data={"medicines": len(medicines), "schedule": schedule, "calendar_name": calendar_name, "table": table},
             log_extra={"calendar_id": calendar_id}
         )
 
