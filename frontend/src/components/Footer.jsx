@@ -61,11 +61,27 @@ function Footer() {
                 <ul className="list-unstyled">
                   <li>
                     <i className="bi bi-envelope me-2 text-primary"></i>
-                    <a onClick={() => window.open("mailto:mtx_26@hotmail.com", "_blank")} className="text-muted text-decoration-none link-hover" style={{ cursor: "pointer" }}>Contact</a>
+                    <a 
+                      onClick={() => window.open("mailto:mtx_26@hotmail.com", "_blank")} 
+                      className="text-muted text-decoration-none link-hover"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ cursor: "pointer" }}
+                    >
+                      Contact
+                    </a>
                   </li>
                   <li>
                     <i className="bi bi-github me-2 text-primary"></i>
-                    <a onClick={() => window.open("https://github.com/mtx26/medic", "_blank")} className="text-muted text-decoration-none link-hover" style={{ cursor: "pointer" }}>GitHub</a>
+                    <a 
+                      href="https://github.com/mtx26/medic" 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="text-muted text-decoration-none link-hover"
+                    >
+                      GitHub
+                    </a>
+
                   </li>
                 </ul>
               </div>
