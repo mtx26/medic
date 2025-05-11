@@ -1,4 +1,4 @@
-import { useEffect, useContext } from "react";
+import { useEffect, useContext, useRef } from "react";
 import { collection, onSnapshot } from "firebase/firestore";
 import { auth, db, analytics } from "../services/firebase";
 import { UserContext } from "../contexts/UserContext";
@@ -38,6 +38,8 @@ export const useRealtimePersonalMedicines = (
   setLoadingMedicines
 ) => {
   const { currentUser, authReady } = useContext(UserContext);
+  const timeoutRef = useRef(null);
+
     useEffect(() => {
         if (!authReady || !currentUser || !calendarId) {
             setLoadingMedicines(undefined);
@@ -53,43 +55,45 @@ export const useRealtimePersonalMedicines = (
         const medRef = collection(db, "users", user.uid, "calendars", calendarId, "medicines");
 
         const unsubscribe = onSnapshot(medRef, async () => {
+          try {
+            clearTimeout(timeoutRef.current);
+            timeoutRef.current = setTimeout(async () => {
+              const token = await user.getIdToken();
+              const res = await fetch(`${API_URL}/api/calendars/${calendarId}/medicines`, {
+                  method: "GET",
+                  headers: { Authorization: `Bearer ${token}` },
+              });
 
-        try {
-            const token = await user.getIdToken();
-            const res = await fetch(`${API_URL}/api/calendars/${calendarId}/medicines`, {
-                method: "GET",
-                headers: { Authorization: `Bearer ${token}` },
-            });
+              const data = await res.json();
+              if (!res.ok) throw new Error(data.error);
 
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error);
+              const sorted = data.medicines.sort((a, b) => a.name.localeCompare(b.name));
 
-            const sorted = data.medicines.sort((a, b) => a.name.localeCompare(b.name));
+              setMedicinesData(sorted);
+              setOriginalMedicinesData(JSON.parse(JSON.stringify(sorted)));
 
-            setMedicinesData(sorted);
-            setOriginalMedicinesData(JSON.parse(JSON.stringify(sorted)));
-
-            setLoadingMedicines(true);
-            
-            logEvent(analytics, 'fetch_personal_calendar_medicines', {
-                uid: user.uid,
-                count: data.medicines.length,
-                calendarId,
-            });
-            log.info(data.message, {
-            origin: "REALTIME_MEDICINES_SUCCESS",
-            uid: user.uid,
-            count: data.medicines.length,
-            calendarId,
-            });
-        } catch (err) {
+              setLoadingMedicines(true);
+              
+              logEvent(analytics, 'fetch_personal_calendar_medicines', {
+                  uid: user.uid,
+                  count: data.medicines.length,
+                  calendarId,
+              });
+              log.info(data.message, {
+              origin: "REALTIME_MEDICINES_SUCCESS",
+              uid: user.uid,
+              count: data.medicines.length,
+              calendarId,
+              });
+            }, 10000);
+          } catch (err) {
             setLoadingMedicines(false);
             log.error(err.message || "Erreur en récupérant les médicaments", err, {
-            origin: "REALTIME_MEDICINES_ERROR",
-            uid: user?.uid,
-            calendarId,
+              origin: "REALTIME_MEDICINES_ERROR",
+              uid: user?.uid,
+              calendarId,
             });
-        }
+          }
         });
 
         return () => unsubscribe();
@@ -98,157 +102,177 @@ export const useRealtimePersonalMedicines = (
 
 
 export const useRealtimeTokenMedicines = (
-    token,
-    setMedicinesData,
-    setLoadingMedicines
-  ) => {
-    useEffect(() => {
-      if (!token) return;
-  
-      let unsubscribe = null;
-  
-      const initListener = async () => {
-        try {
-          // Étape 1 : Récupérer metadata du token
-          const res = await fetch(`${API_URL}/api/tokens/${token}`, {
-            method: "GET",
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          const data = await res.json();
-          if (!res.ok) throw new Error(data.error || "Erreur métadonnées");
-  
-          const owner_uid = data.owner_uid;
-          const calendar_id = data.calendar_id;
+  token,
+  setMedicinesData,
+  setLoadingMedicines
+) => {
+  const timeoutRef = useRef(null);
+  const unsubscribeRef = useRef(null); // 🔧 pour clean up correct
 
-  
-          // Étape 2 : Écouter les vrais documents Firestore
-          const medRef = collection( db, "users", owner_uid, "calendars", calendar_id, "medicines");
-  
-          unsubscribe = onSnapshot(medRef, async () => {
+  useEffect(() => {
+    if (!token) return;
+
+    const initListener = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/tokens/${token}`, {
+          method: "GET",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+
+        const medRef = collection(
+          db,
+          "users",
+          data.owner_uid,
+          "calendars",
+          data.calendar_id,
+          "medicines"
+        );
+
+        unsubscribeRef.current = onSnapshot(medRef, async () => {
+          clearTimeout(timeoutRef.current);
+          timeoutRef.current = setTimeout(async () => {
             try {
               const res = await fetch(`${API_URL}/api/tokens/${token}/medicines`);
               const data = await res.json();
               if (!res.ok) throw new Error(data.error);
-  
-              const sorted = data.medicines.sort((a, b) => a.name.localeCompare(b.name));
 
+              const sorted = data.medicines.sort((a, b) => a.name.localeCompare(b.name));
               setMedicinesData(sorted);
-        
-        setLoadingMedicines(true);
-                
-                logEvent(analytics, 'fetch_token_calendar_medicines', {
-                    count: data.medicines.length,
-                });
+              setLoadingMedicines(true);
+
+              logEvent(analytics, "fetch_token_calendar_medicines", {
+                count: data.medicines.length,
+              });
               log.info(data.message, {
                 origin: "REALTIME_TOKEN_MEDICINES_SUCCESS",
                 token,
-                count: data.medicines?.length,
+                count: data.medicines.length,
               });
             } catch (err) {
-        setLoadingMedicines(false);
-              log.error(err.message || "Erreur lors de la récupération des médicaments via token", err, {
+              setLoadingMedicines(false);
+              log.error(err.message, err, {
                 origin: "REALTIME_TOKEN_MEDICINES_FETCH_ERROR",
                 token,
               });
             }
-          });
-        } catch (err) {
-      setLoadingMedicines(false);
-          log.error(err.message || "Erreur lors de l'initialisation du listener token", err, {
-            origin: "REALTIME_TOKEN_INIT_ERROR",
-            token,
-          });
-        }
-      };
+          }, 10000);
+        });
+      } catch (err) {
+        setLoadingMedicines(false);
+        log.error(err.message, err, {
+          origin: "REALTIME_TOKEN_INIT_ERROR",
+          token,
+        });
+      }
+    };
+
+    initListener();
+
+    return () => {
+      if (unsubscribeRef.current) unsubscribeRef.current();
+      clearTimeout(timeoutRef.current);
+    };
+  }, [token, setMedicinesData, setLoadingMedicines]);
+};
+
   
-      initListener();
-  
-      return () => {
-        if (unsubscribe) unsubscribe();
-      };
-    }, [token, setMedicinesData, setLoadingMedicines]);
-  };
-  
 
-export const useRealtimeSharedUserMedicines = (calendarId, setMedicinesData, setOriginalMedicinesData, setLoadingMedicines) => {
-    const { currentUser, authReady } = useContext(UserContext);
+export const useRealtimeSharedUserMedicines = (
+  calendarId,
+  setMedicinesData,
+  setOriginalMedicinesData,
+  setLoadingMedicines
+) => {
+  const { currentUser, authReady } = useContext(UserContext);
+  const timeoutRef = useRef(null); // 🔧 manquant
+  const unsubscribeRef = useRef(null);
 
-    useEffect(() => {
-        if (!calendarId || !authReady || !currentUser) {
-            setLoadingMedicines(undefined);
-            return;
-        }
+  useEffect(() => {
+    if (!calendarId || !authReady || !currentUser) {
+      setLoadingMedicines(undefined);
+      return;
+    }
 
-        const user = auth.currentUser;
-        if (!user) {
-            setLoadingMedicines(undefined);
-            return;
-        }
+    const user = auth.currentUser;
+    if (!user) {
+      setLoadingMedicines(undefined);
+      return;
+    }
 
-        const initListener = async () => {
+    const initListener = async () => {
+      try {
+        const token = await user.getIdToken();
+        const res = await fetch(`${API_URL}/api/shared/users/calendars/${calendarId}`, {
+          method: "GET",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+
+        const medRef = collection(
+          db,
+          "users",
+          data.owner_uid,
+          "calendars",
+          calendarId,
+          "medicines"
+        );
+
+        unsubscribeRef.current = onSnapshot(medRef, async () => {
+          clearTimeout(timeoutRef.current);
+          timeoutRef.current = setTimeout(async () => {
             try {
-                const token = await user.getIdToken();
-                const res = await fetch(`${API_URL}/api/shared/users/calendars/${calendarId}`, {
-                    method: "GET",
-                    headers: { Authorization: `Bearer ${token}` },
-                });
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.error);
+              const token = await user.getIdToken();
+              const res = await fetch(`${API_URL}/api/shared/users/calendars/${calendarId}/medicines`, {
+                method: "GET",
+                headers: { Authorization: `Bearer ${token}` },
+              });
+              const data = await res.json();
+              if (!res.ok) throw new Error(data.error);
 
-                const owner_uid = data.owner_uid;
+              const sorted = data.medicines.sort((a, b) => a.name.localeCompare(b.name));
+              setMedicinesData(sorted);
+              setOriginalMedicinesData(JSON.parse(JSON.stringify(sorted)));
+              setLoadingMedicines(true);
 
-                const medRef = collection(db, "users", owner_uid, "calendars", calendarId, "medicines");
-
-                const unsubscribe = onSnapshot(medRef, async () => {
-                    try {
-                        const token = await user.getIdToken();
-                        const res = await fetch(`${API_URL}/api/shared/users/calendars/${calendarId}/medicines`, {
-                            method: "GET",
-                            headers: { Authorization: `Bearer ${token}` },
-                        });
-
-                        const data = await res.json();
-                        if (!res.ok) throw new Error(data.error);
-
-                        const sorted = data.medicines.sort((a, b) => a.name.localeCompare(b.name));
-
-                        setMedicinesData(sorted);
-                        setOriginalMedicinesData(JSON.parse(JSON.stringify(sorted)));
-                        setLoadingMedicines(true);
-
-                        logEvent(analytics, 'fetch_shared_user_calendar_medicines', {
-                            uid: user.uid,
-                            count: data.medicines.length,
-                            calendarId,
-                        });
-                        log.info(data.message, {
-                            origin: "REALTIME_SHARED_USER_MEDICINES_SUCCESS",
-                            uid: user.uid,
-                            calendarId,
-                            count: data.medicines?.length,
-                        });
-                    } catch (err) {
-                        setLoadingMedicines(false);
-                        log.error(err.message || "Erreur de mise à jour en temps réel (shared user)", err, {
-                            origin: "REALTIME_SHARED_USER_MEDICINES_ERROR",
-                            calendarId,
-                            uid: user?.uid,
-                        });
-                    }
-                
-                });
-
-                return () => unsubscribe();
+              logEvent(analytics, "fetch_shared_user_calendar_medicines", {
+                uid: user.uid,
+                count: data.medicines.length,
+                calendarId,
+              });
+              log.info(data.message, {
+                origin: "REALTIME_SHARED_USER_MEDICINES_SUCCESS",
+                uid: user.uid,
+                calendarId,
+                count: data.medicines.length,
+              });
             } catch (err) {
-                setLoadingMedicines(false);
-                log.error(err.message || "Erreur de mise à jour en temps réel (shared user)", err, {
-                    origin: "REALTIME_SHARED_USER_MEDICINES_ERROR",
-                    calendarId,
-                    uid: user?.uid,
-                });
+              setLoadingMedicines(false);
+              log.error(err.message, err, {
+                origin: "REALTIME_SHARED_USER_MEDICINES_ERROR",
+                calendarId,
+                uid: user?.uid,
+              });
             }
-        }
+          }, 10000);
+        });
+      } catch (err) {
+        setLoadingMedicines(false);
+        log.error(err.message, err, {
+          origin: "REALTIME_SHARED_USER_MEDICINES_ERROR",
+          calendarId,
+          uid: user?.uid,
+        });
+      }
+    };
 
-        initListener();
-    }, [calendarId, authReady, currentUser, setMedicinesData, setOriginalMedicinesData, setLoadingMedicines]);
+    initListener();
+
+    return () => {
+      if (unsubscribeRef.current) unsubscribeRef.current();
+      clearTimeout(timeoutRef.current);
+    };
+  }, [calendarId, authReady, currentUser, setMedicinesData, setOriginalMedicinesData, setLoadingMedicines]);
 };
