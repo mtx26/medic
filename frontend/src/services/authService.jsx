@@ -16,7 +16,7 @@ import { log } from "../utils/logger";
 
 const GoogleProvider = new GoogleAuthProvider();
 
-const API_URL = process.env.REACT_APP_API_URL;
+const API_URL = import.meta.env.API_URL;
 
 
 /**

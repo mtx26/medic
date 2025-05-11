@@ -4,7 +4,8 @@ import { auth, db, analytics } from "../services/firebase";
 import { UserContext } from "../contexts/UserContext";
 import { log } from "../utils/logger";
 import { logEvent } from "firebase/analytics";
-const API_URL = process.env.REACT_APP_API_URL;
+
+const API_URL = import.meta.env.API_URL;
 
 /*
 const syncDifferencesFromBackend = (original, incoming, current) => {

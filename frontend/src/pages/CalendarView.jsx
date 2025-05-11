@@ -95,7 +95,6 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
           setCalendarEvents(rep.schedule);
           setCalendarName(rep.calendarName);
           setCalendarTable(rep.table);
-          console.log(rep.table);
         }
         setLoading(!rep.success);
       } else {

@@ -5,7 +5,7 @@ import { onSnapshot, query, where, collection } from 'firebase/firestore';
 import { log } from '../utils/logger';
 import { logEvent } from 'firebase/analytics';
 
-const API_URL = process.env.REACT_APP_API_URL;
+const API_URL = import.meta.env.VITE_API_URL;
 
 export const useRealtimeTokens = (setTokensList, setLoadingStates) => { 
 	const { currentUser, authReady } = useContext(UserContext);

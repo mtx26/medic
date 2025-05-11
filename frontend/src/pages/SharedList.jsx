@@ -3,7 +3,7 @@ import { UserContext } from '../contexts/UserContext';
 import AlertSystem from '../components/AlertSystem'; 
 import HoveredUserProfile from "../components/HoveredUserProfile";
 
-const REACT_URL = process.env.REACT_APP_REACT_URL;
+const VITE_URL = import.meta.env.VITE_VITE_URL;
 
 function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) {
   // 🔐 Contexte d'authentification
@@ -130,14 +130,14 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                             id={"tokenLink"+token.token}
                             type="text"
                             className="form-control"
-                            value={`${REACT_URL}/shared-token-calendar/${token.token}`}
+                            value={`${VITE_URL}/shared-token-calendar/${token.token}`}
                             readOnly
                           />
                           <button
                             className="btn btn-outline-primary"
                             onClick={async () => {
                               try {
-                                await navigator.clipboard.writeText(`${REACT_URL}/shared-token-calendar/${token.token}`);
+                                await navigator.clipboard.writeText(`${VITE_URL}/shared-token-calendar/${token.token}`);
                                 setAlertType("success");
                                 setAlertMessage("🔗 Lien copié !");
                                 setAlertId(token.token);

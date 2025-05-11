@@ -5,7 +5,7 @@ import { log } from "../utils/logger";
 import { UserContext } from '../contexts/UserContext';
 import { logEvent } from "firebase/analytics";
 
-const API_URL = process.env.REACT_APP_API_URL;
+const API_URL = import.meta.env.VITE_API_URL;
 
 export const useRealtimeCalendars = (setCalendarsData, setLoadingStates) => { 
   const { currentUser, authReady } = useContext(UserContext);

@@ -14,7 +14,8 @@ const ShareCalendarModal = forwardRef(({
   setSelectedAlert
 }, ref) => {
   const navigate = useNavigate();
-  const REACT_URL = process.env.REACT_APP_REACT_URL;
+
+  const VITE_URL = import.meta.env.VITE_URL;
 
   const [shareMethod, setShareMethod] = useState('link');
   const [expiresAt, setExpiresAt] = useState(null);
@@ -67,7 +68,7 @@ const ShareCalendarModal = forwardRef(({
     const rep = await tokenCalendars.createToken(calendarId, expiresAt, permissions);
     if (rep.success) {
       try {
-        await navigator.clipboard.writeText(`${REACT_URL}/shared-token-calendar/${rep.token}`);
+        await navigator.clipboard.writeText(`${VITE_URL}/shared-token-calendar/${rep.token}`);
         setAlertType("success");
         setSelectedAlert("calendar");
         setAlertMessage("✅ "+ rep.message);
@@ -122,7 +123,7 @@ const ShareCalendarModal = forwardRef(({
                       <input
                         type="text"
                         className="form-control"
-                        value={`${REACT_URL}/shared-token-calendar/${existingShareToken.token}`}
+                        value={`${VITE_URL}/shared-token-calendar/${existingShareToken.token}`}
                         readOnly
                       />
                       <button
@@ -137,7 +138,7 @@ const ShareCalendarModal = forwardRef(({
                       </button>
                       <button
                         className="btn btn-outline-primary"
-                        onClick={() => handleCopyLink(`${REACT_URL}/shared-token-calendar/${existingShareToken.token}`)}
+                        onClick={() => handleCopyLink(`${VITE_URL}/shared-token-calendar/${existingShareToken.token}`)}
                         title="Copier le lien"
                       >
                         <i className="bi bi-clipboard"></i>
