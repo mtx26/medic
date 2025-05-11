@@ -11,11 +11,12 @@ const ShareCalendarModal = forwardRef(({
   sharedUserCalendars,
   setAlertType,
   setAlertMessage,
-  setSelectedAlert
+  setSelectedAlert,
+  alertCategory = undefined
 }, ref) => {
   const navigate = useNavigate();
 
-  const VITE_URL = import.meta.env.VITE_URL;
+  const VITE_URL = import.meta.env.VITE_VITE_URL;
 
   const [shareMethod, setShareMethod] = useState('link');
   const [expiresAt, setExpiresAt] = useState(null);
@@ -40,12 +41,16 @@ const ShareCalendarModal = forwardRef(({
     try {
       await navigator.clipboard.writeText(link);
       setAlertType("success");
-      setSelectedAlert("calendar");
+      if (alertCategory) {
+        setSelectedAlert(alertCategory);
+      }
       setAlertMessage("🔗 Lien copié !");
       ref.current.close();
     } catch {
       setAlertType("danger");
-      setSelectedAlert("calendar");
+      if (alertCategory) {
+        setSelectedAlert(alertCategory);
+      }
       setAlertMessage("❌ Erreur lors de la copie du lien.");
     }
   };
@@ -54,11 +59,15 @@ const ShareCalendarModal = forwardRef(({
     const rep = await sharedUserCalendars.sendInvitation(emailToInvite, calendarId);
     if (rep.success) {
       setAlertType("success");
-      setSelectedAlert("calendar");
+      if (alertCategory) {
+        setSelectedAlert(alertCategory);
+      }
       setAlertMessage("✅ "+ rep.message);
     } else {
       setAlertType("danger");
-      setSelectedAlert("calendar");
+      if (alertCategory) {
+        setSelectedAlert(alertCategory);
+      }
       setAlertMessage("❌ "+ rep.error);
     }
     ref.current.close();
@@ -70,16 +79,22 @@ const ShareCalendarModal = forwardRef(({
       try {
         await navigator.clipboard.writeText(`${VITE_URL}/shared-token-calendar/${rep.token}`);
         setAlertType("success");
-        setSelectedAlert("calendar");
+        if (alertCategory) {
+          setSelectedAlert(alertCategory);
+        }
         setAlertMessage("✅ "+ rep.message);
       } catch {
         setAlertType("danger");
-        setSelectedAlert("calendar");
+        if (alertCategory) {
+          setSelectedAlert(alertCategory);
+        }
         setAlertMessage("❌ Erreur lors de la copie du lien.");
       }
     } else {
       setAlertType("danger");
-      setSelectedAlert("calendar");
+      if (alertCategory) {
+        setSelectedAlert(alertCategory);
+      }
       setAlertMessage("❌ " + rep.error);
     }
     ref.current.close();

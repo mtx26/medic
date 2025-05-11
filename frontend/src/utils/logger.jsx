@@ -2,6 +2,7 @@ const isDev = import.meta.env.DEV;
 const forceLog = true; // ← reste utile en local
 const API_URL = import.meta.env.VITE_API_URL;
 
+
 if (!API_URL) console.error("API_URL is not defined");
 
 const fetchLog = (msg, error, context, type) => {

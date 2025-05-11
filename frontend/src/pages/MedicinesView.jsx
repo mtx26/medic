@@ -1,9 +1,11 @@
 // MedicamentsPage.jsx
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import AlertSystem from '../components/AlertSystem';
 import { useRealtimeMedicinesSwitcher } from '../hooks/useRealtimeMedicinesSwitcher';
 import { getCalendarSourceMap } from '../utils/calendarSourceMap';
+import { useContext } from 'react';
+import { UserContext } from '../contexts/UserContext';
 
 
 function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
@@ -24,6 +26,8 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
   const [loadingMedicines, setLoadingMedicines] = useState(undefined); // État de chargement des médicaments
   const [highlightedId, setHighlightedId] = useState(null); // État pour l'élément mis en évidence dans la liste
   const lastMedRef = useRef(null); // Référence vers le dernier médicament affiché
+
+  const { authReady } = useContext(UserContext);
 
   // 🔄 Modifications
   const hasChanges = JSON.stringify(medicinesData) !== JSON.stringify(originalMedicinesData); // Détection des changements dans les médicaments
@@ -103,7 +107,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
     setLoadingMedicines
   );  
 
-  if (loadingMedicines === undefined && calendarId) {
+  if (loadingMedicines === undefined) {
     return (
       <div className="d-flex justify-content-center align-items-center" style={{ height: '60vh' }}>
         <div className="spinner-border text-primary" role="status">
@@ -112,10 +116,15 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
       </div>
     );
   }
-
-  if (loadingMedicines === false && calendarId) {
-    return <div className="text-center mt-5">❌ Calendrier non trouvé</div>;
+  
+  if (loadingMedicines === false) {
+    return (
+      <div className="text-center mt-5">
+        ❌ Ce lien de calendrier partagé est invalide ou a expiré.
+      </div>
+    );
   }
+  
 
   return (
     <div className="container d-flex justify-content-center">

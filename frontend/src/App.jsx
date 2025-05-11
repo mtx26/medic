@@ -37,7 +37,6 @@ function App() {
   const isInitialLoading = Object.values(loadingStates).some((v) => v);
 
   const generateHexToken = (length = 16) => [...crypto.getRandomValues(new Uint8Array(length))].map(b => b.toString(16).padStart(2, '0')).join('');
-  
   // TestFirestore();
   
   useRealtimeCalendars(setCalendarsData, setLoadingStates);
@@ -743,7 +742,7 @@ function App() {
         count: data?.users?.length,
         calendarId,
       });
-      return {success: true, message: data.message, code: data.code, data: data.users};
+      return {success: true, message: data.message, code: data.code, users: data.users};
     } catch (err) {
       log.error(err.message || "Échec de récupération des utilisateurs partagés", err, {
         origin: "SHARED_USERS_FETCH_ERROR",
@@ -979,8 +978,6 @@ function App() {
       resetAppData();
     }
   }, [authReady, currentUser]);
-
-  
   
 
   return (

@@ -98,6 +98,7 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
     setAlertType={setAlertType}
     setAlertMessage={setAlertMessage}
     setSelectedAlert={setSelectedAlert}
+    alertCategory="calendar"
   />
 
 
@@ -261,7 +262,7 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
                   );
                   const rep = await sharedUserCalendars.fetchSharedUsers(calendarData.calendar_id);
                   if (rep.success) {
-                    setSharedUsersData(rep.data);
+                    setSharedUsersData(rep.users);
                   }
                   setExistingShareToken(token || null);
                   shareModalRef.current?.open();

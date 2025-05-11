@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useRealtimeTokenMedicines } from '../hooks/useRealtimeMedicines';
-function MedicinesList({ tokenCalendars }) {
+
+
+function MedicinesList() {
   // 📍 Paramètres d’URL et navigation
   const { sharedToken } = useParams(); // Récupération du token de partage depuis l'URL
   const navigate = useNavigate(); // Hook de navigation

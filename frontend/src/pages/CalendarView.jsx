@@ -8,7 +8,9 @@ import frLocale from '@fullcalendar/core/locales/fr';
 import { UserContext } from '../contexts/UserContext';
 import HoveredUserProfile from '../components/HoveredUserProfile';
 import { formatWeekString, getMondayFromWeek } from "../utils/dateUtils";
-import { getCalendarSourceMap } from "../utils/calendarSourceMap";
+import { getCalendarSourceMap } from "../utils/calendarSourceMap"
+import ShareCalendarModal from '../components/ShareCalendarModal';
+import AlertSystem from '../components/AlertSystem';
 
 function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
 
@@ -26,8 +28,13 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
   const [calendarTable, setCalendarTable] = useState([]); // Événements du calendrier
   const [calendarName, setCalendarName] = useState(''); // Nom du calendrier
   const [ownerUser, setOwnerUser] = useState(null); // Utilisateur propriétaire du calendrier
+  const [alertType, setAlertType] = useState(''); // Type d'alerte
+  const [alertMessage, setAlertMessage] = useState(''); // Message d'alerte
+  const [existingShareToken, setExistingShareToken] = useState(null); // Token existant
+  const [sharedUsersData, setSharedUsersData] = useState([]); // Utilisateurs partageant le calendrier
 
   // 🔄 Références et chargement
+  const shareModalRef = useRef(null); // Référence vers le modal (pour gestion focus/fermeture)
   const modalRef = useRef(null); // Référence vers le modal (pour gestion focus/fermeture)
   const [loading, setLoading] = useState(undefined); // État de chargement du calendrier
   
@@ -150,10 +157,34 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
 
   return (
     <div>
+      {calendarType === 'personal' && (
+        // Modal pour partager un calendrier
+        <ShareCalendarModal
+          ref={shareModalRef}
+          calendarId={calendarId}
+          calendarName={calendarName}
+          existingShareToken={existingShareToken}
+          sharedUsersData={sharedUsersData}
+          tokenCalendars={tokenCalendars}
+          sharedUserCalendars={sharedUserCalendars}
+          setAlertType={setAlertType}
+          setAlertMessage={setAlertMessage}
+        />
+      )}
+      
       <div className="card shadow-sm mb-4">
         <div className="card-body">
           <div className="mb-3">
             <h3 className="card-title">{calendarName}</h3>
+
+            <AlertSystem
+              type={alertType}
+              message={alertMessage}
+              onClose={() => {
+                setAlertMessage("");
+              }}
+            />
+
 
             {calendarType === 'sharedUser' && (
               <div className="badge bg-info mb-3">
@@ -199,6 +230,27 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
               <i className="bi bi-capsule"></i>
               <span> Médicaments</span>
             </button>
+            {calendarType === 'personal' && (
+              <button
+                type="button"
+                className="btn btn-outline-warning"
+                title="Partager"
+                onClick={async () => {
+                  setExistingShareToken(null);
+                  const token = await tokenCalendars.tokensList.find(
+                    (t) => t.calendar_id === calendarId && !t.revoked && t.owner_uid === currentUser.uid
+                  );
+                  const rep = await sharedUserCalendars.fetchSharedUsers(calendarId);
+                  if (rep.success) {
+                    setSharedUsersData(rep.users);
+                  }
+                  setExistingShareToken(token || null);
+                  shareModalRef.current?.open();
+                }}
+              >
+                <i className="bi bi-box-arrow-up"></i>
+              </button>
+            )}
           </div>
         </div>
       </div>
