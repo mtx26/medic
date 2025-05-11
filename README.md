@@ -52,8 +52,3 @@ npm start
 ## 📄 Licence
 
 Ce projet est privé. Voir le fichier [LICENSE](./LICENSE) pour plus d’informations.
-```
-
-💡 J’ai remplacé `<utilisateur>/<repo>` par `mtx26/medic` dans les badges.
-
-Souhaites-tu aussi que je t’ajoute une section `📸 Captures d’écran` ou `📬 Contact` ?
