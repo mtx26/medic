@@ -260,13 +260,16 @@ function App() {
       const scheduleSortedByTitle = data.schedule.sort((a, b) => a.title.localeCompare(b.title));
       const scheduleSortedByMoment = scheduleSortedByTitle.sort((a, b) => new Date(a.start) - new Date(b.start));
       
+      // trier le table par titre
+      const tableSortedByTitle = data.table.sort((a, b) => a.title.localeCompare(b.title));
+
       log.info(data.message, {
         origin: "CALENDAR_FETCH_SUCCESS",
         "uid": auth.currentUser.uid,
         "eventCount": scheduleSortedByMoment?.length,
         "calendarId": calendarId,
       });
-      return { success: true, message: data.message, code: data.code, schedule: scheduleSortedByMoment, calendarName: data.calendar_name, table: data.table};
+      return { success: true, message: data.message, code: data.code, schedule: scheduleSortedByMoment, calendarName: data.calendar_name, table: tableSortedByTitle};
     } catch (err) {
       log.error(err.message || "Erreur lors de la récupération du calendrier", err, {
         origin: "CALENDAR_FETCH_ERROR",

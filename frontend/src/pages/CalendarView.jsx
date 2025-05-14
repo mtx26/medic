@@ -11,6 +11,9 @@ import { formatWeekString, getMondayFromWeek } from "../utils/dateUtils";
 import { getCalendarSourceMap } from "../utils/calendarSourceMap"
 import ShareCalendarModal from '../components/ShareCalendarModal';
 import AlertSystem from '../components/AlertSystem';
+import isEqual from "lodash/isEqual";
+import { Modal } from "bootstrap";
+
 
 function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
 
@@ -41,7 +44,20 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
   const [startDate, setStartDate] = useState(new Date().toISOString().slice(0, 10));
   const [startWeek, setStartWeek] = useState(formatWeekString(new Date()));
 
+  const modalInstanceRef = useRef(null);
+  
+  
+  const openModal = () => {
+    // Instanciation de la modale si nécessaire
+    modalInstanceRef.current = new Modal(modalRef.current);
+    modalInstanceRef.current?.show();
+  };
 
+  const closeModal = () => {
+    document.activeElement.blur();
+    modalInstanceRef.current?.hide();
+  };
+  
   const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   const days_map = {
     "Mon": "Lun",
@@ -79,8 +95,7 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
     const clickedDate = info.dateStr;
     setSelectedDate(clickedDate);
     setEventsForDay(calendarEvents.filter((event) => event.start.startsWith(clickedDate)));
-    const modal = new window.bootstrap.Modal(modalRef.current);
-    modal.show();
+    openModal();
   };
 
   // Fonction pour naviguer vers la date suivante ou precedente
@@ -99,9 +114,15 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
       if (calendarType === 'token' || currentUser) {
         const rep = await calendarSource.fetchSchedule(calendarId);
         if (rep.success) {
-          setCalendarEvents(rep.schedule);
-          setCalendarName(rep.calendarName);
-          setCalendarTable(rep.table);
+          if (!isEqual(rep.schedule, calendarEvents)) {
+            setCalendarEvents(rep.schedule);
+          }
+          if (!isEqual(rep.table, calendarTable)) {
+            setCalendarTable(rep.table);
+          }
+          if (!isEqual(rep.calendarName, calendarName)) {
+            setCalendarName(rep.calendarName);
+          }
         }
         setLoading(!rep.success);
       } else {
@@ -110,7 +131,7 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
     };
 
     load();
-  }, [authReady, currentUser, calendarId, calendarType, calendarSource]);
+  }, [authReady, currentUser, calendarId, calendarType, calendarSource, calendarEvents, calendarTable, calendarName]);
 
   const memoizedEvents = useMemo(() => {
     return calendarEvents.map((event) => ({
@@ -118,7 +139,7 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
       start: event.start,
       color: event.color,
     }));
-  }, [calendarEvents]);
+  }, [calendarEvents]);  
 
   useEffect(() => {
     if (!currentUser || !calendarId) return;
@@ -357,7 +378,7 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
               locale={frLocale}
               firstDay={1}
               dateClick={handleDateClick}
-              height="auto"
+              height={600}
 
               // click sur les événements
               eventClick={(info) => {
@@ -381,7 +402,7 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
                   cellDate.getDate() === today.getDate();
               
                 if (!isToday && cellDate >= startOfWeek && cellDate <= endOfWeek) {
-                  info.el.classList.add('highlight-week'); // ✅ Plus performant
+                  info.el.classList.add('highlight-week');
                 }
               }}
             />
@@ -409,11 +430,13 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
                 })}
                 </span>
               </h5>
-              <button type="button" className="btn-close" data-bs-dismiss="modal"></button>
+              <button type="button" className="btn-close" onClick={closeModal}></button>
             </div>
             <div className="modal-body">
               <div className="d-flex justify-content-between align-items-center">
-                <button className="btn btn-outline-secondary btn-sm" onClick={() => navigateDay(-1)}>⬅</button>
+                <button className="btn btn-outline-secondary btn-sm" onClick={() => navigateDay(-1)}>
+                  <i className="bi bi-arrow-left"></i>
+                </button>
                 <div className="flex-grow-1 mx-3">
                   {eventsForDay.length > 0 ? (
                     <ul className="list-group">
@@ -430,11 +453,13 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
                     <p className="text-muted text-center mb-0">Aucun événement ce jour-là.</p>
                   )}
                 </div>
-                <button className="btn btn-outline-secondary btn-sm" onClick={() => navigateDay(1)}>➡</button>
+                <button className="btn btn-outline-secondary btn-sm" onClick={() => navigateDay(1)}>
+                  <i className="bi bi-arrow-right"></i>
+                </button>
               </div>
             </div>
             <div className="modal-footer">
-              <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">
+              <button type="button" className="btn btn-secondary" onClick={closeModal}>
                 Fermer
               </button>
             </div>

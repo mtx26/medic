@@ -130,12 +130,6 @@ def generate_table(start_date, medications):
     ] 
     """
 
-    moment_map = {
-        "morning": "Matin",
-        "noon": "Midi",
-        "evening": "Soir"
-    }
-
     monday = start_date - timedelta(days=start_date.weekday())
     total_day = 7
     calendar_table = []
@@ -153,9 +147,23 @@ def generate_table(start_date, medications):
                     table[moment][day] = med["tablet_count"]
 
         if table:
-            calendar_table.append({
-                "title": med["name"],
-                "cells": table
-            })
+            found = False
+            for entry in calendar_table:
+                if entry["title"] == med["name"]:
+                    for moment, days in table.items():
+                        if moment not in entry["cells"]:
+                            entry["cells"][moment] = {}
+                        for day, value in days.items():
+                            if day not in entry["cells"][moment]:
+                                entry["cells"][moment][day] = value
+                            else:
+                                entry["cells"][moment][day] += value
+                    found = True
+                    break
+            if not found:
+                calendar_table.append({
+                    "title": med["name"],
+                    "cells": table
+                })
 
     return calendar_table
