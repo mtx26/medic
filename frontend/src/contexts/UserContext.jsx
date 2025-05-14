@@ -1,10 +1,11 @@
 import { createContext, useState, useEffect } from "react";
 import { onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
-import { auth, db } from "../services/firebase";
+import { auth } from "../services/firebase";
 
 const UserContext = createContext(null);
 let globalReloadUser = () => {};
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 export const UserProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
@@ -18,9 +19,19 @@ export const UserProvider = ({ children }) => {
     if (!user) return;
 
     try {
-      const userRef = doc(db, "users", user.uid);
-      const snap = await getDoc(userRef);
-      const data = snap.exists() ? snap.data() : {};
+      const token = await user.getIdToken();
+
+      const res = await fetch(`${API_URL}/api/userinfo`, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Erreur Supabase");
+
+      const data = json.data || {};
 
       const info = {
         displayName: data.display_name || user.displayName || "Utilisateur",
@@ -35,7 +46,7 @@ export const UserProvider = ({ children }) => {
       setUserInfo(info);
       sessionStorage.setItem("userInfo", JSON.stringify(info));
     } catch (error) {
-      console.error("[UserContext] Erreur lors du chargement Firestore :", error);
+      console.error("[UserContext] Erreur lors du chargement Supabase :", error);
     }
   };
 

@@ -9,14 +9,14 @@ import requests
 @api.route("/api/upload/logo", methods=["POST"])
 def upload_logo():
     try:
-        user = verify_firebase_token()
+        uid, token = verify_firebase_token()
         uid = user["uid"]
 
         file = request.files.get("file")   
         if not file:
             return warning_response(
-                message="Aucune URL de photo Google fournie",
-                code="NO_GOOGLE_PHOTO_URL_PROVIDED",
+                message="Aucune image fournie",
+                code="NO_IMAGE_PROVIDED",
                 status_code=400,
                 uid=uid,
                 origin="UPLOAD_LOGO"

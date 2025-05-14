@@ -6,18 +6,17 @@ from firebase_admin import firestore, auth
 from function import verify_calendar_share, generate_schedule, generate_table
 import secrets
 from response import success_response, error_response, warning_response
-
-db = firestore.client()
+from supabase_client import supabase
 
 # Route pour récupérer les calendriers partagés
 @api.route("/api/shared/users/calendars", methods=["GET"])
 def handle_shared_calendars():
     try:
-        user = verify_firebase_token()
+        uid, token = verify_firebase_token()
         uid = user["uid"]
 
-        shared_with_doc = db.collection("users").document(uid).collection("shared_calendars")
-        shared_users_docs = list(shared_with_doc.stream())
+        response = supabase.table("calendar_shared_users").select("*").eq("receiver_uid", uid).eq("accepted", True).execute()
+        shared_users_docs = response.data
 
         if not shared_users_docs:
             return success_response(
@@ -28,46 +27,32 @@ def handle_shared_calendars():
                 data={"calendars": []}
             )
 
-
         calendars_list = []
         for user_doc in shared_users_docs:
-            data = user_doc.to_dict()
+            owner_uid = user_doc.get("calendar_id")
+            calendar_id = user_doc.get("calendar_id")
+            access = user_doc.get("access", "read")
 
-            owner_uid = data.get("owner_uid")
-            calendar_id = data.get("calendar_id")
-            access = data.get("access", "read")
+            # Calendrier
+            calendar_res = supabase.table("calendars").select("name, owner_uid").eq("id", calendar_id).single().execute()
+            if not calendar_res.data:
+                continue
+            calendar = calendar_res.data
+            calendar_name = calendar["name"]
+            owner_uid = calendar["owner_uid"]
 
-            # Récupère le calendrier nom du calendrier et le nom de l'owner
-            calendar_doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).get()
-            if not calendar_doc.exists:
-                return warning_response(
-                    message="Calendrier partagé introuvable",
-                    code="SHARED_CALENDARS_LOAD_ERROR",
-                    status_code=404,
-                    uid=uid,
-                    origin="SHARED_CALENDARS_LOAD"
-                )
-            calendar_name = calendar_doc.to_dict().get("calendar_name")
-
-            owner_doc = db.collection("users").document(owner_uid).get()
-            if not owner_doc.exists:
-                return warning_response(
-                    message="Propriétaire du calendrier introuvable",
-                    code="SHARED_CALENDARS_LOAD_ERROR",
-                    status_code=404,
-                    uid=uid,
-                    origin="SHARED_CALENDARS_LOAD"
-                )
-            owner_name = owner_doc.to_dict().get("display_name")
-            owner_email = owner_doc.to_dict().get("email")
-            owner_photo_url = owner_doc.to_dict().get("photo_url")
-            if not owner_photo_url:
-                owner_photo_url = "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/icons/person-circle.svg"
+            # Propriétaire
+            owner_res = supabase.table("users").select("display_name, email, photo_url").eq("id", owner_uid).single().execute()
+            if not owner_res.data:
+                continue
+            owner = owner_res.data
+            owner_name = owner["display_name"]
+            owner_email = owner["email"]
+            owner_photo_url = owner.get("photo_url") or "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/icons/person-circle.svg"
 
             if not verify_calendar_share(calendar_id, owner_uid, uid):
                 continue
 
-            # Ajoute les infos à la réponse
             calendars_list.append({
                 "calendar_id": calendar_id,
                 "calendar_name": calendar_name,
@@ -96,11 +81,12 @@ def handle_shared_calendars():
             error=str(e)
         )
 
+
 # Route pour récupérer les informations d'un calendrier partagé
 @api.route("/api/shared/users/calendars/<calendar_id>", methods=["GET"])
 def handle_user_shared_calendar(calendar_id):
     try:
-        user = verify_firebase_token()
+        uid, token = verify_firebase_token()
         receiver_uid = user["uid"]
 
         shared_with_doc = db.collection("users").document(receiver_uid).collection("shared_calendars").document(calendar_id)
@@ -165,7 +151,7 @@ def handle_user_shared_calendar(calendar_id):
 @api.route("/api/shared/users/calendars/<calendar_id>/schedule", methods=["GET"])
 def handle_user_shared_calendar_schedule(calendar_id):
     try:
-        user = verify_firebase_token()
+        uid, token = verify_firebase_token()
         uid = user["uid"]
 
         start_date = request.args.get("startTime")
@@ -209,7 +195,7 @@ def handle_user_shared_calendar_schedule(calendar_id):
                 origin="SHARED_CALENDARS_LOAD",
                 log_extra={"calendar_id": calendar_id}
             )
-
+            
         doc_2 = doc_1.collection("medicines")
         if not doc_2.get():
             return success_response(
@@ -250,7 +236,7 @@ def handle_user_shared_calendar_schedule(calendar_id):
 @api.route("/api/shared/users/calendars/<calendar_id>", methods=["DELETE"])
 def handle_delete_user_shared_calendar(calendar_id):
     try:
-        user = verify_firebase_token()
+        uid, token = verify_firebase_token()
         receiver_uid = user["uid"]
 
         received_calendar_doc = db.collection("users").document(receiver_uid).collection("shared_calendars").document(calendar_id)
@@ -329,7 +315,7 @@ def handle_delete_user_shared_calendar(calendar_id):
 @api.route("/api/shared/users/<calendar_id>/<receiver_uid>", methods=["DELETE"])
 def handle_delete_user_shared_user(calendar_id, receiver_uid):
     try:
-        user = verify_firebase_token()
+        uid, token = verify_firebase_token()
         owner_uid = user["uid"]
 
         receiver_doc = db.collection("users").document(receiver_uid)
@@ -426,7 +412,7 @@ def handle_delete_user_shared_user(calendar_id, receiver_uid):
 @api.route("/api/shared/users/users/<calendar_id>", methods=["GET"])
 def handle_shared_users(calendar_id):
     try:
-        user = verify_firebase_token()
+        uid, token = verify_firebase_token()
         owner_uid = user["uid"]
 
         shared_with_doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).collection("shared_with")
@@ -441,8 +427,9 @@ def handle_shared_users(calendar_id):
             receiver_uid = data.get("receiver_uid")
             access = data.get("access", "read")
             accepted = data.get("accepted", False)
-            receiver_doc = db.collection("users").document(receiver_uid).get()
-            if not receiver_doc.exists:
+
+            receiver_doc = supabase.table("users").select("*").eq("id", receiver_uid).execute()
+            if not receiver_doc.data:
                 return warning_response(
                     message="Utilisateur partagé introuvable",
                     code="SHARED_USERS_LOAD_ERROR",
@@ -492,7 +479,7 @@ def handle_shared_users(calendar_id):
 @api.route("/api/shared/users/calendars/<calendar_id>/medicines", methods=["GET"])
 def handle_shared_user_calendar_medicines(calendar_id):
     try:
-        user = verify_firebase_token()
+        uid, token = verify_firebase_token()
         receiver_uid = user["uid"]
 
         doc_1_ref = db.collection("users").document(receiver_uid).collection("shared_calendars").document(calendar_id)
@@ -565,7 +552,7 @@ def handle_shared_user_calendar_medicines(calendar_id):
 @api.route("/api/shared/users/calendars/<calendar_id>/medicines", methods=["PUT"])
 def handle_update_shared_user_calendar_medicines(calendar_id):
     try:
-        user = verify_firebase_token()
+        uid, token = verify_firebase_token()
         receiver_uid = user["uid"]
 
         medicines = request.json.get("medicines", [])

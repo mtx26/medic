@@ -5,12 +5,12 @@ from config import Config
 from routes import api
 from logger import log_backend as logger
 import os
+from supabase_client import supabase
 
 app = Flask(__name__)
 CORS(app)
 app.config.from_object(Config)
 app.register_blueprint(api)
-
 
 # 🚀 Lancement en local ou sur Render
 if __name__ == "__main__":

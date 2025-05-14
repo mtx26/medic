@@ -9,7 +9,7 @@ def verify_firebase_token():
     if not auth_header.startswith("Bearer "):
         logger.warning("Token manquant ou mal formaté", {
             "origin": "TOKEN_ERROR",
-            "uid": uid
+            "uid": "unknown"
         })
         abort(401, description="Token manquant ou mal formaté")
 
@@ -20,11 +20,11 @@ def verify_firebase_token():
             "origin": "TOKEN_SUCCESS",
             "uid": decoded_token["uid"]
         })
-        return decoded_token
+        return decoded_token, id_token
     except Exception as e:
         logger.warning("Token invalide", {
             "origin": "TOKEN_ERROR",
-            "uid": uid
+            "uid": "unknown"
         })
         abort(401, description="Token invalide ou expiré")
 

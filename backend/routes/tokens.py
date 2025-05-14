@@ -14,7 +14,7 @@ db = firestore.client()
 def handle_tokens():
     try:
         if request.method == "GET":
-            user = verify_firebase_token()
+            uid, token = verify_firebase_token()
             uid = user["uid"]
 
             tokens_ref = db.collection("shared_tokens").get()
@@ -45,7 +45,7 @@ def handle_tokens():
 @api.route("/api/tokens/<calendar_id>", methods=["POST"])
 def handle_create_token(calendar_id):
     try:
-        user = verify_firebase_token()
+        uid, token = verify_firebase_token()
         owner_uid = user["uid"]
 
         data = request.get_json(force=True)
@@ -122,7 +122,7 @@ def handle_create_token(calendar_id):
 @api.route("/api/tokens/revoke/<token>", methods=["POST"])
 def handle_update_revoke_token(token):
     try:
-        user = verify_firebase_token()
+        uid, token = verify_firebase_token()
         owner_uid = user["uid"]
 
 
@@ -184,7 +184,7 @@ def handle_update_revoke_token(token):
 @api.route("/api/tokens/expiration/<token>", methods=["POST"])
 def handle_update_token_expiration(token):
     try:
-        user = verify_firebase_token()
+        uid, token = verify_firebase_token()
         owner_uid = user["uid"]
 
         data = request.get_json(force=True)
@@ -245,7 +245,7 @@ def handle_update_token_expiration(token):
 @api.route("/api/tokens/permissions/<token>", methods=["POST"])
 def handle_update_token_permissions(token):
     try:
-        user = verify_firebase_token()
+        uid, token = verify_firebase_token()
         owner_uid = user["uid"]
 
         data = request.get_json(force=True)
@@ -479,7 +479,7 @@ def get_token_metadata(token):
 @api.route("/api/tokens/<token>", methods=["DELETE"])
 def handle_delete_token(token):
     try:
-        user = verify_firebase_token()
+        uid, token = verify_firebase_token()
         owner_uid = user["uid"]
 
         doc = db.collection("shared_tokens").document(token).get()

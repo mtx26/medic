@@ -1,4 +1,4 @@
-const isDev = import.meta.env.DEV;
+const isDev = import.meta.env.VITE_NODE_ENV === "development";
 const forceLog = true; // ← reste utile en local
 const API_URL = import.meta.env.VITE_API_URL;
 

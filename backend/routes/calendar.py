@@ -2,36 +2,38 @@ from . import api
 from auth import verify_firebase_token
 from datetime import datetime, timezone
 from flask import request
-from firebase_admin import firestore
 from function import generate_schedule, generate_table
-import secrets
 from response import success_response, error_response, warning_response
+from supabase_client import supabase, supabase_with_token
+import secrets
+from firebase_admin import firestore, auth
 
-db = firestore.client()
 
 # Route pour récupérer les calendriers de l'utilisateur
 @api.route("/api/calendars", methods=["GET"])
 def handle_calendars():
     try:
-        user = verify_firebase_token()
+        user, token = verify_firebase_token()
         uid = user["uid"]
 
-        calendars_ref = db.collection("users").document(uid).collection("calendars")
-        calendars = [calendar.to_dict() for calendar in calendars_ref.stream()]
+        response = supabase_with_token(token).table("calendars").select("id, name").execute()
+        calendars = response.data or []
+
         return success_response(
-            message="Calendriers récupérés avec succès", 
-            code="CALENDAR_FETCH_SUCCESS", 
-            uid=uid, 
-            origin="CALENDAR_FETCH", 
+            message="Calendriers récupérés avec succès" if calendars else "Aucun calendrier trouvé",
+            code="CALENDAR_FETCH_SUCCESS" if calendars else "CALENDAR_FETCH_EMPTY",
+            uid=uid,
+            origin="CALENDAR_FETCH",
             data={"calendars": calendars}
         )
+
     except Exception as e:
         return error_response(
-            message="Erreur lors de la récupération des calendriers.", 
-            code="CALENDAR_FETCH_ERROR", 
-            status_code=500, 
-            uid=uid, 
-            origin="CALENDAR_FETCH", 
+            message="Erreur lors de la récupération des calendriers.",
+            code="CALENDAR_FETCH_ERROR",
+            status_code=500,
+            uid=uid,
+            origin="CALENDAR_FETCH",
             error=str(e)
         )
 
@@ -40,55 +42,40 @@ def handle_calendars():
 @api.route("/api/calendars", methods=["POST"])
 def handle_create_calendar():
     try:
-        user = verify_firebase_token()
+        user, token = verify_firebase_token()
         uid = user["uid"]
         calendar_name = request.json.get("calendarName")
 
         if not calendar_name:
             return warning_response(
-                message="Nom de calendrier manquant.", 
-                code="CALENDAR_CREATE_ERROR", 
-                status_code=400, 
-                uid=uid, 
-                origin="CALENDAR_CREATE", 
+                message="Nom de calendrier manquant.",
+                code="CALENDAR_CREATE_ERROR",
+                status_code=400,
+                uid=uid,
+                origin="CALENDAR_CREATE",
                 log_extra={"calendar_name": calendar_name}
             )
 
-        calendar_id = secrets.token_hex(16)
-        doc = db.collection("users").document(uid).collection("calendars").document(calendar_id).get()
-
-        if doc.exists:
-            return warning_response(
-                message="Tentative de création d'un calendrier déjà existant.", 
-                code="CALENDAR_CREATE_ERROR", 
-                status_code=409, 
-                uid=uid, 
-                origin="CALENDAR_CREATE", 
-                log_extra={"calendar_name": calendar_name}
-            )
-
-        db.collection("users").document(uid).collection("calendars").document(calendar_id).set({
-            "calendar_id": calendar_id,
-            "calendar_name": calendar_name,
-            "medicines": "",
-            "last_updated": firestore.SERVER_TIMESTAMP
-        }, merge=True)
+        response = supabase.table("calendars").insert({
+            "owner_uid": uid,
+            "name": calendar_name,
+        }).execute()
 
         return success_response(
-            message="Calendrier créé avec succès", 
-            code="CALENDAR_CREATE", 
-            uid=uid, 
-            origin="CALENDAR_CREATE", 
+            message="Calendrier créé avec succès",
+            code="CALENDAR_CREATE",
+            uid=uid,
+            origin="CALENDAR_CREATE",
             log_extra={"calendar_name": calendar_name}
         )
 
     except Exception as e:
         return error_response(
-            message="Erreur lors de la création du calendrier.", 
-            code="CALENDAR_CREATE_ERROR", 
-            status_code=500, 
-            uid=uid, 
-            origin="CALENDAR_CREATE", 
+            message="Erreur lors de la création du calendrier.",
+            code="CALENDAR_CREATE_ERROR",
+            status_code=500,
+            uid=uid,
+            origin="CALENDAR_CREATE",
             error=str(e)
         )
 
@@ -97,53 +84,41 @@ def handle_create_calendar():
 @api.route("/api/calendars", methods=["DELETE"])
 def handle_delete_calendar():
     try:
-        user = verify_firebase_token()
+        user, token = verify_firebase_token()
         uid = user["uid"]
         calendar_id = request.json.get("calendarId")
 
         if not calendar_id:
             return warning_response(
-                message="Identifiant de calendrier manquant.", 
-                code="CALENDAR_DELETE_ERROR", 
-                status_code=400, 
-                uid=uid, 
-                origin="CALENDAR_DELETE_ERROR", 
+                message="Identifiant de calendrier manquant.",
+                code="CALENDAR_DELETE_ERROR",
+                status_code=400,
+                uid=uid,
+                origin="CALENDAR_DELETE",
                 log_extra={"calendar_id": calendar_id}
             )
 
-        doc_ref = db.collection("users").document(uid).collection("calendars").document(calendar_id)
-        if not doc_ref.get().exists:
-            return warning_response(
-                message="Calendrier introuvable.", 
-                code="CALENDAR_DELETE_ERROR", 
-                status_code=404, 
-                uid=uid, 
-                origin="CALENDAR_DELETE_ERROR", 
-                log_extra={"calendar_id": calendar_id}
-            )
+        # Supprimer le calendrier
+        supabase.table("calendars").delete().eq("id", calendar_id).eq("owner_uid", uid).execute()
 
-        doc_ref.delete()
-
-        for doc in db.collection("shared_tokens").get():
-            token_data = doc.to_dict()
-            if token_data.get("owner_uid") == uid and token_data.get("calendar_id") == calendar_id:
-                db.collection("shared_tokens").document(doc.id).delete()
+        # Supprimer aussi les tokens associés
+        supabase.table("shared_tokens").delete().eq("calendar_id", calendar_id).execute()
 
         return success_response(
-            message="Calendrier supprimé avec succès", 
-            code="CALENDAR_DELETE_SUCCESS", 
-            uid=uid, 
-            origin="CALENDAR_DELETE", 
+            message="Calendrier supprimé avec succès",
+            code="CALENDAR_DELETE_SUCCESS",
+            uid=uid,
+            origin="CALENDAR_DELETE",
             log_extra={"calendar_id": calendar_id}
         )
 
     except Exception as e:
         return error_response(
-            message="Erreur lors de la suppression du calendrier.", 
-            code="CALENDAR_DELETE_ERROR", 
-            status_code=500, 
-            uid=uid, 
-            origin="CALENDAR_DELETE", 
+            message="Erreur lors de la suppression du calendrier.",
+            code="CALENDAR_DELETE_ERROR",
+            status_code=500,
+            uid=uid,
+            origin="CALENDAR_DELETE",
             error=str(e)
         )
 
@@ -152,72 +127,75 @@ def handle_delete_calendar():
 @api.route("/api/calendars", methods=["PUT"])
 def handle_rename_calendar():
     try:
-        user = verify_firebase_token()
+        user, token = verify_firebase_token()
         uid = user["uid"]
         data = request.get_json(force=True)
         calendar_id = data.get("calendarId")
         new_calendar_name = data.get("newCalendarName")
 
-        doc_ref = db.collection("users").document(uid).collection("calendars").document(calendar_id)
-        if not doc_ref.get().exists:
+        if not calendar_id or not new_calendar_name:
             return warning_response(
-                message="Calendrier introuvable", 
-                code="CALENDAR_RENAME_ERROR", 
-                status_code=404, 
-                uid=uid, 
-                origin="CALENDAR_RENAME", 
-                log_extra={"calendar_id": calendar_id, "new_calendar_name": new_calendar_name})
-
-        old_calendar_name = doc_ref.get().to_dict().get("calendar_name")
-        if not old_calendar_name or not new_calendar_name:
-            return warning_response(
-                message="Noms invalides reçus.", 
-                code="CALENDAR_RENAME_ERROR", 
-                status_code=400, 
-                uid=uid, 
-                origin="CALENDAR_RENAME", 
-                log_extra={"calendar_id": calendar_id, "old_calendar_name": old_calendar_name, "new_calendar_name": new_calendar_name}
+                message="ID ou nom manquant.",
+                code="CALENDAR_RENAME_ERROR",
+                status_code=400,
+                uid=uid,
+                origin="CALENDAR_RENAME"
             )
 
+        # Récupérer l'ancien nom
+        response = supabase.table("calendars").select("name").eq("id", calendar_id).eq("owner_uid", uid).execute()
+        if not response.data:
+            return warning_response(
+                message="Calendrier introuvable",
+                code="CALENDAR_RENAME_ERROR",
+                status_code=404,
+                uid=uid,
+                origin="CALENDAR_RENAME",
+                log_extra={"calendar_id": calendar_id}
+            )
+
+        old_calendar_name = response.data[0]["name"]
         if old_calendar_name == new_calendar_name:
             return warning_response(
-                message="Nom inchangé.", 
-                code="CALENDAR_RENAME_ERROR", 
-                status_code=400, 
-                uid=uid, 
-                origin="CALENDAR_RENAME", 
-                log_extra={"calendar_id": calendar_id, "old_calendar_name": old_calendar_name, "new_calendar_name": new_calendar_name})
+                message="Nom inchangé.",
+                code="CALENDAR_RENAME_ERROR",
+                status_code=400,
+                uid=uid,
+                origin="CALENDAR_RENAME"
+            )
 
-        doc_ref.update({"calendar_name": new_calendar_name})
+        supabase.table("calendars").update({
+            "name": new_calendar_name,
+            "last_updated": datetime.now(timezone.utc).isoformat(),
+            "owner_uid": uid
+        }).eq("id", calendar_id).eq("owner_uid", uid).execute()
 
-        for doc in db.collection("shared_tokens").get():
-            token_data = doc.to_dict()
-            if token_data.get("owner_uid") == uid and token_data.get("calendar_name") == old_calendar_name:
-                db.collection("shared_tokens").document(doc.id).update({"calendar_name": new_calendar_name})
 
         return success_response(
-            message="Calendrier renommé avec succès", 
-            code="CALENDAR_RENAME_SUCCESS", 
-            uid=uid, 
-            origin="CALENDAR_RENAME", 
+            message="Calendrier renommé avec succès",
+            code="CALENDAR_RENAME_SUCCESS",
+            uid=uid,
+            origin="CALENDAR_RENAME",
             log_extra={"calendar_id": calendar_id, "old_calendar_name": old_calendar_name, "new_calendar_name": new_calendar_name}
         )
 
     except Exception as e:
         return error_response(
-            message="Erreur lors du renommage du calendrier.", 
-            code="CALENDAR_RENAME_ERROR", 
-            status_code=500, 
-            uid=uid, 
-            origin="CALENDAR_RENAME", 
-            error=str(e))
+            message="Erreur lors du renommage du calendrier.",
+            code="CALENDAR_RENAME_ERROR",
+            status_code=500,
+            uid=uid,
+            origin="CALENDAR_RENAME",
+            error=str(e)
+        )
+
   
 
 # Route pour générer le calendrier 
 @api.route("/api/calendars/<calendar_id>/schedule", methods=["GET"])
 def handle_calendar_schedule(calendar_id):
     try:
-        user = verify_firebase_token()
+        user, token = verify_firebase_token()
         owner_uid = user["uid"]
 
         start_date = request.args.get("startTime")
