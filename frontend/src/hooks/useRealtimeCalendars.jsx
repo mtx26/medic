@@ -57,7 +57,7 @@ export const useRealtimeCalendars = (setCalendarsData, setLoadingStates) => {
             count: data.calendars?.length,
           });
         } catch (err) {
-          setLoadingStates(prev => ({ ...prev, calendars: true }));
+          setLoadingStates(prev => ({ ...prev, calendars: false }));
           log.error(err.message || "Échec de mise à jour en temps réel des calendriers", err, {
             origin: "CALENDARS_REALTIME_ERROR",
             uid: user?.uid,
@@ -122,7 +122,7 @@ export const useRealtimeSharedCalendars = (setSharedCalendarsData, setLoadingSta
             count: data.calendars?.length,
           });
         } catch (err) {
-          setLoadingStates(prev => ({ ...prev, sharedCalendars: true }));
+          setLoadingStates(prev => ({ ...prev, sharedCalendars: false }));
           log.error(err.message || "Échec de récupération des calendriers partagés", err, {
             origin: "SHARED_CALENDARS_FETCH_ERROR",
             uid: user?.uid,

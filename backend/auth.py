@@ -16,10 +16,6 @@ def verify_firebase_token():
     id_token = auth_header.split(" ")[1]
     try:
         decoded_token = auth.verify_id_token(id_token)
-        logger.info("Authentification réussie", {
-            "origin": "TOKEN_SUCCESS",
-            "uid": decoded_token["uid"]
-        })
         return decoded_token
     except Exception as e:
         logger.warning("Token invalide", {

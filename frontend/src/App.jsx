@@ -478,7 +478,7 @@ function App() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      logEvent(analytics, 'revoke_token', {
+      logEvent(analytics, 'update_revoke_token', {
         token: token,
         uid: auth.currentUser.uid,
       });
@@ -882,34 +882,6 @@ function App() {
       return {success: false, error: "Erreur lors de la suppression des médicaments", code: "SHARED_USER_CALENDAR_MEDICINES_DELETE_ERROR", medicinesData: rep.medicinesData};
     }
   }, [updateSharedUserCalendarMedicines]);
-
-  // Fonction pour récupérer les informations d’un utilisateur
-  /*
-  const fetchUserInfo = useCallback(async (userId) => {
-    try {
-      const token = await auth.currentUser.getIdToken();
-      const res = await fetch(`${API_URL}/api/user/info/${userId}`, {
-        method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-      log.info(data.message, {
-        origin: "FETCH_USER_INFO_SUCCESS",
-        userId,
-      });
-      return {success: true, message: data.message, code: data.code, data: data.user_data};
-    } catch (err) {
-      log.error(err.message || "Échec de récupération des informations de l'utilisateur", err, {
-        origin: "FETCH_USER_INFO_ERROR",
-        userId,
-      });
-      return {success: false, error: err.message, code: err.code};
-    }
-  }, []);
-  */
   
 
   const sharedProps = {

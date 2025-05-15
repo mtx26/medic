@@ -26,15 +26,35 @@ const ShareCalendarModal = forwardRef(({
   useImperativeHandle(ref, () => ({
     open: () => {
       setTimeout(() => {
-        const modal = new window.bootstrap.Modal(document.getElementById('shareModal'));
+        const modal = new window.bootstrap.Modal(document.getElementById('shareModal'), {
+          focus: false
+        });
         modal.show();
       }, 0);
-    },
+    },    
     close: () => {
-      const modal = window.bootstrap.Modal.getInstance(document.getElementById('shareModal'));
-      if (modal) modal.hide();
-      document.activeElement?.blur();
-    }
+      const modalEl = document.getElementById('shareModal');
+      if (!modalEl) return;
+    
+      const modal = window.bootstrap.Modal.getInstance(modalEl);
+      if (modal) {
+        // Ajouter un listener pour "transitionend"
+        const handleHidden = () => {
+          modal.dispose(); // 🔥 Supprime correctement l’instance
+          modalEl.removeEventListener('hidden.bs.modal', handleHidden);
+          
+          // Sécurité : retirer tout backdrop restant
+          document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+          document.body.classList.remove('modal-open'); // au cas où
+          document.body.style.paddingRight = ''; // au cas où Bootstrap l’a modifié
+        };
+    
+        modalEl.addEventListener('hidden.bs.modal', handleHidden);
+        modal.hide(); // 📦 Lance l’animation de fermeture
+      }
+    
+      document.activeElement?.blur(); // 🔵 Retirer le focus actif (croix, bouton…)
+    }    
   }));
 
   const handleCopyLink = async (link) => {

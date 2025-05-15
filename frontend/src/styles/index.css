@@ -95,10 +95,49 @@ body.modal-open {
 }
 
 
+/* 🎯 Ordre normal (desktop) — FullCalendar gère bien */
+.fc-toolbar-chunk {
+  order: unset;
+}
 
+/* 📱 Ordre custom sur mobile */
+@media (max-width: 576px) {
+  .fc-header-toolbar {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
 
+  .fc-toolbar-chunk {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
 
+  .fc-toolbar-title {
+    font-size: 1rem;
+    text-align: center;
+    width: 100%;
+  }
 
+  .fc-toolbar-chunk:nth-child(1) {
+    order: 2; /* [prev][next][today] -> 2e ligne */
+  }
 
+  .fc-toolbar-chunk:nth-child(2) {
+    order: 1; /* Titre -> première ligne */
+  }
+
+  .fc-toolbar-chunk:nth-child(3) {
+    order: 3; /* [mois][semaine][jour] -> 3e ligne */
+  }
+
+  .fc .fc-button {
+    font-size: 0.75rem;
+    padding: 0.3rem 0.6rem;
+  }
+}
 
 

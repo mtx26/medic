@@ -12,8 +12,9 @@ import { getCalendarSourceMap } from "../utils/calendarSourceMap"
 import ShareCalendarModal from '../components/ShareCalendarModal';
 import AlertSystem from '../components/AlertSystem';
 import isEqual from "lodash/isEqual";
-import { Modal } from "bootstrap";
-
+import bootstrap5Plugin from '@fullcalendar/bootstrap5';
+import 'bootstrap/dist/css/bootstrap.css';
+import DateModal from '../components/DateModal';
 
 function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
 
@@ -25,7 +26,7 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
   // 🔐 Contexte d'authentification
   const { authReady, currentUser } = useContext(UserContext); // Contexte de l'utilisateur connecté
   
-  const [selectedDate, setSelectedDate] = useState(''); // Date sélectionnée
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().slice(0, 10)); // Date sélectionnée
   const [eventsForDay, setEventsForDay] = useState([]); // Événements filtrés pour un jour spécifique
   const [calendarEvents, setCalendarEvents] = useState([]); // Événements du calendrier
   const [calendarTable, setCalendarTable] = useState([]); // Événements du calendrier
@@ -37,26 +38,12 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
   const [sharedUsersData, setSharedUsersData] = useState([]); // Utilisateurs partageant le calendrier
 
   // 🔄 Références et chargement
+  const dateModalRef = useRef(null);
   const shareModalRef = useRef(null); // Référence vers le modal (pour gestion focus/fermeture)
-  const modalRef = useRef(null); // Référence vers le modal (pour gestion focus/fermeture)
   const [loading, setLoading] = useState(undefined); // État de chargement du calendrier
   
   const [startDate, setStartDate] = useState(new Date().toISOString().slice(0, 10));
   const [startWeek, setStartWeek] = useState(formatWeekString(new Date()));
-
-  const modalInstanceRef = useRef(null);
-  
-  
-  const openModal = () => {
-    // Instanciation de la modale si nécessaire
-    modalInstanceRef.current = new Modal(modalRef.current);
-    modalInstanceRef.current?.show();
-  };
-
-  const closeModal = () => {
-    document.activeElement.blur();
-    modalInstanceRef.current?.hide();
-  };
   
   const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   const days_map = {
@@ -95,7 +82,11 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
     const clickedDate = info.dateStr;
     setSelectedDate(clickedDate);
     setEventsForDay(calendarEvents.filter((event) => event.start.startsWith(clickedDate)));
-    openModal();
+    dateModalRef.current?.open();
+  }; 
+
+  const closeModal = () => {
+    dateModalRef.current?.close();
   };
 
   // Fonction pour naviguer vers la date suivante ou precedente
@@ -132,6 +123,13 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
 
     load();
   }, [authReady, currentUser, calendarId, calendarType, calendarSource, calendarEvents, calendarTable, calendarName]);
+
+  useEffect(() => {
+    if (!selectedDate || !calendarEvents.length) return;
+    const filtered = calendarEvents.filter((event) => event.start.startsWith(selectedDate));
+    setEventsForDay(filtered);
+  }, [selectedDate, calendarEvents]);
+  
 
   const memoizedEvents = useMemo(() => {
     return calendarEvents.map((event) => ({
@@ -365,78 +363,92 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
           </div>
           
           {/* Calendrier mensuel */}
-          <div>
+          <div className='d-none d-md-block'>
             <h4 className="mb-4"><i className="bi bi-calendar-week"></i> Calendrier mensuel</h4>
             <div className="alert alert-info mt-4 mb-4" role="alert">
               <i className="bi bi-pin-angle-fill"></i>
               <span> Cliquez sur un jour du calendrier pour voir les médicaments associés dans une fenêtre.</span>
             </div>
-            <FullCalendar
-              plugins={[dayGridPlugin, interactionPlugin]}
-              initialView="dayGridMonth"
-              events={memoizedEvents}
-              locale={frLocale}
-              firstDay={1}
-              dateClick={handleDateClick}
-              height={600}
+            <div className="card shadow-sm">
+              <div className="card-body">
+                <FullCalendar
+                  plugins={[dayGridPlugin, interactionPlugin, bootstrap5Plugin]}
+                  initialView="dayGridWeek"
+                  themeSystem="bootstrap5"
+                  events={memoizedEvents}
+                  headerToolbar={{
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,dayGridWeek,dayGridDay'
+                  }}
+                  locale={frLocale}
+                  firstDay={1}
+                  dateClick={handleDateClick}
+                  height={400}
 
-              // click sur les événements
-              eventClick={(info) => {
-                const clickedDate = info.event.startStr.slice(0, 10); // format YYYY-MM-DD
-                handleDateClick({ dateStr: clickedDate });
-              }}
+                  // click sur les événements
+                  eventClick={(info) => {
+                    const clickedDate = info.event.startStr.slice(0, 10); // format YYYY-MM-DD
+                    handleDateClick({ dateStr: clickedDate });
+                  }}
 
-              // semaine actuelle en vert clair
-              dayCellDidMount={(info) => {
-                const today = new Date();
-                const startOfWeek = new Date(today);
-                startOfWeek.setDate(today.getDate() - ((today.getDay() + 6) % 7) - 1);
-                const endOfWeek = new Date(startOfWeek);
-                endOfWeek.setDate(startOfWeek.getDate() + 7);
-              
-                const cellDate = new Date(info.date.toDateString());
-              
-                const isToday =
-                  cellDate.getFullYear() === today.getFullYear() &&
-                  cellDate.getMonth() === today.getMonth() &&
-                  cellDate.getDate() === today.getDate();
-              
-                if (!isToday && cellDate >= startOfWeek && cellDate <= endOfWeek) {
-                  info.el.classList.add('highlight-week');
-                }
-              }}
-            />
-          </div>
-        </>
-      ) : (
-        <div className="alert alert-info mt-4 mb-0" role="alert">
-          <i className="bi bi-pin-angle-fill"></i>
-          <span> Aucun médicament prévu pour le moment.</span>
-        </div>
-      )}
-
-      {/* Modal pour afficher les médicaments d'une date */}
-      <div className="modal fade" ref={modalRef} tabIndex="-1" id="dateModal">
-        <div className="modal-dialog modal-dialog-centered">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h5 className="modal-title">
-                <i className="bi bi-calendar-date"></i>
-                <span> {new Date(selectedDate).toLocaleDateString('fr-FR', {
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
-                </span>
-              </h5>
-              <button type="button" className="btn-close" onClick={closeModal}></button>
+                  // semaine actuelle en vert clair
+                  dayCellDidMount={(info) => {
+                    const today = new Date();
+                    const startOfWeek = new Date(today);
+                    startOfWeek.setDate(today.getDate() - ((today.getDay() + 6) % 7) - 1);
+                    const endOfWeek = new Date(startOfWeek);
+                    endOfWeek.setDate(startOfWeek.getDate() + 7);
+                  
+                    const cellDate = new Date(info.date.toDateString());
+                  
+                    const isToday =
+                      cellDate.getFullYear() === today.getFullYear() &&
+                      cellDate.getMonth() === today.getMonth() &&
+                      cellDate.getDate() === today.getDate();
+                  
+                    if (!isToday && cellDate >= startOfWeek && cellDate <= endOfWeek) {
+                      info.el.classList.add('highlight-week');
+                    }
+                  }}
+                  buttonText={{
+                    today: 'Aujourd’hui',
+                    month: 'Mois',
+                    week: 'Semaine',
+                    day: 'Jour'
+                  }}   
+                />
+              </div>
             </div>
-            <div className="modal-body">
-              <div className="d-flex justify-content-between align-items-center">
+          </div>
+
+          {/* Modal pour afficher les médicaments d'une date */}
+          <DateModal
+            ref={dateModalRef}
+            selectedDate={selectedDate}
+            events={eventsForDay}
+            onNext={() => navigateDay(1)}
+            onPrev={() => navigateDay(-1)}
+          />
+
+          {/* Calendrier mobile */}
+          <div className='d-block d-md-none'>
+            <h4 className="mb-4"><i className="bi bi-calendar-week"></i> Calendrier mensuel</h4>
+            <div className="p-3 bg-white vh-100 overflow-auto d-flex flex-column">
+              <div className="d-flex justify-content-between align-items-center mb-3">
+                <h5 className="mb-0">
+                  <i className="bi bi-calendar-date"></i>{' '}
+                  <span>{new Date(selectedDate).toLocaleDateString('fr-FR', {
+                    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+                  })}</span>
+                </h5>
+              </div>
+
+              <div className="d-flex justify-content-between align-items-center mb-3">
                 <button className="btn btn-outline-secondary btn-sm" onClick={() => navigateDay(-1)}>
                   <i className="bi bi-arrow-left"></i>
                 </button>
+
                 <div className="flex-grow-1 mx-3">
                   {eventsForDay.length > 0 ? (
                     <ul className="list-group">
@@ -453,19 +465,21 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
                     <p className="text-muted text-center mb-0">Aucun événement ce jour-là.</p>
                   )}
                 </div>
+
                 <button className="btn btn-outline-secondary btn-sm" onClick={() => navigateDay(1)}>
                   <i className="bi bi-arrow-right"></i>
                 </button>
               </div>
             </div>
-            <div className="modal-footer">
-              <button type="button" className="btn btn-secondary" onClick={closeModal}>
-                Fermer
-              </button>
-            </div>
           </div>
+        </>
+      ) : (
+        <div className="alert alert-info mt-4 mb-0" role="alert">
+          <i className="bi bi-pin-angle-fill"></i>
+          <span> Aucun médicament prévu pour le moment.</span>
         </div>
-      </div>
+      )}
+
     </div>
   );
 }

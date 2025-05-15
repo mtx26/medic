@@ -48,6 +48,7 @@ export const useRealtimeTokens = (setTokensList, setLoadingStates) => {
 					count: data.tokens.length,
 				});
 			} catch (err) {
+				setLoadingStates(prev => ({ ...prev, tokens: false }));
 				log.error(err.message || "Échec de récupération des tokens", err, {
 					origin: "TOKENS_FETCH_ERROR",
 					uid: user?.uid,

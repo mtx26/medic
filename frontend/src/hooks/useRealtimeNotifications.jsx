@@ -62,6 +62,7 @@ export const useRealtimeNotifications = (setNotificationsData, setLoadingStates)
 					});
 				}, 10000);
 			} catch (err) {
+				setLoadingStates(prev => ({ ...prev, notifications: false }));
 				log.error(err.message || "Échec de récupération des notifications enrichies", err, {
 					origin: "NOTIFICATIONS_FETCH_ERROR",
 					uid: user?.uid,
