@@ -431,47 +431,78 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
             onPrev={() => navigateDay(-1)}
           />
 
-          {/* Calendrier mobile */}
+          {/* Calendrier - Vue mobile uniquement */}
           <div className='d-block d-md-none'>
-            <h4 className="mb-4"><i className="bi bi-calendar-week"></i> Calendrier mensuel</h4>
-            <div className="p-3 bg-white vh-100 overflow-auto d-flex flex-column">
-              <div className="d-flex justify-content-between align-items-center mb-3">
-                <h5 className="mb-0">
-                  <i className="bi bi-calendar-date"></i>{' '}
-                  <span>{new Date(selectedDate).toLocaleDateString('fr-FR', {
-                    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-                  })}</span>
-                </h5>
-              </div>
+            {/* Titre */}
+            <h4 className="mb-4">
+              <i className="bi bi-calendar-week"></i> Calendrier mensuel
+            </h4>
+            <div className="card shadow-sm">
+              <div className="card-body">
+                {/* Conteneur principal scrollable */}
+                <div className="bg-white overflow-auto d-flex flex-column">
 
-              <div className="d-flex justify-content-between align-items-center mb-3">
-                <button className="btn btn-outline-secondary btn-sm" onClick={() => navigateDay(-1)}>
-                  <i className="bi bi-arrow-left"></i>
-                </button>
+                  {/* Date sélectionnée */}
+                  <div className="d-flex justify-content-center align-items-center mb-3">
+                    <h5 className="mb-0">
+                      <i className="bi bi-calendar-date me-2"></i>
+                      {new Date(selectedDate).toLocaleDateString('fr-FR', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </h5>
+                  </div>
 
-                <div className="flex-grow-1 mx-3">
-                  {eventsForDay.length > 0 ? (
-                    <ul className="list-group">
-                      {eventsForDay.map((event, index) => (
-                        <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
-                          {`${event.title} (${event.dose})`}
-                          <span className="badge" style={{ backgroundColor: event.color, color: 'white' }}>
-                            {new Date(event.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="text-muted text-center mb-0">Aucun événement ce jour-là.</p>
-                  )}
+                  {/* Événements du jour */}
+                  <div className="d-flex justify-content-between align-items-center mb-3">
+
+                    {/* Bouton jour précédent */}
+                    <button className="btn btn-outline-secondary btn-sm" onClick={() => navigateDay(-1)}>
+                      <i className="bi bi-arrow-left"></i>
+                    </button>
+
+                    {/* Liste des événements */}
+                    <div className="flex-grow-1 mx-3">
+                      {eventsForDay.length > 0 ? (
+                        <ul className="list-group">
+                          {eventsForDay.map((event, index) => (
+                            <li
+                              key={index}
+                              className="list-group-item d-flex justify-content-between align-items-center"
+                            >
+                              {`${event.title} (${event.dose})`}
+                              <span
+                                className="badge"
+                                style={{ backgroundColor: event.color, color: 'white' }}
+                              >
+                                {new Date(event.start).toLocaleTimeString([], {
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="text-muted text-center mb-0">
+                          Aucun événement ce jour-là.
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Bouton jour suivant */}
+                    <button className="btn btn-outline-secondary btn-sm" onClick={() => navigateDay(1)}>
+                      <i className="bi bi-arrow-right"></i>
+                    </button>
+
+                  </div>
                 </div>
-
-                <button className="btn btn-outline-secondary btn-sm" onClick={() => navigateDay(1)}>
-                  <i className="bi bi-arrow-right"></i>
-                </button>
               </div>
             </div>
           </div>
+
         </>
       ) : (
         <div className="alert alert-info mt-4 mb-0" role="alert">

@@ -1,3 +1,9 @@
+/* === STRUCTURE GÉNÉRALE === */
+html {
+  overflow-y: scroll;
+  height: 100%;
+}
+
 body {
   height: 100%;
   margin: 0;
@@ -8,72 +14,26 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
-}
-.fc-daygrid-day {
-  cursor: pointer;
+body.modal-open {
+  padding-right: 0 !important;
 }
 
-.fc-daygrid-day-frame {
+#root {
   height: 100%;
-  width: 100%;
 }
 
-.highlighted-med {
-  animation: fade-highlight 1s ease-in-out;
-  background-color: #d1e7dd !important; /* vert clair Bootstrap */
-}
 
-@keyframes fade-highlight {
-  from {
-    background-color: #0f5132;
-    color: white;
-  }
-  to {
-    background-color: #d1e7dd;
-    color: inherit;
-  }
-}
-
-.bg-unread {
-  background-color: #eaf4ff !important;
-}
-
-.highlight-week {
-  background-color: #d0f5d8 !important;
+/* === TYPOGRAPHIE === */
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
 }
 
 .fs-7 {
   font-size: 0.75rem;
 }
 
-.alert-wrapper {
-  max-height: 0;
-  opacity: 0;
-  overflow: hidden;
-  transition: max-height 0.4s ease, opacity 0.4s ease;
-}
 
-.alert-wrapper.show {
-  max-height: 500px;
-  opacity: 1;
-}
-
-html {
-  overflow-y: scroll;
-  height: 100%;
-}
-
-.no-dismiss-padding {
-  padding-right: 1rem !important; /* ou ce que tu veux */
-}
-
-body.modal-open {
-  padding-right: 0 !important;
-}
-
+/* === TABLE & LISTES === */
 .table td, .table th {
   min-width: 50px;
 }
@@ -90,54 +50,64 @@ body.modal-open {
   background-color: #e9ecef;
 }
 
-#root {
-  height: 100%;
+
+/* === ALERTES === */
+.alert-wrapper {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease, opacity 0.4s ease;
+}
+
+.alert-wrapper.show {
+  max-height: 500px;
+  opacity: 1;
 }
 
 
-/* 🎯 Ordre normal (desktop) — FullCalendar gère bien */
+/* === UTILITAIRES === */
+.no-dismiss-padding {
+  padding-right: 1rem !important; /* ou ce que tu veux */
+}
+
+.bg-unread {
+  background-color: #eaf4ff !important;
+}
+
+
+/* === FULLCALENDAR : JOUR / CELLULES === */
+.fc-daygrid-day {
+  cursor: pointer;
+}
+
+.fc-daygrid-day-frame {
+  height: 100%;
+  width: 100%;
+}
+
+
+/* === FULLCALENDAR : TOOLBAR PAR DÉFAUT (desktop) === */
 .fc-toolbar-chunk {
   order: unset;
 }
 
-/* 📱 Ordre custom sur mobile */
-@media (max-width: 576px) {
-  .fc-header-toolbar {
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .fc-toolbar-chunk {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 0.25rem;
-  }
-
-  .fc-toolbar-title {
-    font-size: 1rem;
-    text-align: center;
-    width: 100%;
-  }
-
-  .fc-toolbar-chunk:nth-child(1) {
-    order: 2; /* [prev][next][today] -> 2e ligne */
-  }
-
-  .fc-toolbar-chunk:nth-child(2) {
-    order: 1; /* Titre -> première ligne */
-  }
-
-  .fc-toolbar-chunk:nth-child(3) {
-    order: 3; /* [mois][semaine][jour] -> 3e ligne */
-  }
-
-  .fc .fc-button {
-    font-size: 0.75rem;
-    padding: 0.3rem 0.6rem;
-  }
+/* === HIGHLIGHT / ANIMATIONS === */
+.highlighted-med {
+  animation: fade-highlight 1s ease-in-out;
+  background-color: #d1e7dd !important;
 }
 
+.highlight-week {
+  background-color: #d0f5d8 !important;
+}
 
+@keyframes fade-highlight {
+  from {
+    background-color: #0f5132;
+    color: white;
+  }
+  to {
+    background-color: #d1e7dd;
+    color: inherit;
+  }
+}
