@@ -1,22 +1,16 @@
 // App.js
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { BrowserRouter as Router } from 'react-router-dom';
 import Navbar from './components/Header';
 import Footer from './components/Footer';
 import AppRoutes from './routes/AppRouter';
 import { log } from './utils/logger';
-import { analytics } from './services/firebase';
+import { analytics, auth } from './services/firebase';
 import { logEvent } from 'firebase/analytics';
-import { auth } from './services/firebase';
 import { UserContext } from './contexts/UserContext';
-import { useCallback } from 'react';
 import { useRealtimeCalendars, useRealtimeSharedCalendars } from './hooks/useRealtimeCalendars';
 import { useRealtimeNotifications } from './hooks/useRealtimeNotifications';
 import { useRealtimeTokens } from './hooks/useRealtimeTokens';
-// import TestFirestore from './scrip';
-// import { setLogLevel } from "firebase/firestore";
-
-// setLogLevel("debug");
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -37,8 +31,8 @@ function App() {
   const isInitialLoading = Object.values(loadingStates).some((v) => v);
 
   const generateHexToken = (length = 16) => [...crypto.getRandomValues(new Uint8Array(length))].map(b => b.toString(16).padStart(2, '0')).join('');
-  // TestFirestore();
-  
+
+  // Fonction pour récupérer les calendriers, les calendriers partagés, les notifications et les tokens
   useRealtimeCalendars(setCalendarsData, setLoadingStates);
   useRealtimeSharedCalendars(setSharedCalendarsData, setLoadingStates);
   useRealtimeNotifications(setNotificationsData, setLoadingStates);
@@ -962,9 +956,9 @@ function App() {
         <main className="flex-grow-1 d-flex flex-column">
           {isInitialLoading ? (
             <div className="flex-grow-1 d-flex justify-content-center align-items-center">
-              <div className="spinner-border text-primary" role="status">
+              <output className="spinner-border text-primary">
                 <span className="visually-hidden">Chargement des médicaments...</span>
-              </div>
+              </output>
             </div>
           ) : (
             <div className="container mt-4">

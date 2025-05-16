@@ -74,9 +74,9 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
   if (loadingCalendars) {
     return (
       <div className="d-flex justify-content-center align-items-center" style={{ height: '60vh' }}>
-        <div className="spinner-border text-primary" role="status">
+        <output className="spinner-border text-primary">
           <span className="visually-hidden">Chargement des calendriers...</span>
-        </div>
+        </output>
       </div>
     );
   }
