@@ -46,7 +46,7 @@ def get_medicines(calendar_id):
                 origin="MED_FETCH",
                 data={"medicines": []},
             )
-        medicines = [med.to_dict() for med in doc]
+        medicines = [med.to_dict() for med in medicines_ref]
 
         return success_response(
             message=SUCCESS_MEDICINES_FETCHED, 
@@ -137,7 +137,7 @@ def count_medicines():
         count = len(medicines)
 
         return success_response(
-            message=SUCCESS_MEDICINES_COUNTED, 
+            message=SUCCESS_MEDICINES_FETCHED, 
             code="MED_COUNT_SUCCESS", 
             uid=uid, 
             origin="MED_COUNT",

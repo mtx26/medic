@@ -66,7 +66,7 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
 
   let calendarType = 'personal';
   let calendarId = params.calendarId;
-  let basePath = 'calendars';
+  let basePath = 'calendar';
 
   if (location.pathname.startsWith('/shared-user-calendar')) {
     calendarType = 'sharedUser';

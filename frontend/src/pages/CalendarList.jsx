@@ -35,7 +35,23 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
   // 👥 Partage ciblé par utilisateur
   const [sharedUsersData, setSharedUsersData] = useState([]); // État pour les données des utilisateurs ayant accès
   
-
+  const handleRenameClick = (calendarId) => {
+    setAlertType("confirm-safe");
+    setSelectedAlert("calendar" + calendarId);
+    setAlertMessage("✅ Renommer le calendrier ?");
+    setOnConfirmAction(() => async () => {
+      const rep = await personalCalendars.renameCalendar(calendarId, renameValues[calendarId]);
+      if (rep.success) {
+        setRenameValues((prev) => ({ ...prev, [calendarId]: "" }));
+        setAlertType("success");
+        setAlertMessage("✅ " + rep.message);
+      } else {
+        setAlertType("danger");
+        setAlertMessage("❌ " + rep.error);
+      }
+      setSelectedAlert("calendar" + calendarId);
+    });
+  };  
 
   useEffect(() => {
     if (authReady && currentUser) {
@@ -213,26 +229,9 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
               }
               />
               <button
-              className="btn btn-outline-warning"
-              title="Renommer"
-              onClick={() => {
-                setAlertType("confirm-safe");
-                setSelectedAlert("calendar"+calendarData.calendar_id);
-                setAlertMessage("✅ Renommer le calendrier ?");
-                setOnConfirmAction(() => async () => {
-                  const rep = await personalCalendars.renameCalendar(calendarData.calendar_id, renameValues[calendarData.calendar_id]); // Renommage du calendrier
-                  if (rep.success) {
-                    setRenameValues({ ...renameValues, [calendarData.calendar_id]: "" }); // Réinitialisation du champ
-                    setAlertType("success");
-                    setSelectedAlert("calendar"+calendarData.calendar_id);
-                    setAlertMessage("✅ " + rep.message);
-                  } else {
-                    setAlertType("danger");
-                    setSelectedAlert("calendar"+calendarData.calendar_id);
-                    setAlertMessage("❌ " + rep.error);
-                  }
-                });
-              }}
+                className="btn btn-outline-warning"
+                title="Renommer"
+                onClick={() => handleRenameClick(calendarData.calendar_id)}
               >
               <i className="bi bi-pencil"></i>
               </button>
@@ -241,10 +240,10 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
             {/* Boutons d'action : ouvrir ou supprimer */}
             <div className="btn-group btn-group">
               <button
-              type="button"
-              className="btn btn-outline-success"
-              title="Ouvrir"
-              onClick={() => navigate('/calendars/' + calendarData.calendar_id)} // Navigation vers le calendrier
+                type="button"
+                className="btn btn-outline-success"
+                title="Ouvrir"
+                onClick={() => navigate('/calendar/' + calendarData.calendar_id)} // Navigation vers le calendrier
               >
               Ouvrir
               </button>

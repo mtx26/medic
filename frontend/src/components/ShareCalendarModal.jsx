@@ -2,6 +2,140 @@ import { forwardRef, useState, useImperativeHandle } from 'react';
 import { useNavigate } from 'react-router-dom';
 import HoveredUserProfile from './HoveredUserProfile';
 
+const LinkShareOptions = ({
+  existingShareToken,
+  calendarName,
+  expiresAt,
+  setExpiresAt,
+  permissions,
+  setPermissions,
+  handleCopyLink,
+  navigate,
+  refObj,
+  VITE_URL
+}) => {
+  if (existingShareToken) {
+    const link = `${VITE_URL}/shared-token-calendar/${existingShareToken.token}`;
+    return (
+      <>
+        <p>Un lien existe déjà pour ce calendrier.</p>
+        <div className="input-group">
+          <input type="text" className="form-control" value={link} readOnly />
+          <button
+            className="btn btn-outline-warning"
+            onClick={() => {
+              navigate('/shared-calendar');
+              refObj.current.close();
+            }}
+            title="Gérer le lien"
+          >
+            <i className="bi bi-gear"></i>
+          </button>
+          <button
+            className="btn btn-outline-primary"
+            onClick={() => handleCopyLink(link)}
+            title="Copier le lien"
+          >
+            <i className="bi bi-clipboard"></i>
+          </button>
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <p>Un lien sera généré pour <strong>{calendarName}</strong>.</p>
+      <label htmlFor="newTokenExpiration" className="form-label">Expiration du lien</label>
+      <select
+        id="newTokenExpiration"
+        className="form-select mb-2"
+        value={expiresAt === null ? '' : 'date'}
+        onChange={(e) => setExpiresAt(e.target.value === '' ? null : '')}
+      >
+        <option value="">Jamais</option>
+        <option value="date">Choisir une date</option>
+      </select>
+      {expiresAt !== null && (
+        <input
+          type="datetime-local"
+          className="form-control"
+          value={expiresAt}
+          onChange={(e) => setExpiresAt(e.target.value)}
+        />
+      )}
+      <label htmlFor="newTokenPermissions" className="form-label mt-2">Permissions</label>
+      <select
+        id="newTokenPermissions"
+        className="form-select"
+        value={permissions}
+        onChange={(e) => setPermissions(e.target.value)}
+      >
+        <option value="read">Lecture seule</option>
+        <option value="edit">Lecture + Édition</option>
+      </select>
+    </>
+  );
+};
+
+
+const AccountShareOptions = ({
+  sharedUsersData,
+  calendarName,
+  emailToInvite,
+  setEmailToInvite,
+  handleInvite
+}) => (
+  <div>
+    {sharedUsersData.length > 0 && (
+      <ul className="list-group mb-3">
+        {sharedUsersData.map((user) => (
+          <li key={user.receiver_uid} className="list-group-item d-flex justify-content-between align-items-center">
+            <HoveredUserProfile
+              user={{
+                email: user.receiver_email,
+                display_name: user.receiver_name,
+                photo_url: user.receiver_photo_url
+              }}
+              trigger={
+                <span className="d-flex align-items-center gap-2" style={{ cursor: 'pointer' }}>
+                  <img src={user.receiver_photo_url} alt="Profil" className="rounded-circle" style={{ width: '40px', height: '40px' }} />
+                  <span>
+                    <strong>{user.receiver_name}</strong><br />
+                    Accès : {user.access}
+                  </span>
+                </span>
+              }
+            />
+            <span className={`badge rounded-pill ${user.accepted ? 'bg-success' : 'bg-warning text-dark'}`}>
+              {user.accepted ? 'Accepté' : 'En attente'}
+            </span>
+          </li>
+        ))}
+      </ul>
+    )}
+    <p>Envoyer une invitation pour accéder à <strong>{calendarName}</strong>.</p>
+    <div className="input-group">
+      <input
+        type="email"
+        className="form-control"
+        placeholder="Email du destinataire"
+        value={emailToInvite}
+        onChange={(e) => setEmailToInvite(e.target.value)}
+      />
+      <button
+        type="button"
+        className="btn btn-outline-primary"
+        onClick={handleInvite}
+      >
+        Partager
+      </button>
+    </div>
+  </div>
+);
+
+
+
 const ShareCalendarModal = forwardRef(({
   calendarId,
   calendarName,
@@ -130,114 +264,29 @@ const ShareCalendarModal = forwardRef(({
 
             {shareMethod === 'link' ? (
               <div className="d-flex flex-column gap-3">
-                {existingShareToken ? (
-                  <>
-                    <p>Un lien existe déjà pour ce calendrier.</p>
-                    <div className="input-group">
-                      <input
-                        type="text"
-                        className="form-control"
-                        value={`${VITE_URL}/shared-token-calendar/${existingShareToken.token}`}
-                        readOnly
-                      />
-                      <button
-                        className="btn btn-outline-warning"
-                        onClick={() => {
-                          navigate('/shared-calendar');
-                          ref.current.close();
-                        }}
-                        title="Gérer le lien"
-                      >
-                        <i className="bi bi-gear"></i>
-                      </button>
-                      <button
-                        className="btn btn-outline-primary"
-                        onClick={() => handleCopyLink(`${VITE_URL}/shared-token-calendar/${existingShareToken.token}`)}
-                        title="Copier le lien"
-                      >
-                        <i className="bi bi-clipboard"></i>
-                      </button>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <p>Un lien sera généré pour <strong>{calendarName}</strong>.</p>
-                    <label htmlFor="newTokenExpiration" className="form-label">Expiration du lien</label>
-                    <select
-                      id="newTokenExpiration"
-                      className="form-select mb-2"
-                      value={expiresAt === null ? '' : 'date'}
-                      onChange={(e) => setExpiresAt(e.target.value === '' ? null : '')}
-                    >
-                      <option value="">Jamais</option>
-                      <option value="date">Choisir une date</option>
-                    </select>
-                    {expiresAt !== null && (
-                      <input
-                        type="datetime-local"
-                        className="form-control"
-                        value={expiresAt}
-                        onChange={(e) => setExpiresAt(e.target.value)}
-                      />
-                    )}
-                    <label htmlFor="newTokenPermissions" className="form-label mt-2">Permissions</label>
-                    <select
-                      id="newTokenPermissions"
-                      className="form-select"
-                      value={permissions}
-                      onChange={(e) => setPermissions(e.target.value)}
-                    >
-                      <option value="read">Lecture seule</option>
-                      <option value="edit">Lecture + Édition</option>
-                    </select>
-                  </>
-                )}
+                <LinkShareOptions
+                  existingShareToken={existingShareToken}
+                  calendarName={calendarName}
+                  expiresAt={expiresAt}
+                  setExpiresAt={setExpiresAt}
+                  permissions={permissions}
+                  setPermissions={setPermissions}
+                  handleCopyLink={handleCopyLink}
+                  navigate={navigate}
+                  refObj={ref}
+                  VITE_URL={VITE_URL}
+                />
               </div>
             ) : (
-              <div>
-                {sharedUsersData.length > 0 && (
-                  <ul className="list-group mb-3">
-                    {sharedUsersData.map((user) => (
-                      <li key={user.receiver_uid} className="list-group-item d-flex justify-content-between align-items-center">
-                        <HoveredUserProfile
-                          user={{
-                            email: user.receiver_email,
-                            display_name: user.receiver_name,
-                            photo_url: user.receiver_photo_url
-                          }}
-                          trigger={
-                            <span className="d-flex align-items-center gap-2" style={{ cursor: 'pointer' }}>
-                              <img src={user.receiver_photo_url} alt="Profil" className="rounded-circle" style={{ width: '40px', height: '40px' }} />
-                              <span>
-                                <strong>{user.receiver_name}</strong><br />
-                                Accès : {user.access}
-                              </span>
-                            </span>
-                          }
-                        />
-                        <span className={`badge rounded-pill ${user.accepted ? 'bg-success' : 'bg-warning text-dark'}`}>{user.accepted ? 'Accepté' : 'En attente'}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                <p>Envoyer une invitation pour accéder à <strong>{calendarName}</strong>.</p>
-                <div className="input-group">
-                  <input
-                    type="email"
-                    className="form-control"
-                    placeholder="Email du destinataire"
-                    onChange={(e) => setEmailToInvite(e.target.value)}
-                  />
-                  <button
-                    type="button"
-                    className="btn btn-outline-primary"
-                    onClick={handleInvite}
-                  >
-                    Partager
-                  </button>
-                </div>
-              </div>
+              <AccountShareOptions
+                sharedUsersData={sharedUsersData}
+                calendarName={calendarName}
+                emailToInvite={emailToInvite}
+                setEmailToInvite={setEmailToInvite}
+                handleInvite={handleInvite}
+              />
             )}
+
           </div>
 
           <div className="modal-footer">
