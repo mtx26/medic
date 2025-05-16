@@ -93,11 +93,60 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
       (typeof med.start_date === 'string' && med.start_date.trim() !== '');
   
     return hasName && hasTabletCount && hasValidTime && hasInterval && hasValidStartDate;
-  };
-  
-  
+  };  
 
   const allMedsValid = medicinesData.length > 0 && medicinesData.every(isMedValid);
+
+  const handleSave = async () => {
+    const rep = await calendarSource.updateMedicines(calendarId, medicinesData);
+    if (rep.success) {
+      setAlertMessage("✅ " + rep.message);
+      setAlertType("success");
+      setMedicinesData(rep.medicinesData);
+      setOriginalMedicinesData(JSON.parse(JSON.stringify(rep.originalMedicinesData)));
+    } else {
+      setAlertMessage("❌ " + rep.error);
+      setAlertType("danger");
+      setMedicinesData(JSON.parse(JSON.stringify(originalMedicinesData)));
+    }
+    setTimeout(() => {
+      setAlertMessage("");
+      setAlertType("");
+    }, 2000);
+    setOnConfirmAction(null);
+  };
+  
+  const onSaveClick = () => {
+    setAlertType("confirm-safe");
+    setAlertMessage("✅ Enregistrer les modifications ?");
+    setOnConfirmAction(() => handleSave);
+  };
+
+  const handleDelete = async () => {
+    const rep = await calendarSource.deleteMedicines(calendarId, checked, medicinesData);
+    if (rep.success) {
+      setMedicinesData(rep.medicinesData);
+      setChecked([]);
+      setOriginalMedicinesData(JSON.parse(JSON.stringify(rep.originalMedicinesData)));
+      setAlertMessage("✅ " + rep.message);
+      setAlertType("success");
+    } else {
+      setAlertMessage("❌ " + rep.error);
+      setAlertType("danger");
+      setMedicinesData(JSON.parse(JSON.stringify(originalMedicinesData)));
+    }
+    setTimeout(() => {
+      setAlertMessage("");
+      setAlertType("");
+    }, 2000);
+    setOnConfirmAction(null);
+  };
+  
+  const onDeleteClick = () => {
+    setAlertType("confirm-danger");
+    setAlertMessage("❌ Supprimer les médicaments ?");
+    setOnConfirmAction(() => handleDelete);
+  };  
 
   useRealtimeMedicinesSwitcher(
     calendarType,
@@ -163,29 +212,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
           </button>
 
           <button
-            onClick={() => {
-              setAlertType("confirm-danger");
-              setAlertMessage("❌ Supprimer les médicaments ?");
-              setOnConfirmAction(() => async () => {
-                const rep = await calendarSource.deleteMedicines(calendarId, checked, medicinesData);
-                if (rep.success) {
-                  setMedicinesData(rep.medicinesData);
-                  setChecked([]);
-                  setOriginalMedicinesData(JSON.parse(JSON.stringify(rep.originalMedicinesData)));
-                  setAlertMessage("✅ "+rep.message);
-                  setAlertType("success");
-                } else {
-                  setAlertMessage("❌ "+rep.error);
-                  setAlertType("danger");
-                  setMedicinesData(JSON.parse(JSON.stringify(originalMedicinesData)));
-                }
-                setTimeout(() => {
-                  setAlertMessage("");
-                  setAlertType("");
-                }, 2000);
-                setOnConfirmAction(null);
-              });
-            }}
+            onClick={onDeleteClick}
             className="btn btn-outline-danger"
             disabled={checked.length === 0}
             title="Supprimer les médicaments sélectionnés"
@@ -195,28 +222,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
           </button>
 
           <button
-            onClick={() => {
-              setAlertType("confirm-safe");
-              setAlertMessage("✅ Enregistrer les modifications ?");
-              setOnConfirmAction(() => async () => {
-                const rep = await calendarSource.updateMedicines(calendarId, medicinesData);
-                if (rep.success) {
-                  setAlertMessage("✅ "+rep.message);
-                  setAlertType("success");
-                  setMedicinesData(rep.medicinesData);
-                  setOriginalMedicinesData(JSON.parse(JSON.stringify(rep.originalMedicinesData)));
-                } else {
-                  setAlertMessage("❌ "+rep.error);
-                  setAlertType("danger");
-                  setMedicinesData(JSON.parse(JSON.stringify(originalMedicinesData)));
-                }
-                setTimeout(() => {
-                  setAlertMessage("");
-                  setAlertType("");
-                }, 2000);
-                setOnConfirmAction(null);
-              });
-            }}
+            onClick={onSaveClick}
             className="btn btn-outline-success"
             disabled={!allMedsValid || !hasChanges}
             title="Modifier les médicaments"
