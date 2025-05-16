@@ -68,7 +68,7 @@ def handle_tokens():
             code="TOKENS_ERROR", 
             status_code=500, 
             uid=uid, 
-            origin="TOKENS_ERROR", 
+            origin="TOKENS_FETCH", 
             error=str(e)
         )
 
@@ -144,7 +144,7 @@ def handle_create_token(calendar_id):
             code="TOKEN_CREATE_ERROR", 
             status_code=500, 
             uid=owner_uid, 
-            origin="TOKEN_CREATE_ERROR", 
+            origin="TOKEN_CREATE", 
             error=str(e),
             log_extra={"calendar_id": calendar_id}
         )
@@ -166,7 +166,7 @@ def handle_update_revoke_token(token):
                 code="TOKEN_NOT_FOUND", 
                 status_code=404, 
                 uid=owner_uid, 
-                origin="TOKEN_NOT_FOUND", 
+                origin="TOKEN_REVOKE", 
                 log_extra={"token": token}
             )
         
@@ -176,7 +176,7 @@ def handle_update_revoke_token(token):
                 code="TOKEN_NOT_AUTHORIZED", 
                 status_code=403, 
                 uid=owner_uid, 
-                origin="TOKEN_NOT_AUTHORIZED", 
+                origin="TOKEN_REVOKE", 
                 log_extra={"token": token}
             )
 
@@ -206,7 +206,7 @@ def handle_update_revoke_token(token):
             code="TOKEN_REVOKE_ERROR", 
             status_code=500, 
             uid=owner_uid, 
-            origin="TOKEN_REVOKE_ERROR", 
+            origin="TOKEN_REVOKE", 
             error=str(e),
             log_extra={"token": token}
         )
@@ -229,7 +229,7 @@ def handle_update_token_expiration(token):
                 code="TOKEN_NOT_FOUND", 
                 status_code=404, 
                 uid=owner_uid, 
-                origin="TOKEN_NOT_FOUND", 
+                origin="TOKEN_EXPIRATION_UPDATE", 
                 log_extra={"token": token}
             )
         
@@ -239,11 +239,10 @@ def handle_update_token_expiration(token):
                 code="TOKEN_NOT_AUTHORIZED", 
                 status_code=403, 
                 uid=owner_uid, 
-                origin="TOKEN_NOT_AUTHORIZED", 
+                origin="TOKEN_EXPIRATION_UPDATE", 
                 log_extra={"token": token}
             )
         expires_at = data.get("expiresAt")
-        print(expires_at)
         if not expires_at:
             db.collection("shared_tokens").document(token).update({
                 "expires_at": None
@@ -267,7 +266,7 @@ def handle_update_token_expiration(token):
             code="TOKEN_EXPIRATION_UPDATE_ERROR", 
             status_code=500, 
             uid=owner_uid, 
-            origin="TOKEN_EXPIRATION_UPDATE_ERROR", 
+            origin="TOKEN_EXPIRATION_UPDATE", 
             error=str(e),
             log_extra={"token": token}
         )
@@ -323,7 +322,7 @@ def handle_update_token_permissions(token):
             code="TOKEN_PERMISSIONS_UPDATE_ERROR", 
             status_code=500, 
             uid=owner_uid, 
-            origin="TOKEN_PERMISSIONS_UPDATE_ERROR", 
+            origin="TOKEN_PERMISSIONS_UPDATE", 
             error=str(e),
             log_extra={"token": token}
         )
@@ -346,7 +345,7 @@ def handle_generate_token_schedule(token):
                 code="TOKEN_INVALID", 
                 status_code=404, 
                 uid="unknown", 
-                origin="TOKEN_INVALID", 
+                origin="TOKEN_GENERATE_SCHEDULE", 
                 log_extra={"token": token}
             )
 
@@ -365,7 +364,7 @@ def handle_generate_token_schedule(token):
                     code="TOKEN_EXPIRED", 
                     status_code=404, 
                     uid="unknown", 
-                    origin="TOKEN_EXPIRED", 
+                    origin="TOKEN_GENERATE_SCHEDULE", 
                     log_extra={"token": token}
                 )
 
@@ -375,7 +374,7 @@ def handle_generate_token_schedule(token):
                 code="TOKEN_REVOKED", 
                 status_code=404, 
                 uid="unknown", 
-                origin="TOKEN_REVOKED", 
+                origin="TOKEN_GENERATE_SCHEDULE", 
                 log_extra={"token": token}
             )
 
@@ -385,7 +384,7 @@ def handle_generate_token_schedule(token):
                 code="TOKEN_NO_READ_PERMISSION", 
                 status_code=403, 
                 uid="unknown", 
-                origin="TOKEN_NO_READ_PERMISSION", 
+                origin="TOKEN_GENERATE_SCHEDULE", 
                 log_extra={"token": token}
             )
 
@@ -396,7 +395,7 @@ def handle_generate_token_schedule(token):
                 code="CALENDAR_NOT_FOUND", 
                 status_code=404, 
                 uid="unknown", 
-                origin="CALENDAR_TOKEN_GENERATED", 
+                origin="TOKEN_GENERATE_SCHEDULE", 
                 log_extra={"token": token}
             )
 
@@ -408,7 +407,7 @@ def handle_generate_token_schedule(token):
                 message=SUCCESS_SHARED_CALENDARS_LOAD, 
                 code="SHARED_CALENDARS_LOAD_SUCCESS", 
                 uid=uid, 
-                origin="SHARED_CALENDARS_LOAD",
+                origin="TOKEN_GENERATE_SCHEDULE",
                 data={"medicines": 0, "schedule": [], "calendar_name": calendar_name, "table": {}}
             )
 
@@ -422,7 +421,7 @@ def handle_generate_token_schedule(token):
             message=SUCCESS_CALENDAR_GENERATED, 
             code="CALENDAR_GENERATED_SUCCESS", 
             uid=owner_uid, 
-            origin="CALENDAR_TOKEN_GENERATED", 
+            origin="TOKEN_GENERATE_SCHEDULE", 
             data={"medicines": len(medicines), "schedule": schedule, "calendar_name": calendar_name, "table": table},
             log_extra={"token": token}
         )
@@ -433,7 +432,7 @@ def handle_generate_token_schedule(token):
             code="CALENDAR_TOKEN_GENERATE_ERROR", 
             status_code=500, 
             uid=owner_uid, 
-            origin="CALENDAR_TOKEN_GENERATE", 
+            origin="TOKEN_GENERATE_SCHEDULE", 
             error=str(e),
             log_extra={"token": token}
         )
@@ -497,7 +496,7 @@ def get_token_metadata(token):
         return success_response(
             message=SUCCESS_TOKEN_METADATA_FETCHED,
             code="TOKEN_METADATA_SUCCESS",
-            origin="TOKEN_METADATA_LOAD",
+            origin="TOKEN_METADATA_FETCH",
             uid="unknown",
             data={
                 "calendar_id": calendar_id,
@@ -512,7 +511,7 @@ def get_token_metadata(token):
             code="TOKEN_METADATA_ERROR",
             status_code=500,
             error=str(e),
-            origin="TOKEN_METADATA_LOAD",
+            origin="TOKEN_METADATA_FETCH",
             uid="unknown",
             log_extra={"token": token}
         )
