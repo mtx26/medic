@@ -23,6 +23,11 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore();
 
-const analytics = (await isSupported()) ? getAnalytics(app) : null;
+let analytics = null;
+isSupported().then((ok) => {
+  if (ok) {
+    analytics = getAnalytics(app);
+  }
+});
 
 export { auth, db, analytics };
