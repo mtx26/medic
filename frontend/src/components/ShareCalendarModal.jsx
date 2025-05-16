@@ -23,6 +23,16 @@ const ShareCalendarModal = forwardRef(({
   const [permissions, setPermissions] = useState('read');
   const [emailToInvite, setEmailToInvite] = useState('');
 
+  const triggerAlert = (type, messageOrError) => {
+    setAlertType(type);
+    if (alertCategory) setSelectedAlert(alertCategory);
+    if (type === 'success') {
+      setAlertMessage("✅ " + messageOrError);
+    } else {
+      setAlertMessage("❌ " + messageOrError);
+    }
+  };  
+
   useImperativeHandle(ref, () => ({
     open: () => {
       setTimeout(() => {
@@ -60,65 +70,34 @@ const ShareCalendarModal = forwardRef(({
   const handleCopyLink = async (link) => {
     try {
       await navigator.clipboard.writeText(link);
-      setAlertType("success");
-      if (alertCategory) {
-        setSelectedAlert(alertCategory);
-      }
-      setAlertMessage("🔗 Lien copié !");
+      triggerAlert("success", "Lien copié !");
       ref.current.close();
     } catch {
-      setAlertType("danger");
-      if (alertCategory) {
-        setSelectedAlert(alertCategory);
-      }
-      setAlertMessage("❌ Erreur lors de la copie du lien.");
+      triggerAlert("danger", "Erreur lors de la copie du lien.");
     }
   };
+  
 
   const handleInvite = async () => {
     const rep = await sharedUserCalendars.sendInvitation(emailToInvite, calendarId);
-    if (rep.success) {
-      setAlertType("success");
-      if (alertCategory) {
-        setSelectedAlert(alertCategory);
-      }
-      setAlertMessage("✅ "+ rep.message);
-    } else {
-      setAlertType("danger");
-      if (alertCategory) {
-        setSelectedAlert(alertCategory);
-      }
-      setAlertMessage("❌ "+ rep.error);
-    }
+    triggerAlert(rep.success ? "success" : "danger", rep.success ? rep.message : rep.error);
     ref.current.close();
-  };
+  };  
 
   const handleCreateToken = async () => {
     const rep = await tokenCalendars.createToken(calendarId, expiresAt, permissions);
     if (rep.success) {
       try {
         await navigator.clipboard.writeText(`${VITE_URL}/shared-token-calendar/${rep.token}`);
-        setAlertType("success");
-        if (alertCategory) {
-          setSelectedAlert(alertCategory);
-        }
-        setAlertMessage("✅ "+ rep.message);
+        triggerAlert("success", rep.message);
       } catch {
-        setAlertType("danger");
-        if (alertCategory) {
-          setSelectedAlert(alertCategory);
-        }
-        setAlertMessage("❌ Erreur lors de la copie du lien.");
+        triggerAlert("danger", "Erreur lors de la copie du lien.");
       }
     } else {
-      setAlertType("danger");
-      if (alertCategory) {
-        setSelectedAlert(alertCategory);
-      }
-      setAlertMessage("❌ " + rep.error);
+      triggerAlert("danger", rep.error);
     }
     ref.current.close();
-  };
+  };  
 
   return (
     <div className="modal fade" tabIndex="-1" id="shareModal">
