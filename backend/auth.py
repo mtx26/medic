@@ -2,14 +2,17 @@ import firebase_admin_init
 from firebase_admin import auth
 from flask import request, abort
 from logger import log_backend as logger
-
+from messages import (
+    WARNING_TOKEN_MISSING,
+    WARNING_TOKEN_INVALID
+)
 
 def verify_firebase_token():
     auth_header = request.headers.get("Authorization", "")
     if not auth_header.startswith("Bearer "):
-        logger.warning("Token manquant ou mal formaté", {
+        logger.warning(WARNING_TOKEN_MISSING, {
             "origin": "TOKEN_ERROR",
-            "uid": uid
+            "uid": "unknown"
         })
         abort(401, description="Token manquant ou mal formaté")
 
@@ -17,10 +20,10 @@ def verify_firebase_token():
     try:
         decoded_token = auth.verify_id_token(id_token)
         return decoded_token
-    except Exception as e:
-        logger.warning("Token invalide", {
+    except Exception:
+        logger.warning(WARNING_TOKEN_INVALID, {
             "origin": "TOKEN_ERROR",
-            "uid": uid
+            "uid": "unknown"
         })
         abort(401, description="Token invalide ou expiré")
 

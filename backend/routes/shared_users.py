@@ -6,6 +6,26 @@ from firebase_admin import firestore, auth
 from function import verify_calendar_share, generate_schedule, generate_table
 import secrets
 from response import success_response, error_response, warning_response
+from messages import (
+    SUCCESS_SHARED_CALENDARS_FETCHED,
+    SUCCESS_SHARED_CALENDAR_FETCHED,
+    SUCCESS_SHARED_CALENDAR_DELETED,
+    SUCCESS_SHARED_USER_DELETED,
+    SUCCESS_SHARED_USERS_FETCHED,
+    WARNING_SHARED_CALENDAR_NOT_FOUND,
+    WARNING_SHARED_USER_NOT_FOUND,
+    WARNING_USER_NOT_FOUND,
+    WARNING_UNAUTHORIZED_ACCESS,
+    WARNING_NO_MEDICINES_FOUND,
+    WARNING_CANNOT_REMOVE_SELF,
+    ERROR_SHARED_CALENDAR_FETCH,
+    ERROR_SHARED_CALENDAR_DELETE,
+    ERROR_SHARED_USER_DELETE,
+    ERROR_SHARED_USERS_FETCH,
+    ERROR_MEDICINES_FETCH,
+    ERROR_MEDICINES_UPDATE
+)
+
 
 db = firestore.client()
 
@@ -21,9 +41,9 @@ def handle_shared_calendars():
 
         if not shared_users_docs:
             return success_response(
-                message="Aucun calendrier partagé", 
-                code="SHARED_CALENDARS_LOAD_EMPTY", 
-                uid=uid, 
+                message=SUCCESS_SHARED_CALENDARS_FETCHED,
+                code="SHARED_CALENDARS_LOAD_EMPTY",
+                uid=uid,
                 origin="SHARED_CALENDARS_LOAD",
                 data={"calendars": []}
             )
@@ -41,7 +61,7 @@ def handle_shared_calendars():
             calendar_doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).get()
             if not calendar_doc.exists:
                 return warning_response(
-                    message="Calendrier partagé introuvable",
+                    message=WARNING_SHARED_CALENDAR_NOT_FOUND,
                     code="SHARED_CALENDARS_LOAD_ERROR",
                     status_code=404,
                     uid=uid,
@@ -52,7 +72,7 @@ def handle_shared_calendars():
             owner_doc = db.collection("users").document(owner_uid).get()
             if not owner_doc.exists:
                 return warning_response(
-                    message="Propriétaire du calendrier introuvable",
+                    message=WARNING_SHARED_USER_NOT_FOUND,
                     code="SHARED_CALENDARS_LOAD_ERROR",
                     status_code=404,
                     uid=uid,
@@ -79,7 +99,7 @@ def handle_shared_calendars():
             })
 
         return success_response(
-            message="Calendriers partagés récupérés avec succès", 
+            message=SUCCESS_SHARED_CALENDARS_FETCHED, 
             code="SHARED_CALENDARS_LOAD_SUCCESS", 
             uid=uid, 
             origin="SHARED_CALENDARS_LOAD",
@@ -88,7 +108,7 @@ def handle_shared_calendars():
 
     except Exception as e:
         return error_response(
-            message="Erreur lors de la récupération des calendriers partagés.", 
+            message=ERROR_SHARED_CALENDARS_FETCH, 
             code="SHARED_CALENDARS_ERROR", 
             status_code=500, 
             uid=uid, 
@@ -106,7 +126,7 @@ def handle_user_shared_calendar(calendar_id):
         shared_with_doc = db.collection("users").document(receiver_uid).collection("shared_calendars").document(calendar_id)
         if not shared_with_doc.get().exists:
             return warning_response(
-                message="Calendrier partagé introuvable.", 
+                message=WARNING_SHARED_CALENDAR_NOT_FOUND, 
                 code="SHARED_CALENDARS_LOAD_ERROR", 
                 status_code=404, 
                 uid=receiver_uid,
@@ -120,7 +140,7 @@ def handle_user_shared_calendar(calendar_id):
 
         if not verify_calendar_share(calendar_id, owner_uid, receiver_uid):
             return warning_response(
-                message="Accès non autorisé.",
+                message=WARNING_UNAUTHORIZED_ACCESS,
                 code="SHARED_CALENDARS_LOAD_ERROR",
                 status_code=403,
                 uid=receiver_uid,
@@ -131,7 +151,7 @@ def handle_user_shared_calendar(calendar_id):
         calendar_doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).get()
         if not calendar_doc.exists:
             return warning_response(
-                message="Calendrier partagé introuvable",
+                message=WARNING_SHARED_CALENDAR_NOT_FOUND,
                 code="SHARED_CALENDARS_LOAD_ERROR",
                 status_code=404,
                 uid=receiver_uid,
@@ -142,7 +162,7 @@ def handle_user_shared_calendar(calendar_id):
         calendar_name = calendar_doc.to_dict().get("calendar_name")
 
         return success_response(
-            message="Calendrier partagé récupéré avec succès",
+            message=SUCCESS_SHARED_CALENDAR_FETCHED,
             code="SHARED_CALENDARS_LOAD_SUCCESS",
             uid=receiver_uid,
             origin="SHARED_CALENDARS_LOAD",
@@ -152,7 +172,7 @@ def handle_user_shared_calendar(calendar_id):
 
     except Exception as e:
         return error_response(
-            message="Erreur lors de la récupération des informations du calendrier partagé.",
+            message=ERROR_SHARED_CALENDAR_FETCH,
             code="SHARED_CALENDARS_ERROR",
             status_code=500,
             uid=receiver_uid,
@@ -177,7 +197,7 @@ def handle_user_shared_calendar_schedule(calendar_id):
         doc = db.collection("users").document(uid).collection("shared_calendars").document(calendar_id)
         if not doc.get().exists:
             return warning_response(
-                message="Calendrier partagé introuvable.", 
+                message=WARNING_SHARED_CALENDAR_NOT_FOUND, 
                 code="SHARED_CALENDARS_LOAD_ERROR", 
                 status_code=404, 
                 uid=uid, 
@@ -190,7 +210,7 @@ def handle_user_shared_calendar_schedule(calendar_id):
         doc_1 = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id)
         if not doc_1.get().exists:
             return warning_response(
-                message="Calendrier partagé introuvable.", 
+                message=WARNING_SHARED_CALENDAR_NOT_FOUND, 
                 code="SHARED_CALENDARS_LOAD_ERROR", 
                 status_code=404, 
                 uid=uid, 
@@ -202,7 +222,7 @@ def handle_user_shared_calendar_schedule(calendar_id):
 
         if not verify_calendar_share(calendar_id, owner_uid, uid):
             return warning_response(
-                message="Accès non autorisé.", 
+                message=WARNING_UNAUTHORIZED_ACCESS, 
                 code="SHARED_CALENDARS_LOAD_ERROR", 
                 status_code=403, 
                 uid=uid, 
@@ -213,7 +233,7 @@ def handle_user_shared_calendar_schedule(calendar_id):
         doc_2 = doc_1.collection("medicines")
         if not doc_2.get():
             return success_response(
-                message="Aucun médicament dans le calendrier partagé", 
+                message=SUCCESS_SHARED_CALENDAR_FETCHED, 
                 code="SHARED_CALENDARS_LOAD_SUCCESS", 
                 uid=uid, 
                 origin="SHARED_CALENDARS_LOAD",
@@ -226,7 +246,7 @@ def handle_user_shared_calendar_schedule(calendar_id):
         table = generate_table(start_date, medicines)
     
         return success_response(
-            message="Calendrier partagé récupéré avec succès", 
+            message=SUCCESS_SHARED_CALENDAR_FETCHED, 
             code="SHARED_CALENDARS_LOAD_SUCCESS", 
             uid=uid, 
             origin="SHARED_CALENDARS_LOAD",
@@ -236,7 +256,7 @@ def handle_user_shared_calendar_schedule(calendar_id):
 
     except Exception as e:
         return error_response(
-            message="Erreur lors de la récupération du calendrier partagé.", 
+            message=ERROR_SHARED_CALENDAR_FETCH,
             code="SHARED_CALENDARS_ERROR", 
             status_code=500, 
             uid=uid, 
@@ -256,7 +276,7 @@ def handle_delete_user_shared_calendar(calendar_id):
         received_calendar_doc = db.collection("users").document(receiver_uid).collection("shared_calendars").document(calendar_id)
         if not received_calendar_doc.get().exists:
             return warning_response(
-                message="Calendrier partagé introuvable", 
+                message=WARNING_SHARED_CALENDAR_NOT_FOUND, 
                 code="SHARED_CALENDARS_DELETE_ERROR", 
                 status_code=404, 
                 uid=receiver_uid, 
@@ -268,7 +288,7 @@ def handle_delete_user_shared_calendar(calendar_id):
 
         if not verify_calendar_share(calendar_id, owner_uid, receiver_uid):
             return warning_response(
-                message="Accès non autorisé.", 
+                message=WARNING_UNAUTHORIZED_ACCESS, 
                 code="SHARED_CALENDARS_DELETE_ERROR", 
                 status_code=403, 
                 uid=receiver_uid, 
@@ -280,7 +300,7 @@ def handle_delete_user_shared_calendar(calendar_id):
         shared_with_doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).collection("shared_with").document(receiver_uid)
         if not shared_with_doc.get().exists:
             return warning_response(
-                message="Utilisateur partagé introuvable.", 
+                message=WARNING_SHARED_USER_NOT_FOUND, 
                 code="SHARED_CALENDARS_DELETE_ERROR", 
                 status_code=404, 
                 uid=receiver_uid, 
@@ -306,7 +326,7 @@ def handle_delete_user_shared_calendar(calendar_id):
         })
 
         return success_response(
-            message="Calendrier partagé supprimé avec succès", 
+            message=SUCCESS_SHARED_CALENDAR_DELETED, 
             code="SHARED_CALENDARS_DELETE_SUCCESS", 
             uid=receiver_uid, 
             origin="SHARED_CALENDARS_DELETE",
@@ -315,7 +335,7 @@ def handle_delete_user_shared_calendar(calendar_id):
 
     except Exception as e:
         return error_response(
-            message="Erreur lors de la suppression du calendrier partagé.", 
+            message=ERROR_SHARED_CALENDAR_DELETE,
             code="SHARED_CALENDARS_DELETE_ERROR", 
             status_code=500, 
             uid=receiver_uid, 
@@ -335,7 +355,7 @@ def handle_delete_user_shared_user(calendar_id, receiver_uid):
         receiver_doc = db.collection("users").document(receiver_uid)
         if not receiver_doc.get().exists:
             return warning_response(
-                message="Utilisateur partagé introuvable.", 
+                message=WARNING_SHARED_USER_NOT_FOUND, 
                 code="SHARED_USERS_DELETE_ERROR", 
                 status_code=404, 
                 uid=owner_uid, 
@@ -345,7 +365,7 @@ def handle_delete_user_shared_user(calendar_id, receiver_uid):
 
         if owner_uid == receiver_uid:
             return warning_response(
-                message="Impossible de supprimer l'utilisateur partagé lui-même.", 
+                message=WARNING_CANNOT_REMOVE_SELF, 
                 code="SHARED_USERS_DELETE_ERROR", 
                 status_code=400, 
                 uid=owner_uid, 
@@ -356,7 +376,7 @@ def handle_delete_user_shared_user(calendar_id, receiver_uid):
         shared_with_doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).collection("shared_with").document(receiver_uid)
         if not shared_with_doc.get().exists:
             return warning_response(
-                message="Utilisateur partagé introuvable.", 
+                message=WARNING_SHARED_USER_NOT_FOUND, 
                 code="SHARED_USERS_DELETE_ERROR", 
                 status_code=404, 
                 uid=owner_uid, 
@@ -403,7 +423,7 @@ def handle_delete_user_shared_user(calendar_id, receiver_uid):
 
 
         return success_response(
-            message="Utilisateur partagé supprimé avec succès.", 
+            message=SUCCESS_SHARED_USER_DELETED, 
             code="SHARED_USERS_DELETE_SUCCESS", 
             uid=receiver_uid, 
             origin="SHARED_USERS_DELETE",
@@ -412,7 +432,7 @@ def handle_delete_user_shared_user(calendar_id, receiver_uid):
 
     except Exception as e:
         return error_response(
-            message="Erreur lors de la suppression de l'utilisateur partagé.", 
+            message=ERROR_SHARED_USER_DELETE,
             code="SHARED_USERS_DELETE_ERROR", 
             status_code=500, 
             uid=receiver_uid, 
@@ -444,7 +464,7 @@ def handle_shared_users(calendar_id):
             receiver_doc = db.collection("users").document(receiver_uid).get()
             if not receiver_doc.exists:
                 return warning_response(
-                    message="Utilisateur partagé introuvable",
+                    message=WARNING_SHARED_USER_NOT_FOUND,
                     code="SHARED_USERS_LOAD_ERROR",
                     status_code=404,
                     uid=owner_uid,
@@ -470,7 +490,7 @@ def handle_shared_users(calendar_id):
             })
 
         return success_response(
-            message="Utilisateurs partagés récupérés avec succès.", 
+            message=SUCCESS_SHARED_USERS_FETCHED, 
             code="SHARED_USERS_LOAD_SUCCESS", 
             uid=owner_uid, 
             origin="SHARED_USERS_LOAD",
@@ -479,7 +499,7 @@ def handle_shared_users(calendar_id):
 
     except Exception as e:
         return error_response(
-            message="Erreur lors de la récupération des utilisateurs partagés.", 
+            message=ERROR_SHARED_USERS_FETCH,
             code="SHARED_USERS_ERROR", 
             status_code=500, 
             uid=owner_uid, 
@@ -498,7 +518,7 @@ def handle_shared_user_calendar_medicines(calendar_id):
         doc_1_ref = db.collection("users").document(receiver_uid).collection("shared_calendars").document(calendar_id)
         if not doc_1_ref.get().exists:
             return warning_response(
-                message="Calendrier partagé introuvable.", 
+                message=WARNING_SHARED_CALENDAR_NOT_FOUND, 
                 code="SHARED_USER_CALENDAR_MEDICINES_LOAD_ERROR", 
                 status_code=404, 
                 uid=receiver_uid, 
@@ -510,7 +530,7 @@ def handle_shared_user_calendar_medicines(calendar_id):
 
         if not verify_calendar_share(calendar_id, owner_uid, receiver_uid):
             return warning_response(
-                message="Accès non autorisé.", 
+                message=WARNING_UNAUTHORIZED_ACCESS, 
                 code="SHARED_USER_CALENDAR_MEDICINES_LOAD_ERROR", 
                 status_code=403, 
                 uid=receiver_uid, 
@@ -521,7 +541,7 @@ def handle_shared_user_calendar_medicines(calendar_id):
         doc_2_ref = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id)
         if not doc_2_ref.get().exists:
             return warning_response(
-                message="Calendrier introuvable.", 
+                message=WARNING_SHARED_CALENDAR_NOT_FOUND, 
                 code="SHARED_USER_CALENDAR_MEDICINES_LOAD_ERROR", 
                 status_code=404, 
                 uid=owner_uid, 
@@ -532,7 +552,7 @@ def handle_shared_user_calendar_medicines(calendar_id):
         doc_3_ref = doc_2_ref.collection("medicines")
         if not doc_3_ref.get():
             return success_response(
-                message="Aucun médicament dans le calendrier partagé", 
+                message=SUCCESS_SHARED_CALENDAR_FETCHED, 
                 code="SHARED_USER_CALENDAR_MEDICINES_LOAD_SUCCESS", 
                 uid=receiver_uid, 
                 origin="SHARED_USER_CALENDAR_MEDICINES_LOAD",
@@ -542,7 +562,7 @@ def handle_shared_user_calendar_medicines(calendar_id):
         medicines = [med.to_dict() for med in doc_3_ref.get()]
 
         return success_response(
-            message="Médicaments récupérés avec succès", 
+            message=SUCCESS_SHARED_CALENDAR_FETCHED, 
             code="SHARED_USER_CALENDAR_MEDICINES_LOAD_SUCCESS", 
             uid=receiver_uid, 
             origin="SHARED_USER_CALENDAR_MEDICINES_LOAD",
@@ -551,7 +571,7 @@ def handle_shared_user_calendar_medicines(calendar_id):
 
     except Exception as e:
         return error_response(
-            message="Erreur lors de la récupération des médicaments du calendrier partagé.", 
+            message=ERROR_SHARED_CALENDAR_FETCH,
             code="SHARED_USER_CALENDAR_MEDICINES_ERROR", 
             status_code=500, 
             uid=receiver_uid, 
@@ -573,7 +593,7 @@ def handle_update_shared_user_calendar_medicines(calendar_id):
         doc_1_ref = db.collection("users").document(receiver_uid).collection("shared_calendars").document(calendar_id)
         if not doc_1_ref.get().exists:
             return warning_response(
-                message="Calendrier partagé introuvable.", 
+                message=WARNING_SHARED_CALENDAR_NOT_FOUND, 
                 code="SHARED_USER_CALENDAR_MEDICINES_UPDATE_ERROR", 
                 status_code=404, 
                 uid=receiver_uid, 
@@ -585,7 +605,7 @@ def handle_update_shared_user_calendar_medicines(calendar_id):
 
         if not verify_calendar_share(calendar_id, owner_uid, receiver_uid):
             return warning_response(
-                message="Accès non autorisé.", 
+                message=WARNING_UNAUTHORIZED_ACCESS, 
                 code="SHARED_USER_CALENDAR_MEDICINES_UPDATE_ERROR", 
                 status_code=403, 
                 uid=receiver_uid, 
@@ -602,7 +622,7 @@ def handle_update_shared_user_calendar_medicines(calendar_id):
             doc_2_ref.document(med["id"]).set(med)
 
         return success_response(
-            message="Médicaments mis à jour avec succès", 
+            message=SUCCESS_SHARED_CALENDAR_UPDATED, 
             code="SHARED_USER_CALENDAR_MEDICINES_UPDATE_SUCCESS", 
             uid=receiver_uid, 
             origin="SHARED_USER_CALENDAR_MEDICINES_UPDATE",
@@ -612,7 +632,7 @@ def handle_update_shared_user_calendar_medicines(calendar_id):
 
     except Exception as e:
         return error_response(
-            message="Erreur lors de la mise à jour des médicaments du calendrier partagé.", 
+            message=ERROR_SHARED_CALENDAR_UPDATE,
             code="SHARED_USER_CALENDAR_MEDICINES_UPDATE_ERROR", 
             status_code=500, 
             uid=receiver_uid, 

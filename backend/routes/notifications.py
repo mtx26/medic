@@ -3,6 +3,14 @@ from auth import verify_firebase_token
 from firebase_admin import firestore
 from response import success_response, error_response, warning_response
 from logger import log_backend as logger
+from messages import (
+    SUCCESS_NOTIFICATIONS_FETCHED,
+    SUCCESS_NOTIFICATION_READ,
+    ERROR_NOTIFICATIONS_FETCH,
+    ERROR_NOTIFICATION_READ,
+    WARNING_NOTIFICATION_NOT_FOUND
+)
+
 
 db = firestore.client()
 
@@ -16,6 +24,15 @@ def handle_notifications():
         notifications_ref = db.collection("users").document(uid).collection("notifications").get()
         notifications = []
 
+        if not notifications_ref:
+            return success_response(
+                message=SUCCESS_NOTIFICATIONS_FETCHED,
+                code="NOTIFICATIONS_FETCH_SUCCESS",
+                uid=uid,
+                origin="NOTIFICATIONS_FETCH",
+                data={"notifications": []}
+            )
+            
         for doc in notifications_ref:
             notif_data = doc.to_dict().copy()
 
@@ -37,17 +54,15 @@ def handle_notifications():
 
             if not owner_doc.exists:
                 db.collection("users").document(uid).collection("notifications").document(notification_id).delete()
-                logger.warning("Propriétaire de la notification introuvable, notification supprimée", {
+                logger.warning(WARNING_NOTIFICATION_NOT_FOUND, {
                     "origin": "NOTIFICATIONS_FETCH",
-                    "uid": uid,
                     "notification_id": notification_id
                 })
                 continue
             if not receiver_doc.exists:
                 db.collection("users").document(uid).collection("notifications").document(notification_id).delete()
-                logger.warning("Destinataire de la notification introuvable, notification supprimée", {
+                logger.warning(WARNING_NOTIFICATION_NOT_FOUND, {
                     "origin": "NOTIFICATIONS_FETCH",
-                    "uid": uid,
                     "notification_id": notification_id
                 })
                 continue
@@ -80,7 +95,7 @@ def handle_notifications():
         
 
         return success_response(
-            message="Notifications récupérées avec succès", 
+            message=SUCCESS_NOTIFICATIONS_FETCHED, 
             code="NOTIFICATIONS_FETCH_SUCCESS", 
             uid=uid, 
             origin="NOTIFICATIONS_FETCH",
@@ -89,7 +104,7 @@ def handle_notifications():
 
     except Exception as e:
         return error_response(
-            message="Erreur lors de la récupération des notifications.", 
+            message=ERROR_NOTIFICATIONS_FETCH, 
             code="NOTIFICATIONS_FETCH_ERROR", 
             status_code=500, 
             uid=uid, 
@@ -107,7 +122,7 @@ def handle_read_notification(notification_id):
         doc = db.collection("users").document(uid).collection("notifications").document(notification_id)
         if not doc.get().exists:
             return warning_response(
-                message="Notification introuvable", 
+                message=WARNING_NOTIFICATION_NOT_FOUND, 
                 code="NOTIFICATION_READ_ERROR", 
                 status_code=404, 
                 uid=uid, 
@@ -120,7 +135,7 @@ def handle_read_notification(notification_id):
         })
 
         return success_response(
-            message="Notification marquée comme lue avec succès", 
+            message=SUCCESS_NOTIFICATION_READ, 
             code="NOTIFICATION_READ_SUCCESS", 
             uid=uid, 
             origin="NOTIFICATION_READ",
@@ -129,7 +144,7 @@ def handle_read_notification(notification_id):
 
     except Exception as e:
         return error_response(
-            message="Erreur lors de la lecture de la notification.", 
+            message=ERROR_NOTIFICATION_READ, 
             code="NOTIFICATION_READ_ERROR", 
             status_code=500, 
             uid=uid, 

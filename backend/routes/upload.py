@@ -5,6 +5,12 @@ from cloudinary.uploader import upload
 from response import success_response, error_response, warning_response
 from auth import verify_firebase_token
 import requests
+from messages import (
+    SUCCESS_IMAGE_UPLOADED,
+    ERROR_IMAGE_UPLOAD,
+    WARNING_NO_GOOGLE_PHOTO_URL_PROVIDED
+)
+
 
 @api.route("/api/upload/logo", methods=["POST"])
 def upload_logo():
@@ -15,7 +21,7 @@ def upload_logo():
         file = request.files.get("file")   
         if not file:
             return warning_response(
-                message="Aucune URL de photo Google fournie",
+                message=WARNING_NO_GOOGLE_PHOTO_URL_PROVIDED,
                 code="NO_GOOGLE_PHOTO_URL_PROVIDED",
                 status_code=400,
                 uid=uid,
@@ -26,7 +32,7 @@ def upload_logo():
         
         print(result["url"])
         return success_response(
-            message="Image téléchargée avec succès",
+            message=SUCCESS_IMAGE_UPLOADED,
             code="IMAGE_UPLOADED",
             uid=uid,
             origin="UPLOAD_LOGO",
@@ -34,7 +40,7 @@ def upload_logo():
         )
     except Exception as e:
         return error_response(
-            message="Erreur lors du téléchargement de l'image",
+            message=ERROR_IMAGE_UPLOAD,
             code="IMAGE_UPLOAD_FAILED",
             status_code=500,
             uid=uid,

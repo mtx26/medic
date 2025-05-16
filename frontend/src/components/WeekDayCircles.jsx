@@ -11,6 +11,7 @@ export default function WeekDayCircles({ selectedDate, onSelectDate, getWeekDays
           return (
             <div
               key={index}
+              role="button"
               className={
                 `text-center rounded-circle border 
                 ${isToday 

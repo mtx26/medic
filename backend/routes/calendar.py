@@ -6,7 +6,24 @@ from firebase_admin import firestore
 from function import generate_schedule, generate_table
 import secrets
 from response import success_response, error_response, warning_response
-
+from messages import (
+    SUCCESS_CALENDARS_FETCHED,
+    SUCCESS_CALENDAR_CREATED,
+    SUCCESS_CALENDAR_DELETED,
+    SUCCESS_CALENDAR_RENAMED,
+    SUCCESS_CALENDAR_GENERATED,
+    ERROR_CALENDARS_FETCH,
+    ERROR_CALENDAR_CREATE,
+    ERROR_CALENDAR_DELETE,
+    ERROR_CALENDAR_RENAME,
+    ERROR_CALENDAR_GENERATE,
+    WARNING_CALENDAR_NOT_FOUND,
+    WARNING_CALENDAR_NAME_MISSING,
+    WARNING_CALENDAR_ALREADY_EXISTS,
+    WARNING_CALENDAR_UNCHANGED,
+    WARNING_CALENDAR_INVALID_NAME,
+    WARNING_CALENDAR_INVALID_ID
+)
 db = firestore.client()
 
 # Route pour récupérer les calendriers de l'utilisateur
@@ -19,7 +36,7 @@ def handle_calendars():
         calendars_ref = db.collection("users").document(uid).collection("calendars")
         calendars = [calendar.to_dict() for calendar in calendars_ref.stream()]
         return success_response(
-            message="Calendriers récupérés avec succès", 
+            message=SUCCESS_CALENDARS_FETCHED, 
             code="CALENDAR_FETCH_SUCCESS", 
             uid=uid, 
             origin="CALENDAR_FETCH", 
@@ -27,7 +44,7 @@ def handle_calendars():
         )
     except Exception as e:
         return error_response(
-            message="Erreur lors de la récupération des calendriers.", 
+            message=ERROR_CALENDARS_FETCH, 
             code="CALENDAR_FETCH_ERROR", 
             status_code=500, 
             uid=uid, 
@@ -46,7 +63,7 @@ def handle_create_calendar():
 
         if not calendar_name:
             return warning_response(
-                message="Nom de calendrier manquant.", 
+                message=ERROR_CALENDAR_NAME_MISSING, 
                 code="CALENDAR_CREATE_ERROR", 
                 status_code=400, 
                 uid=uid, 
@@ -59,7 +76,7 @@ def handle_create_calendar():
 
         if doc.exists:
             return warning_response(
-                message="Tentative de création d'un calendrier déjà existant.", 
+                message=WARNING_CALENDAR_ALREADY_EXISTS, 
                 code="CALENDAR_CREATE_ERROR", 
                 status_code=409, 
                 uid=uid, 
@@ -75,7 +92,7 @@ def handle_create_calendar():
         }, merge=True)
 
         return success_response(
-            message="Calendrier créé avec succès", 
+            message=SUCCESS_CALENDAR_CREATED, 
             code="CALENDAR_CREATE", 
             uid=uid, 
             origin="CALENDAR_CREATE", 
@@ -84,7 +101,7 @@ def handle_create_calendar():
 
     except Exception as e:
         return error_response(
-            message="Erreur lors de la création du calendrier.", 
+            message=ERROR_CALENDAR_CREATE, 
             code="CALENDAR_CREATE_ERROR", 
             status_code=500, 
             uid=uid, 
@@ -103,7 +120,7 @@ def handle_delete_calendar():
 
         if not calendar_id:
             return warning_response(
-                message="Identifiant de calendrier manquant.", 
+                message=WARNING_CALENDAR_INVALID_ID, 
                 code="CALENDAR_DELETE_ERROR", 
                 status_code=400, 
                 uid=uid, 
@@ -114,7 +131,7 @@ def handle_delete_calendar():
         doc_ref = db.collection("users").document(uid).collection("calendars").document(calendar_id)
         if not doc_ref.get().exists:
             return warning_response(
-                message="Calendrier introuvable.", 
+                message=WARNING_CALENDAR_NOT_FOUND, 
                 code="CALENDAR_DELETE_ERROR", 
                 status_code=404, 
                 uid=uid, 
@@ -130,7 +147,7 @@ def handle_delete_calendar():
                 db.collection("shared_tokens").document(doc.id).delete()
 
         return success_response(
-            message="Calendrier supprimé avec succès", 
+            message=SUCCESS_CALENDAR_DELETED, 
             code="CALENDAR_DELETE_SUCCESS", 
             uid=uid, 
             origin="CALENDAR_DELETE", 
@@ -139,7 +156,7 @@ def handle_delete_calendar():
 
     except Exception as e:
         return error_response(
-            message="Erreur lors de la suppression du calendrier.", 
+            message=ERROR_CALENDAR_DELETE, 
             code="CALENDAR_DELETE_ERROR", 
             status_code=500, 
             uid=uid, 
@@ -161,7 +178,7 @@ def handle_rename_calendar():
         doc_ref = db.collection("users").document(uid).collection("calendars").document(calendar_id)
         if not doc_ref.get().exists:
             return warning_response(
-                message="Calendrier introuvable", 
+                message=WARNING_CALENDAR_NOT_FOUND, 
                 code="CALENDAR_RENAME_ERROR", 
                 status_code=404, 
                 uid=uid, 
@@ -171,7 +188,7 @@ def handle_rename_calendar():
         old_calendar_name = doc_ref.get().to_dict().get("calendar_name")
         if not old_calendar_name or not new_calendar_name:
             return warning_response(
-                message="Noms invalides reçus.", 
+                message=WARNING_CALENDAR_INVALID_NAME, 
                 code="CALENDAR_RENAME_ERROR", 
                 status_code=400, 
                 uid=uid, 
@@ -181,7 +198,7 @@ def handle_rename_calendar():
 
         if old_calendar_name == new_calendar_name:
             return warning_response(
-                message="Nom inchangé.", 
+                message=WARNING_CALENDAR_UNCHANGED, 
                 code="CALENDAR_RENAME_ERROR", 
                 status_code=400, 
                 uid=uid, 
@@ -196,7 +213,7 @@ def handle_rename_calendar():
                 db.collection("shared_tokens").document(doc.id).update({"calendar_name": new_calendar_name})
 
         return success_response(
-            message="Calendrier renommé avec succès", 
+            message=SUCCESS_CALENDAR_RENAMED, 
             code="CALENDAR_RENAME_SUCCESS", 
             uid=uid, 
             origin="CALENDAR_RENAME", 
@@ -205,7 +222,7 @@ def handle_rename_calendar():
 
     except Exception as e:
         return error_response(
-            message="Erreur lors du renommage du calendrier.", 
+            message=ERROR_CALENDAR_RENAME, 
             code="CALENDAR_RENAME_ERROR", 
             status_code=500, 
             uid=uid, 
@@ -229,7 +246,7 @@ def handle_calendar_schedule(calendar_id):
         doc_1 = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id)
         if not doc_1.get().exists:
             return warning_response(
-                message="Calendrier introuvable", 
+                message=WARNING_CALENDAR_NOT_FOUND, 
                 code="CALENDAR_GENERATE_ERROR", 
                 status_code=404, 
                 uid=owner_uid, 
@@ -242,7 +259,7 @@ def handle_calendar_schedule(calendar_id):
         doc_2 = doc_1.collection("medicines")
         if not doc_2.get():
             return success_response(
-                message="Calendrier généré avec succès", 
+                message=SUCCESS_CALENDAR_GENERATED, 
                 code="CALENDAR_GENERATE_SUCCESS", 
                 uid=owner_uid, 
                 origin="CALENDAR_GENERATE", 
@@ -256,7 +273,7 @@ def handle_calendar_schedule(calendar_id):
         table = generate_table(start_date, medicines)
 
         return success_response(
-            message="Calendrier généré avec succès", 
+            message=SUCCESS_CALENDAR_GENERATED, 
             code="CALENDAR_GENERATE_SUCCESS", 
             uid=owner_uid, 
             origin="CALENDAR_GENERATE", 
@@ -266,7 +283,7 @@ def handle_calendar_schedule(calendar_id):
 
     except Exception as e:
         return error_response(
-            message="Erreur lors de la génération du calendrier.", 
+            message=ERROR_CALENDAR_GENERATE, 
             code="CALENDAR_GENERATE_ERROR", 
             status_code=500, 
             uid=owner_uid, 

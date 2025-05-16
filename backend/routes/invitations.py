@@ -4,6 +4,20 @@ from auth import verify_firebase_token
 from firebase_admin import firestore, auth
 import secrets
 from . import api
+from messages import (
+    SUCCESS_INVITATION_SENT,
+    SUCCESS_INVITATION_ACCEPTED,
+    SUCCESS_INVITATION_REJECTED,
+    ERROR_INVITATION_SEND,
+    ERROR_INVITATION_ACCEPT,
+    ERROR_INVITATION_REJECT,
+    WARNING_CALENDAR_NOT_FOUND,
+    WARNING_USER_NOT_FOUND,
+    WARNING_NOTIFICATION_NOT_FOUND,
+    WARNING_INVALID_NOTIFICATION,
+    WARNING_SELF_INVITATION
+)
+
 
 db = firestore.client()
 
@@ -17,7 +31,7 @@ def handle_send_invitation(calendar_id):
         doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).get()
         if not doc.exists:
             return warning_response(
-                message="Calendrier introuvable", 
+                message=WARNING_CALENDAR_NOT_FOUND, 
                 code="CALENDAR_NOT_FOUND", 
                 status_code=404, 
                 uid=owner_uid, 
@@ -33,7 +47,7 @@ def handle_send_invitation(calendar_id):
         # Verif si soit même
         if owner_uid == receiver_uid:
             return warning_response(
-                message="Tentative de partage avec soi-même", 
+                message=WARNING_SELF_INVITATION, 
                 code="SELF_INVITATION_ERROR", 
                 status_code=400, 
                 uid=owner_uid, 
@@ -45,7 +59,7 @@ def handle_send_invitation(calendar_id):
         doc = db.collection("users").document(receiver_uid).get()
         if not doc.exists:
             return warning_response(
-                message="Utilisateur non trouvé", 
+                message=WARNING_USER_NOT_FOUND, 
                 code="USER_NOT_FOUND", 
                 status_code=404, 
                 uid=owner_uid, 
@@ -76,7 +90,7 @@ def handle_send_invitation(calendar_id):
         })
 
         return success_response(
-            message="Invitation envoyée avec succès", 
+            message=SUCCESS_INVITATION_SENT, 
             code="INVITATION_SEND_SUCCESS", 
             uid=owner_uid, 
             origin="INVITATION_SEND",
@@ -85,7 +99,7 @@ def handle_send_invitation(calendar_id):
 
     except Exception as e:
         return error_response(
-            message="Erreur lors de l'envoi de l'invitation.", 
+            message=ERROR_INVITATION_SEND, 
             code="INVITATION_SEND_ERROR", 
             status_code=500, 
             uid=owner_uid, 
@@ -105,7 +119,7 @@ def handle_accept_invitation(notification_id):
         doc = db.collection("users").document(receiver_uid).collection("notifications").document(notification_id).get()
         if not doc.exists:
             return warning_response(
-                message="Notification non trouvée.", 
+                message=WARNING_NOTIFICATION_NOT_FOUND, 
                 code="NOTIFICATION_NOT_FOUND", 
                 status_code=404, 
                 uid=receiver_uid, 
@@ -116,7 +130,7 @@ def handle_accept_invitation(notification_id):
         # Vérifier si la notification est une invitation
         if doc.to_dict().get("type") != "calendar_invitation":
             return warning_response(
-                message="Notification non valide.", 
+                message=WARNING_INVALID_NOTIFICATION, 
                 code="INVALID_NOTIFICATION", 
                 status_code=400, 
                 uid=receiver_uid, 
@@ -159,7 +173,7 @@ def handle_accept_invitation(notification_id):
         })
 
         return success_response(
-            message="Invitation acceptée avec succès.", 
+            message=SUCCESS_INVITATION_ACCEPTED, 
             code="INVITATION_ACCEPT_SUCCESS", 
             uid=receiver_uid, 
             origin="INVITATION_ACCEPT",
@@ -168,7 +182,7 @@ def handle_accept_invitation(notification_id):
 
     except Exception as e:
         return error_response(
-            message="Erreur lors de l'acceptation de l'invitation.", 
+            message=ERROR_INVITATION_ACCEPT, 
             code="INVITATION_ACCEPT_ERROR", 
             status_code=500, 
             uid=receiver_uid, 
@@ -188,7 +202,7 @@ def handle_reject_invitation(notification_id):
         doc = db.collection("users").document(receiver_uid).collection("notifications").document(notification_id).get()
         if not doc.exists:
             return warning_response(
-                message="Notification non trouvée.", 
+                message=WARNING_NOTIFICATION_NOT_FOUND, 
                 code="NOTIFICATION_NOT_FOUND", 
                 status_code=404, 
                 uid=receiver_uid, 
@@ -199,7 +213,7 @@ def handle_reject_invitation(notification_id):
         # Vérifier si la notification est une invitation
         if doc.to_dict().get("type") != "calendar_invitation":
             return warning_response(
-                message="Notification non valide.", 
+                message=WARNING_INVALID_NOTIFICATION, 
                 code="INVALID_NOTIFICATION", 
                 status_code=400, 
                 uid=receiver_uid, 
@@ -226,7 +240,7 @@ def handle_reject_invitation(notification_id):
         })
 
         return success_response(
-            message="Invitation rejetée avec succès.", 
+            message=SUCCESS_INVITATION_REJECTED, 
             code="INVITATION_REJECT_SUCCESS", 
             uid=receiver_uid, 
             origin="INVITATION_REJECT",
@@ -235,7 +249,7 @@ def handle_reject_invitation(notification_id):
 
     except Exception as e:
         return error_response(
-            message="Erreur lors de la réjection de l'invitation.", 
+            message=ERROR_INVITATION_REJECT, 
             code="INVITATION_REJECT_ERROR", 
             status_code=500, 
             uid=receiver_uid, 

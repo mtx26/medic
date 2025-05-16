@@ -2,6 +2,10 @@ from datetime import datetime, timedelta, date
 import calendar
 from logger import log_backend as logger
 from firebase_admin import firestore
+from messages import (
+    WARNING_UNAUTHORIZED_ACCESS,
+    ERROR_SHARED_VERIFICATION
+)
 
 db = firestore.client()
 
@@ -13,7 +17,7 @@ def verify_calendar_share(calendar_id : str, owner_uid : str, receiver_uid : str
         
         shared_with_doc = shared_with_ref.get()
         if not shared_with_doc.exists:
-            logger.warning("Accès refusé", {
+            logger.warning(WARNING_UNAUTHORIZED_ACCESS, {
                 "origin": "SHARED_VERIFY",
                 "uid": receiver_uid,
                 "calendar_id": calendar_id,
@@ -25,11 +29,12 @@ def verify_calendar_share(calendar_id : str, owner_uid : str, receiver_uid : str
         return shared_data.get("receiver_uid") == receiver_uid
 
     except Exception as e:
-        logger.exception("Erreur lors de la vérification du partage", {
+        logger.error(ERROR_SHARED_VERIFICATION, {
             "origin": "SHARED_VERIFY_ERROR",
             "uid": receiver_uid,
             "calendar_id": calendar_id, 
-            "owner_uid": owner_uid
+            "owner_uid": owner_uid,
+            "error": str(e)
         })
         return False
 
@@ -52,26 +57,10 @@ def generate_schedule(start_date, medications):
     # Trouver le lundi de la semaine contenant start_date
     monday = start_date - timedelta(days=start_date.weekday())
 
-    Total_day = 35 # Nombre de jours à afficher (5 semaines)
-
-    """
-    # Dernier jour du mois
-    last_day_of_month = date(start_date.year, start_date.month, calendar.monthrange(start_date.year, start_date.month)[1])
-
-    # Nombre de jours entre le lundi et la fin du mois
-    delta = (last_day_of_month - monday).days + 1  # +1 pour inclure le dernier jour
-
-    # Nombre de semaines complètes (multiples de 7)
-    total_full_weeks = delta // 7 + 1  # +1 pour inclure la semaine partielle
-    # Nombre de jours restants après les semaines complètes
-    Total_day = total_full_weeks * 7
-
-    if Total_day == 0:
-        Total_day = 7
-    """
+    total_day = 35 # Nombre de jours à afficher (5 semaines)
     schedule = []
 
-    for i in range(Total_day):
+    for i in range(total_day):
         current_date = monday + timedelta(days=i)
         for med in medications:
             if is_medication_due(med, current_date):
@@ -106,64 +95,66 @@ def generate_schedule(start_date, medications):
 
     return schedule
 
-def generate_table(start_date, medications):
-    """
-    [
-        {
-            "title": "Doliprane",
-            "cells": {
+"""
+[
+    {
+        "title": "Doliprane",
+        "cells": {
             "Matin": {
                 "Lun": "1",
                 "Mer": "2"
             }
-            }
-        },
-        {
-            "title": "Spasfon",
-            "cells": {
-            "Soir": {
-                "Jeu": "0.5"
-            }
-            }
-        },
-        ...
-    ] 
-    """
-
+        }
+    },
+    ...
+]
+"""
+def generate_table(start_date, medications):
     monday = start_date - timedelta(days=start_date.weekday())
     total_day = 7
     calendar_table = []
 
     for med in medications:
-        table = {}
-        for i in range(total_day):
-            current_date = monday + timedelta(days=i)
-            day = current_date.strftime("%a")
-
-            if is_medication_due(med, current_date):
-                for moment in med["time"]:
-                    if moment not in table:
-                        table[moment] = {}
-                    table[moment][day] = med["tablet_count"]
-
-        if table:
-            found = False
-            for entry in calendar_table:
-                if entry["title"] == med["name"]:
-                    for moment, days in table.items():
-                        if moment not in entry["cells"]:
-                            entry["cells"][moment] = {}
-                        for day, value in days.items():
-                            if day not in entry["cells"][moment]:
-                                entry["cells"][moment][day] = value
-                            else:
-                                entry["cells"][moment][day] += value
-                    found = True
-                    break
-            if not found:
-                calendar_table.append({
-                    "title": med["name"],
-                    "cells": table
-                })
+        med_table = build_medication_table(med, monday, total_day)
+        if not med_table:
+            continue
+        merge_or_append(calendar_table, med["name"], med_table)
 
     return calendar_table
+
+
+def build_medication_table(med, monday, total_day):
+    table = {}
+
+    for i in range(total_day):
+        current_date = monday + timedelta(days=i)
+        if not is_medication_due(med, current_date):
+            continue
+
+        day = current_date.strftime("%a")
+        for moment in med["time"]:
+            if moment not in table:
+                table[moment] = {}
+            table[moment][day] = med["tablet_count"]
+
+    return table
+
+
+def merge_or_append(calendar_table, name, med_table):
+    for entry in calendar_table:
+        if entry["title"] != name:
+            continue
+
+        for moment, days in med_table.items():
+            if moment not in entry["cells"]:
+                entry["cells"][moment] = {}
+
+            for day, value in days.items():
+                entry["cells"][moment][day] = entry["cells"][moment].get(day, 0) + value
+
+        return
+
+    calendar_table.append({
+        "title": name,
+        "cells": med_table
+    })

@@ -6,6 +6,38 @@ import secrets
 from . import api
 from firebase_admin import firestore
 from function import generate_schedule, generate_table
+from messages import (
+    SUCCESS_TOKENS_FETCHED,
+    SUCCESS_TOKEN_CREATED,
+    SUCCESS_TOKEN_REVOKED,
+    SUCCESS_TOKEN_REACTIVATED,
+    SUCCESS_TOKEN_EXPIRATION_UPDATED,
+    SUCCESS_TOKEN_PERMISSIONS_UPDATED,
+    SUCCESS_TOKEN_METADATA_FETCHED,
+    SUCCESS_TOKEN_DELETED,
+    SUCCESS_CALENDAR_GENERATED,
+    SUCCESS_MEDICINES_FETCHED,
+    WARNING_TOKEN_NOT_FOUND,
+    WARNING_TOKEN_INVALID,
+    WARNING_TOKEN_EXPIRED,
+    WARNING_TOKEN_REVOKED,
+    WARNING_TOKEN_NOT_AUTHORIZED,
+    WARNING_TOKEN_NO_READ_PERMISSION,
+    WARNING_CALENDAR_NOT_FOUND,
+    WARNING_LINK_NOT_FOUND,
+    WARNING_NO_MEDICINES_FOUND,
+    WARNING_ACCESS_DENIED,
+    ERROR_TOKENS_FETCH,
+    ERROR_TOKEN_CREATE,
+    ERROR_TOKEN_REVOKE,
+    ERROR_TOKEN_EXPIRATION_UPDATE,
+    ERROR_TOKEN_PERMISSIONS_UPDATE,
+    ERROR_CALENDAR_TOKEN_GENERATE,
+    ERROR_TOKEN_METADATA_FETCH,
+    ERROR_TOKEN_DELETE,
+    ERROR_MEDICINES_FETCH
+)
+
 
 db = firestore.client()
 
@@ -23,7 +55,7 @@ def handle_tokens():
                 if doc.to_dict().get("owner_uid") == uid:
                     tokens.append(doc.to_dict())
             return success_response(
-                message="Tokens récupérés avec succès.", 
+                message=SUCCESS_TOKENS_FETCHED, 
                 code="TOKENS_FETCH", 
                 uid=uid, 
                 origin="TOKENS_FETCH", 
@@ -32,7 +64,7 @@ def handle_tokens():
         
     except Exception as e:
         return error_response(
-            message="Erreur lors de la récupération des tokens.", 
+            message=ERROR_TOKENS_FETCH,
             code="TOKENS_ERROR", 
             status_code=500, 
             uid=uid, 
@@ -64,7 +96,7 @@ def handle_create_token(calendar_id):
         doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).get()
         if not doc.exists:
             return warning_response(
-                message="Calendrier introuvable.", 
+                message=WARNING_CALENDAR_NOT_FOUND, 
                 code="CALENDAR_NOT_FOUND", 
                 status_code=404, 
                 uid=owner_uid, 
@@ -79,7 +111,7 @@ def handle_create_token(calendar_id):
             if doc.to_dict().get("owner_uid") == owner_uid:
                 if doc.to_dict().get("calendar_id") == calendar_id:
                     return warning_response(
-                        message="Calendrier déjà partagé.", 
+                        message=WARNING_CALENDAR_ALREADY_SHARED, 
                         code="CALENDAR_ALREADY_SHARED", 
                         status_code=400, 
                         uid=owner_uid, 
@@ -99,7 +131,7 @@ def handle_create_token(calendar_id):
         })
 
         return success_response(
-            message="Lien de partage créé avec succès", 
+            message=SUCCESS_TOKEN_CREATED, 
             code="TOKEN_CREATED", 
             uid=owner_uid, 
             origin="TOKEN_CREATE",
@@ -108,7 +140,7 @@ def handle_create_token(calendar_id):
 
     except Exception as e:
         return error_response(
-            message="Erreur lors de la création du lien de partage.", 
+            message=ERROR_TOKEN_CREATE,
             code="TOKEN_CREATE_ERROR", 
             status_code=500, 
             uid=owner_uid, 
@@ -130,7 +162,7 @@ def handle_update_revoke_token(token):
 
         if not doc.exists:
             return warning_response(
-                message="Token introuvable.", 
+                message=WARNING_TOKEN_NOT_FOUND, 
                 code="TOKEN_NOT_FOUND", 
                 status_code=404, 
                 uid=owner_uid, 
@@ -140,7 +172,7 @@ def handle_update_revoke_token(token):
         
         if doc.to_dict().get("owner_uid") != owner_uid:
             return warning_response(
-                message="Token non autorisé.", 
+                message=WARNING_TOKEN_NOT_AUTHORIZED, 
                 code="TOKEN_NOT_AUTHORIZED", 
                 status_code=403, 
                 uid=owner_uid, 
@@ -153,7 +185,7 @@ def handle_update_revoke_token(token):
         })
         if db.collection("shared_tokens").document(token).get().to_dict().get("revoked"):
             return success_response(
-                message="Token révoqué avec succès", 
+                message=SUCCESS_TOKEN_REVOKED, 
                 code="TOKEN_REVOKED", 
                 uid=owner_uid, 
                 origin="TOKEN_REVOKE", 
@@ -161,7 +193,7 @@ def handle_update_revoke_token(token):
             )
         else:
             return success_response(
-                message="Token réactivé avec succès", 
+                message=SUCCESS_TOKEN_REACTIVATED, 
                 code="TOKEN_REACTIVATED", 
                 uid=owner_uid, 
                 origin="TOKEN_REVOKE", 
@@ -170,7 +202,7 @@ def handle_update_revoke_token(token):
 
     except Exception as e:
         return error_response(
-            message="Erreur lors de la révoquation du token.", 
+            message=ERROR_TOKEN_REVOKE,
             code="TOKEN_REVOKE_ERROR", 
             status_code=500, 
             uid=owner_uid, 
@@ -193,7 +225,7 @@ def handle_update_token_expiration(token):
 
         if not doc.exists:
             return warning_response(
-                message="Token introuvable.", 
+                message=WARNING_TOKEN_NOT_FOUND, 
                 code="TOKEN_NOT_FOUND", 
                 status_code=404, 
                 uid=owner_uid, 
@@ -203,7 +235,7 @@ def handle_update_token_expiration(token):
         
         if doc.to_dict().get("owner_uid") != owner_uid:
             return warning_response(
-                message="Token non autorisé.", 
+                message=WARNING_TOKEN_NOT_AUTHORIZED, 
                 code="TOKEN_NOT_AUTHORIZED", 
                 status_code=403, 
                 uid=owner_uid, 
@@ -222,7 +254,7 @@ def handle_update_token_expiration(token):
             })
 
         return success_response(
-            message="Expiration du token mise à jour avec succès", 
+            message=SUCCESS_TOKEN_EXPIRATION_UPDATED, 
             code="TOKEN_EXPIRATION_UPDATED", 
             uid=owner_uid, 
             origin="TOKEN_EXPIRATION_UPDATE", 
@@ -231,7 +263,7 @@ def handle_update_token_expiration(token):
 
     except Exception as e:
         return error_response(
-            message="Erreur lors de la mise à jour de l'expiration du token.", 
+            message=ERROR_TOKEN_EXPIRATION_UPDATE,
             code="TOKEN_EXPIRATION_UPDATE_ERROR", 
             status_code=500, 
             uid=owner_uid, 
@@ -254,7 +286,7 @@ def handle_update_token_permissions(token):
 
         if not doc.exists:
             return warning_response(
-                message="Token introuvable.", 
+                message=WARNING_TOKEN_NOT_FOUND, 
                 code="TOKEN_NOT_FOUND", 
                 status_code=404, 
                 uid=owner_uid, 
@@ -264,7 +296,7 @@ def handle_update_token_permissions(token):
         
         if doc.to_dict().get("owner_uid") != owner_uid:
             return warning_response(
-                message="Token non autorisé.", 
+                message=WARNING_TOKEN_NOT_AUTHORIZED, 
                 code="TOKEN_NOT_AUTHORIZED", 
                 status_code=403, 
                 uid=owner_uid, 
@@ -278,7 +310,7 @@ def handle_update_token_permissions(token):
         })
 
         return success_response(
-            message="Permissions du token mises à jour avec succès", 
+            message=SUCCESS_TOKEN_PERMISSIONS_UPDATED, 
             code="TOKEN_PERMISSIONS_UPDATED", 
             uid=owner_uid, 
             origin="TOKEN_PERMISSIONS_UPDATE", 
@@ -287,7 +319,7 @@ def handle_update_token_permissions(token):
 
     except Exception as e:
         return error_response(
-            message="Erreur lors de la mise à jour des permissions du token.", 
+            message=ERROR_TOKEN_PERMISSIONS_UPDATE,
             code="TOKEN_PERMISSIONS_UPDATE_ERROR", 
             status_code=500, 
             uid=owner_uid, 
@@ -310,10 +342,10 @@ def handle_generate_token_schedule(token):
         doc = db.collection("shared_tokens").document(token).get()
         if not doc.exists:
             return warning_response(
-                message="Token invalide.", 
+                message=WARNING_TOKEN_INVALID, 
                 code="TOKEN_INVALID", 
                 status_code=404, 
-                uid="without_uid", 
+                uid="unknown", 
                 origin="TOKEN_INVALID", 
                 log_extra={"token": token}
             )
@@ -329,30 +361,30 @@ def handle_generate_token_schedule(token):
         if expires_at:
             if datetime.now(timezone.utc).date() > datetime.fromisoformat(expires_at).date():
                 return warning_response(
-                    message="Token expiré.", 
+                    message=WARNING_TOKEN_EXPIRED, 
                     code="TOKEN_EXPIRED", 
                     status_code=404, 
-                    uid="without_uid", 
+                    uid="unknown", 
                     origin="TOKEN_EXPIRED", 
                     log_extra={"token": token}
                 )
 
         if revoked:
             return warning_response(
-                message="Token révoqué.", 
+                message=WARNING_TOKEN_REVOKED, 
                 code="TOKEN_REVOKED", 
                 status_code=404, 
-                uid="without_uid", 
+                uid="unknown", 
                 origin="TOKEN_REVOKED", 
                 log_extra={"token": token}
             )
 
         if "read" not in permissions:
             return warning_response(
-                message="Token sans permission de lecture.", 
+                message=WARNING_TOKEN_NO_READ_PERMISSION, 
                 code="TOKEN_NO_READ_PERMISSION", 
                 status_code=403, 
-                uid="without_uid", 
+                uid="unknown", 
                 origin="TOKEN_NO_READ_PERMISSION", 
                 log_extra={"token": token}
             )
@@ -360,10 +392,10 @@ def handle_generate_token_schedule(token):
         doc_1 = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id)
         if not doc_1.get().exists:
             return warning_response(
-                message="Calendrier introuvable.", 
+                message=WARNING_CALENDAR_NOT_FOUND, 
                 code="CALENDAR_NOT_FOUND", 
                 status_code=404, 
-                uid="without_uid", 
+                uid="unknown", 
                 origin="CALENDAR_TOKEN_GENERATED", 
                 log_extra={"token": token}
             )
@@ -373,7 +405,7 @@ def handle_generate_token_schedule(token):
         doc_2 = doc_1.collection("medicines")
         if not doc_2.get():
             return success_response(
-                message="Aucun médicament dans le calendrier partagé", 
+                message=SUCCESS_SHARED_CALENDARS_LOAD, 
                 code="SHARED_CALENDARS_LOAD_SUCCESS", 
                 uid=uid, 
                 origin="SHARED_CALENDARS_LOAD",
@@ -387,7 +419,7 @@ def handle_generate_token_schedule(token):
 
 
         return success_response(
-            message="Calendrier généré avec succès", 
+            message=SUCCESS_CALENDAR_GENERATED, 
             code="CALENDAR_GENERATED_SUCCESS", 
             uid=owner_uid, 
             origin="CALENDAR_TOKEN_GENERATED", 
@@ -397,7 +429,7 @@ def handle_generate_token_schedule(token):
 
     except Exception as e:
         return error_response(
-            message="Erreur lors de la génération du calendrier.", 
+            message=ERROR_CALENDAR_TOKEN_GENERATE,
             code="CALENDAR_TOKEN_GENERATE_ERROR", 
             status_code=500, 
             uid=owner_uid, 
@@ -413,10 +445,10 @@ def get_token_metadata(token):
         doc = db.collection("shared_tokens").document(token).get()
         if not doc.exists:
             return warning_response(
-                message="Token invalide.",
+                message=WARNING_TOKEN_INVALID,
                 code="TOKEN_INVALID",
                 status_code=404,
-                uid="without_uid",
+                uid="unknown",
                 origin="TOKEN_METADATA_LOAD",
                 log_extra={"token": token}
             )
@@ -433,29 +465,29 @@ def get_token_metadata(token):
             now = datetime.now(timezone.utc).date()
             if now > datetime.fromisoformat(expires_at).date():
                 return warning_response(
-                    message="Token expiré.",
+                    message=WARNING_TOKEN_EXPIRED,
                     code="TOKEN_EXPIRED",
                     status_code=403,
-                    uid="without_uid",
+                    uid="unknown",
                     origin="TOKEN_METADATA_LOAD",
                     log_extra={"token": token}
                 )
 
         if revoked:
             return warning_response(
-                message="Token révoqué.",
+                message=WARNING_TOKEN_REVOKED,
                 code="TOKEN_REVOKED",
                 status_code=403,
-                uid="without_uid",
+                uid="unknown",
                 origin="TOKEN_METADATA_LOAD",
                 log_extra={"token": token}
             )
 
         return success_response(
-            message="Métadonnées du token récupérées avec succès.",
+            message=SUCCESS_TOKEN_METADATA_FETCHED,
             code="TOKEN_METADATA_SUCCESS",
             origin="TOKEN_METADATA_LOAD",
-            uid="without_uid",
+            uid="unknown",
             data={
                 "calendar_id": calendar_id,
                 "owner_uid": owner_uid,
@@ -465,12 +497,12 @@ def get_token_metadata(token):
 
     except Exception as e:
         return error_response(
-            message="Erreur lors de la récupération des métadonnées.",
+            message=ERROR_TOKEN_METADATA_FETCH,
             code="TOKEN_METADATA_ERROR",
             status_code=500,
             error=str(e),
             origin="TOKEN_METADATA_LOAD",
-            uid="without_uid",
+            uid="unknown",
             log_extra={"token": token}
         )
 
@@ -486,7 +518,7 @@ def handle_delete_token(token):
 
         if not doc.exists:
             return warning_response(
-                message="Lien de partage introuvable", 
+                message=WARNING_TOKEN_NOT_FOUND, 
                 code="TOKEN_NOT_FOUND", 
                 status_code=404, 
                 uid=owner_uid, 
@@ -496,7 +528,7 @@ def handle_delete_token(token):
 
         if doc.to_dict().get("owner_uid") != owner_uid:
             return warning_response(
-                message="Accès interdit.", 
+                message=WARNING_TOKEN_NOT_AUTHORIZED, 
                 code="TOKEN_NOT_AUTHORIZED", 
                 status_code=403, 
                 uid=owner_uid, 
@@ -506,7 +538,7 @@ def handle_delete_token(token):
 
         db.collection("shared_tokens").document(token).delete()
         return success_response(
-            message="Lien de partage supprimé avec succès", 
+            message=SUCCESS_TOKEN_DELETED, 
             code="TOKEN_DELETE_SUCCESS", 
             uid=owner_uid, 
             origin="TOKEN_DELETE", 
@@ -515,7 +547,7 @@ def handle_delete_token(token):
 
     except Exception as e:
         return error_response(
-            message="Erreur lors de la suppression du lien de partage.", 
+            message=ERROR_TOKEN_DELETE,
             code="TOKEN_DELETE_ERROR", 
             status_code=500, 
             uid=owner_uid, 
@@ -532,7 +564,7 @@ def handle_token_medicines(token):
         doc = db.collection("shared_tokens").document(token).get()
         if not doc.exists:
             return warning_response(
-                message="Token invalide.", 
+                message=WARNING_TOKEN_INVALID, 
                 code="TOKEN_INVALID", 
                 status_code=404, 
                 origin="TOKEN_MEDICINES_LOAD", 
@@ -549,7 +581,7 @@ def handle_token_medicines(token):
         # Vérifications
         if expires_at and datetime.now(timezone.utc).date() > datetime.fromisoformat(expires_at).date():
             return warning_response(
-                message="Token expiré.",
+                message=WARNING_TOKEN_EXPIRED,
                 code="TOKEN_EXPIRED",
                 status_code=403,
                 origin="TOKEN_MEDICINES_LOAD",
@@ -558,7 +590,7 @@ def handle_token_medicines(token):
 
         if revoked:
             return warning_response(
-                message="Token révoqué.",
+                message=WARNING_TOKEN_REVOKED,
                 code="TOKEN_REVOKED",
                 status_code=403,
                 origin="TOKEN_MEDICINES_LOAD",
@@ -567,7 +599,7 @@ def handle_token_medicines(token):
 
         if "read" not in permissions:
             return warning_response(
-                message="Token sans permission de lecture.",
+                message=WARNING_TOKEN_NO_READ_PERMISSION,
                 code="TOKEN_NO_READ_PERMISSION",
                 status_code=403,
                 origin="TOKEN_MEDICINES_LOAD",
@@ -577,7 +609,7 @@ def handle_token_medicines(token):
         cal_ref = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id)
         if not cal_ref.get().exists:
             return warning_response(
-                message="Calendrier introuvable.",
+                message=WARNING_CALENDAR_NOT_FOUND,
                 code="CALENDAR_NOT_FOUND",
                 status_code=404,
                 origin="TOKEN_MEDICINES_LOAD",
@@ -587,7 +619,7 @@ def handle_token_medicines(token):
         medicines = [doc.to_dict() for doc in cal_ref.collection("medicines").get()]
 
         return success_response(
-            message="Médicaments récupérés avec succès.",
+            message=SUCCESS_MEDICINES_FETCHED,
             code="MEDICINES_SHARED_LOADED",
             origin="TOKEN_MEDICINES_LOAD",
             data={"medicines": medicines},
@@ -596,7 +628,7 @@ def handle_token_medicines(token):
 
     except Exception as e:
         return error_response(
-            message="Erreur lors de la récupération des médicaments.",
+            message=ERROR_MEDICINES_FETCH,
             code="MEDICINES_SHARED_ERROR",
             status_code=500,
             error=str(e),

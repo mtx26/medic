@@ -2,6 +2,12 @@ from . import api
 from auth import verify_firebase_token
 from firebase_admin import firestore
 from response import success_response, error_response
+from messages import (
+    SUCCESS_USER_INFO_FETCHED,
+    ERROR_USER_INFO_FETCH,
+    ERROR_USER_NOT_FOUND
+)
+
 
 db = firestore.client()
 
@@ -16,7 +22,7 @@ def handle_user_info(search_user_id):
 
         if not search_user_doc.get().exists:
             return error_response(
-                message="Utilisateur non trouvé",
+                message=ERROR_USER_NOT_FOUND,
                 code="USER_NOT_FOUND",
                 status_code=404,
                 uid=user_id,
@@ -40,7 +46,7 @@ def handle_user_info(search_user_id):
         }
 
         return success_response(
-            message="Informations de l'utilisateur récupérées avec succès",
+            message=SUCCESS_USER_INFO_FETCHED,
             code="USER_INFO_SUCCESS",
             uid=user_id,
             origin="USER_INFO",
@@ -49,7 +55,7 @@ def handle_user_info(search_user_id):
 
     except Exception as e:
         return error_response(
-            message="Erreur lors de la récupération des informations de l'utilisateur",
+            message=ERROR_USER_INFO_FETCH,
             code="USER_INFO_ERROR",
             status_code=500,
             uid=user_id,
