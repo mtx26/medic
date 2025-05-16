@@ -15,6 +15,9 @@ import isEqual from "lodash/isEqual";
 import bootstrap5Plugin from '@fullcalendar/bootstrap5';
 import 'bootstrap/dist/css/bootstrap.css';
 import DateModal from '../components/DateModal';
+import ArrowControls from '../components/ArrowControls';
+import WeeklyEventContent from '../components/WeeklyEventContent';
+
 
 function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
 
@@ -77,17 +80,18 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
 
   const calendarSource = getCalendarSourceMap(personalCalendars, sharedUserCalendars, tokenCalendars)[calendarType];
 
+  const onSelectDate = (date) => {
+    const iso = date.toISOString().slice(0, 10);
+    setSelectedDate(iso);
+    setEventsForDay(calendarEvents.filter(e => e.start.startsWith(iso)));
+  }
+
   // Fonction pour gérer le clic sur une date
   const handleDateClick = (info) => {
     const clickedDate = info.dateStr;
     setSelectedDate(clickedDate);
-    setEventsForDay(calendarEvents.filter((event) => event.start.startsWith(clickedDate)));
     dateModalRef.current?.open();
   }; 
-
-  const closeModal = () => {
-    dateModalRef.current?.close();
-  };
 
   // Fonction pour naviguer vers la date suivante ou precedente
   const navigateDay = (direction) => {
@@ -95,8 +99,21 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
     current.setDate(current.getDate() + direction);
     const newDate = current.toISOString().slice(0, 10);
     setSelectedDate(newDate);
-    setEventsForDay(calendarEvents.filter((event) => event.start.startsWith(newDate)));
   };
+
+  const getWeekDays = (date) => {
+    const current = new Date(date);
+    const dayOfWeek = current.getDay(); // 0 (dim) à 6 (sam)
+    const diffToMonday = (dayOfWeek + 6) % 7; // transforme 0 (dim) → 6, 1 (lun) → 0, etc.
+  
+    const monday = new Date(current);
+    monday.setDate(current.getDate() - diffToMonday);
+    return [...Array(7)].map((_, i) => {
+      const day = new Date(monday);
+      day.setDate(monday.getDate() + i);
+      return day;
+    });
+  };   
   
   // Fonction pour charger le calendrier lorsque l'utilisateur est connecté
   useEffect(() => {
@@ -124,12 +141,12 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
     load();
   }, [authReady, currentUser, calendarId, calendarType, calendarSource, calendarEvents, calendarTable, calendarName]);
 
+
   useEffect(() => {
     if (!selectedDate || !calendarEvents.length) return;
     const filtered = calendarEvents.filter((event) => event.start.startsWith(selectedDate));
     setEventsForDay(filtered);
   }, [selectedDate, calendarEvents]);
-  
 
   const memoizedEvents = useMemo(() => {
     return calendarEvents.map((event) => ({
@@ -422,87 +439,44 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
             </div>
           </div>
 
+
           {/* Modal pour afficher les médicaments d'une date */}
           <DateModal
             ref={dateModalRef}
             selectedDate={selectedDate}
-            events={eventsForDay}
+            eventsForDay={eventsForDay}
             onNext={() => navigateDay(1)}
             onPrev={() => navigateDay(-1)}
+            onSelectDate={onSelectDate}
+            getWeekDays={getWeekDays}
           />
+
 
           {/* Calendrier - Vue mobile uniquement */}
           <div className='d-block d-md-none'>
-            {/* Titre */}
+            <ArrowControls
+              onLeft={() => navigateDay(-1)}
+              onRight={() => navigateDay(1)}
+            />
+
             <h4 className="mb-4">
               <i className="bi bi-calendar-week"></i> Calendrier mensuel
             </h4>
+
             <div className="card shadow-sm">
               <div className="card-body">
-                {/* Conteneur principal scrollable */}
-                <div className="bg-white overflow-auto d-flex flex-column">
-
-                  {/* Date sélectionnée */}
-                  <div className="d-flex justify-content-center align-items-center mb-3">
-                    <h5 className="mb-0">
-                      <i className="bi bi-calendar-date me-2"></i>
-                      {new Date(selectedDate).toLocaleDateString('fr-FR', {
-                        weekday: 'long',
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      })}
-                    </h5>
-                  </div>
-
-                  {/* Événements du jour */}
-                  <div className="d-flex justify-content-between align-items-center mb-3">
-
-                    {/* Bouton jour précédent */}
-                    <button className="btn btn-outline-secondary btn-sm" onClick={() => navigateDay(-1)}>
-                      <i className="bi bi-arrow-left"></i>
-                    </button>
-
-                    {/* Liste des événements */}
-                    <div className="flex-grow-1 mx-3">
-                      {eventsForDay.length > 0 ? (
-                        <ul className="list-group">
-                          {eventsForDay.map((event, index) => (
-                            <li
-                              key={index}
-                              className="list-group-item d-flex justify-content-between align-items-center"
-                            >
-                              {`${event.title} (${event.dose})`}
-                              <span
-                                className="badge"
-                                style={{ backgroundColor: event.color, color: 'white' }}
-                              >
-                                {new Date(event.start).toLocaleTimeString([], {
-                                  hour: '2-digit',
-                                  minute: '2-digit'
-                                })}
-                              </span>
-                            </li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <p className="text-muted text-center mb-0">
-                          Aucun événement ce jour-là.
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Bouton jour suivant */}
-                    <button className="btn btn-outline-secondary btn-sm" onClick={() => navigateDay(1)}>
-                      <i className="bi bi-arrow-right"></i>
-                    </button>
-
-                  </div>
-                </div>
+                <WeeklyEventContent
+                  ifModal={false}
+                  selectedDate={selectedDate}
+                  eventsForDay={eventsForDay}
+                  onSelectDate={onSelectDate}
+                  onNext={() => navigateDay(1)}
+                  onPrev={() => navigateDay(-1)}
+                  getWeekDays={getWeekDays}
+                />
               </div>
             </div>
           </div>
-
         </>
       ) : (
         <div className="alert alert-info mt-4 mb-0" role="alert">
