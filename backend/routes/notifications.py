@@ -13,18 +13,33 @@ from messages import (
 
 
 db = firestore.client()
+DEFAULT_PHOTO = "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/icons/person-circle.svg"
 
-# Route pour récupérer les notifications d'un utilisateur
+def get_user(uid):
+    doc = db.collection("users").document(uid).get()
+    return doc.to_dict() if doc.exists else None
+
+def safely_get_calendar_name(owner_uid, calendar_id):
+    calendar_doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).get()
+    if calendar_doc.exists:
+        return calendar_doc.to_dict().get("calendar_name")
+    return None
+
+def delete_notification(uid, notification_id):
+    db.collection("users").document(uid).collection("notifications").document(notification_id).delete()
+    logger.warning(WARNING_NOTIFICATION_NOT_FOUND, {
+        "origin": "NOTIFICATIONS_FETCH",
+        "notification_id": notification_id
+    })
+
 @api.route("/api/notifications", methods=["GET"])
 def handle_notifications():
     try:
         user = verify_firebase_token()
         uid = user["uid"]
+        notifications_docs = db.collection("users").document(uid).collection("notifications").get()
 
-        notifications_ref = db.collection("users").document(uid).collection("notifications").get()
-        notifications = []
-
-        if not notifications_ref:
+        if not notifications_docs:
             return success_response(
                 message=SUCCESS_NOTIFICATIONS_FETCHED,
                 code="NOTIFICATIONS_FETCH_SUCCESS",
@@ -32,82 +47,49 @@ def handle_notifications():
                 origin="NOTIFICATIONS_FETCH",
                 data={"notifications": []}
             )
-            
-        for doc in notifications_ref:
-            notif_data = doc.to_dict().copy()
 
-            owner_uid = notif_data.get("owner_uid")
-            receiver_uid = notif_data.get("receiver_uid")
-            calendar_id = notif_data.get("calendar_id")
+        notifications = []
+        for doc in notifications_docs:
+            notif = doc.to_dict().copy()
+            notif_id = notif.get("notification_id")
 
+            owner = get_user(notif.get("owner_uid"))
+            receiver = get_user(notif.get("receiver_uid"))
+            if not owner or not receiver:
+                delete_notification(uid, notif_id)
+                continue
+
+            calendar_id = notif.get("calendar_id")
             if calendar_id:
-                calendar_doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).get()
-                if calendar_doc.exists:
-                    calendar_data = calendar_doc.to_dict()
-                    notif_data.update({
-                        "calendar_name": calendar_data.get("calendar_name")
-                    })
+                calendar_name = safely_get_calendar_name(notif["owner_uid"], calendar_id)
+                if calendar_name:
+                    notif["calendar_name"] = calendar_name
 
-            notification_id = notif_data.get("notification_id")
-            owner_doc = db.collection("users").document(owner_uid).get()
-            receiver_doc = db.collection("users").document(receiver_uid).get()
-
-            if not owner_doc.exists:
-                db.collection("users").document(uid).collection("notifications").document(notification_id).delete()
-                logger.warning(WARNING_NOTIFICATION_NOT_FOUND, {
-                    "origin": "NOTIFICATIONS_FETCH",
-                    "notification_id": notification_id
-                })
-                continue
-            if not receiver_doc.exists:
-                db.collection("users").document(uid).collection("notifications").document(notification_id).delete()
-                logger.warning(WARNING_NOTIFICATION_NOT_FOUND, {
-                    "origin": "NOTIFICATIONS_FETCH",
-                    "notification_id": notification_id
-                })
-                continue
-
-            owner_data = owner_doc.to_dict()
-            receiver_data = receiver_doc.to_dict()
-
-            owner_name = owner_data.get("display_name")
-            owner_email = owner_data.get("email")
-            owner_photo_url = owner_data.get("photo_url")
-            if not owner_photo_url:
-                owner_photo_url = "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/icons/person-circle.svg"
-
-            receiver_name = receiver_data.get("display_name")
-            receiver_email = receiver_data.get("email")
-            receiver_photo_url = receiver_data.get("photo_url")
-            if not receiver_photo_url:
-                receiver_photo_url = "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/icons/person-circle.svg"
-
-            notif_data.update({
-                "owner_name": owner_name,
-                "owner_photo_url": owner_photo_url,
-                "owner_email": owner_email,
-                "receiver_name": receiver_name,
-                "receiver_photo_url": receiver_photo_url,
-                "receiver_email": receiver_email
+            notif.update({
+                "owner_name": owner.get("display_name"),
+                "owner_email": owner.get("email"),
+                "owner_photo_url": owner.get("photo_url") or DEFAULT_PHOTO,
+                "receiver_name": receiver.get("display_name"),
+                "receiver_email": receiver.get("email"),
+                "receiver_photo_url": receiver.get("photo_url") or DEFAULT_PHOTO
             })
 
-            notifications.append(notif_data)
-        
+            notifications.append(notif)
 
         return success_response(
-            message=SUCCESS_NOTIFICATIONS_FETCHED, 
-            code="NOTIFICATIONS_FETCH_SUCCESS", 
-            uid=uid, 
+            message=SUCCESS_NOTIFICATIONS_FETCHED,
+            code="NOTIFICATIONS_FETCH_SUCCESS",
+            uid=uid,
             origin="NOTIFICATIONS_FETCH",
             data={"notifications": notifications}
         )
 
     except Exception as e:
         return error_response(
-            message=ERROR_NOTIFICATIONS_FETCH, 
-            code="NOTIFICATIONS_FETCH_ERROR", 
-            status_code=500, 
-            uid=uid, 
+            message=ERROR_NOTIFICATIONS_FETCH,
+            code="NOTIFICATIONS_FETCH_ERROR",
+            status_code=500,
+            uid=uid,
             origin="NOTIFICATIONS_FETCH",
             error=str(e)
         )
