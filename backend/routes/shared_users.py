@@ -402,10 +402,11 @@ def handle_delete_user_shared_user(calendar_id, receiver_uid):
                 data.get("type") == "calendar_invitation"
                 and data.get("calendar_id") == calendar_id
                 and data.get("owner_uid") == owner_uid
+                and not data.get("read", False)
             ):
-                if not data.get("read", False):
-                    doc.reference.delete()
-                    invitation_deleted = True
+                doc.reference.delete()
+                invitation_deleted = True
+
 
         # Si aucune invitation supprimée, envoyer une notification de suppression
         if not invitation_deleted:
