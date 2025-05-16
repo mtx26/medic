@@ -139,7 +139,7 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
     };
 
     load();
-  }, [authReady, currentUser, calendarId, calendarType, calendarSource, calendarEvents, calendarTable, calendarName]);
+  }, [authReady, currentUser, calendarId, calendarType, calendarSource]);
 
 
   useEffect(() => {
