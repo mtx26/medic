@@ -12,6 +12,12 @@ export default function WeekDayCircles({ selectedDate, onSelectDate, getWeekDays
             <div
               key={index}
               role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  onSelectDate(day);
+                }
+              }}
               className={
                 `text-center rounded-circle border 
                 ${isToday 
