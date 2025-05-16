@@ -482,6 +482,17 @@ def get_token_metadata(token):
                 origin="TOKEN_METADATA_LOAD",
                 log_extra={"token": token}
             )
+        
+        if "read" not in permissions:
+            return warning_response(
+                message=WARNING_TOKEN_NO_READ_PERMISSION,
+                code="TOKEN_NO_READ_PERMISSION",
+                status_code=403,
+                uid="unknown",
+                origin="TOKEN_METADATA_LOAD",
+                log_extra={"token": token}
+            )
+        
 
         return success_response(
             message=SUCCESS_TOKEN_METADATA_FETCHED,
