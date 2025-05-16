@@ -68,7 +68,7 @@ function VerifyEmail() {
         await user.reload();
         const reloadUser = getGlobalReloadUser();
         if (reloadUser) {
-          await reloadUser();
+          reloadUser();
         }
       }
     }, 5000);
