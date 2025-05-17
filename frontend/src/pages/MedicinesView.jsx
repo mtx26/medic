@@ -26,6 +26,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
   const [loadingMedicines, setLoadingMedicines] = useState(undefined); // État de chargement des médicaments
   const [highlightedId, setHighlightedId] = useState(null); // État pour l'élément mis en évidence dans la liste
   const lastMedRef = useRef(null); // Référence vers le dernier médicament affiché
+  const [groupedMedicines, setGroupedMedicines] = useState([]);
 
   const { authReady } = useContext(UserContext);
 
@@ -50,6 +51,24 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
       prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
     );
   };
+
+  const getGroupedMedicinesList = (medicines) => {
+    const sorted = [...medicines].sort((a, b) =>
+      a.name.toLowerCase().localeCompare(b.name.toLowerCase())
+    );
+  
+    const result = [];
+    let currentGroup = null;
+  
+    for (const med of sorted) {
+      if (med.name !== currentGroup) {
+        currentGroup = med.name;
+        result.push({ type: "group", name: currentGroup });
+      }
+      result.push({ type: "med", data: med });
+    }
+    setGroupedMedicines(result);
+  };  
 
   const handleMedChange = (id, field, value) => {
     const index = medicinesData.findIndex((med) => med.id === id);
@@ -156,6 +175,12 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
     setLoadingMedicines
   );  
 
+  useEffect(() => {
+    if (authReady && medicinesData.length > 0) {
+      getGroupedMedicinesList(medicinesData);
+    }
+  }, [authReady, medicinesData]);
+
   if (loadingMedicines === undefined) {
     return (
       <div className="d-flex justify-content-center align-items-center" style={{ height: '60vh' }}>
@@ -173,7 +198,6 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
       </div>
     );
   }
-  
 
   return (
     <div className="container d-flex justify-content-center">
@@ -244,128 +268,137 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
           }}
         />
 
-        {medicinesData.length === 0 ? (
+        {groupedMedicines.length === 0 ? (
           <div className="text-center mt-5 text-muted">❌ Aucun médicament n’a encore été ajouté pour ce calendrier.</div>
         ) : (
           <ul className="list-group striped-bootstrap">
-              {medicinesData.map((med) => (
-                <li
-                key={med.id}
-                ref={med.id === highlightedId ? lastMedRef : null}
-                className={`list-group-item px-2 py-3 ${med.id === highlightedId ? 'highlighted-med' : ''}`}
-              >
-                <div className="row g-2 align-items-center">
-                  {/* Checkbox */}
-                  <div className="col-2 col-md-1 d-flex justify-content-center">
-                    <input
-                      className="form-check-input mt-2"
-                      type="checkbox"
-                      checked={checked.includes(med.id)}
-                      onChange={() => toggleSelection(med.id)}
-                      id={`check-${med.id}`}
-                    />
-                  </div>
+              {groupedMedicines.map((item, index) => {
+                if (item.type === "group") {
+                  return (
+                    <li key={`group-${index}`} className="list-group-item fw-bold bg-light">
+                      {item.name}
+                    </li>
+                  );
+                } 
+                return (
+                  <li
+                    key={item.data.id}
+                    id={item.data.id}
+                    ref={item.data.id === highlightedId ? lastMedRef : null}
+                    className={`list-group-item px-2 py-3 ${item.data.id === highlightedId ? 'highlighted-med' : ''}`}
+                  >
+                    <div className="row g-2 align-items-center" key={item.data.id}>
+                      {/* Checkbox */}
+                      <div className="col-2 col-md-1 d-flex justify-content-center">
+                        <input
+                          className="form-check-input mt-2"
+                          type="checkbox"
+                          checked={checked.includes(item.data.id)}
+                          onChange={() => toggleSelection(item.data.id)}
+                          id={`check-${item.data.id}`}
+                        />
+                      </div>
 
-                  {/* Nom */}
-                  <div className="col-10 col-md-2">
-                    <div className="form-floating">
-                      <input
-                        type="text"
-                        className="form-control form-control-sm"
-                        id={`name-${med.id}`}
-                        placeholder="Nom"
-                        value={med?.name || ''}
-                        onChange={(e) => handleMedChange(med.id, 'name', e.target.value)}
-                        title="Nom du médicament"
-                      />
-                      <label htmlFor={`name-${med.id}`}>Nom</label>
-                    </div>
-                  </div>
-                  {/* Dose */}
-                  <div className="col-6 col-md-1">
-                    <div className="form-floating">
-                      <input
-                        type="number"
-                        className="form-control form-control-sm"
-                        id={`dose-${med.id}`}
-                        placeholder="Dose"
-                        value={med?.dose || ''}
-                        onChange={(e) => handleMedChange(med.id, 'dose', e.target.value)}
-                        title="Dose en mg"
-                      />
-                      <label htmlFor={`dose-${med.id}`}>Dose (mg)</label>
-                    </div>
-                  </div>
-                  {/* Comprimés */}
-                  <div className="col-6 col-md-2">
-                    <div className="form-floating">
-                      <input
-                        type="number"
-                        step="0.25"
-                        className="form-control form-control-sm"
-                        id={`comps-${med.id}`}
-                        placeholder="Comprimés"
-                        value={med?.tablet_count || ''}
-                        onChange={(e) => handleMedChange(med.id, 'tablet_count', e.target.value)}
-                        title="Nombre de comprimés"
-                      />
-                      <label htmlFor={`comps-${med.id}`}>Comprimés</label>
-                    </div>
-                  </div>
+                      {/* Nom */}
+                      <div className="col-10 col-md-2">
+                        <div className="form-floating">
+                          <input
+                            type="text"
+                            className="form-control form-control-sm"
+                            id={`name-${item.data.id}`}
+                            placeholder="Nom"
+                            value={item.data?.name || ''}
+                            onChange={(e) => handleMedChange(item.data.id, 'name', e.target.value)}
+                            title="Nom du médicament"
+                          />
+                          <label htmlFor={`name-${item.data.id}`}>Nom</label>
+                        </div>
+                      </div>
+                      {/* Dose */}
+                      <div className="col-6 col-md-1">
+                        <div className="form-floating">
+                          <input
+                            type="number"
+                            className="form-control form-control-sm"
+                            id={`dose-${item.data.id}`}
+                            placeholder="Dose"
+                            value={item.data?.dose || ''}
+                            onChange={(e) => handleMedChange(item.data.id, 'dose', e.target.value)}
+                            title="Dose en mg"
+                          />
+                          <label htmlFor={`dose-${item.data.id}`}>Dose (mg)</label>
+                        </div>
+                      </div>
+                      {/* Comprimés */}
+                      <div className="col-6 col-md-2">
+                        <div className="form-floating">
+                          <input
+                            type="number"
+                            step="0.25"
+                            className="form-control form-control-sm"
+                            id={`comps-${item.data.id}`}
+                            placeholder="Comprimés"
+                            value={item.data?.tablet_count || ''}
+                            onChange={(e) => handleMedChange(item.data.id, 'tablet_count', e.target.value)}
+                            title="Nombre de comprimés"
+                          />
+                          <label htmlFor={`comps-${item.data.id}`}>Comprimés</label>
+                        </div>
+                      </div>
 
-                  {/* Moment */}
-                  <div className="col-6 col-md-2">
-                    <div className="form-floating">
-                      <select
-                        className="form-select form-select-sm"
-                        id={`moment-${med.id}`}
-                        value={med?.time[0] || ''}
-                        onChange={(e) => handleMedChange(med.id, 'time', e.target.value)}
-                      >
-                        <option value="" disabled hidden>Choisir</option>
-                        <option value="morning">Matin</option>
-                        <option value="noon">Midi</option>
-                        <option value="evening">Soir</option>
-                      </select>
-                      <label htmlFor={`moment-${med.id}`}>Moment</label>
-                    </div>
-                  </div>
+                      {/* Moment */}
+                      <div className="col-6 col-md-2">
+                        <div className="form-floating">
+                          <select
+                            className="form-select form-select-sm"
+                            id={`moment-${item.data.id}`}
+                            value={item.data?.time[0] || ''}
+                            onChange={(e) => handleMedChange(item.data.id, 'time', e.target.value)}
+                          >
+                            <option value="" disabled hidden>Choisir</option>
+                            <option value="morning">Matin</option>
+                            <option value="noon">Midi</option>
+                            <option value="evening">Soir</option>
+                          </select>
+                          <label htmlFor={`moment-${item.data.id}`}>Moment</label>
+                        </div>
+                      </div>
 
-                  {/* Intervalle */}
-                  <div className="col-6 col-md-2">
-                    <div className="form-floating">
-                      <input
-                        type="number"
-                        className="form-control form-control-sm"
-                        id={`interval-${med.id}`}
-                        placeholder="Intervalle"
-                        value={med?.interval_days || ''}
-                        onChange={(e) => handleMedChange(med.id, 'interval_days', e.target.value)}
-                        title="Intervalle en jours"
-                      />
-                      <label htmlFor={`interval-${med.id}`}>Intervalle</label>
-                    </div>
-                  </div>
+                      {/* Intervalle */}
+                      <div className="col-6 col-md-2">
+                        <div className="form-floating">
+                          <input
+                            type="number"
+                            className="form-control form-control-sm"
+                            id={`interval-${item.data.id}`}
+                            placeholder="Intervalle"
+                            value={item.data?.interval_days || ''}
+                            onChange={(e) => handleMedChange(item.data.id, 'interval_days', e.target.value)}
+                            title="Intervalle en jours"
+                          />
+                          <label htmlFor={`interval-${item.data.id}`}>Intervalle</label>
+                        </div>
+                      </div>
 
-                  {/* Date de début */}
-                  <div className="col-6 col-md-2">
-                    <div className="form-floating">
-                      <input
-                        type="date"
-                        className="form-control form-control-sm"
-                        id={`start-${med.id}`}
-                        placeholder="Date de début"
-                        value={med?.start_date || ''}
-                        onChange={(e) => handleMedChange(med.id, 'start_date', e.target.value)}
-                        title="Date de début"
-                      />
-                      <label htmlFor={`start-${med.id}`}>Date de début</label>
+                      {/* Date de début */}
+                      <div className="col-6 col-md-2">
+                        <div className="form-floating">
+                          <input
+                            type="date"
+                            className="form-control form-control-sm"
+                            id={`start-${item.data.id}`}
+                            placeholder="Date de début"
+                            value={item.data?.start_date || ''}
+                            onChange={(e) => handleMedChange(item.data.id, 'start_date', e.target.value)}
+                            title="Date de début"
+                          />
+                          <label htmlFor={`start-${item.data.id}`}>Date de début</label>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-
-              </li>
-            ))}
+                  </li>
+                );
+              })}
           </ul>
         )}
 

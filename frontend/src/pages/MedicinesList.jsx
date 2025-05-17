@@ -14,6 +14,14 @@ function MedicinesList() {
 
   useRealtimeTokenMedicines(sharedToken, setMedicinesData, setLoadingMedicines);
 
+  const groupMedicinesByName = (medicines) => {
+    return medicines.reduce((acc, med) => {
+      acc[med.name] = acc[med.name] || [];
+      acc[med.name].push(med);
+      return acc;
+    }, {});
+  }
+
   if (loadingMedicines === undefined && sharedToken) {
     return (
       <div className="d-flex justify-content-center align-items-center" style={{ height: '60vh' }}>
@@ -32,6 +40,8 @@ function MedicinesList() {
     );
   }
 
+  const groupedMedicines = groupMedicinesByName(medicinesData);
+
   return (
     <div className="container mt-4">
       <button
@@ -47,21 +57,21 @@ function MedicinesList() {
         <span> Liste des médicaments</span>
       </h4>
 
-      {medicinesData.length === 0 ? (
+      {Object.keys(groupedMedicines).length === 0 ? (
         <div className="text-center mt-5 text-muted">
           ❌ Aucun médicament n’a encore été ajouté pour ce calendrier.
         </div>
       ) : (
         <ul className="list-group mt-3">
-          {medicinesData.map((med, index) => (
-            <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
-              <div>
-                <strong>{med.name} {med.dose != null ? `${med.dose} mg` : ""}</strong> 
-                <div className="text-muted small">
-                  {med.tablet_count} comprimé(s) - {med.time[0] === "morning" ? "Matin" : "Soir"} - Tous les {med.interval_days} jour(s)
+          {Object.keys(groupedMedicines).map((key, index) => (
+            <li key={index} className="list-group-item align-items-center">
+              <strong>{key} {groupedMedicines[key][0].dose != null ? `${groupedMedicines[key][0].dose} mg` : ""}</strong> 
+              {groupedMedicines[key].map((med, index) => (
+                <div key={index} className="text-muted small">
+                  {med.time[0] === "morning" ? "Matin" : "Soir"} - {med.tablet_count} comprimé(s) - Tous les {med.interval_days} jour(s)
                   {med.start_date && ` à partir du ${med.start_date}`}
                 </div>
-              </div>
+              ))}
             </li>
           ))}
         </ul>
