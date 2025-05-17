@@ -25,6 +25,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
   const [originalMedicinesData, setOriginalMedicinesData] = useState([]); // Liste des médicaments d’origine
   const [loadingMedicines, setLoadingMedicines] = useState(undefined); // État de chargement des médicaments
   const [highlightedId, setHighlightedId] = useState(null); // État pour l'élément mis en évidence dans la liste
+  const [highlightedField, setHighlightedField] = useState(null); // { id: string, field: string }
   const lastMedRef = useRef(null); // Référence vers le dernier médicament affiché
   const [groupedMedicines, setGroupedMedicines] = useState([]);
 
@@ -86,6 +87,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
     }
   
     setMedicinesData(updated);
+    setHighlightedField({ id, field });
   };
   
 
@@ -181,6 +183,20 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
     }
   }, [authReady, medicinesData]);
 
+  useEffect(() => {
+    if (highlightedField && highlightedField.id && highlightedField.field) {
+      setTimeout(() => {
+        const input = document.getElementById(`${highlightedField.field}-${highlightedField.id}`);
+        if (input) {
+          input.focus();
+          input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        setHighlightedField(null);
+      }, 100);
+    }
+  }, [highlightedField]);
+  
+
   if (loadingMedicines === undefined) {
     return (
       <div className="d-flex justify-content-center align-items-center" style={{ height: '60vh' }}>
@@ -224,8 +240,8 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
               if (rep.success) {
                 setMedicinesData(rep.medicinesData);
               }
-              setHighlightedId(rep.id);
-              setTimeout(() => setHighlightedId(null), 2000);
+              setHighlightedField({ id: rep.id, field: 'name' });
+              setTimeout(() => setHighlightedField(null), 2000);
               setTimeout(() => lastMedRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
             }}
             className="btn btn-outline-primary"
@@ -277,13 +293,22 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
                   return (
                     <li key={`group-${index}`} className="list-group-item fw-bold bg-light">
                       {item.name}
+                      <button className="btn btn-success btn-sm float-end" title="Ajouter un médicament" onClick={() => {
+                        const rep = calendarSource.addMedicine(medicinesData, item.name);
+                        if (rep.success) {
+                          setMedicinesData(rep.medicinesData);
+                          setHighlightedField({ id: rep.id, field: 'dose' });
+                        }
+                      }}>
+                        <i className="bi bi-plus-lg"></i>
+                      </button>
                     </li>
                   );
                 } 
                 return (
                   <li
                     key={item.data.id}
-                    id={item.data.id}
+                    id={`med-${item.data.id}`}
                     ref={item.data.id === highlightedId ? lastMedRef : null}
                     className={`list-group-item px-2 py-3 ${item.data.id === highlightedId ? 'highlighted-med' : ''}`}
                   >

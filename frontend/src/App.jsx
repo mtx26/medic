@@ -343,16 +343,16 @@ function App() {
   }, [updatePersonalCalendarMedicines]);
   
   // Fonction pour ajouter un nouveau médicament sanq la variable medicines
-  const addMedicine = useCallback((medicinesData) => {
+  const addMedicine = useCallback((medicinesData, name = '') => {
     // générer un id unique a 16 caractères
     const id = generateHexToken();
     if (medicinesData.length === 0) {
-      const newMedicinesData = [{ name: '', tablet_count: 1, time: ['morning'], interval_days: 1, start_date: '', id: id }];
+      const newMedicinesData = [{ name: name, tablet_count: 1, time: ['morning'], interval_days: 1, start_date: '', id: id }];
       return {success: true, message: "Médicament ajouté avec succès", code: "MED_ADD_SUCCESS", medicinesData: newMedicinesData, id: id };
     }
     const newMedicinesData = [
       ...medicinesData,
-      { name: '', tablet_count: 1, time: ['morning'], interval_days: 1, start_date: '', id: id },
+      { name: name, tablet_count: 1, time: ['morning'], interval_days: 1, start_date: '', id: id },
     ];
 
     return {success: true, message: "Médicament ajouté avec succès", code: "MED_ADD_SUCCESS", medicinesData: newMedicinesData, id: id };
