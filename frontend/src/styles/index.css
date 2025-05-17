@@ -92,22 +92,16 @@ code {
 }
 
 /* === HIGHLIGHT / ANIMATIONS === */
-.highlighted-med {
-  animation: fade-highlight 1s ease-in-out;
+.highlight-week {
   background-color: #d1e7dd !important;
 }
 
-.highlight-week {
-  background-color: #d0f5d8 !important;
+.field-changed {
+  background-color: #d1e7dd !important;
+  transition: background-color 0.4s ease;
 }
 
-@keyframes fade-highlight {
-  from {
-    background-color: #0f5132;
-    color: white;
-  }
-  to {
-    background-color: #d1e7dd;
-    color: inherit;
-  }
+.med-added {
+  background-color: #d1e7dd !important;
+  transition: background-color 0.4s ease;
 }

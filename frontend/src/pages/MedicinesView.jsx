@@ -24,9 +24,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
   const [medicinesData, setMedicinesData] = useState([]); // Liste des médicaments du calendrier actif
   const [originalMedicinesData, setOriginalMedicinesData] = useState([]); // Liste des médicaments d’origine
   const [loadingMedicines, setLoadingMedicines] = useState(undefined); // État de chargement des médicaments
-  const [highlightedId, setHighlightedId] = useState(null); // État pour l'élément mis en évidence dans la liste
   const [highlightedField, setHighlightedField] = useState(null); // { id: string, field: string }
-  const lastMedRef = useRef(null); // Référence vers le dernier médicament affiché
   const [groupedMedicines, setGroupedMedicines] = useState([]);
 
   const { authReady } = useContext(UserContext);
@@ -47,12 +45,14 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
 
   const calendarSource = getCalendarSourceMap(personalCalendars, sharedUserCalendars, tokenCalendars)[calendarType];
 
+  // 🔄 Gestion de la sélection des médicaments
   const toggleSelection = (id) => {
     setChecked((prev) =>
       prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
     );
   };
 
+  // 🔄 Groupement des médicaments par nom
   const getGroupedMedicinesList = (medicines) => {
     const sorted = [...medicines].sort((a, b) =>
       a.name.toLowerCase().localeCompare(b.name.toLowerCase())
@@ -71,6 +71,19 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
     setGroupedMedicines(result);
   };  
 
+  // 🔄 Détection des modifications
+  const isFieldChanged = (id, field) => {
+    const original = originalMedicinesData.find(med => med.id === id);
+    const current = medicinesData.find(med => med.id === id);
+    if (!original || !current) return false;
+    return JSON.stringify(original[field]) !== JSON.stringify(current[field]);
+  };
+
+  const isNewMed = (id) => {
+    return !originalMedicinesData.some((med) => med.id === id);
+  };  
+  
+  // 🔄 Gestion des modifications
   const handleMedChange = (id, field, value) => {
     const index = medicinesData.findIndex((med) => med.id === id);
     if (index === -1) return; // id introuvable, on ne fait rien
@@ -90,7 +103,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
     setHighlightedField({ id, field });
   };
   
-
+  // 🔄 Validation des médicaments
   const isMedValid = (med) => {
     const hasName = typeof med.name === 'string' && med.name.trim() !== '';
   
@@ -118,6 +131,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
 
   const allMedsValid = medicinesData.length > 0 && medicinesData.every(isMedValid);
 
+  // 🔄 Enregistrement des modifications
   const handleSave = async () => {
     const rep = await calendarSource.updateMedicines(calendarId, medicinesData);
     if (rep.success) {
@@ -143,6 +157,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
     setOnConfirmAction(() => handleSave);
   };
 
+  // 🔄 Suppression des médicaments
   const handleDelete = async () => {
     const rep = await calendarSource.deleteMedicines(calendarId, checked, medicinesData);
     if (rep.success) {
@@ -169,6 +184,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
     setOnConfirmAction(() => handleDelete);
   };  
 
+  // 🔄 Gestion des médicaments en temps réel
   useRealtimeMedicinesSwitcher(
     calendarType,
     calendarId,
@@ -177,12 +193,14 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
     setLoadingMedicines
   );  
 
+  // 🔄 Gestion du rendu
   useEffect(() => {
     if (authReady && medicinesData.length > 0) {
       getGroupedMedicinesList(medicinesData);
     }
   }, [authReady, medicinesData]);
 
+  // 🔄 Gestion du focus 
   useEffect(() => {
     if (highlightedField && highlightedField.id && highlightedField.field) {
       setTimeout(() => {
@@ -196,7 +214,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
     }
   }, [highlightedField]);
   
-
+  // 🔄 Gestion du chargement
   if (loadingMedicines === undefined) {
     return (
       <div className="d-flex justify-content-center align-items-center" style={{ height: '60vh' }}>
@@ -240,9 +258,6 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
               if (rep.success) {
                 setMedicinesData(rep.medicinesData);
               }
-              setHighlightedField({ id: rep.id, field: 'name' });
-              setTimeout(() => setHighlightedField(null), 2000);
-              setTimeout(() => lastMedRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
             }}
             className="btn btn-outline-primary"
             title="Ajouter un médicament"
@@ -309,8 +324,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
                   <li
                     key={item.data.id}
                     id={`med-${item.data.id}`}
-                    ref={item.data.id === highlightedId ? lastMedRef : null}
-                    className={`list-group-item px-2 py-3 ${item.data.id === highlightedId ? 'highlighted-med' : ''}`}
+                    className={`list-group-item px-2 py-3 ${isNewMed(item.data.id) ? 'med-added' : ''}`}
                   >
                     <div className="row g-2 align-items-center" key={item.data.id}>
                       {/* Checkbox */}
@@ -329,7 +343,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
                         <div className="form-floating">
                           <input
                             type="text"
-                            className="form-control form-control-sm"
+                            className={`form-control form-control-sm ${isFieldChanged(item.data.id, 'name') ? 'field-changed' : ''}`}
                             id={`name-${item.data.id}`}
                             placeholder="Nom"
                             value={item.data?.name || ''}
@@ -344,7 +358,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
                         <div className="form-floating">
                           <input
                             type="number"
-                            className="form-control form-control-sm"
+                            className={`form-control form-control-sm ${isFieldChanged(item.data.id, 'dose') ? 'field-changed' : ''}`}
                             id={`dose-${item.data.id}`}
                             placeholder="Dose"
                             value={item.data?.dose || ''}
@@ -360,7 +374,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
                           <input
                             type="number"
                             step="0.25"
-                            className="form-control form-control-sm"
+                            className={`form-control form-control-sm ${isFieldChanged(item.data.id, 'tablet_count') ? 'field-changed' : ''}`}
                             id={`comps-${item.data.id}`}
                             placeholder="Comprimés"
                             value={item.data?.tablet_count || ''}
@@ -394,7 +408,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
                         <div className="form-floating">
                           <input
                             type="number"
-                            className="form-control form-control-sm"
+                            className={`form-control form-control-sm ${isFieldChanged(item.data.id, 'interval_days') ? 'field-changed' : ''}`}
                             id={`interval-${item.data.id}`}
                             placeholder="Intervalle"
                             value={item.data?.interval_days || ''}
@@ -410,7 +424,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
                         <div className="form-floating">
                           <input
                             type="date"
-                            className="form-control form-control-sm"
+                            className={`form-control form-control-sm ${isFieldChanged(item.data.id, 'start_date') ? 'field-changed' : ''}`}
                             id={`start-${item.data.id}`}
                             placeholder="Date de début"
                             value={item.data?.start_date || ''}
