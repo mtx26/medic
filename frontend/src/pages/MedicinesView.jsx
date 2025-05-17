@@ -69,7 +69,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
       result.push({ type: "med", data: med });
     }
     setGroupedMedicines(result);
-  };  
+  };   
 
   // 🔄 Détection des modifications
   const isFieldChanged = (id, field) => {
@@ -104,32 +104,37 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
   };
   
   // 🔄 Validation des médicaments
-  const isMedValid = (med) => {
-    const hasName = typeof med.name === 'string' && med.name.trim() !== '';
+  const getMedFieldValidity = (med) => {
+    if (!med || typeof med !== 'object') return {
+      name: false,
+      tablet_count: false,
+      time: false,
+      interval_days: false,
+      start_date: false
+    };
   
-    const hasTabletCount =
-      med.tablet_count !== '' &&
-      med.tablet_count !== null &&
-      !isNaN(parseFloat(med.tablet_count));
-  
-    const hasValidTime =
-      Array.isArray(med.time) &&
-      med.time.length > 0 &&
-      ['morning', 'noon', 'evening'].includes(med.time[0]);
-  
-    const hasInterval =
-      med.interval_days !== '' &&
-      med.interval_days !== null &&
-      !isNaN(parseInt(med.interval_days));
-  
-    const hasValidStartDate =
-      parseInt(med.interval_days) === 1 ||
-      (typeof med.start_date === 'string' && med.start_date.trim() !== '');
-  
-    return hasName && hasTabletCount && hasValidTime && hasInterval && hasValidStartDate;
-  };  
+    return {
+      name: typeof med.name === 'string' && med.name.trim() !== '',
+      tablet_count: med.tablet_count !== '' &&
+                    med.tablet_count !== null &&
+                    !isNaN(parseFloat(med.tablet_count)),
+      time: Array.isArray(med.time) &&
+            med.time.length > 0 &&
+            ['morning', 'noon', 'evening'].includes(med.time[0]),
+      interval_days: med.interval_days !== '' &&
+                     med.interval_days !== null &&
+                     !isNaN(parseInt(med.interval_days)),
+      start_date: parseInt(med.interval_days) === 1 ||
+                  (typeof med.start_date === 'string' && med.start_date.trim() !== '')
+    };
+  };
 
-  const allMedsValid = medicinesData.length > 0 && medicinesData.every(isMedValid);
+  const allMedsValid = medicinesData.length > 0 && medicinesData.every(
+    (med) => {
+      const validity = getMedFieldValidity(med);
+      return Object.values(validity).every(Boolean);
+    }
+  );
 
   // 🔄 Enregistrement des modifications
   const handleSave = async () => {
@@ -252,6 +257,8 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
         </h4>
 
         <div className="d-flex flex-wrap gap-2 my-3">
+
+          {/* Ajouter un médicament */}
           <button 
             onClick={() => {
               const rep = calendarSource.addMedicine(medicinesData);
@@ -266,6 +273,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
             <span> Ajouter un médicament</span>
           </button>
 
+          {/* Supprimer les médicaments sélectionnés */}
           <button
             onClick={onDeleteClick}
             className="btn btn-outline-danger"
@@ -276,14 +284,15 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
             <span> Supprimer sélectionnés</span>
           </button>
 
+          {/* Modifier les médicaments */}
           <button
             onClick={onSaveClick}
             className="btn btn-outline-success"
             disabled={!allMedsValid || !hasChanges}
-            title="Modifier les médicaments"
+            title="Enregistrer les modifications"
           >
             <i className="bi bi-pencil"></i>
-            <span> Modifier les médicaments</span>
+            <span> Enregistrer les modifications</span>
           </button>
         </div>
 
@@ -304,6 +313,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
         ) : (
           <ul className="list-group striped-bootstrap">
               {groupedMedicines.map((item, index) => {
+                const validity = getMedFieldValidity(item.data);
                 if (item.type === "group") {
                   return (
                     <li key={`group-${index}`} className="list-group-item fw-bold bg-light">
@@ -335,6 +345,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
                           checked={checked.includes(item.data.id)}
                           onChange={() => toggleSelection(item.data.id)}
                           id={`check-${item.data.id}`}
+                          title="Sélectionner le médicament"
                         />
                       </div>
 
@@ -343,7 +354,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
                         <div className="form-floating">
                           <input
                             type="text"
-                            className={`form-control form-control-sm ${isFieldChanged(item.data.id, 'name') ? 'field-changed' : ''}`}
+                            className={`form-control form-control-sm ${!validity.name ? 'is-invalid' : ''} ${isFieldChanged(item.data.id, 'name') ? 'field-changed' : ''}`}
                             id={`name-${item.data.id}`}
                             placeholder="Nom"
                             value={item.data?.name || ''}
@@ -374,7 +385,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
                           <input
                             type="number"
                             step="0.25"
-                            className={`form-control form-control-sm ${isFieldChanged(item.data.id, 'tablet_count') ? 'field-changed' : ''}`}
+                            className={`form-control form-control-sm ${!validity.tablet_count ? 'is-invalid' : ''} ${isFieldChanged(item.data.id, 'tablet_count') ? 'field-changed' : ''}`}
                             id={`comps-${item.data.id}`}
                             placeholder="Comprimés"
                             value={item.data?.tablet_count || ''}
@@ -408,7 +419,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
                         <div className="form-floating">
                           <input
                             type="number"
-                            className={`form-control form-control-sm ${isFieldChanged(item.data.id, 'interval_days') ? 'field-changed' : ''}`}
+                            className={`form-control form-control-sm ${!validity.interval_days ? 'is-invalid' : ''} ${isFieldChanged(item.data.id, 'interval_days') ? 'field-changed' : ''}`}
                             id={`interval-${item.data.id}`}
                             placeholder="Intervalle"
                             value={item.data?.interval_days || ''}
@@ -424,7 +435,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
                         <div className="form-floating">
                           <input
                             type="date"
-                            className={`form-control form-control-sm ${isFieldChanged(item.data.id, 'start_date') ? 'field-changed' : ''}`}
+                            className={`form-control form-control-sm ${!validity.start_date ? 'is-invalid' : ''} ${isFieldChanged(item.data.id, 'start_date') ? 'field-changed' : ''}`}
                             id={`start-${item.data.id}`}
                             placeholder="Date de début"
                             value={item.data?.start_date || ''}
