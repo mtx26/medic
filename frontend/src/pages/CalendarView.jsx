@@ -150,7 +150,7 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
 
   const memoizedEvents = useMemo(() => {
     return calendarEvents.map((event) => ({
-      title: `${event.title} (${event.dose})`,
+      title: `${event.title} ${event.dose != null ? `${event.dose} mg` : ""} (${event.tablet_count})`,
       start: event.start,
       color: event.color,
     }));
@@ -341,7 +341,7 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
             {calendarTable.map((table, index) => (
               <div className="card border border-secondary-subtle mb-4" key={index}>
                 <div className="card-header bg-light fw-semibold text-dark">
-                  <i className="bi bi-capsule me-2"></i>{table.title}
+                  <i className="bi bi-capsule me-2"></i>{table.title} {table.dose != null ? `${table.dose} mg` : ""}
                 </div>
                 <div className="card-body p-0">
                   <div className="table-responsive">

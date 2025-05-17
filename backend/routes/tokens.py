@@ -357,16 +357,16 @@ def handle_generate_token_schedule(token):
         permissions = data.get("permissions")
         revoked = data.get("revoked")
 
-        if expires_at:
-            if datetime.now(timezone.utc).date() > datetime.fromisoformat(expires_at).date():
-                return warning_response(
-                    message=WARNING_TOKEN_EXPIRED, 
-                    code="TOKEN_EXPIRED", 
-                    status_code=404, 
-                    uid="unknown", 
-                    origin="TOKEN_GENERATE_SCHEDULE", 
-                    log_extra={"token": token}
-                )
+        now = datetime.now(timezone.utc).date()
+        if expires_at and now > expires_at.date():
+            return warning_response(
+                message=WARNING_TOKEN_EXPIRED, 
+                code="TOKEN_EXPIRED", 
+                status_code=404, 
+                uid="unknown", 
+                origin="TOKEN_GENERATE_SCHEDULE", 
+                log_extra={"token": token}
+            )
 
         if revoked:
             return warning_response(
@@ -460,17 +460,16 @@ def get_token_metadata(token):
         permissions = data.get("permissions")
 
         # Vérification simple
-        if expires_at:
-            now = datetime.now(timezone.utc).date()
-            if now > datetime.fromisoformat(expires_at).date():
-                return warning_response(
-                    message=WARNING_TOKEN_EXPIRED,
-                    code="TOKEN_EXPIRED",
-                    status_code=403,
-                    uid="unknown",
-                    origin="TOKEN_METADATA_LOAD",
-                    log_extra={"token": token}
-                )
+        now = datetime.now(timezone.utc).date()
+        if expires_at and now > expires_at.date():
+            return warning_response(
+                message=WARNING_TOKEN_EXPIRED,
+                code="TOKEN_EXPIRED",
+                status_code=403,
+                uid="unknown",
+                origin="TOKEN_METADATA_LOAD",
+                log_extra={"token": token}
+            )
 
         if revoked:
             return warning_response(
@@ -588,8 +587,9 @@ def handle_token_medicines(token):
         revoked = data.get("revoked")
         permissions = data.get("permissions")
 
-        # Vérifications
-        if expires_at and datetime.now(timezone.utc).date() > datetime.fromisoformat(expires_at).date():
+        now = datetime.now(timezone.utc).date()
+        
+        if expires_at and now > expires_at.date():
             return warning_response(
                 message=WARNING_TOKEN_EXPIRED,
                 code="TOKEN_EXPIRED",

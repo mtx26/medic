@@ -35,7 +35,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
 
   let calendarType = 'personal';
   let calendarId = params.calendarId;
-  let basePath = 'calendars';
+  let basePath = 'calendar';
 
   if (location.pathname.startsWith('/shared-user-calendar')) {
     calendarType = 'sharedUser';
@@ -267,7 +267,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
                   </div>
 
                   {/* Nom */}
-                  <div className="col-10 col-md-3">
+                  <div className="col-10 col-md-2">
                     <div className="form-floating">
                       <input
                         type="text"
@@ -276,11 +276,26 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
                         placeholder="Nom"
                         value={med?.name || ''}
                         onChange={(e) => handleMedChange(med.id, 'name', e.target.value)}
+                        title="Nom du médicament"
                       />
                       <label htmlFor={`name-${med.id}`}>Nom</label>
                     </div>
                   </div>
-
+                  {/* Dose */}
+                  <div className="col-6 col-md-1">
+                    <div className="form-floating">
+                      <input
+                        type="number"
+                        className="form-control form-control-sm"
+                        id={`dose-${med.id}`}
+                        placeholder="Dose"
+                        value={med?.dose || ''}
+                        onChange={(e) => handleMedChange(med.id, 'dose', e.target.value)}
+                        title="Dose en mg"
+                      />
+                      <label htmlFor={`dose-${med.id}`}>Dose (mg)</label>
+                    </div>
+                  </div>
                   {/* Comprimés */}
                   <div className="col-6 col-md-2">
                     <div className="form-floating">
@@ -290,8 +305,9 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
                         className="form-control form-control-sm"
                         id={`comps-${med.id}`}
                         placeholder="Comprimés"
-                        value={med?.tablet_count ?? ''}
+                        value={med?.tablet_count || ''}
                         onChange={(e) => handleMedChange(med.id, 'tablet_count', e.target.value)}
+                        title="Nombre de comprimés"
                       />
                       <label htmlFor={`comps-${med.id}`}>Comprimés</label>
                     </div>
@@ -323,8 +339,9 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
                         className="form-control form-control-sm"
                         id={`interval-${med.id}`}
                         placeholder="Intervalle"
-                        value={med?.interval_days ?? ''}
+                        value={med?.interval_days || ''}
                         onChange={(e) => handleMedChange(med.id, 'interval_days', e.target.value)}
+                        title="Intervalle en jours"
                       />
                       <label htmlFor={`interval-${med.id}`}>Intervalle</label>
                     </div>
@@ -340,6 +357,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
                         placeholder="Date de début"
                         value={med?.start_date || ''}
                         onChange={(e) => handleMedChange(med.id, 'start_date', e.target.value)}
+                        title="Date de début"
                       />
                       <label htmlFor={`start-${med.id}`}>Date de début</label>
                     </div>

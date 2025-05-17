@@ -46,18 +46,25 @@ function WeeklyEventContent({
               {eventsForDay.map((event, index) => (
                 <li
                   key={index}
-                  className="list-group-item d-flex justify-content-between align-items-center"
+                  className="list-group-item d-flex align-items-center justify-content-between"
                 >
-                  {`${event.title} (${event.dose})`}
-                  <span
-                    className="badge"
-                    style={{ backgroundColor: event.color, color: "white" }}
-                  >
-                    {new Date(event.start).toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit"
-                    })}
-                  </span>
+                  {event.title} {event.dose != null ? `${event.dose} mg` : ""}
+                  <div className="d-flex align-items-center">
+                    <span
+                      className="badge me-2 badge bg-secondary"
+                    >
+                      {event.tablet_count}
+                    </span>
+                    <span
+                      className="badge"
+                      style={{ backgroundColor: event.color, color: "white" }}
+                    >
+                      {new Date(event.start).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit"
+                      })}
+                    </span>
+                  </div>
                 </li>
               ))}
             </ul>

@@ -67,14 +67,16 @@ def generate_schedule(start_date, medications):
                 # format pour fullcalendar
                 pils_data = {}
 
-                name = med['name']
-                dose = med['tablet_count']
+                name = med.get('name')
+                tablet_count = med.get('tablet_count')
+                dose = med.get('dose', None)
 
                 if med["time"] == ["morning"]:
                     pils_data = {
                         "title" : name,
                         "start" : current_date.strftime("%Y-%m-%dT08:00:00"),
                         "color" : "#f87171", # rouge clair
+                        "tablet_count" : tablet_count,
                         "dose" : dose
                     }
                 elif med["time"] == ["noon"]:
@@ -82,6 +84,7 @@ def generate_schedule(start_date, medications):
                         "title" : name,
                         "start" : current_date.strftime("%Y-%m-%dT12:00:00"),
                         "color" : "#34d399", # vert clair
+                        "tablet_count" : tablet_count,
                         "dose" : dose
                     }
                 elif med["time"] == ["evening"]:
@@ -89,6 +92,7 @@ def generate_schedule(start_date, medications):
                         "title" : name,
                         "start" : current_date.strftime("%Y-%m-%dT18:00:00"),
                         "color" : "#60a5fa", # bleu clair
+                        "tablet_count" : tablet_count,
                         "dose" : dose
                     }
                 schedule.append(pils_data)
@@ -118,7 +122,7 @@ def generate_table(start_date, medications):
         med_table = build_medication_table(med, monday, total_day)
         if not med_table:
             continue
-        merge_or_append(calendar_table, med["name"], med_table)
+        merge_or_append(calendar_table, med.get("name"), med_table, med.get("dose", None))
 
     return calendar_table
 
@@ -140,7 +144,7 @@ def build_medication_table(med, monday, total_day):
     return table
 
 
-def merge_or_append(calendar_table, name, med_table):
+def merge_or_append(calendar_table, name, med_table, dose):
     for entry in calendar_table:
         if entry["title"] != name:
             continue
@@ -156,5 +160,6 @@ def merge_or_append(calendar_table, name, med_table):
 
     calendar_table.append({
         "title": name,
-        "cells": med_table
+        "cells": med_table,
+        "dose": dose
     })

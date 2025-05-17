@@ -56,7 +56,7 @@ function MedicinesList() {
           {medicinesData.map((med, index) => (
             <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
               <div>
-                <strong>{med.name}</strong> 
+                <strong>{med.name} {med.dose != null ? `${med.dose} mg` : ""}</strong> 
                 <div className="text-muted small">
                   {med.tablet_count} comprimé(s) - {med.time[0] === "morning" ? "Matin" : "Soir"} - Tous les {med.interval_days} jour(s)
                   {med.start_date && ` à partir du ${med.start_date}`}
