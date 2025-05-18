@@ -1,10 +1,13 @@
-export default function WeekDayCircles({ selectedDate, onSelectDate, getWeekDays }) {
+import { getWeekDays, getMondayFromDate } from "../utils/dateUtils";
+
+export default function WeekDayCircles({ selectedDate, onSelectDate }) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
+  const monday = getMondayFromDate(selectedDate);
 
   return (
     <div className="d-flex flex-nowrap justify-content-center px-3 mb-3" style={{ overflow: 'hidden' }}>
-      {getWeekDays(selectedDate).map((day, index) => {
+      {getWeekDays(monday).map((day, index) => {
         const isSelected = day.toDateString() === new Date(selectedDate).toDateString();
         const isToday = day.toDateString() === today.toDateString();
 

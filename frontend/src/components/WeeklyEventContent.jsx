@@ -1,6 +1,7 @@
 import React from "react";
 import ArrowControls from "./ArrowControls";
 import WeekDayCircles from "./WeekDayCircles";
+import { getMondayFromDate, getWeekDaysString, formatToLocalISODate } from "../utils/dateUtils";
 
 function WeeklyEventContent({
   ifModal,
@@ -9,8 +10,13 @@ function WeeklyEventContent({
   onSelectDate,
   onNext,
   onPrev,
-  getWeekDays
 }) {
+
+  const monday = getMondayFromDate(selectedDate);
+  const weekDays = getWeekDaysString(monday);
+  const isFirstDay = formatToLocalISODate(weekDays[0]) === selectedDate;
+  const isLastDay = formatToLocalISODate(weekDays[6]) === selectedDate;
+
   return (
     <>
       <ArrowControls onLeft={onPrev} onRight={onNext} />
@@ -18,7 +24,6 @@ function WeeklyEventContent({
       <WeekDayCircles
         selectedDate={selectedDate}
         onSelectDate={onSelectDate}
-        getWeekDays={getWeekDays}
       />
 
       {!ifModal && (
@@ -36,7 +41,7 @@ function WeeklyEventContent({
       )}
 
       <div className="d-flex justify-content-between align-items-center mb-3">
-        <button className="btn btn-outline-secondary btn-sm" onClick={onPrev}>
+        <button className="btn btn-outline-secondary btn-sm" onClick={onPrev} disabled={isFirstDay}>
           <i className="bi bi-arrow-left"></i>
         </button>
 
@@ -75,7 +80,7 @@ function WeeklyEventContent({
           )}
         </div>
 
-        <button className="btn btn-outline-secondary btn-sm" onClick={onNext}>
+        <button className="btn btn-outline-secondary btn-sm" onClick={onNext} disabled={isLastDay}>
           <i className="bi bi-arrow-right"></i>
         </button>
       </div>

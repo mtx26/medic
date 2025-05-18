@@ -7,7 +7,7 @@ import interactionPlugin from '@fullcalendar/interaction';
 import frLocale from '@fullcalendar/core/locales/fr';
 import { UserContext } from '../contexts/UserContext';
 import HoveredUserProfile from '../components/HoveredUserProfile';
-import { formatToISODate, getMondayFromDate, formatToFRDate } from "../utils/dateUtils";
+import { formatToFRDate } from "../utils/dateUtils";
 import { getCalendarSourceMap } from "../utils/calendarSourceMap"
 import ShareCalendarModal from '../components/ShareCalendarModal';
 import AlertSystem from '../components/AlertSystem';
@@ -101,15 +101,6 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
     const newDate = current.toISOString().slice(0, 10);
     setSelectedDate(newDate);
   };
-
-  const getWeekDays = (date) => {
-    const monday = getMondayFromDate(date);
-    return [...Array(7)].map((_, i) => {
-      const day = new Date(monday);
-      day.setDate(monday.getDate() + i);
-      return day;
-    });
-  };   
   
   // Fonction pour charger le calendrier lorsque l'utilisateur est connecté
   useEffect(() => {
@@ -410,7 +401,6 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
             onNext={() => navigateDay(1)}
             onPrev={() => navigateDay(-1)}
             onSelectDate={onSelectDate}
-            getWeekDays={getWeekDays}
           />
 
 
@@ -434,7 +424,6 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
                   onSelectDate={onSelectDate}
                   onNext={() => navigateDay(1)}
                   onPrev={() => navigateDay(-1)}
-                  getWeekDays={getWeekDays}
                 />
               </div>
             </div>

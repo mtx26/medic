@@ -1,8 +1,12 @@
 // dateUtils.js
 
 // 🔁 Formatte une date JS en YYYY-MM-DD
-export function formatToISODate(date) {
-  return date.toISOString().slice(0, 10); // ex: "2025-05-18"
+export function formatToLocalISODate(date) {
+  const d = new Date(date);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`; // Pas de décalage UTC ici
 }
 
 // 🔁 Formatte une date avec locale fr-CA (utile pour compatibilité Supabase par ex)
@@ -18,7 +22,20 @@ export function getMondayFromDate(dateInput) {
 
   const monday = new Date(date);
   monday.setDate(date.getDate() - diff);
-  monday.setHours(0, 0, 0, 0); // optionnel : reset heure
+  monday.setHours(0, 0, 0, 0);
   return monday;
 }
 
+// 🔁 Retourne les jours de la semaine à partir d'un lundi
+export function getWeekDays(monday) {
+  return [...Array(7)].map((_, i) => {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    d.setHours(0, 0, 0, 0);
+    return d
+  });
+} 
+
+export function getWeekDaysString(monday) {
+  return getWeekDays(monday).map(day => day.toDateString());
+}
