@@ -92,8 +92,8 @@ code {
 }
 
 /* === HIGHLIGHT / ANIMATIONS === */
-.highlight-week {
-  background-color: #d1e7dd !important;
+.highlight-week-today {
+  background-color: #d1e7dd !important; /* vert clair */
 }
 
 .field-changed {

@@ -33,7 +33,7 @@ export default function WeekDayCircles({ selectedDate, onSelectDate, getWeekDays
             }}
             style={{
               width: 'calc(100% / 7)',
-              maxWidth: '60px',
+              maxWidth: '40px',
               minWidth: '32px',
               aspectRatio: '1',
               cursor: 'pointer',

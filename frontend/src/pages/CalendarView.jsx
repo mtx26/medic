@@ -7,7 +7,7 @@ import interactionPlugin from '@fullcalendar/interaction';
 import frLocale from '@fullcalendar/core/locales/fr';
 import { UserContext } from '../contexts/UserContext';
 import HoveredUserProfile from '../components/HoveredUserProfile';
-import { formatWeekString, getMondayFromWeek } from "../utils/dateUtils";
+import { formatToISODate, getMondayFromDate, formatToFRDate } from "../utils/dateUtils";
 import { getCalendarSourceMap } from "../utils/calendarSourceMap"
 import ShareCalendarModal from '../components/ShareCalendarModal';
 import AlertSystem from '../components/AlertSystem';
@@ -48,7 +48,6 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
   const [loading, setLoading] = useState(undefined); // État de chargement du calendrier
   
   const [startDate, setStartDate] = useState(new Date().toISOString().slice(0, 10));
-  const [startWeek, setStartWeek] = useState(formatWeekString(new Date()));
   
   const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   const days_map = {
@@ -83,9 +82,9 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
   const calendarSource = getCalendarSourceMap(personalCalendars, sharedUserCalendars, tokenCalendars)[calendarType];
 
   const onSelectDate = (date) => {
-    const iso = date.toISOString().slice(0, 10);
-    setSelectedDate(iso);
-    setEventsForDay(calendarEvents.filter(e => e.start.startsWith(iso)));
+    const dateFR = formatToFRDate(date);
+    setSelectedDate(dateFR);
+    setEventsForDay(calendarEvents.filter(e => e.start.startsWith(dateFR)));
   }
 
   // Fonction pour gérer le clic sur une date
@@ -104,12 +103,7 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
   };
 
   const getWeekDays = (date) => {
-    const current = new Date(date);
-    const dayOfWeek = current.getDay(); // 0 (dim) à 6 (sam)
-    const diffToMonday = (dayOfWeek + 6) % 7; // transforme 0 (dim) → 6, 1 (lun) → 0, etc.
-  
-    const monday = new Date(current);
-    monday.setDate(current.getDate() - diffToMonday);
+    const monday = getMondayFromDate(date);
     return [...Array(7)].map((_, i) => {
       const day = new Date(monday);
       day.setDate(monday.getDate() + i);
@@ -212,6 +206,8 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
       
       <div className="card shadow-sm mb-4">
         <div className="card-body">
+
+          {/* Titre et alerte */}
           <div className="mb-3">
             <h3 className="card-title">{calendarName}</h3>
 
@@ -253,7 +249,11 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
               <div className="badge bg-info mb-3">Accès via lien de partage public</div>
             )}
           </div>
+
+          {/* Boutons de navigation et partage */}
           <div className="d-flex flex-wrap  align-items-left gap-2 mb-3">
+
+            {/* Boutons de navigation */}
             <button
               className="btn btn-outline-secondary"
               onClick={() => navigate(`/calendars`)}
@@ -268,6 +268,8 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
               <i className="bi bi-capsule"></i>
               <span> Médicaments</span>
             </button>
+
+            {/* Bouton pour partager le calendrier */}
             {calendarType === 'personal' && (
               <button
                 type="button"
@@ -289,34 +291,31 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
                 <i className="bi bi-box-arrow-up"></i>
               </button>
             )}
+
           </div>
         </div>
       </div>
 
+      {/* Régénérer le calendrier */}
+      {calendarTable.length > 0 && (
+        <WeekCalendarSelector
+          selectedDate={startDate}
+          onWeekSelect={async (monday) => {
+            const date = formatToFRDate(monday);
+            setStartDate(date);
+            const rep = await calendarSource.fetchSchedule(calendarId, date);
+            if (rep.success) {
+              setCalendarEvents(rep.schedule);
+              setCalendarTable(rep.table);
+              calendarRef.current?.getApi().gotoDate(monday);
+              onSelectDate(monday);
+            }
+          }}
+        />
+      )}
+
       {calendarTable.length > 0 ? (
         <>
-
-          {/* Régénérer le calendrier */}
-          <div className="card shadow-sm mb-4">
-            <div className="card-body">
-            <WeekCalendarSelector
-              selectedDate={startDate}
-              onWeekSelect={async (monday) => {
-                const formatted = new Intl.DateTimeFormat('fr-CA').format(monday);
-                setStartDate(formatted);
-                setStartWeek(formatWeekString(monday));
-                const rep = await calendarSource.fetchSchedule(calendarId, formatted);
-                if (rep.success) {
-                  setCalendarEvents(rep.schedule);
-                  setCalendarTable(rep.table);
-                  calendarRef.current?.getApi().gotoDate(monday);
-                }
-              }}
-            />
-            </div>
-          </div>
-
-
           {/* Tableau hebdomadaire */}
           <div className="mb-5">
             <h4 className="mb-4"><i className="bi bi-table"></i> Tableau hebdomadaire</h4>
@@ -390,26 +389,6 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
                   eventClick={(info) => {
                     const clickedDate = info.event.startStr.slice(0, 10); // format YYYY-MM-DD
                     handleDateClick({ dateStr: clickedDate });
-                  }}
-
-                  // semaine actuelle en vert clair
-                  dayCellDidMount={(info) => {
-                    const today = new Date();
-                    const startOfWeek = new Date(today);
-                    startOfWeek.setDate(today.getDate() - ((today.getDay() + 6) % 7) - 1);
-                    const endOfWeek = new Date(startOfWeek);
-                    endOfWeek.setDate(startOfWeek.getDate() + 7);
-                  
-                    const cellDate = new Date(info.date.toDateString());
-                  
-                    const isToday =
-                      cellDate.getFullYear() === today.getFullYear() &&
-                      cellDate.getMonth() === today.getMonth() &&
-                      cellDate.getDate() === today.getDate();
-                  
-                    if (!isToday && cellDate >= startOfWeek && cellDate <= endOfWeek) {
-                      info.el.classList.add('highlight-week');
-                    }
                   }}
                   buttonText={{
                     today: 'Aujourd’hui',

@@ -13,6 +13,14 @@ export default function WeekCalendarSelector({ selectedDate, onWeekSelect }) {
     return d;
   };
 
+  function getWeekDays(monday) {
+    return [...Array(7)].map((_, i) => {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      return d.toDateString();
+    });
+  }
+
   // Fonction appelée au clic
   const handleChange = (date) => {
     const monday = getMonday(date);
@@ -20,7 +28,7 @@ export default function WeekCalendarSelector({ selectedDate, onWeekSelect }) {
   };
 
   return (
-    <div className="card p-3 mb-4">
+    <div className="card shadow-sm p-3 mb-4">
       <h5 className="mb-3"><i className="bi bi-calendar-week"></i> Semaine de référence</h5>
       <Calendar
         onClickDay={handleChange}
@@ -29,13 +37,15 @@ export default function WeekCalendarSelector({ selectedDate, onWeekSelect }) {
         tileClassName={({ date, view }) => {
           if (view === 'month') {
             const monday = getMonday(selectedDate);
-            const week = [...Array(7)].map((_, i) => {
-              const d = new Date(monday);
-              d.setDate(monday.getDate() + i);
-              return d.toDateString();
-            });
-            if (week.includes(date.toDateString())) {
-              return 'bg-primary text-white rounded';
+            const today_monday = getMonday(new Date());
+            if (getWeekDays(monday).includes(date.toDateString())) {
+              if (getWeekDays(today_monday).includes(date.toDateString())) {
+                return 'border border-success border-2 bg-primary text-white';
+              }
+              return 'text-white bg-primary';
+            }
+            if (getWeekDays(today_monday).includes(date.toDateString())) {
+              return 'border border-success border-2 highlight-week-today ';
             }
           }
           return null;

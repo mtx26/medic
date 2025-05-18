@@ -54,10 +54,9 @@ def is_medication_due(med, current_date):
     return delta_days % med["interval_days"] == 0
 
 def generate_schedule(start_date, medications):
-    # Trouver le lundi de la semaine contenant start_date
     monday = start_date - timedelta(days=start_date.weekday())
 
-    total_day = 35 # Nombre de jours à afficher (5 semaines)
+    total_day = 7 # Nombre de jours à afficher (1 semaine)
     schedule = []
 
     for i in range(total_day):
