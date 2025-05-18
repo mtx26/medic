@@ -16,6 +16,7 @@ import bootstrap5Plugin from '@fullcalendar/bootstrap5';
 import 'bootstrap/dist/css/bootstrap.css';
 import DateModal from '../components/DateModal';
 import ArrowControls from '../components/ArrowControls';
+import WeekCalendarSelector from '../components/WeekCalendarSelector';
 import WeeklyEventContent from '../components/WeeklyEventContent';
 
 
@@ -29,6 +30,7 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
   // 🔐 Contexte d'authentification
   const { authReady, currentUser } = useContext(UserContext); // Contexte de l'utilisateur connecté
   
+  const calendarRef = useRef(null);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().slice(0, 10)); // Date sélectionnée
   const [eventsForDay, setEventsForDay] = useState([]); // Événements filtrés pour un jour spécifique
   const [calendarEvents, setCalendarEvents] = useState([]); // Événements du calendrier
@@ -297,45 +299,20 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
           {/* Régénérer le calendrier */}
           <div className="card shadow-sm mb-4">
             <div className="card-body">
-              <div className="d-flex flex-wrap align-items-end gap-3">
-                <div style={{ minWidth: "220px" }}>
-                  <label htmlFor="weekPicker" className="form-label fw-semibold">
-                    <i className="bi bi-calendar-date"></i>
-                    <span> Semaine de début :</span>
-                  </label>
-                  <input
-                    id="weekPicker"
-                    type="week"
-                    className="form-control"
-                    value={startWeek}
-                    onChange={(e) => {
-                      if (e.target.value) {
-                        const monday = getMondayFromWeek(e.target.value);
-                        setStartWeek(e.target.value);
-                        const formatted = new Intl.DateTimeFormat('fr-CA').format(monday);
-                        setStartDate(formatted);
-                      } else {
-                        setStartDate(null);
-                        setStartWeek(null);
-                      }
-                    }}
-                  />
-                </div>
-                <div>
-                  <button
-                    onClick={async () => {
-                      const rep = await calendarSource.fetchSchedule(calendarId, startDate);
-                      if (rep.success) {
-                        setCalendarEvents(rep.schedule);
-                        setCalendarTable(rep.table);
-                      }
-                    }}                
-                    className="btn btn-primary"
-                  >
-                    <i className="bi bi-arrow-repeat"></i>
-                  </button>
-                </div>
-              </div>
+            <WeekCalendarSelector
+              selectedDate={startDate}
+              onWeekSelect={async (monday) => {
+                const formatted = new Intl.DateTimeFormat('fr-CA').format(monday);
+                setStartDate(formatted);
+                setStartWeek(formatWeekString(monday));
+                const rep = await calendarSource.fetchSchedule(calendarId, formatted);
+                if (rep.success) {
+                  setCalendarEvents(rep.schedule);
+                  setCalendarTable(rep.table);
+                  calendarRef.current?.getApi().gotoDate(monday);
+                }
+              }}
+            />
             </div>
           </div>
 
@@ -394,14 +371,15 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
             <div className="card shadow-sm">
               <div className="card-body">
                 <FullCalendar
+                  ref={calendarRef}
                   plugins={[dayGridPlugin, interactionPlugin, bootstrap5Plugin]}
                   initialView="dayGridWeek"
                   themeSystem="bootstrap5"
                   events={memoizedEvents}
                   headerToolbar={{
-                    left: 'prev,next today',
-                    center: 'title',
-                    right: 'dayGridMonth,dayGridWeek,dayGridDay'
+                    left: '',
+                    center: '',
+                    right: ''
                   }}
                   locale={frLocale}
                   firstDay={1}
