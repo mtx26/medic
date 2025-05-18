@@ -46,12 +46,20 @@ function Footer() {
                 <div className="col-sm-6">
                   <ul className="list-unstyled">
                     <li>
+                      <i className="bi bi-person-gear me-2 text-primary"></i>
+                      <Link to="/account" className="text-muted text-decoration-none link-hover">Mon compte</Link>
+                    </li>
+                    <li>
                       <i className="bi bi-calendar2-week me-2 text-primary"></i>
                       <Link to="/calendars" className="text-muted text-decoration-none link-hover">Mes calendriers</Link>
                     </li>
                     <li>
-                      <i className="bi bi-person-gear me-2 text-primary"></i>
-                      <Link to="/account" className="text-muted text-decoration-none link-hover">Mon compte</Link>
+                      <i className="bi bi-box-arrow-up me-2 text-primary"></i>
+                      <Link to="/shared-calendars" className="text-muted text-decoration-none link-hover">Calendriers partagés</Link>
+                    </li>
+                    <li>
+                      <i className="bi bi-bell me-2 text-primary"></i>
+                      <Link to="/notifications" className="text-muted text-decoration-none link-hover">Notifications</Link>
                     </li>
                   </ul>
                 </div>

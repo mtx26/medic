@@ -429,7 +429,7 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                       {/* Actions */}
                       <div className={`d-flex justify-content-end gap-2 ${expiresAt[calendarId] === null ? 'col-md-4' : 'col-md-2'}`}>
                         <button 
-                        className="btn btn-outline-primary"
+                        className="btn btn-success"
                         title="Ajouter"
                         onClick={() => handleCreateToken(calendarId)}
                         >
@@ -463,8 +463,8 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                   )}
                   <li key={user.receiver_uid + "-" + calendarId} className="list-group-item px-3">
                     <div className="row align-items-center g-2">
-                      <div className="d-flex align-items-center justify-content-between">
-                        <div className="col-md-4">
+                      <div className="col-md-6 d-flex align-items-center justify-content-between">
+                        <div>
                           <HoveredUserProfile
                             user={{
                               photo_url: user.receiver_photo_url,
@@ -488,7 +488,7 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                         </div>
 
                         {/* Statut */}
-                        <div className="col-md-2">
+                        <div>
                           <span className={`badge rounded-pill ${user.accepted ? "bg-success" : "bg-warning text-dark"}`}>
                             {user.accepted ? "Accepté" : "En attente"}
                           </span>
@@ -570,11 +570,11 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                           value={emailsToInvite[calendarId] ?? ""}
                         />
                         <button
-                          className="btn btn-outline-primary"
+                          className="btn btn-primary"
                           title="Envoyer une invitation"
                           onClick={() => handleSendInvitation(calendarId)}
                         >
-                          Partager
+                          <i className="bi bi-envelope-paper"></i>
                         </button>
                       </div>
                     </div>

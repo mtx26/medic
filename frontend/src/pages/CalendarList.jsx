@@ -159,7 +159,7 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
         }
         setNewCalendarName("");
       }} // Ajout d'un nouveau calendrier
-      className="btn btn-outline-primary"
+      className="btn btn-primary"
       title="Ajouter un calendrier"
       >
       <i className="bi bi-plus-lg"></i>
@@ -229,7 +229,7 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
               }
               />
               <button
-                className="btn btn-outline-warning"
+                className="btn btn-warning"
                 title="Renommer"
                 onClick={() => handleRenameClick(calendarData.calendar_id)}
               >

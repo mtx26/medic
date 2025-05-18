@@ -324,10 +324,9 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
                         setCalendarTable(rep.table);
                       }
                     }}                
-                    className="btn btn-outline-primary"
+                    className="btn btn-primary"
                   >
-                    <i className="bi bi-arrow-repeat me-2"></i>
-                    <span>Mettre à jour le tableau</span>
+                    <i className="bi bi-arrow-repeat"></i>
                   </button>
                 </div>
               </div>
