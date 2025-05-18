@@ -4,6 +4,7 @@ import { UserContext } from "../contexts/UserContext";
 import { handleLogout } from "../services/authService";
 import { useNavigate } from "react-router-dom";
 import HoveredUserProfile from "./HoveredUserProfile";
+import 'bootstrap';
 
 function Navbar({ sharedProps }) {
   const { userInfo } = useContext(UserContext);

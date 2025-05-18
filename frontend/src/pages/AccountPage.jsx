@@ -55,8 +55,8 @@ const AccountPage = () => {
   }
 
   return (
-    <div className="container mt-5" style={{ maxWidth: '600px' }}>
-      <h2 className="mb-4">Account Management</h2>
+    <div className="container mt-5 card card-body shadow-sm" style={{ maxWidth: '600px' }}>
+      <h2 className="mb-4">Gestion de compte</h2>
 
       <AlertSystem
         type={alertType}
@@ -65,7 +65,7 @@ const AccountPage = () => {
       />
 
       <div className="mb-4">
-        <h5>Current Email:</h5>
+        <h5>Email actuel:</h5>
         <p>{userInfo.email}</p>
       </div>
 
@@ -91,7 +91,7 @@ const AccountPage = () => {
 
           {/* Ancien mot de passe */}
           <div className="mb-3 position-relative">
-            <label htmlFor="oldPassword" className="form-label">Current Password</label>
+            <label htmlFor="oldPassword" className="form-label">Mot de passe actuel</label>
             <input
               type={oldPasswordVisible ? "text" : "password"}
               className="form-control"
@@ -100,7 +100,7 @@ const AccountPage = () => {
               autoComplete="current-password"
               value={oldPassword}
               onChange={(e) => setOldPassword(e.target.value)}
-              placeholder="Enter current password"
+              placeholder="Entrez le mot de passe actuel"
             />
             <i
               className={`bi bi-${oldPasswordVisible ? "eye-slash" : "eye"} position-absolute`}
@@ -111,7 +111,7 @@ const AccountPage = () => {
 
           {/* Nouveau mot de passe */}
           <div className="mb-3 position-relative">
-            <label htmlFor="newPassword" className="form-label">New Password</label>
+            <label htmlFor="newPassword" className="form-label">Nouveau mot de passe</label>
             <input
               type={newPasswordVisible ? "text" : "password"}
               className="form-control"
@@ -120,7 +120,7 @@ const AccountPage = () => {
               autoComplete="new-password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="Enter new password"
+              placeholder="Entrez le nouveau mot de passe"
             />
             <i
               className={`bi bi-${newPasswordVisible ? "eye-slash" : "eye"} position-absolute`}
@@ -134,7 +134,7 @@ const AccountPage = () => {
             className="btn btn-outline-primary mt-2"
             onClick={handleUpdatePassword}
           >
-            Update Password
+            Mettre à jour le mot de passe
           </button>
         </form>
       )}
