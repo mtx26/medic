@@ -1,22 +1,21 @@
-import { getWeekDays, getMondayFromDate } from "../utils/dateUtils";
+import { getWeekDaysISOStrings, getMondayFromDate, formatToLocalISODate } from "../utils/dateUtils";
 
 export default function WeekDayCircles({ selectedDate, onSelectDate }) {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const today = formatToLocalISODate(new Date());
   const monday = getMondayFromDate(selectedDate);
 
   return (
     <div className="d-flex flex-nowrap justify-content-center px-3 mb-3" style={{ overflow: 'hidden' }}>
-      {getWeekDays(monday).map((day, index) => {
-        const isSelected = day.toDateString() === new Date(selectedDate).toDateString();
-        const isToday = day.toDateString() === today.toDateString();
+      {getWeekDaysISOStrings(monday).map((day, index) => {
+        const isSelected = day === selectedDate;
+        const isToday = day === today;
 
         const baseClass = `
           rounded-circle border mx-1 position-relative
           ${isToday
             ? (isSelected
-                ? 'bg-success text-white border-primary border-3'
-                : 'bg-success text-white border-success border-3')
+                ? 'bg-warning text-white border-primary border-3'
+                : 'bg-warning text-white border-warning border-3')
             : (isSelected
                 ? 'bg-primary text-white border-primary border-3'
                 : 'bg-light text-dark')}
@@ -28,10 +27,10 @@ export default function WeekDayCircles({ selectedDate, onSelectDate }) {
             className={baseClass}
             role="button"
             tabIndex={0}
-            onClick={() => onSelectDate(day)}
+            onClick={() => onSelectDate(formatToLocalISODate(day))}
             onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') {
-                onSelectDate(day);
+                onSelectDate(formatToLocalISODate(day));
               }
             }}
             style={{
@@ -48,9 +47,9 @@ export default function WeekDayCircles({ selectedDate, onSelectDate }) {
               className="d-flex flex-column align-items-center justify-content-center text-center position-absolute top-0 start-0 w-100 h-100"
               style={{ fontSize: '0.75rem' }}
             >
-              {day.toLocaleDateString('fr-FR', { weekday: 'short' }).slice(0, 2)}
+              {new Date(day).toLocaleDateString('fr-FR', { weekday: 'short' }).slice(0, 2)}
               <br />
-              <strong>{day.getDate()}</strong>
+              <strong>{new Date(day).getDate()}</strong>
             </div>
           </div>
         );

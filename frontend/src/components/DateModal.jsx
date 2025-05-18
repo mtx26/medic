@@ -1,10 +1,9 @@
 import { forwardRef, useImperativeHandle, useState } from "react";
 import ReactDOM from "react-dom";
-import ArrowControls from "./ArrowControls";
 import WeeklyEventContent from "./WeeklyEventContent";
 
 
-const DateModal = forwardRef(({ selectedDate, eventsForDay, onNext, onPrev, onSelectDate, getWeekDays }, ref) => {
+const DateModal = forwardRef(({ selectedDate, eventsForDay, onNext, onPrev, onSelectDate }, ref) => {
   const [visible, setVisible] = useState(false);
 
   // 🔁 expose open() et close() vers le parent
@@ -17,10 +16,6 @@ const DateModal = forwardRef(({ selectedDate, eventsForDay, onNext, onPrev, onSe
 
   return ReactDOM.createPortal(
     <>
-      <ArrowControls
-        onLeft={onPrev}
-        onRight={onNext}
-      />
       <div className="modal fade show" style={{ display: 'block' }} tabIndex="-1" role="dialog" aria-modal="true">
         <div className="modal-dialog modal-dialog-centered">
           <div className="modal-content">
@@ -40,7 +35,6 @@ const DateModal = forwardRef(({ selectedDate, eventsForDay, onNext, onPrev, onSe
                 onSelectDate={onSelectDate}
                 onNext={onNext}
                 onPrev={onPrev}
-                getWeekDays={getWeekDays}
               />
             </div>
             <div className="modal-footer">

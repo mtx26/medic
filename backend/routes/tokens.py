@@ -249,7 +249,7 @@ def handle_update_token_expiration(token):
             })
         else:
             db.collection("shared_tokens").document(token).update({
-                "expires_at": datetime.strptime(expires_at, "%Y-%m-%dT%H:%M")
+                "expires_at": datetime.strptime(expires_at, "%Y-%m-%d")
             })
 
         return success_response(

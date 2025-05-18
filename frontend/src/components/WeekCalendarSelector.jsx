@@ -1,7 +1,7 @@
 import React from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
-import { getWeekDaysString, getMondayFromDate } from '../utils/dateUtils';
+import { getWeekDaysISOStrings, getMondayFromDate, formatToLocalISODate } from '../utils/dateUtils';
 
 export default function WeekCalendarSelector({ selectedDate, onWeekSelect }) {
   
@@ -21,15 +21,18 @@ export default function WeekCalendarSelector({ selectedDate, onWeekSelect }) {
         locale="fr-FR"
         tileClassName={({ date, view }) => {
           if (view === 'month') {
-            const today_monday = getMondayFromDate(new Date());
-            if (getWeekDaysString(monday).includes(date.toDateString())) {
-              if (getWeekDaysString(today_monday).includes(date.toDateString())) {
-                return 'border border-success border-2 bg-primary text-white';
+            const date_iso = formatToLocalISODate(date);
+            const today_monday = getMondayFromDate(formatToLocalISODate(new Date()));
+
+            if (getWeekDaysISOStrings(monday).includes(date_iso)) {
+
+              if (getWeekDaysISOStrings(today_monday).includes(date_iso)) {
+                return 'border border-warning border-2 bg-primary text-white';
               }
               return 'text-white bg-primary';
             }
-            if (getWeekDaysString(today_monday).includes(date.toDateString())) {
-              return 'border border-success border-2 highlight-week-today ';
+            if (getWeekDaysISOStrings(today_monday).includes(date_iso)) {
+              return 'border border-warning border-2 highlight-week-today';
             }
           }
           return null;

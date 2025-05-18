@@ -11,6 +11,8 @@ import { UserContext } from './contexts/UserContext';
 import { useRealtimeCalendars, useRealtimeSharedCalendars } from './hooks/useRealtimeCalendars';
 import { useRealtimeNotifications } from './hooks/useRealtimeNotifications';
 import { useRealtimeTokens } from './hooks/useRealtimeTokens';
+import { formatToLocalISODate } from './utils/dateUtils';
+
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -233,7 +235,7 @@ function App() {
         return { success: false, error: "Nom de calendrier non fourni, calendrier non chargé.", code: "CALENDAR_NAME_NOT_PROVIDED" };
       }
       if (!startDate) {
-        startDate = new Date().toISOString().slice(0, 10);
+        startDate = formatToLocalISODate(new Date());
       }
 
       const token = await auth.currentUser.getIdToken();
@@ -366,7 +368,7 @@ function App() {
   const fetchTokenCalendarSchedule = useCallback(async (token, startDate = null) => {
     try {
       if (!startDate) {
-        startDate = new Date().toISOString().slice(0, 10);
+        startDate = formatToLocalISODate(new Date());
       }
       
       const res = await fetch(`${API_URL}/api/tokens/${token}/schedule?startTime=${startDate}`, {
@@ -786,7 +788,7 @@ function App() {
   const fetchSharedUserCalendarSchedule = useCallback(async (calendarId, startDate = null) => {
     try {
       if (!startDate) {
-        startDate = new Date().toISOString().split('T')[0];
+        startDate = formatToLocalISODate(new Date());
       }
       const token = await auth.currentUser.getIdToken();
       const res = await fetch(`${API_URL}/api/shared/users/calendars/${calendarId}/schedule?startTime=${startDate}`, {

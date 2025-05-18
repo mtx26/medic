@@ -75,7 +75,6 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
     }
 
     setGroupedMedicines(result);
-    console.log(result);
   };   
 
   // 🔄 Détection des modifications

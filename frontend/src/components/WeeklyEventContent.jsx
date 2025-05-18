@@ -1,7 +1,7 @@
 import React from "react";
 import ArrowControls from "./ArrowControls";
 import WeekDayCircles from "./WeekDayCircles";
-import { getMondayFromDate, getWeekDaysString, formatToLocalISODate } from "../utils/dateUtils";
+import { getMondayFromDate, getWeekDaysISOStrings } from "../utils/dateUtils";
 
 function WeeklyEventContent({
   ifModal,
@@ -13,13 +13,16 @@ function WeeklyEventContent({
 }) {
 
   const monday = getMondayFromDate(selectedDate);
-  const weekDays = getWeekDaysString(monday);
-  const isFirstDay = formatToLocalISODate(weekDays[0]) === selectedDate;
-  const isLastDay = formatToLocalISODate(weekDays[6]) === selectedDate;
+  const weekDays = getWeekDaysISOStrings(monday);
+  const isFirstDay = weekDays[0] === selectedDate;
+  const isLastDay = weekDays[6] === selectedDate;
 
   return (
     <>
-      <ArrowControls onLeft={onPrev} onRight={onNext} />
+      <ArrowControls 
+        onLeft={isFirstDay ? () => {} : onPrev} 
+        onRight={isLastDay ? () => {} : onNext} 
+      />
 
       <WeekDayCircles
         selectedDate={selectedDate}

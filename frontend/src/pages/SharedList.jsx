@@ -2,6 +2,7 @@ import React, { useEffect, useContext, useState, useCallback } from "react";
 import { UserContext } from '../contexts/UserContext';
 import AlertSystem from '../components/AlertSystem'; 
 import HoveredUserProfile from "../components/HoveredUserProfile";
+import { formatToLocalISODate } from "../utils/dateUtils";
 
 const VITE_URL = import.meta.env.VITE_VITE_URL;
 
@@ -27,7 +28,7 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
 
 
   // 📅 Date du jour
-  const today = new Date().toISOString().split('T')[0]; // Date du jour au format 'YYYY-MM-DD'
+  const today = formatToLocalISODate(new Date()); // Date du jour au format 'YYYY-MM-DD'
 
   const handleCopyLink = async (token) => {
     try {
@@ -40,19 +41,6 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
       setAlertMessage("❌ Erreur lors de la copie du lien.");
       setAlertId(token.token);
     }
-  };
-
-  const handleExpirationChange = async (token, value) => {
-    const newDate = value === "" ? null : new Date().toISOString().slice(0, 16);
-    const rep = await tokenCalendars.updateTokenExpiration(token.token, newDate);
-    if (rep.success) {
-      setAlertType("success");
-      setAlertMessage("✅ " + rep.message);
-    } else {
-      setAlertType("danger");
-      setAlertMessage("❌ " + rep.error);
-    }
-    setAlertId(token.token);
   };
 
   const handleUpdateTokenExpiration = async (token, date) => {
@@ -274,7 +262,7 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                             if (value === "") {
                               handleUpdateTokenExpiration(token, null);
                             } else {
-                              handleUpdateTokenExpiration(token, new Date().toISOString().slice(0, 16));
+                              handleUpdateTokenExpiration(token, today);
                             }
                           }}
                           title="Expiration"
@@ -289,12 +277,12 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                             type="date"
                             className="form-control"
                             style={{ minWidth: "120px" }}
-                            value={new Date(token.expires_at).toISOString().split("T")[0]}
+                            value={formatToLocalISODate(token.expires_at)}
                             onChange={(e) => {
-                              handleUpdateTokenExpiration(token, e.target.value + "T00:00");
+                              handleUpdateTokenExpiration(token, formatToLocalISODate(e.target.value));
                             }}
                             title="Choisir une date d'expiration"
-                            min={new Date().toISOString().split("T")[0]}
+                            min={formatToLocalISODate(today)}
                           />
                         )}
                       </div>

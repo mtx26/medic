@@ -7,7 +7,7 @@ import interactionPlugin from '@fullcalendar/interaction';
 import frLocale from '@fullcalendar/core/locales/fr';
 import { UserContext } from '../contexts/UserContext';
 import HoveredUserProfile from '../components/HoveredUserProfile';
-import { formatToFRDate } from "../utils/dateUtils";
+import { formatToLocalISODate } from "../utils/dateUtils";
 import { getCalendarSourceMap } from "../utils/calendarSourceMap"
 import ShareCalendarModal from '../components/ShareCalendarModal';
 import AlertSystem from '../components/AlertSystem';
@@ -15,7 +15,6 @@ import isEqual from "lodash/isEqual";
 import bootstrap5Plugin from '@fullcalendar/bootstrap5';
 import 'bootstrap/dist/css/bootstrap.css';
 import DateModal from '../components/DateModal';
-import ArrowControls from '../components/ArrowControls';
 import WeekCalendarSelector from '../components/WeekCalendarSelector';
 import WeeklyEventContent from '../components/WeeklyEventContent';
 
@@ -31,7 +30,7 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
   const { authReady, currentUser } = useContext(UserContext); // Contexte de l'utilisateur connecté
   
   const calendarRef = useRef(null);
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().slice(0, 10)); // Date sélectionnée
+  const [selectedDate, setSelectedDate] = useState(formatToLocalISODate(new Date())); // Date sélectionnée
   const [eventsForDay, setEventsForDay] = useState([]); // Événements filtrés pour un jour spécifique
   const [calendarEvents, setCalendarEvents] = useState([]); // Événements du calendrier
   const [calendarTable, setCalendarTable] = useState([]); // Événements du calendrier
@@ -47,7 +46,7 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
   const shareModalRef = useRef(null); // Référence vers le modal (pour gestion focus/fermeture)
   const [loading, setLoading] = useState(undefined); // État de chargement du calendrier
   
-  const [startDate, setStartDate] = useState(new Date().toISOString().slice(0, 10));
+  const [startDate, setStartDate] = useState(formatToLocalISODate(new Date()));
   
   const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   const days_map = {
@@ -81,10 +80,9 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
 
   const calendarSource = getCalendarSourceMap(personalCalendars, sharedUserCalendars, tokenCalendars)[calendarType];
 
-  const onSelectDate = (date) => {
-    const dateFR = formatToFRDate(date);
-    setSelectedDate(dateFR);
-    setEventsForDay(calendarEvents.filter(e => e.start.startsWith(dateFR)));
+  const onSelectDate = (isoDate) => {
+    setSelectedDate(isoDate);
+    setEventsForDay(calendarEvents.filter(e => e.start.startsWith(isoDate)));
   }
 
   // Fonction pour gérer le clic sur une date
@@ -98,7 +96,7 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
   const navigateDay = (direction) => {
     const current = new Date(selectedDate);
     current.setDate(current.getDate() + direction);
-    const newDate = current.toISOString().slice(0, 10);
+    const newDate = formatToLocalISODate(current);
     setSelectedDate(newDate);
   };
   
@@ -292,14 +290,14 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
         <WeekCalendarSelector
           selectedDate={startDate}
           onWeekSelect={async (monday) => {
-            const date = formatToFRDate(monday);
-            setStartDate(date);
-            const rep = await calendarSource.fetchSchedule(calendarId, date);
+            const isoDate = formatToLocalISODate(monday);
+            setStartDate(isoDate);
+            const rep = await calendarSource.fetchSchedule(calendarId, isoDate);
             if (rep.success) {
               setCalendarEvents(rep.schedule);
               setCalendarTable(rep.table);
-              calendarRef.current?.getApi().gotoDate(monday);
-              onSelectDate(monday);
+              calendarRef.current?.getApi().gotoDate(isoDate);
+              onSelectDate(isoDate);
             }
           }}
         />
@@ -406,10 +404,6 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
 
           {/* Calendrier - Vue mobile uniquement */}
           <div className='d-block d-md-none'>
-            <ArrowControls
-              onLeft={() => navigateDay(-1)}
-              onRight={() => navigateDay(1)}
-            />
 
             <h4 className="mb-4">
               <i className="bi bi-calendar-week"></i> Calendrier mensuel
