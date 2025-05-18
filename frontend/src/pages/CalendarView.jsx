@@ -139,7 +139,7 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
     };
 
     load();
-  }, [authReady, currentUser, calendarId, calendarType, calendarSource]);
+  }, [authReady, currentUser, calendarId, calendarType, calendarSource.fetchSchedule]);
 
 
   useEffect(() => {
@@ -309,9 +309,15 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
                     className="form-control"
                     value={startWeek}
                     onChange={(e) => {
-                      const monday = getMondayFromWeek(e.target.value);
-                      setStartWeek(e.target.value);
-                      setStartDate(monday.toISOString().slice(0, 10));
+                      if (e.target.value) {
+                        const monday = getMondayFromWeek(e.target.value);
+                        setStartWeek(e.target.value);
+                        const formatted = new Intl.DateTimeFormat('fr-CA').format(monday);
+                        setStartDate(formatted);
+                      } else {
+                        setStartDate(null);
+                        setStartWeek(null);
+                      }
                     }}
                   />
                 </div>
