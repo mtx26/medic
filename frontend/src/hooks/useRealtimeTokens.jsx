@@ -1,14 +1,19 @@
-import { useContext, useEffect } from 'react';
+import { useContext, useEffect, useRef } from 'react';
 import { UserContext } from '../contexts/UserContext';
-import { auth, db, analytics } from '../services/firebase';
-import { onSnapshot, query, where, collection } from 'firebase/firestore';
+import { auth, analytics } from '../services/firebase';
 import { log } from '../utils/logger';
 import { logEvent } from 'firebase/analytics';
+import { createClient } from '@supabase/supabase-js';
 
 const API_URL = import.meta.env.VITE_API_URL;
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 export const useRealtimeTokens = (setTokensList, setLoadingStates) => { 
 	const { currentUser, authReady } = useContext(UserContext);
+	const channelRef = useRef(null);
 
 	useEffect(() => {
 		if (!(authReady && currentUser)) {
@@ -22,12 +27,7 @@ export const useRealtimeTokens = (setTokensList, setLoadingStates) => {
 			return;
 		}
 
-		const q = query(
-			collection(db, "shared_tokens"),
-			where("owner_uid", "==", user.uid)
-		);
-
-		const unsubscribe = onSnapshot(q, async () => {
+		const fetchTokens = async () => {
 			try {
 				const token = await user.getIdToken();
 				const res = await fetch(`${API_URL}/api/tokens`, {
@@ -54,8 +54,35 @@ export const useRealtimeTokens = (setTokensList, setLoadingStates) => {
 					uid: user?.uid,
 				});
 			}
-		});
-		
-		return () => unsubscribe();
+		};
+
+		// 🔹 Fetch initial
+		fetchTokens();
+
+		// 🔹 Supabase Realtime : écoute de shared_tokens pour owner_uid
+		const channel = supabase
+			.channel(`tokens-${user.uid}`)
+			.on(
+				'postgres_changes',
+				{
+					event: '*',
+					schema: 'public',
+					table: 'shared_tokens',
+					filter: `owner_uid=eq.${user.uid}`,
+				},
+				() => {
+					fetchTokens();
+				}
+			)
+			.subscribe();
+
+		channelRef.current = channel;
+
+		return () => {
+			if (channelRef.current) {
+				supabase.removeChannel(channelRef.current);
+				channelRef.current = null;
+			}
+		};
 	}, [authReady, currentUser, setTokensList, setLoadingStates]);
-}
+};

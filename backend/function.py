@@ -39,12 +39,12 @@ def verify_calendar_share(calendar_id : str, owner_uid : str, receiver_uid : str
         return False
 
 def is_medication_due(med, current_date):
-    start_str = med.get("start_date", "").strip()
-
-    if start_str:
-        start = datetime.strptime(med["start_date"], "%Y-%m-%d").date()
+    start_raw = med.get("start_date", "")
+    if isinstance(start_raw, str) and start_raw.strip():
+        start = datetime.strptime(start_raw.strip(), "%Y-%m-%d").date()
     else:
         start = current_date
+
     delta_days = (current_date - start).days
 
     if delta_days < 0:
@@ -64,13 +64,12 @@ def generate_schedule(start_date, medications):
         for med in medications:
             if is_medication_due(med, current_date):
                 # format pour fullcalendar
-                pils_data = {}
 
                 name = med.get('name')
                 tablet_count = med.get('tablet_count')
                 dose = med.get('dose', None)
 
-                if med["time"] == ["morning"]:
+                if med["time_of_day"] == "morning":
                     pils_data = {
                         "title" : name,
                         "start" : current_date.strftime("%Y-%m-%dT08:00:00"),
@@ -78,7 +77,7 @@ def generate_schedule(start_date, medications):
                         "tablet_count" : tablet_count,
                         "dose" : dose
                     }
-                elif med["time"] == ["noon"]:
+                elif med["time_of_day"] == "noon":
                     pils_data = {
                         "title" : name,
                         "start" : current_date.strftime("%Y-%m-%dT12:00:00"),
@@ -86,7 +85,7 @@ def generate_schedule(start_date, medications):
                         "tablet_count" : tablet_count,
                         "dose" : dose
                     }
-                elif med["time"] == ["evening"]:
+                elif med["time_of_day"] == "evening":
                     pils_data = {
                         "title" : name,
                         "start" : current_date.strftime("%Y-%m-%dT18:00:00"),
@@ -135,10 +134,10 @@ def build_medication_table(med, monday, total_day):
             continue
 
         day = current_date.strftime("%a")
-        for moment in med["time"]:
-            if moment not in table:
-                table[moment] = {}
-            table[moment][day] = med["tablet_count"]
+        moment = med["time_of_day"]
+        if moment not in table:
+            table[moment] = {}
+        table[moment][day] = med["tablet_count"]
 
     return table
 
