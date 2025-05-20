@@ -2,6 +2,7 @@ from flask import request
 from app.utils.validators import verify_firebase_token
 from . import api
 from app.utils.response import success_response, error_response, warning_response
+from app.db.connection import get_connection
 from app.services.calendar_service import verify_calendar_share
 from app.utils.messages import (
     SUCCESS_SHARED_MEDICINES_FETCHED,
@@ -12,33 +13,14 @@ from app.utils.messages import (
     ERROR_SHARED_MEDICINES_FETCH,
 )
 
-def get_db():
-    from firebase_admin import firestore
-    return firestore.client()
-
 # Route pour récupérer les médicaments d'un calendrier partagé
 @api.route("/shared/users/calendars/<calendar_id>/medicines", methods=["GET"])
 def handle_shared_user_calendar_medicines(calendar_id):
     try:
         user = verify_firebase_token()
         receiver_uid = user["uid"]
-
-        db = get_db()
-
-        doc_1_ref = db.collection("users").document(receiver_uid).collection("shared_calendars").document(calendar_id)
-        if not doc_1_ref.get().exists:
-            return warning_response(
-                message=WARNING_SHARED_CALENDAR_NOT_FOUND, 
-                code="SHARED_USER_CALENDAR_MEDICINES_LOAD_ERROR", 
-                status_code=404, 
-                uid=receiver_uid, 
-                origin="SHARED_USER_CALENDAR_MEDICINES_LOAD",
-                log_extra={"calendar_id": calendar_id}
-            )
-
-        owner_uid = doc_1_ref.get().to_dict().get("owner_uid")
-
-        if not verify_calendar_share(calendar_id, owner_uid, receiver_uid):
+        
+        if not verify_calendar_share(calendar_id, receiver_uid):
             return warning_response(
                 message=WARNING_UNAUTHORIZED_ACCESS, 
                 code="SHARED_USER_CALENDAR_MEDICINES_LOAD_ERROR", 
@@ -48,28 +30,19 @@ def handle_shared_user_calendar_medicines(calendar_id):
                 log_extra={"calendar_id": calendar_id}
             )
 
-        doc_2_ref = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id)
-        if not doc_2_ref.get().exists:
-            return warning_response(
-                message=WARNING_SHARED_CALENDAR_NOT_FOUND, 
-                code="SHARED_USER_CALENDAR_MEDICINES_LOAD_ERROR", 
-                status_code=404, 
-                uid=owner_uid, 
-                origin="SHARED_USER_CALENDAR_MEDICINES_LOAD",
-                log_extra={"calendar_id": calendar_id}
-            )
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT * FROM medicines WHERE calendar_id = %s", (calendar_id,))
+                medicines = cursor.fetchall()
 
-        doc_3_ref = doc_2_ref.collection("medicines")
-        if not doc_3_ref.get():
-            return success_response(
-                message=SUCCESS_SHARED_MEDICINES_FETCHED, 
-                code="SHARED_USER_CALENDAR_MEDICINES_LOAD_SUCCESS", 
-                uid=receiver_uid, 
-                origin="SHARED_USER_CALENDAR_MEDICINES_LOAD",
-                data={"medicines": []}
-            )
-
-        medicines = [med.to_dict() for med in doc_3_ref.get()]
+            if not medicines:
+                return success_response(
+                    message=SUCCESS_SHARED_MEDICINES_FETCHED, 
+                    code="SHARED_USER_CALENDAR_MEDICINES_LOAD_SUCCESS", 
+                    uid=receiver_uid, 
+                    origin="SHARED_USER_CALENDAR_MEDICINES_LOAD",
+                    data={"medicines": []}
+                )
 
         return success_response(
             message=SUCCESS_SHARED_MEDICINES_FETCHED, 
@@ -98,12 +71,9 @@ def handle_update_shared_user_calendar_medicines(calendar_id):
         user = verify_firebase_token()
         receiver_uid = user["uid"]
 
-        db = get_db()
-
         medicines = request.json.get("medicines", [])
 
-        doc_1_ref = db.collection("users").document(receiver_uid).collection("shared_calendars").document(calendar_id)
-        if not doc_1_ref.get().exists:
+        if not verify_calendar_share(calendar_id, receiver_uid):
             return warning_response(
                 message=WARNING_SHARED_CALENDAR_NOT_FOUND, 
                 code="SHARED_USER_CALENDAR_MEDICINES_UPDATE_ERROR", 
@@ -113,25 +83,25 @@ def handle_update_shared_user_calendar_medicines(calendar_id):
                 log_extra={"calendar_id": calendar_id}
             )
 
-        owner_uid = doc_1_ref.get().to_dict().get("owner_uid")
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("DELETE FROM medicines WHERE calendar_id = %s", (calendar_id,))
 
-        if not verify_calendar_share(calendar_id, owner_uid, receiver_uid):
-            return warning_response(
-                message=WARNING_UNAUTHORIZED_ACCESS, 
-                code="SHARED_USER_CALENDAR_MEDICINES_UPDATE_ERROR", 
-                status_code=403, 
-                uid=receiver_uid, 
-                origin="SHARED_USER_CALENDAR_MEDICINES_UPDATE",
-                log_extra={"calendar_id": calendar_id}
-            )
+                for med in medicines:
+                    name = med.get("name")
+                    tablet_count = med.get("tablet_count")
+                    time_of_day = med.get("time_of_day")
+                    interval_days = med.get("interval_days")
+                    start_date = med.get("start_date")
+                    dose = med.get("dose", None)
 
-        doc_2_ref = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).collection("medicines")
-            
-        for med_doc in doc_2_ref.stream():
-            med_doc.reference.delete()
-
-        for med in medicines:
-            doc_2_ref.document(med["id"]).set(med)
+                    cursor.execute(
+                        """
+                        INSERT INTO medicines (calendar_id, name, tablet_count, time_of_day, interval_days, start_date, dose) 
+                        VALUES (%s, %s, %s, %s, %s, %s, %s)
+                        """,
+                        (calendar_id, name, tablet_count, time_of_day, interval_days, start_date, dose)
+                    )
 
         return success_response(
             message=SUCCESS_SHARED_MEDICINES_UPDATED, 

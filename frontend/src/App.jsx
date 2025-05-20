@@ -300,14 +300,15 @@ function App() {
         medicinesData: medicinesData,
       });
       // trier par ordre alphabétique
-      const medicinesSortedByName = data.medicines.sort((a, b) => a.name.localeCompare(b.name));
+      const medicinesSortedByName = data.medicines ? data.medicines.sort((a, b) => a.name.localeCompare(b.name)) : [];
+    
       log.info(data.message, {
         origin: "MED_UPDATE_SUCCESS",
         "uid": auth.currentUser.uid,
         "count": medicinesData?.length,
         "calendarId": calendarId,
       });
-      return { success: true, message: data.message, code: data.code, medicinesData: medicinesSortedByName, originalMedicinesData: JSON.parse(JSON.stringify(medicinesSortedByName)) };
+      return { success: true, message: data.message, code: data.code, medicinesData: medicinesSortedByName, originalMedicinesData: medicinesSortedByName ? JSON.parse(JSON.stringify(medicinesSortedByName)) : [] };
     } catch (err) {
       log.error(err.message || "Erreur lors de la modification des médicaments", err, {
         origin: "MED_UPDATE_ERROR",
@@ -332,7 +333,7 @@ function App() {
         "count": checked.length,
         "calendarId": calendarId,
       });
-      return {success: true, message: "Médicaments supprimés avec succès", code: rep.code, medicinesData: rep.medicinesData, originalMedicinesData: JSON.parse(JSON.stringify(rep.medicinesData))};
+      return {success: true, message: "Médicaments supprimés avec succès", code: rep.code, medicinesData: rep.medicinesData, originalMedicinesData: JSON.parse(JSON.stringify(rep.originalMedicinesData))};
     } else {
       log.error(rep.error, {
         origin: "MED_DELETE_ERROR",
@@ -349,12 +350,12 @@ function App() {
     // générer un id unique a 16 caractères
     const id = generateHexToken();
     if (medicinesData.length === 0) {
-      const newMedicinesData = [{ name: name, tablet_count: 1, time_of_day: 'morning', interval_days: 1, start_date: '', id: id }];
+      const newMedicinesData = [{ name: name, tablet_count: 1, time_of_day: 'morning', interval_days: 1, start_date: null, id: id }];
       return {success: true, message: "Médicament ajouté avec succès", code: "MED_ADD_SUCCESS", medicinesData: newMedicinesData, id: id };
     }
     const newMedicinesData = [
       ...medicinesData,
-      { name: name, tablet_count: 1, time_of_day: 'morning', interval_days: 1, start_date: '', id: id },
+      { name: name, tablet_count: 1, time_of_day: 'morning', interval_days: 1, start_date: null, id: id },
     ];
 
     return {success: true, message: "Médicament ajouté avec succès", code: "MED_ADD_SUCCESS", medicinesData: newMedicinesData, id: id };

@@ -79,6 +79,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
 
   // 🔄 Détection des modifications
   const isFieldChanged = (id, field) => {
+    if (!originalMedicinesData) return false;
     const original = originalMedicinesData.find(med => med.id === id);
     const current = medicinesData.find(med => med.id === id);
     if (!original || !current) return false;
@@ -86,6 +87,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
   };
 
   const isNewMed = (id) => {
+    if (!originalMedicinesData) return false;
     return !originalMedicinesData.some((med) => med.id === id);
   };  
   
@@ -172,9 +174,11 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
   const handleDelete = async () => {
     const rep = await calendarSource.deleteMedicines(calendarId, checked, medicinesData);
     if (rep.success) {
-      setMedicinesData(rep.medicinesData);
+      if (rep.medicinesData) {
+        setMedicinesData(rep.medicinesData);
+        setOriginalMedicinesData(rep.originalMedicinesData);
+      }
       setChecked([]);
-      setOriginalMedicinesData(JSON.parse(JSON.stringify(rep.originalMedicinesData)));
       setAlertMessage("✅ " + rep.message);
       setAlertType("success");
       getGroupedMedicinesList(rep.medicinesData);

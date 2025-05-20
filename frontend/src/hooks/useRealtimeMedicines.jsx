@@ -211,9 +211,16 @@ export const useRealtimeTokenMedicines = (
     initListener();
 
     return () => {
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
-        channelRef.current = null;
+      try {
+        if (channelRef.current) {
+          supabase.removeChannel(channelRef.current);
+          channelRef.current = null;
+        }
+      } catch (err) {
+        log.error(err.message, err, {
+          origin: "REALTIME_TOKEN_INIT_ERROR",
+          token,
+        });
       }
     };
   }, [token]);
@@ -283,9 +290,17 @@ export const useRealtimeSharedUserMedicines = (
     initListener();
 
     return () => {
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
-        channelRef.current = null;
+      try { 
+        if (channelRef.current) {
+          supabase.removeChannel(channelRef.current);
+          channelRef.current = null;
+        }
+      } catch (err) {
+        log.error(err.message, err, {
+          origin: "REALTIME_SHARED_USER_MEDICINES_ERROR",
+          calendarId,
+          uid: user?.uid,
+        });
       }
     };
   }, [calendarId, authReady, currentUser]);

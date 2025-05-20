@@ -2,6 +2,7 @@ from flask import request
 from app.utils.response import success_response, error_response, warning_response
 from app.utils.validators import verify_firebase_token
 from app.db.connection import get_connection
+from app.services.calendar_service import verify_calendar
 from firebase_admin import auth
 import secrets
 from . import api
@@ -17,7 +18,8 @@ from app.utils.messages import (
     WARNING_USER_NOT_FOUND,
     WARNING_NOTIFICATION_NOT_FOUND,
     WARNING_INVALID_NOTIFICATION,
-    WARNING_SELF_INVITATION
+    WARNING_SELF_INVITATION,
+    WARNING_ALREADY_INVITED
 )
 
 
@@ -64,6 +66,19 @@ def handle_send_invitation(calendar_id):
                         code="USER_NOT_FOUND", 
                         status_code=404, 
                         uid=owner_uid, 
+                        origin="INVITATION_SEND",
+                        log_extra={"calendar_id": calendar_id}
+                    )
+
+                # Vérifier si l'utilisateur a déjà été invité
+                cursor.execute("SELECT * FROM shared_calendars WHERE receiver_uid = %s AND calendar_id = %s", (receiver_uid, calendar_id))
+                shared_calendar = cursor.fetchone()
+                if shared_calendar:
+                    return warning_response(
+                        message=WARNING_ALREADY_INVITED,
+                        code="ALREADY_INVITED",
+                        status_code=400,
+                        uid=owner_uid,
                         origin="INVITATION_SEND",
                         log_extra={"calendar_id": calendar_id}
                     )

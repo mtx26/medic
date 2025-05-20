@@ -123,10 +123,17 @@ export const useRealtimeCalendars = (setCalendarsData, setLoadingStates) => {
     channelRef.current = { channel, deleteChannel };
 
     return () => {
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current[0]);
-        supabase.removeChannel(channelRef.current[1]);
-        channelRef.current = null;
+      try {
+        if (channelRef.current) {
+          supabase.removeChannel(channelRef.current[0]);
+          supabase.removeChannel(channelRef.current[1]);
+          channelRef.current = null;
+        }
+      } catch (err) {
+        log.error(err.message, err, {
+          origin: "REALTIME_TOKEN_INIT_ERROR",
+          token,
+        });
       }
     };
   }, [authReady, currentUser, setCalendarsData, setLoadingStates]);
@@ -184,10 +191,17 @@ export const useRealtimeSharedCalendars = (setSharedCalendarsData, setLoadingSta
 
     channelRef.current = { channel, deleteChannel };
     return () => {
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current[0]);
-        supabase.removeChannel(channelRef.current[1]);
-        channelRef.current = null;
+      try {
+        if (channelRef.current) {
+          supabase.removeChannel(channelRef.current[0]);
+          supabase.removeChannel(channelRef.current[1]);
+          channelRef.current = null;
+        }
+      } catch (err) {
+        log.error(err.message, err, {
+          origin: "REALTIME_TOKEN_INIT_ERROR",
+          token,
+        });
       }
     };
   }, [authReady, currentUser, setSharedCalendarsData, setLoadingStates]);

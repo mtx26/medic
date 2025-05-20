@@ -88,25 +88,20 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
     });
   };
 
-  const handleDeleteUser = (calendarId, user) => {
-    setAlertType("confirm-danger");
-    setAlertMessage("❌ Supprimer l'accès ?");
-    setAlertId(user.receiver_uid + "-" + calendarId);
-    setOnConfirmAction(() => async () => {
-      const rep = await sharedUserCalendars.deleteSharedUser(calendarId, user.receiver_uid);
-      if (rep.success) {
-        setAlertType("success");
-        setAlertMessage("✅ " + rep.message);
-        setAlertId(user.receiver_uid + "-" + calendarId);
-        setTimeout(async () => {
-          await setGroupedSharedFunction();
-        }, 1000);
-      } else {
-        setAlertType("danger");
-        setAlertMessage("❌ " + rep.error);
-        setAlertId(user.receiver_uid + "-" + calendarId);
-      }
-    });
+  const handleDeleteUser = async (calendarId, user) => {
+    const rep = await sharedUserCalendars.deleteSharedUser(calendarId, user.receiver_uid);
+    if (rep.success) {
+      setAlertType("success");
+      setAlertMessage("✅ " + rep.message);
+      setAlertId(user.receiver_uid + "-" + calendarId);
+      setTimeout(async () => {
+        await setGroupedSharedFunction();
+      }, 1000);
+    } else {
+      setAlertType("danger");
+      setAlertMessage("❌ " + rep.error);
+      setAlertId(user.receiver_uid + "-" + calendarId);
+    }
   };
 
   const handleSendInvitation = async (calendarId) => {
@@ -149,19 +144,19 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
     const grouped = {};
 
     for (const calendar of personalCalendars.calendarsData) {
-      grouped[calendar.calendar_id] = {
+      grouped[calendar.id] = {
         tokens: [],
         users: [],
-        calendar_name: calendar.calendar_name,
+        calendar_name: calendar.name,
       };
 
-      const rep = await sharedUserCalendars.fetchSharedUsers(calendar.calendar_id);
+      const rep = await sharedUserCalendars.fetchSharedUsers(calendar.id);
       if (rep.success) {
-        grouped[calendar.calendar_id].users = rep.users;
+        grouped[calendar.id].users = rep.users;
       }
       // Initialisation pour l'ajout d'un lien de partage
-      setPermissions(prev => ({ ...prev, [calendar.calendar_id]: "read" }));
-      setExpiresAt(prev => ({ ...prev, [calendar.calendar_id]: null }));
+      setPermissions(prev => ({ ...prev, [calendar.id]: "read" }));
+      setExpiresAt(prev => ({ ...prev, [calendar.id]: null }));
     }
 
     for (const token of tokenCalendars.tokensList) {

@@ -71,9 +71,8 @@ def count_shared_medicines():
         uid = user["uid"]
 
         calendar_id = request.args.get("calendarId")
-        owner_uid = request.args.get("ownerUid")
 
-        if not verify_calendar_share(calendar_id, owner_uid, uid):
+        if not verify_calendar_share(calendar_id, uid):
             return warning_response(
                 message=WARNING_UNAUTHORIZED_ACCESS, 
                 code="UNAUTHORIZED_ACCESS", 

@@ -60,7 +60,7 @@ WARNING_TOKEN_NOT_AUTHORIZED = "Token non autorisé."
 WARNING_TOKEN_NO_READ_PERMISSION = "Token sans permission de lecture."
 WARNING_LINK_NOT_FOUND = "Lien de partage introuvable."
 WARNING_ACCESS_DENIED = "Accès interdit."
-
+WARNING_ALREADY_INVITED = "L'utilisateur a déjà été invité."
 
 # ❌ MESSAGES D’ERREUR
 
@@ -76,6 +76,7 @@ ERROR_SHARED_MEDICINES_UPDATE = "Erreur lors de la mise à jour des médicaments
 ERROR_SHARED_USER_DELETE = "Erreur lors de la suppression de l'utilisateur partagé."
 ERROR_SHARED_USERS_FETCH = "Erreur lors de la récupération des utilisateurs partagés."
 ERROR_SHARED_VERIFICATION = "Erreur lors de la vérification du partage."
+ERROR_SHARED_CALENDARS_FETCH = "Erreur lors de la récupération des calendriers partagés."
 ERROR_MEDICINES_FETCH = "Erreur lors de la récupération des médicaments."
 ERROR_MEDICINES_UPDATE = "Erreur lors de la mise à jour des médicaments."
 ERROR_MEDICINES_COUNT = "Erreur lors du comptage des médicaments."

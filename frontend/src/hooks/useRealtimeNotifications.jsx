@@ -114,10 +114,18 @@ export const useRealtimeNotifications = (setNotificationsData, setLoadingStates)
     channelRef.current = [channel, deleteChannel, readChannel];
 
     return () => {
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current[0]);
-        supabase.removeChannel(channelRef.current[1]);
-        channelRef.current = null;
+      try {
+        if (channelRef.current) {
+          supabase.removeChannel(channelRef.current[0]);
+          supabase.removeChannel(channelRef.current[1]);
+          supabase.removeChannel(channelRef.current[2]);
+          channelRef.current = null;
+        }
+      } catch (err) {
+        log.error(err.message, err, {
+          origin: "REALTIME_TOKEN_INIT_ERROR",
+          token,
+        });
       }
     };
   }, [authReady, currentUser, setNotificationsData, setLoadingStates]);

@@ -7,11 +7,11 @@ from app.utils.messages import (
     ERROR_SHARED_VERIFICATION
 )
 
-def verify_calendar_share(calendar_id : str, owner_uid : str, receiver_uid : str) -> bool:
+def verify_calendar_share(calendar_id : str, receiver_uid : str) -> bool:
     try:
         with get_connection() as conn:
             with conn.cursor() as cursor:
-                cursor.execute("SELECT * FROM calendars WHERE id = %s AND owner_uid = %s", (calendar_id, owner_uid,))
+                cursor.execute("SELECT * FROM calendars WHERE id = %s", (calendar_id,))
                 calendar = cursor.fetchone()
                 if not calendar:
                     return False
@@ -23,7 +23,6 @@ def verify_calendar_share(calendar_id : str, owner_uid : str, receiver_uid : str
                         "origin": "SHARED_VERIFY",
                         "uid": receiver_uid,
                         "calendar_id": calendar_id,
-                        "owner_uid": owner_uid
                     })
                     return False
                 
@@ -34,7 +33,6 @@ def verify_calendar_share(calendar_id : str, owner_uid : str, receiver_uid : str
             "origin": "SHARED_VERIFY_ERROR",
             "uid": receiver_uid,
             "calendar_id": calendar_id, 
-            "owner_uid": owner_uid,
             "error": str(e)
         })
         return False
@@ -61,18 +59,23 @@ def verify_calendar(calendar_id : str, uid : str) -> bool:
 
 def is_medication_due(med, current_date):
     start_raw = med.get("start_date", "")
-    if isinstance(start_raw, str) and start_raw.strip():
-        start = datetime.strptime(start_raw.strip(), "%Y-%m-%d").date()
+
+    # 🛠️ Accept both date and string formats
+    if isinstance(start_raw, date):
+        start = start_raw
     else:
-        start = current_date
+        start = current_date  # fallback si aucune date valide
+
+    print(start)
 
     delta_days = (current_date - start).days
+    print(delta_days)
 
     if delta_days < 0:
         return False
-    
 
     return delta_days % med["interval_days"] == 0
+
 
 def generate_schedule(start_date, medications):
     monday = start_date - timedelta(days=start_date.weekday())

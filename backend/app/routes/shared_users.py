@@ -6,6 +6,8 @@ from app.services.calendar_service import verify_calendar_share, generate_schedu
 import secrets
 from flask import request
 from app.utils.response import success_response, error_response, warning_response
+from app.db.connection import get_connection
+import json
 from app.utils.messages import (
     SUCCESS_SHARED_CALENDARS_FETCHED,
     SUCCESS_SHARED_CALENDAR_FETCHED,
@@ -20,12 +22,8 @@ from app.utils.messages import (
     ERROR_SHARED_CALENDAR_DELETE,
     ERROR_SHARED_USER_DELETE,
     ERROR_SHARED_USERS_FETCH,
+    ERROR_SHARED_CALENDARS_FETCH
 )
-
-
-def get_db():
-    from firebase_admin import firestore
-    return firestore.client()
 
 # Route pour récupérer les calendriers partagés
 @api.route("/shared/users/calendars", methods=["GET"])
@@ -34,69 +32,72 @@ def handle_shared_calendars():
         user = verify_firebase_token()
         uid = user["uid"]
 
-        db = get_db()
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT * FROM shared_calendars WHERE receiver_uid = %s", (uid,))
+                shared_users = cursor.fetchall()
 
-        shared_with_doc = db.collection("users").document(uid).collection("shared_calendars")
-        shared_users_docs = list(shared_with_doc.stream())
+                if not shared_users:
+                    return success_response(
+                        message=SUCCESS_SHARED_CALENDARS_FETCHED,
+                        code="SHARED_CALENDARS_LOAD_EMPTY",
+                        uid=uid,
+                        origin="SHARED_CALENDARS_LOAD",
+                        data={"calendars": []}
+                    )
 
-        if not shared_users_docs:
-            return success_response(
-                message=SUCCESS_SHARED_CALENDARS_FETCHED,
-                code="SHARED_CALENDARS_LOAD_EMPTY",
-                uid=uid,
-                origin="SHARED_CALENDARS_LOAD",
-                data={"calendars": []}
-            )
+                calendars_list = []
+                for shared_user in shared_users:
 
+                    owner_uid = shared_user.get("owner_uid")
+                    calendar_id = shared_user.get("calendar_id")
+                    access = shared_user.get("access", "read")
 
-        calendars_list = []
-        for user_doc in shared_users_docs:
-            data = user_doc.to_dict()
+                    # Récupère le calendrier nom du calendrier et le nom de l'owner
+                    cursor.execute("SELECT * FROM calendars WHERE id = %s", (calendar_id,))
+                    calendar = cursor.fetchone()
+                    if not calendar:
+                        return warning_response(
+                            message=WARNING_SHARED_CALENDAR_NOT_FOUND,
+                            code="SHARED_CALENDARS_LOAD_ERROR",
+                            status_code=404,
+                            uid=uid,
+                            origin="SHARED_CALENDARS_LOAD",
+                            log_extra={"calendar_id": calendar_id}
+                        )
+                    calendar_name = calendar.get("name")
 
-            owner_uid = data.get("owner_uid")
-            calendar_id = data.get("calendar_id")
-            access = data.get("access", "read")
+                    cursor.execute("SELECT * FROM users WHERE id = %s", (uid,))
+                    owner = cursor.fetchone()
+                    if owner is None:
+                        print(f"Owner not found for calendar {calendar_id}")
+                        return warning_response(
+                            message=WARNING_SHARED_USER_NOT_FOUND,
+                            code="SHARED_CALENDARS_LOAD_ERROR",
+                            status_code=404,
+                            uid=uid,
+                            origin="SHARED_CALENDARS_LOAD",
+                            log_extra={"calendar_id": calendar_id, "calendar_name": calendar_name}
+                        )
+                    owner_name = owner.get("display_name")
+                    owner_email = owner.get("email")
+                    owner_photo_url = owner.get("photo_url")
+                    if not owner_photo_url:
+                        owner_photo_url = "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/icons/person-circle.svg"
 
-            # Récupère le calendrier nom du calendrier et le nom de l'owner
-            calendar_doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).get()
-            if not calendar_doc.exists:
-                return warning_response(
-                    message=WARNING_SHARED_CALENDAR_NOT_FOUND,
-                    code="SHARED_CALENDARS_LOAD_ERROR",
-                    status_code=404,
-                    uid=uid,
-                    origin="SHARED_CALENDARS_LOAD"
-                )
-            calendar_name = calendar_doc.to_dict().get("calendar_name")
+                    if not verify_calendar_share(calendar_id, uid):
+                        continue
 
-            owner_doc = db.collection("users").document(owner_uid).get()
-            if not owner_doc.exists:
-                return warning_response(
-                    message=WARNING_SHARED_USER_NOT_FOUND,
-                    code="SHARED_CALENDARS_LOAD_ERROR",
-                    status_code=404,
-                    uid=uid,
-                    origin="SHARED_CALENDARS_LOAD"
-                )
-            owner_name = owner_doc.to_dict().get("display_name")
-            owner_email = owner_doc.to_dict().get("email")
-            owner_photo_url = owner_doc.to_dict().get("photo_url")
-            if not owner_photo_url:
-                owner_photo_url = "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/icons/person-circle.svg"
-
-            if not verify_calendar_share(calendar_id, owner_uid, uid):
-                continue
-
-            # Ajoute les infos à la réponse
-            calendars_list.append({
-                "calendar_id": calendar_id,
-                "calendar_name": calendar_name,
-                "owner_uid": owner_uid,
-                "owner_name": owner_name,
-                "owner_photo_url": owner_photo_url,
-                "owner_email": owner_email,
-                "access": access
-            })
+                    # Ajoute les infos à la réponse
+                    calendars_list.append({
+                        "id": calendar_id,
+                        "name": calendar_name,
+                        "owner_uid": owner_uid,
+                        "owner_name": owner_name,
+                        "owner_photo_url": owner_photo_url,
+                        "owner_email": owner_email,
+                        "access": access
+                    })
 
         return success_response(
             message=SUCCESS_SHARED_CALENDARS_FETCHED, 
@@ -123,24 +124,7 @@ def handle_user_shared_calendar(calendar_id):
         user = verify_firebase_token()
         receiver_uid = user["uid"]
 
-        db = get_db()
-
-        shared_with_doc = db.collection("users").document(receiver_uid).collection("shared_calendars").document(calendar_id)
-        if not shared_with_doc.get().exists:
-            return warning_response(
-                message=WARNING_SHARED_CALENDAR_NOT_FOUND, 
-                code="SHARED_CALENDARS_LOAD_ERROR", 
-                status_code=404, 
-                uid=receiver_uid,
-                origin="SHARED_CALENDARS_LOAD",
-                log_extra={"calendar_id": calendar_id}
-            )
-
-        data = shared_with_doc.get().to_dict()
-        owner_uid = data.get("owner_uid")
-        access = data.get("access", "read")
-
-        if not verify_calendar_share(calendar_id, owner_uid, receiver_uid):
+        if not verify_calendar_share(calendar_id, receiver_uid):
             return warning_response(
                 message=WARNING_UNAUTHORIZED_ACCESS,
                 code="SHARED_CALENDARS_LOAD_ERROR",
@@ -149,19 +133,35 @@ def handle_user_shared_calendar(calendar_id):
                 origin="SHARED_CALENDARS_LOAD",
                 log_extra={"calendar_id": calendar_id}
             )
-
-        calendar_doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).get()
-        if not calendar_doc.exists:
-            return warning_response(
-                message=WARNING_SHARED_CALENDAR_NOT_FOUND,
-                code="SHARED_CALENDARS_LOAD_ERROR",
-                status_code=404,
-                uid=receiver_uid,
-                origin="SHARED_CALENDARS_LOAD",
-                log_extra={"calendar_id": calendar_id}
-            )
         
-        calendar_name = calendar_doc.to_dict().get("calendar_name")
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT * FROM calendars WHERE id = %s", (calendar_id,))
+                calendar = cursor.fetchone()
+                if not calendar:
+                    return warning_response(
+                        message=WARNING_SHARED_CALENDAR_NOT_FOUND,
+                        code="SHARED_CALENDARS_LOAD_ERROR",
+                        status_code=404,
+                        uid=receiver_uid,
+                        origin="SHARED_CALENDARS_LOAD",
+                        log_extra={"calendar_id": calendar_id}
+                    )
+                calendar_name = calendar.get("name")
+                owner_uid = calendar.get("owner_uid")
+
+                cursor.execute("SELECT * FROM shared_calendars WHERE calendar_id = %s", (calendar_id,))
+                shared_user = cursor.fetchone()
+                if not shared_user:
+                    return warning_response(
+                        message=WARNING_SHARED_CALENDAR_NOT_FOUND,
+                        code="SHARED_CALENDARS_LOAD_ERROR",
+                        status_code=404,
+                        uid=receiver_uid,
+                        origin="SHARED_CALENDARS_LOAD",
+                        log_extra={"calendar_id": calendar_id}
+                    )
+                access = shared_user.get("access", "read")
 
         return success_response(
             message=SUCCESS_SHARED_CALENDAR_FETCHED,
@@ -190,7 +190,15 @@ def handle_user_shared_calendar_schedule(calendar_id):
         user = verify_firebase_token()
         uid = user["uid"]
 
-        db = get_db()
+        if not verify_calendar_share(calendar_id, uid):
+            return warning_response(
+                message=WARNING_UNAUTHORIZED_ACCESS,
+                code="SHARED_CALENDARS_LOAD_ERROR",
+                status_code=403,
+                uid=uid,
+                origin="SHARED_CALENDARS_LOAD",
+                log_extra={"calendar_id": calendar_id}
+            )
 
         start_date = request.args.get("startTime")
         if not start_date:
@@ -198,56 +206,37 @@ def handle_user_shared_calendar_schedule(calendar_id):
         else:
             start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
 
-        doc = db.collection("users").document(uid).collection("shared_calendars").document(calendar_id)
-        if not doc.get().exists:
-            return warning_response(
-                message=WARNING_SHARED_CALENDAR_NOT_FOUND, 
-                code="SHARED_CALENDARS_LOAD_ERROR", 
-                status_code=404, 
-                uid=uid, 
-                origin="SHARED_CALENDARS_LOAD",
-                log_extra={"calendar_id": calendar_id}
-            )
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT * FROM calendars WHERE id = %s", (calendar_id,))
+                calendar = cursor.fetchone()
+                if not calendar:
+                    return warning_response(
+                        message=WARNING_SHARED_CALENDAR_NOT_FOUND,
+                        code="SHARED_CALENDARS_LOAD_ERROR",
+                        status_code=404,
+                        uid=uid,
+                        origin="SHARED_CALENDARS_LOAD",
+                        log_extra={"calendar_id": calendar_id}
+                    )
+                calendar_name = calendar.get("name")
 
-        owner_uid = doc.get().to_dict().get("owner_uid")
+                cursor.execute("SELECT * FROM medicines WHERE calendar_id = %s", (calendar_id,))
+                medicines = cursor.fetchall()
+                if not medicines:
+                    return success_response(
+                        message=SUCCESS_SHARED_CALENDAR_FETCHED, 
+                        code="SHARED_CALENDARS_LOAD_SUCCESS", 
+                        uid=uid, 
+                        origin="SHARED_CALENDARS_LOAD",
+                        data={"medicines": 0, "schedule": [], "calendar_name": calendar_name, "table": {}}
+                    )
 
-        doc_1 = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id)
-        if not doc_1.get().exists:
-            return warning_response(
-                message=WARNING_SHARED_CALENDAR_NOT_FOUND, 
-                code="SHARED_CALENDARS_LOAD_ERROR", 
-                status_code=404, 
-                uid=uid, 
-                origin="SHARED_CALENDARS_LOAD",
-                log_extra={"calendar_id": calendar_id}
-            )
-
-        calendar_name = doc_1.get().to_dict().get("calendar_name")
-
-        if not verify_calendar_share(calendar_id, owner_uid, uid):
-            return warning_response(
-                message=WARNING_UNAUTHORIZED_ACCESS, 
-                code="SHARED_CALENDARS_LOAD_ERROR", 
-                status_code=403, 
-                uid=uid, 
-                origin="SHARED_CALENDARS_LOAD",
-                log_extra={"calendar_id": calendar_id}
-            )
-
-        doc_2 = doc_1.collection("medicines")
-        if not doc_2.get():
-            return success_response(
-                message=SUCCESS_SHARED_CALENDAR_FETCHED, 
-                code="SHARED_CALENDARS_LOAD_SUCCESS", 
-                uid=uid, 
-                origin="SHARED_CALENDARS_LOAD",
-                data={"medicines": 0, "schedule": [], "calendar_name": calendar_name, "table": {}}
-            )
-
-        medicines = [med.to_dict() for med in doc_2.get()]
-
+        print(medicines)
         schedule = generate_schedule(start_date, medicines)
         table = generate_table(start_date, medicines)
+        print(schedule)
+        print(table)
     
         return success_response(
             message=SUCCESS_SHARED_CALENDAR_FETCHED, 
@@ -277,22 +266,7 @@ def handle_delete_user_shared_calendar(calendar_id):
         user = verify_firebase_token()
         receiver_uid = user["uid"]
 
-        db = get_db()
-
-        received_calendar_doc = db.collection("users").document(receiver_uid).collection("shared_calendars").document(calendar_id)
-        if not received_calendar_doc.get().exists:
-            return warning_response(
-                message=WARNING_SHARED_CALENDAR_NOT_FOUND, 
-                code="SHARED_CALENDARS_DELETE_ERROR", 
-                status_code=404, 
-                uid=receiver_uid, 
-                origin="SHARED_CALENDARS_DELETE",
-                log_extra={"calendar_id": calendar_id}
-            )
-
-        owner_uid = received_calendar_doc.get().to_dict().get("owner_uid")
-
-        if not verify_calendar_share(calendar_id, owner_uid, receiver_uid):
+        if not verify_calendar_share(calendar_id, receiver_uid):
             return warning_response(
                 message=WARNING_UNAUTHORIZED_ACCESS, 
                 code="SHARED_CALENDARS_DELETE_ERROR", 
@@ -303,33 +277,30 @@ def handle_delete_user_shared_calendar(calendar_id):
             )
         
 
-        shared_with_doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).collection("shared_with").document(receiver_uid)
-        if not shared_with_doc.get().exists:
-            return warning_response(
-                message=WARNING_SHARED_USER_NOT_FOUND, 
-                code="SHARED_CALENDARS_DELETE_ERROR", 
-                status_code=404, 
-                uid=receiver_uid, 
-                origin="SHARED_CALENDARS_DELETE",
-                log_extra={"calendar_id": calendar_id}
-            )
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT * FROM calendars WHERE id = %s", (calendar_id,))
+                calendar = cursor.fetchone()
+                if not calendar:
+                    return warning_response(
+                        message=WARNING_SHARED_CALENDAR_NOT_FOUND,
+                        code="SHARED_CALENDARS_DELETE_ERROR",
+                        status_code=404,
+                        uid=receiver_uid,
+                        origin="SHARED_CALENDARS_DELETE",
+                        log_extra={"calendar_id": calendar_id}
+                    )
+
+                owner_uid = calendar.get("owner_uid")
+                cursor.execute("DELETE FROM shared_calendars WHERE receiver_uid = %s AND calendar_id = %s", (receiver_uid, calendar_id))
             
-        received_calendar_doc.delete()
-        shared_with_doc.delete()
-
-        notification_id = secrets.token_hex(16)
-
-        # Notification à l'utilisateur qui a partagé le calendrier
-        notification_doc = db.collection("users").document(owner_uid).collection("notifications").document(notification_id)
-        notification_doc.set({
-            "type": "calendar_shared_deleted_by_receiver",
-            "calendar_id": calendar_id,
-            "timestamp": firestore.SERVER_TIMESTAMP,
-            "owner_uid": owner_uid,
-            "receiver_uid": receiver_uid,
-            "notification_id": notification_id,
-            "read": False
-        })
+                cursor.execute(
+                    """
+                    INSERT INTO notifications (type, user_id, content, read) 
+                    VALUES (%s, %s, %s::jsonb, %s)
+                    """,
+                    ("calendar_shared_deleted_by_receiver", owner_uid, json.dumps({"calendar_id": calendar_id, "sender_uid": receiver_uid}), False)
+                )
 
         return success_response(
             message=SUCCESS_SHARED_CALENDAR_DELETED, 
@@ -358,19 +329,6 @@ def handle_delete_user_shared_user(calendar_id, receiver_uid):
         user = verify_firebase_token()
         owner_uid = user["uid"]
 
-        db = get_db()
-
-        receiver_doc = db.collection("users").document(receiver_uid)
-        if not receiver_doc.get().exists:
-            return warning_response(
-                message=WARNING_SHARED_USER_NOT_FOUND, 
-                code="SHARED_USERS_DELETE_ERROR", 
-                status_code=404, 
-                uid=owner_uid, 
-                origin="SHARED_USERS_DELETE",
-                log_extra={"calendar_id": calendar_id, "receiver_uid": receiver_uid}
-            )
-
         if owner_uid == receiver_uid:
             return warning_response(
                 message=WARNING_CANNOT_REMOVE_SELF, 
@@ -381,55 +339,51 @@ def handle_delete_user_shared_user(calendar_id, receiver_uid):
                 log_extra={"calendar_id": calendar_id, "receiver_uid": receiver_uid}
             )
 
-        shared_with_doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).collection("shared_with").document(receiver_uid)
-        if not shared_with_doc.get().exists:
+        if not verify_calendar_share(calendar_id, receiver_uid):
             return warning_response(
-                message=WARNING_SHARED_USER_NOT_FOUND, 
-                code="SHARED_USERS_DELETE_ERROR", 
-                status_code=404, 
-                uid=owner_uid, 
+                message=WARNING_UNAUTHORIZED_ACCESS,
+                code="SHARED_USERS_DELETE_ERROR",
+                status_code=403,
+                uid=owner_uid,
                 origin="SHARED_USERS_DELETE",
                 log_extra={"calendar_id": calendar_id, "receiver_uid": receiver_uid}
             )
 
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
 
-        received_calendar_doc = db.collection("users").document(receiver_uid).collection("shared_calendars").document(calendar_id)
-        if received_calendar_doc.get().exists:
-            received_calendar_doc.delete()
+                cursor.execute("DELETE FROM shared_calendars WHERE receiver_uid = %s AND calendar_id = %s", (receiver_uid, calendar_id))
+                row = cursor.rowcount
+                if row == 0:
+                    return warning_response(
+                        message=WARNING_SHARED_CALENDAR_NOT_FOUND,
+                        code="SHARED_USERS_DELETE_ERROR",
+                        status_code=404,
+                        uid=owner_uid,
+                        origin="SHARED_USERS_DELETE",
+                        log_extra={"calendar_id": calendar_id, "receiver_uid": receiver_uid}
+                    )
 
-        shared_with_doc.delete()
-
-
-        # Supprimer les notif pour rejoindre le calendrier
-        notification_docs = db.collection("users").document(receiver_uid).collection("notifications").get()
-        invitation_deleted = False
-
-        for doc in notification_docs:
-            data = doc.to_dict()
-            if (
-                data.get("type") == "calendar_invitation"
-                and data.get("calendar_id") == calendar_id
-                and data.get("owner_uid") == owner_uid
-                and not data.get("read", False)
-            ):
-                doc.reference.delete()
-                invitation_deleted = True
-
-
-        # Si aucune invitation supprimée, envoyer une notification de suppression
-        if not invitation_deleted:
-            notification_id = secrets.token_hex(16)
-            notification_doc = db.collection("users").document(receiver_uid).collection("notifications").document(notification_id)
-            notification_doc.set({
-                "type": "calendar_shared_deleted_by_owner",
-                "calendar_id": calendar_id,
-                "timestamp": firestore.SERVER_TIMESTAMP,
-                "owner_uid": owner_uid,
-                "receiver_uid": receiver_uid,
-                "notification_id": notification_id,
-                "read": False
-            })
-
+                cursor.execute(
+                    "DELETE FROM notifications WHERE user_id = %s AND type = %s AND content = %s::jsonb",
+                    (
+                        receiver_uid,
+                        "calendar_invitation",
+                        json.dumps({"calendar_id": calendar_id, "sender_uid": owner_uid})
+                    )
+                )                
+                cursor.execute(
+                    """
+                    INSERT INTO notifications (type, user_id, content, read) 
+                    VALUES (%s, %s, %s::jsonb, %s)
+                    """,
+                    (
+                        "calendar_shared_deleted_by_owner",
+                        owner_uid,
+                        json.dumps({"calendar_id": calendar_id, "sender_uid": receiver_uid}),
+                        False
+                    )
+                )
 
         return success_response(
             message=SUCCESS_SHARED_USER_DELETED, 
@@ -458,47 +412,65 @@ def handle_shared_users(calendar_id):
         user = verify_firebase_token()
         owner_uid = user["uid"]
 
-        db = get_db()
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT * FROM calendars WHERE id = %s AND owner_uid = %s", (calendar_id, owner_uid))
+                calendar = cursor.fetchone()
+                if not calendar:
+                    return warning_response(
+                        message=WARNING_SHARED_CALENDAR_NOT_FOUND,
+                        code="SHARED_USERS_LOAD_ERROR",
+                        status_code=404,
+                        uid=owner_uid,
+                        origin="SHARED_USERS_LOAD"
+                    )
 
-        shared_with_doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).collection("shared_with")
-        shared_users_docs = list(shared_with_doc.stream())
+                cursor.execute("SELECT * FROM shared_calendars WHERE calendar_id = %s", (calendar_id,))
+                shared_users = cursor.fetchall()
+                if not shared_users:
+                    return success_response(
+                        message=SUCCESS_SHARED_USERS_FETCHED,
+                        code="SHARED_USERS_LOAD_SUCCESS",
+                        uid=owner_uid,
+                        origin="SHARED_USERS_LOAD",
+                        data={"users": []}
+                    )
 
+                shared_users_list = []
+                for shared_user in shared_users:
 
-        shared_users_list = []
-        for doc in shared_users_docs:
+                    receiver_uid = shared_user.get("receiver_uid")
+                    access = shared_user.get("access", "read")
+                    accepted = shared_user.get("accepted", False)
 
-            data = doc.to_dict()
+                    cursor.execute("SELECT * FROM users WHERE id = %s", (receiver_uid,))
+                    receiver = cursor.fetchone()
+                    if not receiver:
+                        return warning_response(
+                            message=WARNING_SHARED_USER_NOT_FOUND,
+                            code="SHARED_USERS_LOAD_ERROR",
+                            status_code=404,
+                            uid=owner_uid,
+                            origin="SHARED_USERS_LOAD"
+                        )
+                    receiver_photo_url = receiver.get("photo_url")
+                    receiver_name = receiver.get("display_name")
+                    receiver_email = receiver.get("email")
 
-            receiver_uid = data.get("receiver_uid")
-            access = data.get("access", "read")
-            accepted = data.get("accepted", False)
-            receiver_doc = db.collection("users").document(receiver_uid).get()
-            if not receiver_doc.exists:
-                return warning_response(
-                    message=WARNING_SHARED_USER_NOT_FOUND,
-                    code="SHARED_USERS_LOAD_ERROR",
-                    status_code=404,
-                    uid=owner_uid,
-                    origin="SHARED_USERS_LOAD"
-                )
-            receiver_photo_url = receiver_doc.to_dict().get("photo_url")
-            receiver_name = receiver_doc.to_dict().get("display_name")
-            receiver_email = receiver_doc.to_dict().get("email")
+                    if not receiver_photo_url:
+                        receiver_photo_url = "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/icons/person-circle.svg"
 
-            if not receiver_photo_url:
-                receiver_photo_url = "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/icons/person-circle.svg"
+                    if not verify_calendar_share(calendar_id, receiver_uid):
+                        continue
 
-            if not verify_calendar_share(calendar_id, owner_uid, receiver_uid):
-                continue
-
-            shared_users_list.append({
-                "receiver_uid": receiver_uid,
-                "access": access,
-                "accepted": accepted,
-                "receiver_photo_url": receiver_photo_url,
-                "receiver_name": receiver_name,
-                "receiver_email": receiver_email
-            })
+                    shared_users_list.append({
+                        "receiver_uid": receiver_uid,
+                        "access": access,
+                        "accepted": accepted,
+                        "receiver_photo_url": receiver_photo_url,
+                        "receiver_name": receiver_name,
+                        "receiver_email": receiver_email
+                    })
 
         return success_response(
             message=SUCCESS_SHARED_USERS_FETCHED, 

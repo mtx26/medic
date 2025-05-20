@@ -145,8 +145,8 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
     if (!currentUser || !calendarId) return;
 
     if (calendarType === 'sharedUser') {
-      if (calendarSource.calendarsData.find((calendar) => calendar.calendar_id === calendarId)) {
-        const owner_user = calendarSource.calendarsData.find((calendar) => calendar.calendar_id === calendarId);
+      if (calendarSource.calendarsData.find((calendar) => calendar.id === calendarId)) {
+        const owner_user = calendarSource.calendarsData.find((calendar) => calendar.id === calendarId);
         setOwnerUser({
           email: owner_user.owner_email,
           display_name: owner_user.owner_name,
