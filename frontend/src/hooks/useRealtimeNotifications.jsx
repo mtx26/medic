@@ -1,15 +1,11 @@
 import { useContext, useEffect, useRef } from 'react';
 import { UserContext } from '../contexts/UserContext';
 import { auth, analytics } from '../services/firebase';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '../services/supabaseClient';
 import { log } from '../utils/logger';
 import { logEvent } from 'firebase/analytics';
 
 const API_URL = import.meta.env.VITE_API_URL;
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const fetchNotifications = async (user, setNotificationsData, setLoadingStates) => {
   try {
@@ -73,10 +69,10 @@ export const useRealtimeNotifications = (setNotificationsData, setLoadingStates)
       .on(
         'postgres_changes',
         {
-          event: '*',
+          event: 'insert',
           schema: 'public',
           table: 'notifications',
-          filter: `uid=eq.${user.uid}`,
+          filter: `user_id=eq.${user.uid}`,
         },
         () => {
           fetchNotifications(user, setNotificationsData, setLoadingStates);
@@ -84,11 +80,43 @@ export const useRealtimeNotifications = (setNotificationsData, setLoadingStates)
       )
       .subscribe();
 
-    channelRef.current = channel;
+    const deleteChannel = supabase
+      .channel(`notifications-${user.uid}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'delete',
+          schema: 'public',
+          table: 'notifications'
+        },
+        () => {
+          fetchNotifications(user, setNotificationsData, setLoadingStates);
+        }
+      )
+      .subscribe();
+
+    const readChannel = supabase
+      .channel(`notifications-${user.uid}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'update',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${user.uid}`,
+        },
+        () => {
+          fetchNotifications(user, setNotificationsData, setLoadingStates);
+        }
+      )
+      .subscribe();
+
+    channelRef.current = [channel, deleteChannel, readChannel];
 
     return () => {
       if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
+        supabase.removeChannel(channelRef.current[0]);
+        supabase.removeChannel(channelRef.current[1]);
         channelRef.current = null;
       }
     };

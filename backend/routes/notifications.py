@@ -1,8 +1,8 @@
 from . import api
 from auth import verify_firebase_token
-from firebase_admin import firestore
 from response import success_response, error_response, warning_response
 from logger import log_backend as logger
+from db import get_connection
 from messages import (
     SUCCESS_NOTIFICATIONS_FETCHED,
     SUCCESS_NOTIFICATION_READ,
@@ -12,18 +12,29 @@ from messages import (
 )
 
 
-db = firestore.client()
 DEFAULT_PHOTO = "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/icons/person-circle.svg"
 
 def get_user(uid):
     doc = db.collection("users").document(uid).get()
     return doc.to_dict() if doc.exists else None
 
-def safely_get_calendar_name(owner_uid, calendar_id):
-    calendar_doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).get()
-    if calendar_doc.exists:
-        return calendar_doc.to_dict().get("calendar_name")
+def safely_get_calendar_name(calendar_id):
+    with get_connection() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT * FROM calendars WHERE id = %s", (calendar_id,))
+            calendar = cursor.fetchone()
+            if calendar:
+                return calendar.get("name")
+            else:
+                return None
     return None
+
+def get_user_info(uid):
+    with get_connection() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT * FROM users WHERE id = %s", (uid,))
+            user = cursor.fetchone()
+            return user.get("display_name"), user.get("email"), user.get("photo_url")
 
 def delete_notification(uid, notification_id):
     db.collection("users").document(uid).collection("notifications").document(notification_id).delete()
@@ -37,44 +48,54 @@ def handle_notifications():
     try:
         user = verify_firebase_token()
         uid = user["uid"]
-        notifications_docs = db.collection("users").document(uid).collection("notifications").get()
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT * FROM notifications WHERE user_id = %s", (uid,))
+                notifications_data = cursor.fetchall()
 
-        if not notifications_docs:
-            return success_response(
-                message=SUCCESS_NOTIFICATIONS_FETCHED,
-                code="NOTIFICATIONS_FETCH_SUCCESS",
-                uid=uid,
-                origin="NOTIFICATIONS_FETCH",
-                data={"notifications": []}
-            )
+                if notifications_data is None:
+                    return success_response(
+                        message=SUCCESS_NOTIFICATIONS_FETCHED,
+                        code="NOTIFICATIONS_FETCH_SUCCESS",
+                        uid=uid,
+                        origin="NOTIFICATIONS_FETCH",
+                        data={"notifications": []}
+                    )
 
-        notifications = []
-        for doc in notifications_docs:
-            notif = doc.to_dict().copy()
-            notif_id = notif.get("notification_id")
+                calendar_name_cache = {}
+                sender_info_cache = {}
+                notifications = []
 
-            owner = get_user(notif.get("owner_uid"))
-            receiver = get_user(notif.get("receiver_uid"))
-            if not owner or not receiver:
-                delete_notification(uid, notif_id)
-                continue
+                for notif in notifications_data:
+                    content = notif.get("content") or {}
+                    calendar_id = content.get("calendar_id")
+                    sender_uid = content.get("sender_uid")
 
-            calendar_id = notif.get("calendar_id")
-            if calendar_id:
-                calendar_name = safely_get_calendar_name(notif["owner_uid"], calendar_id)
-                if calendar_name:
-                    notif["calendar_name"] = calendar_name
+                    if not calendar_id:
+                        continue
 
-            notif.update({
-                "owner_name": owner.get("display_name"),
-                "owner_email": owner.get("email"),
-                "owner_photo_url": owner.get("photo_url") or DEFAULT_PHOTO,
-                "receiver_name": receiver.get("display_name"),
-                "receiver_email": receiver.get("email"),
-                "receiver_photo_url": receiver.get("photo_url") or DEFAULT_PHOTO
-            })
+                    # Cache calendar name
+                    if calendar_id not in calendar_name_cache:
+                        calendar_name_cache[calendar_id] = safely_get_calendar_name(calendar_id)
+                    calendar_name = calendar_name_cache[calendar_id]
+                    print(calendar_name)
 
-            notifications.append(notif)
+                    # Cache sender info
+                    if sender_uid not in sender_info_cache:
+                        sender_info_cache[sender_uid] = get_user_info(sender_uid)
+                    sender_name, sender_email, sender_photo_url = sender_info_cache[sender_uid]
+
+                    notifications.append({
+                        "notification_id": notif.get("id"),
+                        "notification_type": notif.get("type"),
+                        "read": notif.get("read"),
+                        "timestamp": notif.get("timestamp"),
+                        "calendar_id": calendar_id,
+                        "calendar_name": calendar_name,
+                        "sender_name": sender_name,
+                        "sender_email": sender_email,
+                        "sender_photo_url": sender_photo_url or DEFAULT_PHOTO,
+                    })
 
         return success_response(
             message=SUCCESS_NOTIFICATIONS_FETCHED,
@@ -101,20 +122,21 @@ def handle_read_notification(notification_id):
         user = verify_firebase_token()
         uid = user["uid"]
 
-        doc = db.collection("users").document(uid).collection("notifications").document(notification_id)
-        if not doc.get().exists:
-            return warning_response(
-                message=WARNING_NOTIFICATION_NOT_FOUND, 
-                code="NOTIFICATION_READ_ERROR", 
-                status_code=404, 
-                uid=uid, 
-                origin="NOTIFICATION_READ",
-                log_extra={"notification_id": notification_id}
-            )
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT * FROM notifications WHERE id = %s AND user_id = %s", (notification_id, uid))
+                notif = cursor.fetchone()
+                if not notif:
+                    return warning_response(
+                        message=WARNING_NOTIFICATION_NOT_FOUND, 
+                        code="NOTIFICATION_READ_ERROR", 
+                        status_code=404, 
+                        uid=uid, 
+                        origin="NOTIFICATION_READ",
+                        log_extra={"notification_id": notification_id}
+                    )
         
-        doc.update({
-            "read": True
-        })
+                cursor.execute("UPDATE notifications SET read = TRUE WHERE id = %s AND user_id = %s", (notification_id, uid))
 
         return success_response(
             message=SUCCESS_NOTIFICATION_READ, 

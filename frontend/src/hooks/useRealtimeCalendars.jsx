@@ -1,15 +1,11 @@
 import { useEffect, useContext, useRef } from "react";
 import { auth, analytics } from "../services/firebase";
-import { createClient } from "@supabase/supabase-js";
 import { log } from "../utils/logger";
 import { UserContext } from '../contexts/UserContext';
 import { logEvent } from "firebase/analytics";
+import { supabase } from "../services/supabaseClient";
 
 const API_URL = import.meta.env.VITE_API_URL;
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const fetchCalendars = async (user, setCalendarsData, setLoadingStates) => {
   try {
@@ -128,7 +124,8 @@ export const useRealtimeCalendars = (setCalendarsData, setLoadingStates) => {
 
     return () => {
       if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
+        supabase.removeChannel(channelRef.current[0]);
+        supabase.removeChannel(channelRef.current[1]);
         channelRef.current = null;
       }
     };
@@ -188,7 +185,8 @@ export const useRealtimeSharedCalendars = (setSharedCalendarsData, setLoadingSta
     channelRef.current = { channel, deleteChannel };
     return () => {
       if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
+        supabase.removeChannel(channelRef.current[0]);
+        supabase.removeChannel(channelRef.current[1]);
         channelRef.current = null;
       }
     };

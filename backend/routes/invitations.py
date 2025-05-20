@@ -2,8 +2,10 @@ from flask import request
 from response import success_response, error_response, warning_response
 from auth import verify_firebase_token
 from db import get_connection
+from firebase_admin import auth
 import secrets
 from . import api
+import json
 from messages import (
     SUCCESS_INVITATION_SENT,
     SUCCESS_INVITATION_ACCEPTED,
@@ -26,66 +28,74 @@ def handle_send_invitation(calendar_id):
         owner_user = verify_firebase_token()
         owner_uid = owner_user["uid"]
 
-        doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).get()
-        if not doc.exists:
-            return warning_response(
-                message=WARNING_CALENDAR_NOT_FOUND, 
-                code="CALENDAR_NOT_FOUND", 
-                status_code=404, 
-                uid=owner_uid, 
-                origin="INVITATION_SEND",
-                log_extra={"calendar_id": calendar_id}
-            )
-
-        
         receiver_email = request.get_json(force=True).get("email")
         receiver_user = auth.get_user_by_email(receiver_email)
         receiver_uid = receiver_user.uid
+
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT * FROM calendars WHERE id = %s", (calendar_id,))
+                calendar = cursor.fetchone()
+                if not calendar:
+                    return warning_response(
+                        message=WARNING_CALENDAR_NOT_FOUND, 
+                        code="CALENDAR_NOT_FOUND", 
+                        status_code=404, 
+                        uid=owner_uid, 
+                        origin="INVITATION_SEND",
+                        log_extra={"calendar_id": calendar_id}
+                    )
+
         
-        # Verif si soit même
-        if owner_uid == receiver_uid:
-            return warning_response(
-                message=WARNING_SELF_INVITATION, 
-                code="SELF_INVITATION_ERROR", 
-                status_code=400, 
-                uid=owner_uid, 
-                origin="INVITATION_SEND",
-                log_extra={"calendar_id": calendar_id}
-            )
+                # Verif si soit même
+                if owner_uid == receiver_uid:
+                    return warning_response(
+                        message=WARNING_SELF_INVITATION, 
+                        code="SELF_INVITATION_ERROR", 
+                        status_code=400, 
+                        uid=owner_uid, 
+                        origin="INVITATION_SEND",
+                        log_extra={"calendar_id": calendar_id}
+                    )
 
-        # Vérifier si l'utilisateur existe  
-        doc = db.collection("users").document(receiver_uid).get()
-        if not doc.exists:
-            return warning_response(
-                message=WARNING_USER_NOT_FOUND, 
-                code="USER_NOT_FOUND", 
-                status_code=404, 
-                uid=owner_uid, 
-                origin="INVITATION_SEND",
-                log_extra={"calendar_id": calendar_id}
-            )
+                # Vérifier si l'utilisateur existe  
+                cursor.execute("SELECT * FROM users WHERE id = %s", (receiver_uid,))
+                user = cursor.fetchone()
+                if not user:
+                    return warning_response(
+                        message=WARNING_USER_NOT_FOUND, 
+                        code="USER_NOT_FOUND", 
+                        status_code=404, 
+                        uid=owner_uid, 
+                        origin="INVITATION_SEND",
+                        log_extra={"calendar_id": calendar_id}
+                    )
         
-        # Créer un token unique pour la notification
-        notification_id = secrets.token_hex(16)
+                # Créer une notif pour l'utilisateur receveur
+                cursor.execute(
+                    """
+                    INSERT INTO notifications (user_id, type, content)
+                    VALUES (%s, %s, %s)
+                    """,
+                    (
+                        receiver_uid,                         # user_id
+                        "calendar_invitation",               # type
+                        json.dumps({
+                            "calendar_id": calendar_id,
+                            "sender_uid": owner_uid,
+                        })                                   # content (JSONB)
+                    )
+                )
 
-        # Créer une notif pour l'utilisateur receveur
-        db.collection("users").document(receiver_uid).collection("notifications").document(notification_id).set({
-            "owner_uid": owner_uid,
-            "receiver_uid": receiver_uid,
-            "calendar_id": calendar_id,
-            "type": "calendar_invitation",
-            "timestamp": firestore.SERVER_TIMESTAMP,
-            "read": False,
-            "accepted": False,
-            "notification_id": notification_id
-        })
 
-        # Sauvegarder l'invitation dans la collection "shared_calendars" dans le calendrier de l'utilisateur owner
-        db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).collection("shared_with").document(receiver_uid).set({
-            "receiver_uid": receiver_uid,
-            "accepted": False,
-            "access": "edit"
-        })
+                # Sauvegarder l'invitation dans la collection "shared_calendars" dans le calendrier de l'utilisateur owner
+                cursor.execute(
+                    """
+                    INSERT INTO shared_calendars (receiver_uid, calendar_id, accepted, access)
+                    VALUES (%s, %s, %s, %s)
+                    """,
+                    (receiver_uid, calendar_id, False, "edit")
+                )
 
         return success_response(
             message=SUCCESS_INVITATION_SENT, 
@@ -114,61 +124,61 @@ def handle_accept_invitation(notification_id):
         user = verify_firebase_token()
         receiver_uid = user["uid"]
 
-        doc = db.collection("users").document(receiver_uid).collection("notifications").document(notification_id).get()
-        if not doc.exists:
-            return warning_response(
-                message=WARNING_NOTIFICATION_NOT_FOUND, 
-                code="NOTIFICATION_NOT_FOUND", 
-                status_code=404, 
-                uid=receiver_uid, 
-                origin="INVITATION_ACCEPT",
-                log_extra={"notification_id": notification_id}
-            )
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT * FROM notifications WHERE id = %s AND user_id = %s", (notification_id, receiver_uid))
+                notification = cursor.fetchone()
+                if notification is None:
+                    return warning_response(
+                        message=WARNING_NOTIFICATION_NOT_FOUND, 
+                        code="NOTIFICATION_NOT_FOUND", 
+                        status_code=404, 
+                        uid=receiver_uid, 
+                        origin="INVITATION_ACCEPT",
+                        log_extra={"notification_id": notification_id}
+                    )
         
-        # Vérifier si la notification est une invitation
-        if doc.to_dict().get("type") != "calendar_invitation":
-            return warning_response(
-                message=WARNING_INVALID_NOTIFICATION, 
-                code="INVALID_NOTIFICATION", 
-                status_code=400, 
-                uid=receiver_uid, 
-                origin="INVITATION_ACCEPT",
-                log_extra={"notification_id": notification_id}
-            )
-        
-        calendar_id = doc.to_dict().get("calendar_id")
-        owner_uid = doc.to_dict().get("owner_uid")
+                # Vérifier si la notification est une invitation
+                if notification.get("type") != "calendar_invitation":
+                    return warning_response(
+                        message=WARNING_INVALID_NOTIFICATION, 
+                        code="INVALID_NOTIFICATION", 
+                        status_code=400, 
+                        uid=receiver_uid, 
+                        origin="INVITATION_ACCEPT",
+                        log_extra={"notification_id": notification_id}
+                    )
+                
+                calendar_id = notification.get("content").get("calendar_id")
+                sender_uid = notification.get("content").get("sender_uid")
 
-        # Créer une entrée dans sa collection "shared_calendars" pour le calendrier partagé
-        db.collection("users").document(receiver_uid).collection("shared_calendars").document(calendar_id).set({
-            "calendar_id": calendar_id,
-            "owner_uid": owner_uid,
-            "access": "edit"
-        })
+                # Dire que l'utilisateur receveur a accepté l'invitation
+                cursor.execute(
+                    """
+                    UPDATE shared_calendars SET accepted = TRUE WHERE receiver_uid = %s AND calendar_id = %s
+                    """,
+                    (receiver_uid, calendar_id)
+                )
+                
+                # Dire que la notif a été lue
+                cursor.execute(
+                    """
+                    UPDATE notifications SET read = TRUE WHERE id = %s
+                    """,
+                    (notification_id,)
+                )
 
-        # Dire que l'utilisateur receveur a accepté l'invitation
-        db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).collection("shared_with").document(receiver_uid).set({
-            "accepted": True,
-            "accepted_at": firestore.SERVER_TIMESTAMP
-        }, merge=True)
-
-        # Dire que la notif a été lue
-        db.collection("users").document(receiver_uid).collection("notifications").document(notification_id).update({
-            "read": True,
-            "accepted": True
-        })
-
-        # Créer une notif pour l'utilisateur expéditeur
-        db.collection("users").document(owner_uid).collection("notifications").document(notification_id).set({
-            "receiver_uid": receiver_uid,
-            "owner_uid": owner_uid,
-            "calendar_id": calendar_id,
-            "type": "calendar_invitation_accepted",
-            "timestamp": firestore.SERVER_TIMESTAMP,
-            "read": False,
-            "accepted": True,
-            "notification_id": notification_id
-        })
+                # Créer une notif pour l'utilisateur expéditeur
+                cursor.execute(
+                    """
+                    INSERT INTO notifications (user_id, type, content)
+                    VALUES (%s, %s, %s)
+                    """,
+                    (sender_uid, "calendar_invitation_accepted", json.dumps({
+                        "calendar_id": calendar_id,
+                        "sender_uid": receiver_uid,
+                    }))
+                )
 
         return success_response(
             message=SUCCESS_INVITATION_ACCEPTED, 
@@ -197,45 +207,61 @@ def handle_reject_invitation(notification_id):
         user = verify_firebase_token()
         receiver_uid = user["uid"]
 
-        doc = db.collection("users").document(receiver_uid).collection("notifications").document(notification_id).get()
-        if not doc.exists:
-            return warning_response(
-                message=WARNING_NOTIFICATION_NOT_FOUND, 
-                code="NOTIFICATION_NOT_FOUND", 
-                status_code=404, 
-                uid=receiver_uid, 
-                origin="INVITATION_REJECT",
-                log_extra={"notification_id": notification_id}
-            )
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT * FROM notifications WHERE id = %s AND user_id = %s", (notification_id, receiver_uid))
+                notification = cursor.fetchone()
+                if not notification:
+                    return warning_response(
+                        message=WARNING_NOTIFICATION_NOT_FOUND, 
+                        code="NOTIFICATION_NOT_FOUND", 
+                        status_code=404, 
+                        uid=receiver_uid, 
+                        origin="INVITATION_REJECT",
+                        log_extra={"notification_id": notification_id}
+                    )
 
-        # Vérifier si la notification est une invitation
-        if doc.to_dict().get("type") != "calendar_invitation":
-            return warning_response(
-                message=WARNING_INVALID_NOTIFICATION, 
-                code="INVALID_NOTIFICATION", 
-                status_code=400, 
-                uid=receiver_uid, 
-                origin="INVITATION_REJECT",
-                log_extra={"notification_id": notification_id}
-            )
+                # Vérifier si la notification est une invitation
+                if notification.get("type") != "calendar_invitation":
+                    return warning_response(
+                        message=WARNING_INVALID_NOTIFICATION, 
+                        code="INVALID_NOTIFICATION", 
+                        status_code=400, 
+                        uid=receiver_uid, 
+                        origin="INVITATION_REJECT",
+                        log_extra={"notification_id": notification_id}
+                    )
 
-        calendar_id = doc.to_dict().get("calendar_id")
-        owner_uid = doc.to_dict().get("owner_uid")
+                calendar_id = notification.get("content").get("calendar_id")
+                owner_uid = notification.get("content").get("sender_uid")
 
-        # Supprimer la notif
-        db.collection("users").document(receiver_uid).collection("notifications").document(notification_id).delete()
+                # Supprimer la notif
+                cursor.execute(
+                    """
+                    DELETE FROM notifications WHERE id = %s AND user_id = %s
+                    """,
+                    (notification_id, receiver_uid)
+                )
+                # Créer une notif pour l'utilisateur expéditeur
+                cursor.execute(
+                    """
+                    INSERT INTO notifications (user_id, type, content)
+                    VALUES (%s, %s, %s)
+                    """,
+                    (owner_uid, "calendar_invitation_rejected", json.dumps({
+                        "calendar_id": calendar_id,
+                        "sender_uid": receiver_uid,
+                    }))
+                )
 
-        # Créer une notif pour l'utilisateur expéditeur
-        db.collection("users").document(owner_uid).collection("notifications").document(notification_id).set({
-            "receiver_uid": receiver_uid,
-            "owner_uid": owner_uid,
-            "calendar_id": calendar_id,
-            "type": "calendar_invitation_rejected",
-            "timestamp": firestore.SERVER_TIMESTAMP,
-            "read": False,
-            "accepted": False,
-            "notification_id": notification_id
-        })
+                # Supprimer la notif dans la collection "shared_calendars" dans le calendrier de l'utilisateur owner
+                cursor.execute(
+                    """
+                    DELETE FROM shared_calendars WHERE receiver_uid = %s AND calendar_id = %s
+                    """,
+                    (receiver_uid, calendar_id)
+                )
+
 
         return success_response(
             message=SUCCESS_INVITATION_REJECTED, 

@@ -3,13 +3,9 @@ import { UserContext } from '../contexts/UserContext';
 import { auth, analytics } from '../services/firebase';
 import { log } from '../utils/logger';
 import { logEvent } from 'firebase/analytics';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '../services/supabaseClient';
 
 const API_URL = import.meta.env.VITE_API_URL;
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 export const useRealtimeTokens = (setTokensList, setLoadingStates) => { 
 	const { currentUser, authReady } = useContext(UserContext);
