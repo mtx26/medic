@@ -1,36 +1,33 @@
 from datetime import datetime, timedelta, date
 import calendar
 from app.utils.logger import log_backend as logger
-from firebase_admin import firestore
+from app.db.connection import get_connection
 from app.utils.messages import (
     WARNING_UNAUTHORIZED_ACCESS,
     ERROR_SHARED_VERIFICATION
 )
 
-def get_db():
-    from firebase_admin import firestore
-    return firestore.client()
-
 def verify_calendar_share(calendar_id : str, owner_uid : str, receiver_uid : str) -> bool:
     try:
-        db = get_db()
-        
-        shared_with_ref = db.collection("users").document(owner_uid) \
-            .collection("calendars").document(calendar_id) \
-            .collection("shared_with").document(receiver_uid)
-        
-        shared_with_doc = shared_with_ref.get()
-        if not shared_with_doc.exists:
-            logger.warning(WARNING_UNAUTHORIZED_ACCESS, {
-                "origin": "SHARED_VERIFY",
-                "uid": receiver_uid,
-                "calendar_id": calendar_id,
-                "owner_uid": owner_uid
-            })
-            return False
-        
-        shared_data = shared_with_doc.to_dict()
-        return shared_data.get("receiver_uid") == receiver_uid
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT * FROM calendars WHERE id = %s AND owner_uid = %s", (calendar_id, owner_uid,))
+                calendar = cursor.fetchone()
+                if not calendar:
+                    return False
+                
+                cursor.execute("SELECT * FROM shared_calendars WHERE calendar_id = %s AND receiver_uid = %s", (calendar_id, receiver_uid,))
+                shared_calendar = cursor.fetchone()
+                if not shared_calendar:
+                    logger.warning(WARNING_UNAUTHORIZED_ACCESS, {
+                        "origin": "SHARED_VERIFY",
+                        "uid": receiver_uid,
+                        "calendar_id": calendar_id,
+                        "owner_uid": owner_uid
+                    })
+                    return False
+                
+                return True
 
     except Exception as e:
         logger.error(ERROR_SHARED_VERIFICATION, {
