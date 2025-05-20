@@ -59,7 +59,7 @@ def handle_notifications():
                 for notif in notifications_data:
                     content = notif.get("content") or {}
                     calendar_id = content.get("calendar_id")
-                    sender_uid = content.get("sender_uid")
+                    sender_uid = notif.get("sender_uid")
                     notification_id = notif.get("id")
 
                     if not calendar_id:
@@ -69,17 +69,11 @@ def handle_notifications():
                     if calendar_id not in calendar_name_cache:
                         calendar_name_cache[calendar_id] = safely_get_calendar_name(calendar_id)
                     calendar_name = calendar_name_cache[calendar_id]
-                    print(calendar_name)
 
                     # Cache sender info
                     if sender_uid not in sender_info_cache:
                         sender_info_cache[sender_uid] = get_user_info(sender_uid)
                     sender_name, sender_email, sender_photo_url = sender_info_cache[sender_uid]
-                    print(sender_name)
-
-                    if not calendar_name or not sender_name or not sender_email or not sender_photo_url:
-                        cursor.execute("DELETE FROM notifications WHERE id = %s", (notification_id,))
-                        continue
 
 
 

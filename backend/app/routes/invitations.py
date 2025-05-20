@@ -86,16 +86,16 @@ def handle_send_invitation(calendar_id):
                 # Créer une notif pour l'utilisateur receveur
                 cursor.execute(
                     """
-                    INSERT INTO notifications (user_id, type, content)
-                    VALUES (%s, %s, %s)
+                    INSERT INTO notifications (user_id, type, content, sender_uid)
+                    VALUES (%s, %s, %s, %s)
                     """,
                     (
                         receiver_uid,                         # user_id
                         "calendar_invitation",               # type
                         json.dumps({
-                            "calendar_id": calendar_id,
-                            "sender_uid": owner_uid,
-                        })                                   # content (JSONB)
+                            "calendar_id": calendar_id
+                        }),
+                        owner_uid
                     )
                 )
 
@@ -183,13 +183,12 @@ def handle_accept_invitation(notification_id):
                 # Créer une notif pour l'utilisateur expéditeur
                 cursor.execute(
                     """
-                    INSERT INTO notifications (user_id, type, content)
-                    VALUES (%s, %s, %s)
+                    INSERT INTO notifications (user_id, type, content, sender_uid)
+                    VALUES (%s, %s, %s, %s)
                     """,
                     (sender_uid, "calendar_invitation_accepted", json.dumps({
-                        "calendar_id": calendar_id,
-                        "sender_uid": receiver_uid,
-                    }))
+                        "calendar_id": calendar_id
+                    }), receiver_uid)
                 )
 
         return success_response(
@@ -257,13 +256,12 @@ def handle_reject_invitation(notification_id):
                 # Créer une notif pour l'utilisateur expéditeur
                 cursor.execute(
                     """
-                    INSERT INTO notifications (user_id, type, content)
-                    VALUES (%s, %s, %s)
+                    INSERT INTO notifications (user_id, type, content, sender_uid)
+                    VALUES (%s, %s, %s, %s)
                     """,
                     (owner_uid, "calendar_invitation_rejected", json.dumps({
-                        "calendar_id": calendar_id,
-                        "sender_uid": receiver_uid,
-                    }))
+                        "calendar_id": calendar_id
+                    }), receiver_uid)
                 )
 
                 # Supprimer la notif dans la collection "shared_calendars" dans le calendrier de l'utilisateur owner

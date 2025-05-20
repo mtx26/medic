@@ -1,5 +1,4 @@
-import { auth, db } from "./firebase";
-import { doc, setDoc, getDoc } from "firebase/firestore";
+import { auth } from "./firebase";
 import { getGlobalReloadUser } from "../contexts/UserContext";
 
 import { 
@@ -16,7 +15,37 @@ import { log } from "../utils/logger";
 
 const GoogleProvider = new GoogleAuthProvider();
 
-const API_URL = import.meta.env.API_URL;
+const API_URL = import.meta.env.VITE_API_URL;
+
+const syncUserToSupabase = async (user) => {
+  const token = await user.getIdToken();
+  const body = {
+    uid: user.uid,
+    display_name: user.displayName || "Utilisateur",
+    email: user.email,
+    photo_url: user.photoURL || "",
+  };
+
+  try {
+    const res = await fetch(`${API_URL}/api/user/sync`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(body),
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Erreur API Supabase");
+  } catch (error) {
+    log.error("Erreur lors de la synchro Supabase", error.message, {
+      origin: "SYNC_USER_SUPABASE",
+      uid: user.uid,
+    });
+  }
+};
+
 
 
 /**
@@ -27,51 +56,10 @@ export const GoogleHandleLogin = async () => {
     const result = await signInWithPopup(auth, GoogleProvider);
     const user = result.user;
 
-    const fetchPhotoUrl = async (googlePhotoUrl) => {
-      const token = await user.getIdToken(); // Firebase Auth ID token
-
-      const blob = await fetch(user.photoURL).then(r => r.blob());
-
-      const formData = new FormData();
-      formData.append("file", blob, "photo.jpg");
-    
-      const res = await fetch(`${API_URL}/api/upload/logo`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
-      });
-    
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Erreur de l'API");
-    
-      return data.url;
-    };    
-
-    const userRef = doc(db, "users", user.uid);
-    const userSnap = await getDoc(userRef);
-
-    if (!userSnap.exists()) {
-      let photoUrlDB = null;
-      if (user.photoURL) {
-        try {
-          photoUrlDB = await fetchPhotoUrl(user.photoURL)
-        } catch (error) {
-          log.error(error.message, {
-            origin: "GOOGLE_HANDLE_LOGIN_ERROR",
-            "uid": user.uid,
-          });
-        }
-      }
-
-      await setDoc(userRef, {
-        display_name: user.displayName || "Utilisateur",
-        role: "user",
-        email: user.email,
-        photo_url: photoUrlDB
-      });
-    }
+    await syncUserToSupabase(user);
 
     getGlobalReloadUser()(); // Rafraîchir les infos utilisateur
+
     log.info("Utilisateur connecté avec Google", {
       origin: "GOOGLE_HANDLE_LOGIN_SUCCESS",
       "uid": auth.currentUser.uid,
@@ -93,12 +81,7 @@ export const registerWithEmail = async (email, password, name) => {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
 
-    await setDoc(doc(db, "users", user.uid), {
-      display_name: name,
-      photo_url: "",
-      role: "user",
-      email: user.email
-    });
+    await syncUserToSupabase(user);
 
     await sendEmailVerification(user);
 
