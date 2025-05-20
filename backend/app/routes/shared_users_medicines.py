@@ -71,7 +71,7 @@ def handle_update_shared_user_calendar_medicines(calendar_id):
         user = verify_firebase_token()
         receiver_uid = user["uid"]
 
-        medicines = request.json.get("medicines", [])
+        changes = request.json.get("changes", [])
 
         if not verify_calendar_share(calendar_id, receiver_uid):
             return warning_response(
@@ -83,34 +83,47 @@ def handle_update_shared_user_calendar_medicines(calendar_id):
                 log_extra={"calendar_id": calendar_id}
             )
 
-        with get_connection() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute("DELETE FROM medicines WHERE calendar_id = %s", (calendar_id,))
+        for change in changes:
+            med_id = change.get("id")
+            print(change)
+            
+            if med_id:
 
-                for med in medicines:
-                    name = med.get("name")
-                    tablet_count = med.get("tablet_count")
-                    time_of_day = med.get("time_of_day")
-                    interval_days = med.get("interval_days")
-                    start_date = med.get("start_date")
-                    dose = med.get("dose", None)
+                fields = []
+                values = []
 
-                    cursor.execute(
-                        """
-                        INSERT INTO medicines (calendar_id, name, tablet_count, time_of_day, interval_days, start_date, dose) 
-                        VALUES (%s, %s, %s, %s, %s, %s, %s)
-                        """,
-                        (calendar_id, name, tablet_count, time_of_day, interval_days, start_date, dose)
-                    )
+                with get_connection() as conn:
+                    with conn.cursor() as cursor:
+                        cursor.execute("SELECT * FROM medicines WHERE id = %s", (med_id,))
+                        med = cursor.fetchone()
+                        if not med:
+                            cursor.execute(
+                                "INSERT INTO medicines (id, calendar_id, name, tablet_count, time_of_day, interval_days, start_date, dose) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", 
+                                (med_id, calendar_id, change.get("name"), change.get("tablet_count"), change.get("time_of_day"), change.get("interval_days"), change.get("start_date"), change.get("dose"))
+                            )
+                            print(f"Médicament {med_id} ajouté avec succès")
+                        
+                        else:
+                            for field in ["name", "tablet_count", "time_of_day", "interval_days", "start_date", "dose"]:
+                                if field in change:
+                                    fields.append(f"{field} = %s")
+                                    values.append(change[field])
+                            if fields:
+                                query = f"UPDATE medicines SET {', '.join(fields)} WHERE id = %s"
+                                cursor.execute(query, (*values, med_id))
+                                print(f"Médicament {med_id} mis à jour avec succès")
 
-        return success_response(
-            message=SUCCESS_SHARED_MEDICINES_UPDATED, 
-            code="SHARED_USER_CALENDAR_MEDICINES_UPDATE_SUCCESS", 
-            uid=receiver_uid, 
-            origin="SHARED_USER_CALENDAR_MEDICINES_UPDATE",
-            data={"medicines": medicines},
-            log_extra={"calendar_id": calendar_id}
-        )
+                        cursor.execute("SELECT * FROM medicines WHERE calendar_id = %s", (calendar_id,))
+                        medicines = cursor.fetchall()
+
+                        return success_response(
+                            message=SUCCESS_SHARED_MEDICINES_UPDATED,
+                            code="SHARED_USER_CALENDAR_MEDICINES_UPDATE_SUCCESS",
+                            uid=receiver_uid,
+                            origin="SHARED_USER_CALENDAR_MEDICINES_UPDATE",
+                            data={"medicines": medicines},
+                            log_extra={"calendar_id": calendar_id}
+                        )
 
     except Exception as e:
         return error_response(

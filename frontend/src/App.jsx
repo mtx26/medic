@@ -12,7 +12,7 @@ import { useRealtimeCalendars, useRealtimeSharedCalendars } from './hooks/useRea
 import { useRealtimeNotifications } from './hooks/useRealtimeNotifications';
 import { useRealtimeTokens } from './hooks/useRealtimeTokens';
 import { formatToLocalISODate } from './utils/dateUtils';
-
+import { v4 as uuidv4 } from 'uuid';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -281,7 +281,7 @@ function App() {
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
   // Fonction pour modifier un médicament
-  const updatePersonalCalendarMedicines = useCallback(async (calendarId, medicinesData) => {
+  const updatePersonalCalendarMedicines = useCallback(async (calendarId, changes) => {
     try {
       const token = await auth.currentUser.getIdToken();
       const res = await fetch(`${API_URL}/api/calendars/${calendarId}/medicines`, {
@@ -290,14 +290,14 @@ function App() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ medicines: medicinesData }),
+        body: JSON.stringify({ changes }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       logEvent(analytics, 'update_personal_calendar_medicines', {
         calendarId: calendarId,
         uid: auth.currentUser.uid,
-        medicinesData: medicinesData,
+        changes: changes,
       });
       // trier par ordre alphabétique
       const medicinesSortedByName = data.medicines ? data.medicines.sort((a, b) => a.name.localeCompare(b.name)) : [];
@@ -305,7 +305,7 @@ function App() {
       log.info(data.message, {
         origin: "MED_UPDATE_SUCCESS",
         "uid": auth.currentUser.uid,
-        "count": medicinesData?.length,
+        "count": changes?.length,
         "calendarId": calendarId,
       });
       return { success: true, message: data.message, code: data.code, medicinesData: medicinesSortedByName, originalMedicinesData: medicinesSortedByName ? JSON.parse(JSON.stringify(medicinesSortedByName)) : [] };
@@ -347,8 +347,8 @@ function App() {
   
   // Fonction pour ajouter un nouveau médicament sanq la variable medicines
   const addMedicine = useCallback((medicinesData, name = '') => {
-    // générer un id unique a 16 caractères
-    const id = generateHexToken();
+    // générer un uuid unique a 16 caractères 
+    const id = uuidv4();
     if (medicinesData.length === 0) {
       const newMedicinesData = [{ name: name, tablet_count: 1, time_of_day: 'morning', interval_days: 1, start_date: null, id: id }];
       return {success: true, message: "Médicament ajouté avec succès", code: "MED_ADD_SUCCESS", medicinesData: newMedicinesData, id: id };

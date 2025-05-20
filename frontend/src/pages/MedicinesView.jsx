@@ -77,6 +77,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
     setGroupedMedicines(result);
   };   
 
+
   // 🔄 Détection des modifications
   const isFieldChanged = (id, field) => {
     if (!originalMedicinesData) return false;
@@ -86,10 +87,41 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
     return JSON.stringify(original[field]) !== JSON.stringify(current[field]);
   };
 
+  // 🔄 Détection des nouveaux médicaments
   const isNewMed = (id) => {
     if (!originalMedicinesData) return false;
     return !originalMedicinesData.some((med) => med.id === id);
   };  
+
+  // 🔄 Validation des médicaments
+  const getMedFieldValidity = (med) => {
+    if (!med || typeof med !== 'object') return {
+      name: false,
+      tablet_count: false,
+      time_of_day: false,
+      interval_days: false,
+      start_date: false
+    };
+  
+    return {
+      name: typeof med.name === 'string' && med.name.trim() !== '',
+      tablet_count: med.tablet_count !== '' &&
+                    med.tablet_count !== null &&
+                    !isNaN(parseFloat(med.tablet_count)),
+      time_of_day: ['morning', 'noon', 'evening'].includes(med.time_of_day),
+      interval_days: med.interval_days !== '' &&
+                      med.interval_days !== null &&
+                      !isNaN(parseInt(med.interval_days)),
+      start_date: parseInt(med.interval_days) === 1 ||
+                  (typeof med.start_date === 'string' && med.start_date.trim() !== '')
+    };
+  };
+  const allMedsValid = medicinesData.length > 0 && medicinesData.every(
+    (med) => {
+      const validity = getMedFieldValidity(med);
+      return Object.values(validity).every(Boolean);
+    }
+  );
   
   // 🔄 Gestion des modifications
   const handleMedChange = (id, field, value) => {
@@ -108,41 +140,44 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
     setMedicinesData(updated);
     setHighlightedField({ id, field });
   };
-  
-  // 🔄 Validation des médicaments
-  const getMedFieldValidity = (med) => {
-    if (!med || typeof med !== 'object') return {
-      name: false,
-      tablet_count: false,
-      time_of_day: false,
-      interval_days: false,
-      start_date: false
-    };
-  
-    return {
-      name: typeof med.name === 'string' && med.name.trim() !== '',
-      tablet_count: med.tablet_count !== '' &&
-                    med.tablet_count !== null &&
-                    !isNaN(parseFloat(med.tablet_count)),
-      time_of_day: ['morning', 'noon', 'evening'].includes(med.time_of_day),
-      interval_days: med.interval_days !== '' &&
-                     med.interval_days !== null &&
-                     !isNaN(parseInt(med.interval_days)),
-      start_date: parseInt(med.interval_days) === 1 ||
-                  (typeof med.start_date === 'string' && med.start_date.trim() !== '')
-    };
-  };
 
-  const allMedsValid = medicinesData.length > 0 && medicinesData.every(
-    (med) => {
-      const validity = getMedFieldValidity(med);
-      return Object.values(validity).every(Boolean);
+  // 🔄 Détection des modifications
+  const getChangedFields = () => {
+    const changes = [];
+  
+    for (const current of medicinesData) {
+      const original = originalMedicinesData.find(med => med.id === current.id);
+  
+      // ➕ Nouveau médicament → on envoie tout
+      if (!original) {
+        changes.push({ ...current });
+        continue;
+      }
+  
+      // 🔄 Médicament existant → on détecte les différences
+      const diff = { id: current.id };
+      let hasChange = false;
+  
+      for (const key of Object.keys(current)) {
+        if (key === 'id') continue;
+        if (JSON.stringify(current[key]) !== JSON.stringify(original[key])) {
+          diff[key] = current[key];
+          hasChange = true;
+        }
+      }
+  
+      if (hasChange) changes.push(diff);
     }
-  );
+  
+    return changes;
+  };
+  
 
   // 🔄 Enregistrement des modifications
   const handleSave = async () => {
-    const rep = await calendarSource.updateMedicines(calendarId, medicinesData);
+    const changes = getChangedFields();
+    console.log(changes);
+    const rep = await calendarSource.updateMedicines(calendarId, changes);
     if (rep.success) {
       setAlertMessage("✅ " + rep.message);
       setAlertType("success");
@@ -168,7 +203,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
 
   // 🔄 Suppression des médicaments
   const handleDelete = async () => {
-    const rep = await calendarSource.deleteMedicines(calendarId, checked, medicinesData);
+    const rep = await calendarSource.deleteMedicines(calendarId, checked);
     if (rep.success) {
       if (rep.medicinesData) {
         setMedicinesData(rep.medicinesData);
