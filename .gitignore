@@ -33,6 +33,6 @@ frontend/src/pages/SharedCalendar.jsx
 frontend/src/styles/test.scss
 
 __pycache__/
-backend/test/
+backend/app/test/
 frontend/massReplace.js
 frontend/src/test/

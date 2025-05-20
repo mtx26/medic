@@ -1,11 +1,11 @@
 from flask import request
-from auth import verify_firebase_token
+from app.utils.validators import verify_firebase_token
 from datetime import datetime, timezone, timedelta
 from . import api
 from firebase_admin import firestore
-from functions import verify_calendar_share
-from response import success_response, error_response, warning_response
-from messages import (
+from app.services.calendar_service import verify_calendar_share
+from app.utils.response import success_response, error_response, warning_response
+from app.utils.messages import (
     SUCCESS_MEDICINES_FETCHED,
     SUCCESS_MEDICINES_UPDATED,
     SUCCESS_MEDICINES_COUNTED,
@@ -17,7 +17,9 @@ from messages import (
     WARNING_CALENDAR_NOT_FOUND,
 )
 
-db = firestore.client()
+def get_db():
+    from firebase_admin import firestore
+    return firestore.client()
 
 
 # Obtenir les médicaments d’un calendrier
@@ -26,6 +28,8 @@ def get_medicines(calendar_id):
     try:
         user = verify_firebase_token()
         uid = user["uid"]
+
+        db = get_db()
 
         doc = db.collection("users").document(uid).collection("calendars").document(calendar_id)
         if not doc.get().exists:
@@ -76,6 +80,8 @@ def update_medicines(calendar_id):
         uid = user["uid"]
         medicines = request.json.get("medicines")
 
+        db = get_db()
+
         if not isinstance(medicines, list):
             return warning_response(
                 message=WARNING_INVALID_MEDICINE_FORMAT, 
@@ -123,6 +129,8 @@ def count_medicines():
         uid = user["uid"]
         calendar_id = request.args.get("calendarId")
 
+        db = get_db()
+
         doc = db.collection("users").document(uid).collection("calendars").document(calendar_id).collection("medicines").get()
         if not doc:
             return success_response(
@@ -164,6 +172,8 @@ def count_shared_medicines():
 
         calendar_id = request.args.get("calendarId")
         owner_uid = request.args.get("ownerUid")
+
+        db = get_db()
 
         doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).collection("medicines").get()
         if not doc:

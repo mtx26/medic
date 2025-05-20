@@ -1,15 +1,17 @@
 from . import api
-from auth import verify_firebase_token
+from app.utils.validators import verify_firebase_token
 from firebase_admin import firestore
-from response import success_response, error_response
-from messages import (
+from app.utils.response import success_response, error_response
+from app.utils.messages import (
     SUCCESS_USER_INFO_FETCHED,
     ERROR_USER_INFO_FETCH,
     ERROR_USER_NOT_FOUND
 )
 
 
-db = firestore.client()
+def get_db():
+    from firebase_admin import firestore
+    return firestore.client()
 
 # Récupérer les informations de l'utilisateur
 @api.route("/api/user/info/<search_user_id>", methods=["GET"])
@@ -17,6 +19,8 @@ def handle_user_info(search_user_id):
     try:
         user = verify_firebase_token()
         user_id = user["uid"]
+        
+        db = get_db()
 
         search_user_doc = db.collection("users").document(search_user_id)
 

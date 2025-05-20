@@ -1,8 +1,7 @@
-import firebase_admin_init 
 from firebase_admin import auth
 from flask import request, abort
-from logger import log_backend as logger
-from messages import (
+from app.utils.logger import log_backend as logger
+from app.utils.messages import (
     WARNING_TOKEN_MISSING,
     WARNING_TOKEN_INVALID
 )
@@ -26,4 +25,3 @@ def verify_firebase_token():
             "uid": "unknown"
         })
         abort(401, description="Token invalide ou expiré")
-

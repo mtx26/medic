@@ -1,5 +1,5 @@
 from flask import jsonify
-from logger import log_backend as logger
+from app.utils.logger import log_backend as logger
 
 #exemple de log_extra : {'calendar_id': '98fb17305b9a8005b603b51f4820f30d', 'uid': '98fb17305b9a8005b603b51f4820f30d'}
 

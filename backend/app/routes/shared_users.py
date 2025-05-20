@@ -1,12 +1,11 @@
-from flask import request
-from auth import verify_firebase_token
+from app.utils.validators import verify_firebase_token
 from datetime import datetime, timezone
 from . import api
 from firebase_admin import firestore, auth
-from functions import verify_calendar_share, generate_schedule, generate_table
+from app.services.calendar_service import verify_calendar_share, generate_schedule, generate_table
 import secrets
-from response import success_response, error_response, warning_response
-from messages import (
+from app.utils.response import success_response, error_response, warning_response
+from app.utils.messages import (
     SUCCESS_SHARED_CALENDARS_FETCHED,
     SUCCESS_SHARED_CALENDAR_FETCHED,
     SUCCESS_SHARED_CALENDAR_DELETED,
@@ -27,7 +26,9 @@ from messages import (
 )
 
 
-db = firestore.client()
+def get_db():
+    from firebase_admin import firestore
+    return firestore.client()
 
 # Route pour récupérer les calendriers partagés
 @api.route("/api/shared/users/calendars", methods=["GET"])
@@ -35,6 +36,8 @@ def handle_shared_calendars():
     try:
         user = verify_firebase_token()
         uid = user["uid"]
+
+        db = get_db()
 
         shared_with_doc = db.collection("users").document(uid).collection("shared_calendars")
         shared_users_docs = list(shared_with_doc.stream())
@@ -123,6 +126,8 @@ def handle_user_shared_calendar(calendar_id):
         user = verify_firebase_token()
         receiver_uid = user["uid"]
 
+        db = get_db()
+
         shared_with_doc = db.collection("users").document(receiver_uid).collection("shared_calendars").document(calendar_id)
         if not shared_with_doc.get().exists:
             return warning_response(
@@ -187,6 +192,8 @@ def handle_user_shared_calendar_schedule(calendar_id):
     try:
         user = verify_firebase_token()
         uid = user["uid"]
+
+        db = get_db()
 
         start_date = request.args.get("startTime")
         if not start_date:
@@ -273,6 +280,8 @@ def handle_delete_user_shared_calendar(calendar_id):
         user = verify_firebase_token()
         receiver_uid = user["uid"]
 
+        db = get_db()
+
         received_calendar_doc = db.collection("users").document(receiver_uid).collection("shared_calendars").document(calendar_id)
         if not received_calendar_doc.get().exists:
             return warning_response(
@@ -351,6 +360,8 @@ def handle_delete_user_shared_user(calendar_id, receiver_uid):
     try:
         user = verify_firebase_token()
         owner_uid = user["uid"]
+
+        db = get_db()
 
         receiver_doc = db.collection("users").document(receiver_uid)
         if not receiver_doc.get().exists:
@@ -450,6 +461,8 @@ def handle_shared_users(calendar_id):
         user = verify_firebase_token()
         owner_uid = user["uid"]
 
+        db = get_db()
+
         shared_with_doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).collection("shared_with")
         shared_users_docs = list(shared_with_doc.stream())
 
@@ -515,6 +528,8 @@ def handle_shared_user_calendar_medicines(calendar_id):
     try:
         user = verify_firebase_token()
         receiver_uid = user["uid"]
+
+        db = get_db()
 
         doc_1_ref = db.collection("users").document(receiver_uid).collection("shared_calendars").document(calendar_id)
         if not doc_1_ref.get().exists:
@@ -588,6 +603,8 @@ def handle_update_shared_user_calendar_medicines(calendar_id):
     try:
         user = verify_firebase_token()
         receiver_uid = user["uid"]
+
+        db = get_db()
 
         medicines = request.json.get("medicines", [])
 

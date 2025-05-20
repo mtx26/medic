@@ -1,12 +1,12 @@
-from flask import request
-from response import success_response, error_response, warning_response
-from auth import verify_firebase_token
+from app.utils.response import success_response, error_response, warning_response
+from app.utils.validators import verify_firebase_token
 from datetime import datetime, timezone
 import secrets
 from . import api
+from flask import request
 from firebase_admin import firestore
-from functions import generate_schedule, generate_table
-from messages import (
+from app.services.calendar_service import generate_schedule, generate_table
+from app.utils.messages import (
     SUCCESS_TOKENS_FETCHED,
     SUCCESS_TOKEN_CREATED,
     SUCCESS_TOKEN_REVOKED,
@@ -39,7 +39,9 @@ from messages import (
 )
 
 
-db = firestore.client()
+def get_db():
+    from firebase_admin import firestore
+    return firestore.client()
 
 # Route pour récupérer tous les tokens et les informations associées
 @api.route("/api/tokens", methods=["GET"])
@@ -48,6 +50,8 @@ def handle_tokens():
         if request.method == "GET":
             user = verify_firebase_token()
             uid = user["uid"]
+
+            db = get_db()
 
             tokens_ref = db.collection("shared_tokens").get()
             tokens = []
@@ -79,6 +83,8 @@ def handle_create_token(calendar_id):
     try:
         user = verify_firebase_token()
         owner_uid = user["uid"]
+
+        db = get_db()
 
         data = request.get_json(force=True)
 
@@ -157,6 +163,8 @@ def handle_update_revoke_token(token):
         user = verify_firebase_token()
         owner_uid = user["uid"]
 
+        db = get_db()
+
 
         doc = db.collection("shared_tokens").document(token).get()
 
@@ -219,6 +227,8 @@ def handle_update_token_expiration(token):
         user = verify_firebase_token()
         owner_uid = user["uid"]
 
+        db = get_db()
+
         data = request.get_json(force=True)
 
         doc = db.collection("shared_tokens").document(token).get()
@@ -279,6 +289,8 @@ def handle_update_token_permissions(token):
         user = verify_firebase_token()
         owner_uid = user["uid"]
 
+        db = get_db()
+
         data = request.get_json(force=True)
 
         doc = db.collection("shared_tokens").document(token).get()
@@ -337,6 +349,8 @@ def handle_generate_token_schedule(token):
             start_date = datetime.now(timezone.utc).date()
         else:
             start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
+
+        db = get_db()
 
         doc = db.collection("shared_tokens").document(token).get()
         if not doc.exists:
@@ -441,6 +455,8 @@ def handle_generate_token_schedule(token):
 @api.route("/api/tokens/<token>", methods=["GET"])
 def get_token_metadata(token):
     try:
+        db = get_db()
+
         doc = db.collection("shared_tokens").document(token).get()
         if not doc.exists:
             return warning_response(
@@ -523,6 +539,8 @@ def handle_delete_token(token):
         user = verify_firebase_token()
         owner_uid = user["uid"]
 
+        db = get_db()
+
         doc = db.collection("shared_tokens").document(token).get()
 
         if not doc.exists:
@@ -570,6 +588,8 @@ def handle_delete_token(token):
 @api.route("/api/tokens/<token>/medicines", methods=["GET"])
 def handle_token_medicines(token):
     try:
+        db = get_db()
+
         doc = db.collection("shared_tokens").document(token).get()
         if not doc.exists:
             return warning_response(

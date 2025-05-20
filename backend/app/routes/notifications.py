@@ -1,9 +1,9 @@
 from . import api
-from auth import verify_firebase_token
-from response import success_response, error_response, warning_response
-from logger import log_backend as logger
-from db import get_connection
-from messages import (
+from app.utils.validators import verify_firebase_token
+from app.utils.response import success_response, error_response, warning_response
+from app.utils.logger import log_backend as logger
+from app.db.connection import get_connection
+from app.utils.messages import (
     SUCCESS_NOTIFICATIONS_FETCHED,
     SUCCESS_NOTIFICATION_READ,
     ERROR_NOTIFICATIONS_FETCH,
@@ -13,10 +13,6 @@ from messages import (
 
 
 DEFAULT_PHOTO = "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/icons/person-circle.svg"
-
-def get_user(uid):
-    doc = db.collection("users").document(uid).get()
-    return doc.to_dict() if doc.exists else None
 
 def safely_get_calendar_name(calendar_id):
     with get_connection() as conn:
@@ -35,13 +31,6 @@ def get_user_info(uid):
             cursor.execute("SELECT * FROM users WHERE id = %s", (uid,))
             user = cursor.fetchone()
             return user.get("display_name"), user.get("email"), user.get("photo_url")
-
-def delete_notification(uid, notification_id):
-    db.collection("users").document(uid).collection("notifications").document(notification_id).delete()
-    logger.warning(WARNING_NOTIFICATION_NOT_FOUND, {
-        "origin": "NOTIFICATIONS_FETCH",
-        "notification_id": notification_id
-    })
 
 @api.route("/api/notifications", methods=["GET"])
 def handle_notifications():

@@ -1,13 +1,12 @@
 from . import api
-from auth import verify_firebase_token
+from app.utils.validators import verify_firebase_token
 from datetime import datetime, timezone
 from flask import request
-from firebase_admin import firestore
-from db import get_connection
-from functions import generate_schedule, generate_table
+from app.db.connection import get_connection
+from app.services.calendar_service import generate_schedule, generate_table
 import secrets
-from response import success_response, error_response, warning_response
-from messages import (
+from app.utils.response import success_response, error_response, warning_response
+from app.utils.messages import (
     SUCCESS_CALENDARS_FETCHED,
     SUCCESS_CALENDAR_CREATED,
     SUCCESS_CALENDAR_DELETED,
@@ -25,7 +24,6 @@ from messages import (
     WARNING_CALENDAR_INVALID_NAME,
     WARNING_CALENDAR_INVALID_ID
 )
-db = firestore.client()
 
 # Route pour récupérer les calendriers de l'utilisateur
 @api.route("/api/calendars", methods=["GET"])

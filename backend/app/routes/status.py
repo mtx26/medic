@@ -1,6 +1,6 @@
 from flask import request, jsonify
 from . import api
-from logger import log_backend as logger
+from app.utils.logger import log_backend as logger
 
 @api.route('/api/status', methods=['GET', 'HEAD'])
 def status():

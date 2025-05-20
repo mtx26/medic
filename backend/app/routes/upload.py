@@ -1,11 +1,10 @@
 from . import api
 from flask import Blueprint, request, jsonify
-from cloudinary_config import cloudinary
 from cloudinary.uploader import upload
-from response import success_response, error_response, warning_response
-from auth import verify_firebase_token
+from app.utils.response import success_response, error_response, warning_response
+from app.utils.validators import verify_firebase_token
 import requests
-from messages import (
+from app.utils.messages import (
     SUCCESS_IMAGE_UPLOADED,
     ERROR_IMAGE_UPLOAD,
     WARNING_NO_GOOGLE_PHOTO_URL_PROVIDED

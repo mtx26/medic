@@ -1,12 +1,12 @@
 from flask import request
-from response import success_response, error_response, warning_response
-from auth import verify_firebase_token
-from db import get_connection
+from app.utils.response import success_response, error_response, warning_response
+from app.utils.validators import verify_firebase_token
+from app.db.connection import get_connection
 from firebase_admin import auth
 import secrets
 from . import api
 import json
-from messages import (
+from app.utils.messages import (
     SUCCESS_INVITATION_SENT,
     SUCCESS_INVITATION_ACCEPTED,
     SUCCESS_INVITATION_REJECTED,

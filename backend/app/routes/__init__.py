@@ -13,3 +13,7 @@ from .invitations import *
 from .notifications import *
 from .user import *
 from .upload import *
+
+
+def register_routes(app):
+    app.register_blueprint(api)

@@ -1,16 +1,20 @@
 from datetime import datetime, timedelta, date
 import calendar
-from logger import log_backend as logger
+from app.utils.logger import log_backend as logger
 from firebase_admin import firestore
-from messages import (
+from app.utils.messages import (
     WARNING_UNAUTHORIZED_ACCESS,
     ERROR_SHARED_VERIFICATION
 )
 
-db = firestore.client()
+def get_db():
+    from firebase_admin import firestore
+    return firestore.client()
 
 def verify_calendar_share(calendar_id : str, owner_uid : str, receiver_uid : str) -> bool:
     try:
+        db = get_db()
+        
         shared_with_ref = db.collection("users").document(owner_uid) \
             .collection("calendars").document(calendar_id) \
             .collection("shared_with").document(receiver_uid)
