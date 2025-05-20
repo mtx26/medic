@@ -1,7 +1,7 @@
 from flask import request
 from response import success_response, error_response, warning_response
 from auth import verify_firebase_token
-from firebase_admin import firestore, auth
+from db import get_connection
 import secrets
 from . import api
 from messages import (
@@ -18,8 +18,6 @@ from messages import (
     WARNING_SELF_INVITATION
 )
 
-
-db = firestore.client()
 
 # Route pour envoyer une invitation à un utilisateur pour un partage de calendrier
 @api.route("/api/invitations/send/<calendar_id>", methods=["POST"])

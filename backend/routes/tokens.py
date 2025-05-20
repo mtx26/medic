@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 import secrets
 from . import api
 from firebase_admin import firestore
-from function import generate_schedule, generate_table
+from functions import generate_schedule, generate_table
 from messages import (
     SUCCESS_TOKENS_FETCHED,
     SUCCESS_TOKEN_CREATED,

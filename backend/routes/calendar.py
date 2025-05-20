@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from flask import request
 from firebase_admin import firestore
 from db import get_connection
-from function import generate_schedule, generate_table
+from functions import generate_schedule, generate_table
 import secrets
 from response import success_response, error_response, warning_response
 from messages import (

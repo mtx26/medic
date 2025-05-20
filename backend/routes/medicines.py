@@ -3,7 +3,7 @@ from auth import verify_firebase_token
 from datetime import datetime, timezone, timedelta
 from . import api
 from firebase_admin import firestore
-from function import verify_calendar_share
+from functions import verify_calendar_share
 from response import success_response, error_response, warning_response
 from messages import (
     SUCCESS_MEDICINES_FETCHED,
