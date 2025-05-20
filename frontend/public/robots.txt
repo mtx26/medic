@@ -2,6 +2,7 @@ User-agent: *
 Disallow: /account
 Disallow: /notifications
 Disallow: /calendars
+Disallow: /calendar
 Disallow: /shared-calendar
 Disallow: /shared-user-calendar
 Disallow: /shared-token-calendar
