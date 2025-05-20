@@ -39,6 +39,26 @@ def verify_calendar_share(calendar_id : str, owner_uid : str, receiver_uid : str
         })
         return False
 
+def verify_calendar(calendar_id : str, uid : str) -> bool:
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT * FROM calendars WHERE id = %s AND owner_uid = %s", (calendar_id, uid,))
+                calendar = cursor.fetchone()
+                if not calendar:
+                    return False
+                
+                return True
+
+    except Exception as e:
+        logger.error(ERROR_CALENDAR_VERIFY, {
+            "origin": "CALENDAR_VERIFY_ERROR",
+            "uid": uid,
+            "calendar_id": calendar_id,
+            "error": str(e)
+        })
+        return False
+
 def is_medication_due(med, current_date):
     start_raw = med.get("start_date", "")
     if isinstance(start_raw, str) and start_raw.strip():

@@ -67,7 +67,6 @@ def handle_notifications():
                     if calendar_id not in calendar_name_cache:
                         calendar_name_cache[calendar_id] = safely_get_calendar_name(calendar_id)
                     calendar_name = calendar_name_cache[calendar_id]
-                    print(calendar_name)
 
                     # Cache sender info
                     if sender_uid not in sender_info_cache:

@@ -29,7 +29,6 @@ def upload_logo():
         
         result = upload(file)   
         
-        print(result["url"])
         return success_response(
             message=SUCCESS_IMAGE_UPLOADED,
             code="IMAGE_UPLOADED",

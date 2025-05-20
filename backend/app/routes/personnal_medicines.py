@@ -2,7 +2,8 @@ from flask import request
 from app.utils.validators import verify_firebase_token
 from datetime import datetime, timezone, timedelta
 from . import api
-from firebase_admin import firestore
+from app.db.connection import get_connection
+from app.services.calendar_service import verify_calendar
 from app.utils.response import success_response, error_response, warning_response
 from app.utils.messages import (
     SUCCESS_MEDICINES_FETCHED,
@@ -13,10 +14,6 @@ from app.utils.messages import (
     WARNING_CALENDAR_NOT_FOUND,
 )
 
-def get_db():
-    from firebase_admin import firestore
-    return firestore.client()
-
 # Obtenir les médicaments d’un calendrier
 @api.route("/calendars/<calendar_id>/medicines", methods=["GET"])
 def get_medicines(calendar_id):
@@ -24,28 +21,29 @@ def get_medicines(calendar_id):
         user = verify_firebase_token()
         uid = user["uid"]
 
-        db = get_db()
-
-        doc = db.collection("users").document(uid).collection("calendars").document(calendar_id)
-        if not doc.get().exists:
+        if not verify_calendar(calendar_id, uid):
             return warning_response(
                 message=WARNING_CALENDAR_NOT_FOUND,
                 code="CALENDAR_NOT_FOUND",
                 status_code=404,
                 uid=uid,
-                origin="MED_FETCH"
+                origin="MED_FETCH",
+                log_extra={"calendar_id": calendar_id}
             )
 
-        medicines_ref = doc.collection("medicines").get()
-        if not medicines_ref:
-            return success_response(
-                message=SUCCESS_MEDICINES_FETCHED, 
-                code="MED_FETCH_SUCCESS", 
-                uid=uid, 
-                origin="MED_FETCH",
-                data={"medicines": []},
-            )
-        medicines = [med.to_dict() for med in medicines_ref]
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT * FROM medicines WHERE calendar_id = %s", (calendar_id,))
+                medicines = cursor.fetchall()
+                if not medicines:
+                    return success_response(
+                        message=SUCCESS_MEDICINES_FETCHED, 
+                        code="MED_FETCH_SUCCESS", 
+                        uid=uid, 
+                        origin="MED_FETCH",
+                        data={"medicines": []},
+                        log_extra={"calendar_id": calendar_id}
+                    )
 
         return success_response(
             message=SUCCESS_MEDICINES_FETCHED, 
@@ -75,8 +73,6 @@ def update_medicines(calendar_id):
         uid = user["uid"]
         medicines = request.json.get("medicines")
 
-        db = get_db()
-
         if not isinstance(medicines, list):
             return warning_response(
                 message=WARNING_INVALID_MEDICINE_FORMAT, 
@@ -87,14 +83,35 @@ def update_medicines(calendar_id):
                 log_extra={"calendar_id": calendar_id}
             )        
 
+        if not verify_calendar(calendar_id, uid):
+            return warning_response(
+                message=WARNING_CALENDAR_NOT_FOUND,
+                code="CALENDAR_NOT_FOUND",
+                status_code=404,
+                uid=uid,
+                origin="MED_UPDATE",
+                log_extra={"calendar_id": calendar_id}
+            )
 
-        doc = db.collection("users").document(uid).collection("calendars").document(calendar_id).collection("medicines")
-            
-        for med in doc.stream():
-            med.reference.delete()
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("DELETE FROM medicines WHERE calendar_id = %s", (calendar_id,))
 
-        for med in medicines:
-            doc.document(med["id"]).set(med)
+                for med in medicines:
+                    name = med["name"]
+                    tablet_count = med["tablet_count"]
+                    time_of_day = med["time_of_day"]
+                    interval_days = med["interval_days"]
+                    start_date = med["start_date"]
+                    dose = med.get("dose", None)
+
+                    cursor.execute(
+                        """
+                        INSERT INTO medicines (calendar_id, name, tablet_count, time_of_day, interval_days, start_date, dose) 
+                        VALUES (%s, %s, %s, %s, %s, %s, %s)
+                        """,
+                        (calendar_id, name, tablet_count, time_of_day, interval_days, start_date, dose)
+                    )
 
         return success_response(
             message=SUCCESS_MEDICINES_UPDATED, 

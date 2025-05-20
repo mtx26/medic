@@ -6,7 +6,7 @@ import { useRealtimeMedicinesSwitcher } from '../hooks/useRealtimeMedicinesSwitc
 import { getCalendarSourceMap } from '../utils/calendarSourceMap';
 import { useContext } from 'react';
 import { UserContext } from '../contexts/UserContext';
-
+import { formatToLocalISODate } from '../utils/dateUtils';
 
 function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
   // 📍 Paramètres d'URL et navigation
@@ -97,7 +97,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
     const updated = [...medicinesData]; // copie du tableau
     const numericFields = ['tablet_count', 'interval_days'];
   
-    if (field === 'time') {
+    if (field === 'time_of_day') {
       updated[index][field] = [value];
     } else if (numericFields.includes(field)) {
       updated[index][field] = value === '' ? '' : parseFloat(value);
@@ -114,7 +114,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
     if (!med || typeof med !== 'object') return {
       name: false,
       tablet_count: false,
-      time: false,
+      time_of_day: false,
       interval_days: false,
       start_date: false
     };
@@ -124,9 +124,9 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
       tablet_count: med.tablet_count !== '' &&
                     med.tablet_count !== null &&
                     !isNaN(parseFloat(med.tablet_count)),
-      time: Array.isArray(med.time) &&
-            med.time.length > 0 &&
-            ['morning', 'noon', 'evening'].includes(med.time[0]),
+      time_of_day: med.time_of_day !== '' &&
+            med.time_of_day.length > 0 &&
+            ['morning', 'noon', 'evening'].includes(med.time_of_day),
       interval_days: med.interval_days !== '' &&
                      med.interval_days !== null &&
                      !isNaN(parseInt(med.interval_days)),
@@ -452,8 +452,8 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
                             <select
                               className="form-select form-select-sm"
                               id={`moment-${item.data.id}`}
-                              value={item.data?.time[0] || ''}
-                              onChange={(e) => handleMedChange(item.data.id, 'time', e.target.value)}
+                              value={item.data?.time_of_day[0] || ''}
+                              onChange={(e) => handleMedChange(item.data.id, 'time_of_day', e.target.value)}
                             >
                               <option value="" disabled hidden>Choisir</option>
                               <option value="morning">Matin</option>
@@ -488,7 +488,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
                               className={`form-control form-control-sm ${!validity.start_date ? 'is-invalid' : ''} ${isFieldChanged(item.data.id, 'start_date') ? 'field-changed' : ''}`}
                               id={`start-${item.data.id}`}
                               placeholder="Date de début"
-                              value={item.data?.start_date || ''}
+                              value={item.data?.start_date ? formatToLocalISODate(item.data?.start_date) : ''}
                               onChange={(e) => handleMedChange(item.data.id, 'start_date', e.target.value)}
                               title="Date de début"
                             />

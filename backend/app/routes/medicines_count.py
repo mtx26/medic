@@ -2,13 +2,14 @@ from flask import request
 from app.utils.validators import verify_firebase_token
 from . import api
 from app.db.connection import get_connection
-from app.services.calendar_service import verify_calendar_share
+from app.services.calendar_service import verify_calendar_share, verify_calendar
 from app.utils.response import success_response, error_response, warning_response
 from app.utils.messages import (
     SUCCESS_MEDICINES_FETCHED,
     SUCCESS_MEDICINES_COUNTED,
     ERROR_MEDICINES_COUNT,
     WARNING_UNAUTHORIZED_ACCESS,
+    WARNING_CALENDAR_NOT_FOUND,
 )
 
 # Route pour compter les médicaments
@@ -19,20 +20,17 @@ def count_medicines():
         uid = user["uid"]
         calendar_id = request.args.get("calendarId")
 
+        if not verify_calendar(calendar_id, uid):
+            return warning_response(
+                message=WARNING_CALENDAR_NOT_FOUND,
+                code="CALENDAR_NOT_FOUND",
+                status_code=404,
+                uid=uid,
+                origin="MED_COUNT"
+            )
+
         with get_connection() as conn:
             with conn.cursor() as cursor:
-                cursor.execute("SELECT * FROM calendars WHERE id = %s AND owner_uid = %s", (calendar_id, uid,))
-                calendar = cursor.fetchone()
-                if not calendar:
-                    return warning_response(
-                        message=WARNING_CALENDAR_NOT_FOUND,
-                        code="CALENDAR_NOT_FOUND",
-                        status_code=404,
-                        uid=uid,
-                        origin="MED_COUNT",
-                        log_extra={"calendar_id": calendar_id}
-                    )
-
                 cursor.execute("SELECT * FROM medicines WHERE calendar_id = %s", (calendar_id,))
                 medicines = cursor.fetchall()
                 if not medicines:

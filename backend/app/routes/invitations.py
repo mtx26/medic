@@ -32,21 +32,18 @@ def handle_send_invitation(calendar_id):
         receiver_user = auth.get_user_by_email(receiver_email)
         receiver_uid = receiver_user.uid
 
-        with get_connection() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute("SELECT * FROM calendars WHERE id = %s", (calendar_id,))
-                calendar = cursor.fetchone()
-                if not calendar:
-                    return warning_response(
-                        message=WARNING_CALENDAR_NOT_FOUND, 
-                        code="CALENDAR_NOT_FOUND", 
-                        status_code=404, 
-                        uid=owner_uid, 
-                        origin="INVITATION_SEND",
-                        log_extra={"calendar_id": calendar_id}
-                    )
+        if not verify_calendar(calendar_id, owner_uid):
+            return warning_response(
+                message=WARNING_CALENDAR_NOT_FOUND, 
+                code="CALENDAR_NOT_FOUND", 
+                status_code=404, 
+                uid=owner_uid, 
+                origin="INVITATION_SEND",
+                log_extra={"calendar_id": calendar_id}
+            )
 
-        
+        with get_connection() as conn:
+            with conn.cursor() as cursor:        
                 # Verif si soit même
                 if owner_uid == receiver_uid:
                     return warning_response(
