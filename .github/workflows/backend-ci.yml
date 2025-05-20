@@ -19,8 +19,16 @@ jobs:
         working-directory: backend
 
     env:
-      FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-      SECRET_KEY: "123456789"
+      FIREBASE_CREDENTIALS: ${{ secrets.FIREBASE_CREDENTIALS }}
+      SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
+      CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
+      CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
+      PG_USER: ${{ secrets.PG_USER }}
+      PG_PASSWORD: ${{ secrets.PG_PASSWORD }}
+      PG_HOST: ${{ secrets.PG_HOST }}
+      PG_PORT: ${{ secrets.PG_PORT }}
+      PG_DATABASE: ${{ secrets.PG_DATABASE }}
       ENV: "production"
 
     steps:
@@ -40,9 +48,18 @@ jobs:
         run: |
           echo "SECRET_KEY=${SECRET_KEY}" > .env
           echo "ENV=${ENV}" >> .env
-          echo 'FIREBASE_SERVICE_ACCOUNT<<EOF' >> .env
-          echo "${FIREBASE_SERVICE_ACCOUNT}" >> .env
+          echo 'FIREBASE_CREDENTIALS<<EOF' >> .env
+          echo "${FIREBASE_CREDENTIALS}" >> .env
           echo 'EOF' >> .env
+          echo 'CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME}' >> .env
+          echo 'CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}' >> .env
+          echo 'CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}' >> .env
+          echo 'PG_USER=${PG_USER}' >> .env
+          echo 'PG_PASSWORD=${PG_PASSWORD}' >> .env
+          echo 'PG_HOST=${PG_HOST}' >> .env
+          echo 'PG_PORT=${PG_PORT}' >> .env
+          echo 'PG_DATABASE=${PG_DATABASE}' >> .env
+
 
       - name: Debug .env
         run: cat .env
