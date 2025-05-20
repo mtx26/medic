@@ -11,6 +11,9 @@ from app.utils.messages import (
     WARNING_UNAUTHORIZED_ACCESS,
     ERROR_SHARED_MEDICINES_UPDATE,
     ERROR_SHARED_MEDICINES_FETCH,
+    SUCCESS_SHARED_MEDICINES_DELETED,
+    ERROR_SHARED_MEDICINES_DELETE,
+    WARNING_INVALID_MEDICINE_FORMAT,
 )
 
 # Route pour récupérer les médicaments d'un calendrier partagé
@@ -137,3 +140,66 @@ def handle_update_shared_user_calendar_medicines(calendar_id):
         )
 
 
+# Route pour supprimer les médicaments d'un calendrier partagé
+@api.route("/shared/users/calendars/<calendar_id>/medicines", methods=["DELETE"])
+def handle_delete_shared_user_calendar_medicines(calendar_id):
+    try:
+        user = verify_firebase_token()
+        receiver_uid = user["uid"]
+
+        if not verify_calendar_share(calendar_id, receiver_uid):
+            return warning_response(
+                message=WARNING_SHARED_CALENDAR_NOT_FOUND,
+                code="SHARED_USER_CALENDAR_MEDICINES_DELETE_ERROR",
+                status_code=404,
+                uid=receiver_uid,
+                origin="SHARED_USER_CALENDAR_MEDICINES_DELETE",
+                log_extra={"calendar_id": calendar_id}
+            )
+
+        checked = request.json.get("checked")
+
+        if not isinstance(checked, list):
+            return warning_response(
+                message=WARNING_INVALID_MEDICINE_FORMAT,
+                code="SHARED_USER_CALENDAR_MEDICINES_DELETE_ERROR",
+                status_code=400,
+                uid=receiver_uid,
+                origin="SHARED_USER_CALENDAR_MEDICINES_DELETE",
+                log_extra={"calendar_id": calendar_id}
+            )
+        
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("DELETE FROM medicines WHERE id IN %s", (tuple(checked),))
+                conn.commit()
+                cursor.execute("SELECT * FROM medicines WHERE calendar_id = %s", (calendar_id,))
+                medicines = cursor.fetchall()
+                if not medicines:
+                    return success_response(
+                        message=SUCCESS_SHARED_MEDICINES_DELETED,
+                        code="SHARED_USER_CALENDAR_MEDICINES_DELETE_SUCCESS",
+                        uid=receiver_uid,
+                        origin="SHARED_USER_CALENDAR_MEDICINES_DELETE",
+                        data={"medicines": []},
+                        log_extra={"calendar_id": calendar_id}
+                    )
+
+                return success_response(
+                    message=SUCCESS_SHARED_MEDICINES_DELETED,
+                    code="SHARED_USER_CALENDAR_MEDICINES_DELETE_SUCCESS",
+                    uid=receiver_uid,
+                    origin="SHARED_USER_CALENDAR_MEDICINES_DELETE",
+                    data={"medicines": medicines},
+                    log_extra={"calendar_id": calendar_id}
+                )
+
+    except Exception as e:
+        return error_response(
+            message=ERROR_SHARED_MEDICINES_DELETE,
+            code="SHARED_USER_CALENDAR_MEDICINES_DELETE_ERROR",
+            status_code=500,
+            uid=receiver_uid,
+            origin="SHARED_USER_CALENDAR_MEDICINES_DELETE",
+            error=str(e)
+        )

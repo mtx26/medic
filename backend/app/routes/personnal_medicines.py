@@ -12,6 +12,8 @@ from app.utils.messages import (
     ERROR_MEDICINES_UPDATE,
     WARNING_INVALID_MEDICINE_FORMAT,
     WARNING_CALENDAR_NOT_FOUND,
+    SUCCESS_MEDICINES_DELETED,
+    ERROR_MEDICINES_DELETE,
 )
 
 # Obtenir les médicaments d’un calendrier
@@ -125,6 +127,15 @@ def update_medicines(calendar_id):
 
                         cursor.execute("SELECT * FROM medicines WHERE calendar_id = %s", (calendar_id,))
                         medicines = cursor.fetchall()
+                        if not medicines:
+                            return success_response(
+                                message=SUCCESS_MEDICINES_DELETED,
+                                code="MED_DELETE_SUCCESS",
+                                uid=uid,
+                                origin="MED_DELETE",
+                                data={"medicines": []},
+                                log_extra={"calendar_id": calendar_id}
+                            )
 
                         return success_response(
                             message=SUCCESS_MEDICINES_UPDATED,
@@ -145,4 +156,69 @@ def update_medicines(calendar_id):
             error=str(e)
         )
 
+
+# Supprimer les médicaments d’un calendrier
+@api.route("/calendars/<calendar_id>/medicines", methods=["DELETE"])
+def delete_medicines(calendar_id):
+    try:
+        user = verify_firebase_token()
+        uid = user["uid"]
+
+        if not verify_calendar(calendar_id, uid):
+            return warning_response(
+                message=WARNING_CALENDAR_NOT_FOUND,
+                code="CALENDAR_NOT_FOUND",
+                status_code=404,
+                uid=uid,
+                origin="MED_DELETE",
+                log_extra={"calendar_id": calendar_id}
+            )
+
+        checked = request.json.get("checked")
+
+        if not isinstance(checked, list):
+            return warning_response(
+                message=WARNING_INVALID_MEDICINE_FORMAT,
+                code="INVALID_MEDICINE_FORMAT",
+                status_code=400,
+                uid=uid,
+                origin="MED_DELETE",
+                log_extra={"calendar_id": calendar_id}
+            )
         
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("DELETE FROM medicines WHERE id IN %s", (tuple(checked),))
+                conn.commit()
+                cursor.execute("SELECT * FROM medicines WHERE calendar_id = %s", (calendar_id,))
+                medicines = cursor.fetchall()
+                if not medicines:
+                    return success_response(
+                        message=SUCCESS_MEDICINES_DELETED,
+                        code="MED_DELETE_SUCCESS",
+                        uid=uid,
+                        origin="MED_DELETE",
+                        data={"medicines": []},
+                        log_extra={"calendar_id": calendar_id}
+                    )
+
+                return success_response(
+                    message=SUCCESS_MEDICINES_DELETED,
+                    code="MED_DELETE_SUCCESS",
+                    uid=uid,
+                    origin="MED_DELETE",
+                    data={"medicines": medicines},
+                    log_extra={"calendar_id": calendar_id}
+                )
+
+    except Exception as e:
+        return error_response(
+            message=ERROR_MEDICINES_DELETE,
+            code="MED_DELETE_ERROR",
+            status_code=500,
+            uid=uid,
+            origin="MED_DELETE",
+            error=str(e)
+        )
+
+

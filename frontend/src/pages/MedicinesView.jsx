@@ -176,7 +176,6 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
   // 🔄 Enregistrement des modifications
   const handleSave = async () => {
     const changes = getChangedFields();
-    console.log(changes);
     const rep = await calendarSource.updateMedicines(calendarId, changes);
     if (rep.success) {
       setAlertMessage("✅ " + rep.message);

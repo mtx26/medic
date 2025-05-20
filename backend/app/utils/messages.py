@@ -30,7 +30,8 @@ SUCCESS_TOKEN_METADATA_FETCHED = "Métadonnées du token récupérées avec succ
 SUCCESS_TOKEN_DELETED = "Lien de partage supprimé avec succès."
 SUCCESS_IMAGE_UPLOADED = "Image téléchargée avec succès."
 SUCCESS_USER_INFO_FETCHED = "Informations de l'utilisateur récupérées avec succès."
-
+SUCCESS_MEDICINES_DELETED = "Médicaments supprimés avec succès."
+SUCCESS_SHARED_MEDICINES_DELETED = "Médicaments supprimés avec succès."
 
 # ⚠️ MESSAGES D’AVERTISSEMENT
 
@@ -101,4 +102,6 @@ ERROR_USER_NOT_FOUND = "Erreur lors de la récupération des informations de l'u
 ERROR_CALENDAR_VERIFY = "Erreur lors de la vérification du calendrier."
 ERROR_TOKEN_VERIFY = "Erreur lors de la vérification du token."
 ERROR_TOKEN_OWNER_VERIFY = "Erreur lors de la vérification du propriétaire du token."
-
+ERROR_MEDICINES_DELETE = "Erreur lors de la suppression des médicaments."
+ERROR_MEDICINES_UPDATE = "Erreur lors de la mise à jour des médicaments."
+ERROR_SHARED_MEDICINES_DELETE = "Erreur lors de la suppression des médicaments."
