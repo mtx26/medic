@@ -32,7 +32,7 @@ def get_user_info(uid):
             user = cursor.fetchone()
             return user.get("display_name"), user.get("email"), user.get("photo_url")
 
-@api.route("/api/notifications", methods=["GET"])
+@api.route("/notifications", methods=["GET"])
 def handle_notifications():
     try:
         user = verify_firebase_token()
@@ -105,7 +105,7 @@ def handle_notifications():
         )
 
 # Route pour marquer une notification comme lue
-@api.route("/api/notifications/<notification_id>", methods=["POST"])
+@api.route("/notifications/<notification_id>", methods=["POST"])
 def handle_read_notification(notification_id):
     try:
         user = verify_firebase_token()

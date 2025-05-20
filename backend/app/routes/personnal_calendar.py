@@ -26,7 +26,7 @@ from app.utils.messages import (
 )
 
 # Route pour récupérer les calendriers de l'utilisateur
-@api.route("/api/calendars", methods=["GET"])
+@api.route("/calendars", methods=["GET"])
 def handle_calendars():
     try:
         user = verify_firebase_token()
@@ -64,7 +64,7 @@ def handle_calendars():
 
 
 # Route pour créer un calendrier
-@api.route("/api/calendars", methods=["POST"])
+@api.route("/calendars", methods=["POST"])
 def handle_create_calendar():
     try:
         user = verify_firebase_token()
@@ -107,7 +107,7 @@ def handle_create_calendar():
 
 
 # Route pour supprimer un calendrier
-@api.route("/api/calendars", methods=["DELETE"])
+@api.route("/calendars", methods=["DELETE"])
 def handle_delete_calendar():
     try:
         user = verify_firebase_token()
@@ -172,7 +172,7 @@ def handle_delete_calendar():
 
 
 # Route pour renommer un calendrier
-@api.route("/api/calendars", methods=["PUT"])
+@api.route("/calendars", methods=["PUT"])
 def handle_rename_calendar():
     try:
         user = verify_firebase_token()
@@ -223,7 +223,7 @@ def handle_rename_calendar():
   
 
 # Route pour générer le calendrier 
-@api.route("/api/calendars/<calendar_id>/schedule", methods=["GET"])
+@api.route("/calendars/<calendar_id>/schedule", methods=["GET"])
 def handle_calendar_schedule(calendar_id):
     try:
         user = verify_firebase_token()

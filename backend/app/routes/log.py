@@ -2,7 +2,7 @@ from flask import request
 from . import api
 from app.utils.logger import frontend_logger
 
-@api.route("/api/log", methods=["POST"])
+@api.route("/log", methods=["POST"])
 def log_handler():
     data = request.json
     msg = data.get("message", "")

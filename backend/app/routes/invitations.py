@@ -22,7 +22,7 @@ from app.utils.messages import (
 
 
 # Route pour envoyer une invitation à un utilisateur pour un partage de calendrier
-@api.route("/api/invitations/send/<calendar_id>", methods=["POST"])
+@api.route("/invitations/send/<calendar_id>", methods=["POST"])
 def handle_send_invitation(calendar_id):
     try:
         owner_user = verify_firebase_token()
@@ -118,7 +118,7 @@ def handle_send_invitation(calendar_id):
 
 
 # Route pour accepter une invitation pour un partage de calendrier
-@api.route("/api/invitations/accept/<notification_id>", methods=["POST"])
+@api.route("/invitations/accept/<notification_id>", methods=["POST"])
 def handle_accept_invitation(notification_id):
     try:
         user = verify_firebase_token()
@@ -201,7 +201,7 @@ def handle_accept_invitation(notification_id):
 
 
 # Route pour rejeter une invitation pour un partage de calendrier
-@api.route("/api/invitations/reject/<notification_id>", methods=["POST"])
+@api.route("/invitations/reject/<notification_id>", methods=["POST"])
 def handle_reject_invitation(notification_id):
     try:
         user = verify_firebase_token()

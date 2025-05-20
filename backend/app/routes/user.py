@@ -14,7 +14,7 @@ def get_db():
     return firestore.client()
 
 # Récupérer les informations de l'utilisateur
-@api.route("/api/user/info/<search_user_id>", methods=["GET"])
+@api.route("/user/info/<search_user_id>", methods=["GET"])
 def handle_user_info(search_user_id):
     try:
         user = verify_firebase_token()

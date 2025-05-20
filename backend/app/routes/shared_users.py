@@ -4,6 +4,7 @@ from . import api
 from firebase_admin import firestore, auth
 from app.services.calendar_service import verify_calendar_share, generate_schedule, generate_table
 import secrets
+from flask import request
 from app.utils.response import success_response, error_response, warning_response
 from app.utils.messages import (
     SUCCESS_SHARED_CALENDARS_FETCHED,
@@ -13,16 +14,12 @@ from app.utils.messages import (
     SUCCESS_SHARED_USERS_FETCHED,
     WARNING_SHARED_CALENDAR_NOT_FOUND,
     WARNING_SHARED_USER_NOT_FOUND,
-    WARNING_USER_NOT_FOUND,
     WARNING_UNAUTHORIZED_ACCESS,
-    WARNING_NO_MEDICINES_FOUND,
     WARNING_CANNOT_REMOVE_SELF,
     ERROR_SHARED_CALENDAR_FETCH,
     ERROR_SHARED_CALENDAR_DELETE,
     ERROR_SHARED_USER_DELETE,
     ERROR_SHARED_USERS_FETCH,
-    ERROR_MEDICINES_FETCH,
-    ERROR_MEDICINES_UPDATE
 )
 
 
@@ -31,7 +28,7 @@ def get_db():
     return firestore.client()
 
 # Route pour récupérer les calendriers partagés
-@api.route("/api/shared/users/calendars", methods=["GET"])
+@api.route("/shared/users/calendars", methods=["GET"])
 def handle_shared_calendars():
     try:
         user = verify_firebase_token()
@@ -120,7 +117,7 @@ def handle_shared_calendars():
         )
 
 # Route pour récupérer les informations d'un calendrier partagé
-@api.route("/api/shared/users/calendars/<calendar_id>", methods=["GET"])
+@api.route("/shared/users/calendars/<calendar_id>", methods=["GET"])
 def handle_user_shared_calendar(calendar_id):
     try:
         user = verify_firebase_token()
@@ -187,7 +184,7 @@ def handle_user_shared_calendar(calendar_id):
         )
 
 # Route pour générer un calendrier partagé
-@api.route("/api/shared/users/calendars/<calendar_id>/schedule", methods=["GET"])
+@api.route("/shared/users/calendars/<calendar_id>/schedule", methods=["GET"])
 def handle_user_shared_calendar_schedule(calendar_id):
     try:
         user = verify_firebase_token()
@@ -274,7 +271,7 @@ def handle_user_shared_calendar_schedule(calendar_id):
 
 
 # Route pour supprimer un calendrier partagé pour le receiver
-@api.route("/api/shared/users/calendars/<calendar_id>", methods=["DELETE"])
+@api.route("/shared/users/calendars/<calendar_id>", methods=["DELETE"])
 def handle_delete_user_shared_calendar(calendar_id):
     try:
         user = verify_firebase_token()
@@ -355,7 +352,7 @@ def handle_delete_user_shared_calendar(calendar_id):
 
 
 # Route pour supprimer un utilisateur partagé pour le owner
-@api.route("/api/shared/users/<calendar_id>/<receiver_uid>", methods=["DELETE"])
+@api.route("/shared/users/<calendar_id>/<receiver_uid>", methods=["DELETE"])
 def handle_delete_user_shared_user(calendar_id, receiver_uid):
     try:
         user = verify_firebase_token()
@@ -455,7 +452,7 @@ def handle_delete_user_shared_user(calendar_id, receiver_uid):
 
 
 # Route pour récupérer les utilisateurs ayant accès à un calendrier
-@api.route("/api/shared/users/users/<calendar_id>", methods=["GET"])
+@api.route("/shared/users/users/<calendar_id>", methods=["GET"])
 def handle_shared_users(calendar_id):
     try:
         user = verify_firebase_token()
@@ -520,143 +517,3 @@ def handle_shared_users(calendar_id):
             origin="SHARED_USERS_LOAD",
             error=str(e)
         )
-
-
-# Route pour récupérer les médicaments d'un calendrier partagé
-@api.route("/api/shared/users/calendars/<calendar_id>/medicines", methods=["GET"])
-def handle_shared_user_calendar_medicines(calendar_id):
-    try:
-        user = verify_firebase_token()
-        receiver_uid = user["uid"]
-
-        db = get_db()
-
-        doc_1_ref = db.collection("users").document(receiver_uid).collection("shared_calendars").document(calendar_id)
-        if not doc_1_ref.get().exists:
-            return warning_response(
-                message=WARNING_SHARED_CALENDAR_NOT_FOUND, 
-                code="SHARED_USER_CALENDAR_MEDICINES_LOAD_ERROR", 
-                status_code=404, 
-                uid=receiver_uid, 
-                origin="SHARED_USER_CALENDAR_MEDICINES_LOAD",
-                log_extra={"calendar_id": calendar_id}
-            )
-
-        owner_uid = doc_1_ref.get().to_dict().get("owner_uid")
-
-        if not verify_calendar_share(calendar_id, owner_uid, receiver_uid):
-            return warning_response(
-                message=WARNING_UNAUTHORIZED_ACCESS, 
-                code="SHARED_USER_CALENDAR_MEDICINES_LOAD_ERROR", 
-                status_code=403, 
-                uid=receiver_uid, 
-                origin="SHARED_USER_CALENDAR_MEDICINES_LOAD",
-                log_extra={"calendar_id": calendar_id}
-            )
-
-        doc_2_ref = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id)
-        if not doc_2_ref.get().exists:
-            return warning_response(
-                message=WARNING_SHARED_CALENDAR_NOT_FOUND, 
-                code="SHARED_USER_CALENDAR_MEDICINES_LOAD_ERROR", 
-                status_code=404, 
-                uid=owner_uid, 
-                origin="SHARED_USER_CALENDAR_MEDICINES_LOAD",
-                log_extra={"calendar_id": calendar_id}
-            )
-
-        doc_3_ref = doc_2_ref.collection("medicines")
-        if not doc_3_ref.get():
-            return success_response(
-                message=SUCCESS_SHARED_CALENDAR_FETCHED, 
-                code="SHARED_USER_CALENDAR_MEDICINES_LOAD_SUCCESS", 
-                uid=receiver_uid, 
-                origin="SHARED_USER_CALENDAR_MEDICINES_LOAD",
-                data={"medicines": []}
-            )
-
-        medicines = [med.to_dict() for med in doc_3_ref.get()]
-
-        return success_response(
-            message=SUCCESS_SHARED_CALENDAR_FETCHED, 
-            code="SHARED_USER_CALENDAR_MEDICINES_LOAD_SUCCESS", 
-            uid=receiver_uid, 
-            origin="SHARED_USER_CALENDAR_MEDICINES_LOAD",
-            data={"medicines": medicines}
-        )
-
-    except Exception as e:
-        return error_response(
-            message=ERROR_SHARED_CALENDAR_FETCH,
-            code="SHARED_USER_CALENDAR_MEDICINES_ERROR", 
-            status_code=500, 
-            uid=receiver_uid, 
-            origin="SHARED_USER_CALENDAR_MEDICINES_LOAD",
-            error=str(e),
-            log_extra={"calendar_id": calendar_id}
-        )
-
-
-# Route pour mettre à jour les médicaments d'un calendrier partagé
-@api.route("/api/shared/users/calendars/<calendar_id>/medicines", methods=["PUT"])
-def handle_update_shared_user_calendar_medicines(calendar_id):
-    try:
-        user = verify_firebase_token()
-        receiver_uid = user["uid"]
-
-        db = get_db()
-
-        medicines = request.json.get("medicines", [])
-
-        doc_1_ref = db.collection("users").document(receiver_uid).collection("shared_calendars").document(calendar_id)
-        if not doc_1_ref.get().exists:
-            return warning_response(
-                message=WARNING_SHARED_CALENDAR_NOT_FOUND, 
-                code="SHARED_USER_CALENDAR_MEDICINES_UPDATE_ERROR", 
-                status_code=404, 
-                uid=receiver_uid, 
-                origin="SHARED_USER_CALENDAR_MEDICINES_UPDATE",
-                log_extra={"calendar_id": calendar_id}
-            )
-
-        owner_uid = doc_1_ref.get().to_dict().get("owner_uid")
-
-        if not verify_calendar_share(calendar_id, owner_uid, receiver_uid):
-            return warning_response(
-                message=WARNING_UNAUTHORIZED_ACCESS, 
-                code="SHARED_USER_CALENDAR_MEDICINES_UPDATE_ERROR", 
-                status_code=403, 
-                uid=receiver_uid, 
-                origin="SHARED_USER_CALENDAR_MEDICINES_UPDATE",
-                log_extra={"calendar_id": calendar_id}
-            )
-
-        doc_2_ref = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).collection("medicines")
-            
-        for med_doc in doc_2_ref.stream():
-            med_doc.reference.delete()
-
-        for med in medicines:
-            doc_2_ref.document(med["id"]).set(med)
-
-        return success_response(
-            message=SUCCESS_SHARED_CALENDAR_UPDATED, 
-            code="SHARED_USER_CALENDAR_MEDICINES_UPDATE_SUCCESS", 
-            uid=receiver_uid, 
-            origin="SHARED_USER_CALENDAR_MEDICINES_UPDATE",
-            data={"medicines": medicines},
-            log_extra={"calendar_id": calendar_id}
-        )
-
-    except Exception as e:
-        return error_response(
-            message=ERROR_SHARED_CALENDAR_UPDATE,
-            code="SHARED_USER_CALENDAR_MEDICINES_UPDATE_ERROR", 
-            status_code=500, 
-            uid=receiver_uid, 
-            origin="SHARED_USER_CALENDAR_MEDICINES_UPDATE",
-            error=str(e),
-            log_extra={"calendar_id": calendar_id}
-        )
-
-

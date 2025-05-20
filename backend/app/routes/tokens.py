@@ -44,7 +44,7 @@ def get_db():
     return firestore.client()
 
 # Route pour récupérer tous les tokens et les informations associées
-@api.route("/api/tokens", methods=["GET"])
+@api.route("/tokens", methods=["GET"])
 def handle_tokens():
     try:
         if request.method == "GET":
@@ -78,7 +78,7 @@ def handle_tokens():
 
 
 # Route pour créer un lien de partage avec un token
-@api.route("/api/tokens/<calendar_id>", methods=["POST"])
+@api.route("/tokens/<calendar_id>", methods=["POST"])
 def handle_create_token(calendar_id):
     try:
         user = verify_firebase_token()
@@ -157,7 +157,7 @@ def handle_create_token(calendar_id):
 
 
 # Route pour révoquer un token
-@api.route("/api/tokens/revoke/<token>", methods=["POST"])
+@api.route("/tokens/revoke/<token>", methods=["POST"])
 def handle_update_revoke_token(token):
     try:
         user = verify_firebase_token()
@@ -221,7 +221,7 @@ def handle_update_revoke_token(token):
 
 
 # Route pour mettre à jour l'expiration d'un token
-@api.route("/api/tokens/expiration/<token>", methods=["POST"])
+@api.route("/tokens/expiration/<token>", methods=["POST"])
 def handle_update_token_expiration(token):
     try:
         user = verify_firebase_token()
@@ -283,7 +283,7 @@ def handle_update_token_expiration(token):
 
 
 # Route pour mettre à jour les permissions d'un token
-@api.route("/api/tokens/permissions/<token>", methods=["POST"])
+@api.route("/tokens/permissions/<token>", methods=["POST"])
 def handle_update_token_permissions(token):
     try:
         user = verify_firebase_token()
@@ -341,7 +341,7 @@ def handle_update_token_permissions(token):
 
 
 # Route pour générer un calendrier partagé pour un token
-@api.route("/api/tokens/<token>/schedule", methods=["GET"])
+@api.route("/tokens/<token>/schedule", methods=["GET"])
 def handle_generate_token_schedule(token):
     try:
         start_date = request.args.get("startTime")
@@ -452,7 +452,7 @@ def handle_generate_token_schedule(token):
         )
 
 # Route pour obtenir les métadonnées d’un token public
-@api.route("/api/tokens/<token>", methods=["GET"])
+@api.route("/tokens/<token>", methods=["GET"])
 def get_token_metadata(token):
     try:
         db = get_db()
@@ -533,7 +533,7 @@ def get_token_metadata(token):
 
 
 # Route pour supprimer un token
-@api.route("/api/tokens/<token>", methods=["DELETE"])
+@api.route("/tokens/<token>", methods=["DELETE"])
 def handle_delete_token(token):
     try:
         user = verify_firebase_token()
@@ -580,88 +580,5 @@ def handle_delete_token(token):
             uid=owner_uid, 
             origin="TOKEN_DELETE", 
             error=str(e),
-            log_extra={"token": token}
-        )
-
-
-# Route pour obtenir les médicaments d’un token public
-@api.route("/api/tokens/<token>/medicines", methods=["GET"])
-def handle_token_medicines(token):
-    try:
-        db = get_db()
-
-        doc = db.collection("shared_tokens").document(token).get()
-        if not doc.exists:
-            return warning_response(
-                message=WARNING_TOKEN_INVALID, 
-                code="TOKEN_INVALID", 
-                status_code=404, 
-                origin="TOKEN_MEDICINES_LOAD", 
-                log_extra={"token": token}
-            )
-
-        data = doc.to_dict()
-        calendar_id = data.get("calendar_id")
-        owner_uid = data.get("owner_uid")
-        expires_at = data.get("expires_at")
-        revoked = data.get("revoked")
-        permissions = data.get("permissions")
-
-        now = datetime.now(timezone.utc).date()
-        
-        if expires_at and now > expires_at.date():
-            return warning_response(
-                message=WARNING_TOKEN_EXPIRED,
-                code="TOKEN_EXPIRED",
-                status_code=403,
-                origin="TOKEN_MEDICINES_LOAD",
-                log_extra={"token": token}
-            )
-
-        if revoked:
-            return warning_response(
-                message=WARNING_TOKEN_REVOKED,
-                code="TOKEN_REVOKED",
-                status_code=403,
-                origin="TOKEN_MEDICINES_LOAD",
-                log_extra={"token": token}
-            )
-
-        if "read" not in permissions:
-            return warning_response(
-                message=WARNING_TOKEN_NO_READ_PERMISSION,
-                code="TOKEN_NO_READ_PERMISSION",
-                status_code=403,
-                origin="TOKEN_MEDICINES_LOAD",
-                log_extra={"token": token}
-            )
-
-        cal_ref = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id)
-        if not cal_ref.get().exists:
-            return warning_response(
-                message=WARNING_CALENDAR_NOT_FOUND,
-                code="CALENDAR_NOT_FOUND",
-                status_code=404,
-                origin="TOKEN_MEDICINES_LOAD",
-                log_extra={"token": token}
-            )
-
-        medicines = [doc.to_dict() for doc in cal_ref.collection("medicines").get()]
-
-        return success_response(
-            message=SUCCESS_MEDICINES_FETCHED,
-            code="MEDICINES_SHARED_LOADED",
-            origin="TOKEN_MEDICINES_LOAD",
-            data={"medicines": medicines},
-            log_extra={"token": token}
-        )
-
-    except Exception as e:
-        return error_response(
-            message=ERROR_MEDICINES_FETCH,
-            code="MEDICINES_SHARED_ERROR",
-            status_code=500,
-            error=str(e),
-            origin="TOKEN_MEDICINES_LOAD",
             log_extra={"token": token}
         )

@@ -10,8 +10,9 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
 
+    CORS(app, supports_credentials=True) 
+
     register_routes(app)     # Enregistre toutes les routes Flask
     init_firebase()         # Initialise Firebase
-    CORS(app)
 
     return app

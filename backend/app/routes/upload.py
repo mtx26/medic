@@ -11,7 +11,7 @@ from app.utils.messages import (
 )
 
 
-@api.route("/api/upload/logo", methods=["POST"])
+@api.route("/upload/logo", methods=["POST"])
 def upload_logo():
     try:
         user = verify_firebase_token()
