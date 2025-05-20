@@ -11,7 +11,6 @@
 - 🔐 Authentification Firebase (Google / email)
 - 📅 Création et gestion de calendriers personnels ou partagés
 - 💊 Suivi des médicaments : horaire, dose, fréquence, alternance
-- 📤 Génération de plannings mensuels en PDF depuis le frontend
 - 🔗 Partage de calendriers par lien public ou avec d’autres utilisateurs Firebase
 - 🔔 Notifications, invitations, gestion des accès
 - 🧾 Journalisation détaillée (frontend et backend)
