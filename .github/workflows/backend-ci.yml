@@ -48,17 +48,16 @@ jobs:
         run: |
           echo "SECRET_KEY=${SECRET_KEY}" > .env
           echo "ENV=${ENV}" >> .env
-          echo 'FIREBASE_CREDENTIALS<<EOF' >> .env
-          echo "${FIREBASE_CREDENTIALS}" >> .env
-          echo 'EOF' >> .env
-          echo 'CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME}' >> .env
-          echo 'CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}' >> .env
-          echo 'CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}' >> .env
-          echo 'PG_USER=${PG_USER}' >> .env
-          echo 'PG_PASSWORD=${PG_PASSWORD}' >> .env
-          echo 'PG_HOST=${PG_HOST}' >> .env
-          echo 'PG_PORT=${PG_PORT}' >> .env
-          echo 'PG_DATABASE=${PG_DATABASE}' >> .env
+          echo "FIREBASE_CREDENTIALS=${FIREBASE_CREDENTIALS}" >> .env
+          echo "CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME}" >> .env
+          echo "CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}" >> .env
+          echo "CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}" >> .env
+          echo "PG_USER=${PG_USER}" >> .env
+          echo "PG_PASSWORD=${PG_PASSWORD}" >> .env
+          echo "PG_HOST=${PG_HOST}" >> .env
+          echo "PG_PORT=${PG_PORT}" >> .env
+          echo "PG_DATABASE=${PG_DATABASE}" >> .env
+        
 
 
       - name: Debug .env
