@@ -40,7 +40,7 @@ cd backend
 python -m venv .venv
 .venv\Scripts\activate         # ou source .venv/bin/activate sur macOS/Linux
 pip install -r requirements.txt
-python app.py
+python -m app.main
 
 # Frontend
 cd frontend

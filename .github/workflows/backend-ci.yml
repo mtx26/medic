@@ -48,5 +48,5 @@ jobs:
         run: cat .env
 
       - name: Vérifier que Flask se lance
-        run: python app.py --check
+        run: python -m app.main --check
 
