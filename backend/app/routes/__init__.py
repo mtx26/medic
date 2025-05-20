@@ -18,5 +18,6 @@ from .user import *
 from .upload import *
 
 
+
 def register_routes(app):
     app.register_blueprint(api, url_prefix='/api')
