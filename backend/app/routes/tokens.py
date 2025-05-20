@@ -37,7 +37,7 @@ from app.utils.messages import (
     ERROR_TOKEN_DELETE,
     ERROR_MEDICINES_FETCH,
     WARNING_TOKEN_ALREADY_SHARED,
-    ERROR_CALENDAR_TOKEN_GENERATE,
+    ERROR_TOKEN_GENERATE,
 )
 
 # Route pour récupérer tous les tokens et les informations associées
@@ -335,7 +335,7 @@ def handle_generate_token_schedule(token):
 
     except Exception as e:
         return error_response(
-            message=ERROR_CALENDAR_TOKEN_GENERATE,
+            message=ERROR_TOKEN_GENERATE,
             code="CALENDAR_TOKEN_GENERATE_ERROR", 
             status_code=500, 
             uid="unknown", 

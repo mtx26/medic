@@ -6,7 +6,7 @@ from app.db.connection import get_connection
 from app.utils.logo_upload import upload_logo
 from app.utils.messages import (
     SUCCESS_USER_INFO_FETCHED,
-    ERROR_USER_INFO_FETCH,
+    ERROR_USER_NOT_FOUND,
     ERROR_USER_NOT_FOUND
 )
 
@@ -22,7 +22,7 @@ def handle_user_sync():
             data = request.get_json()
         except Exception:
             return error_response(
-                message=ERROR_USER_INFO_FETCH,
+                message=ERROR_USER_NOT_FOUND,
                 code="USER_SYNC_ERROR",
                 status_code=400,
                 uid=uid,
@@ -32,7 +32,7 @@ def handle_user_sync():
 
         if not data:
             return error_response(
-                message=ERROR_USER_INFO_FETCH,
+                message=ERROR_USER_NOT_FOUND,
                 code="USER_SYNC_ERROR",
                 status_code=400,
                 uid=uid,
@@ -103,7 +103,7 @@ def handle_user_sync():
 
     except Exception as e:
         return error_response(
-            message=ERROR_USER_INFO_FETCH,
+            message=ERROR_USER_NOT_FOUND,
             code="USER_SYNC_ERROR",
             status_code=500,
             uid=uid,

@@ -11,7 +11,7 @@ from app.utils.messages import (
     WARNING_UNAUTHORIZED_ACCESS,
     ERROR_SHARED_MEDICINES_UPDATE,
     ERROR_SHARED_MEDICINES_FETCH,
-    SUCCESS_SHARED_MEDICINES_DELETED,
+    SUCCESS_MEDICINES_DELETED,
     ERROR_SHARED_MEDICINES_DELETE,
     WARNING_INVALID_MEDICINE_FORMAT,
 )
@@ -177,7 +177,7 @@ def handle_delete_shared_user_calendar_medicines(calendar_id):
                 medicines = cursor.fetchall()
                 if not medicines:
                     return success_response(
-                        message=SUCCESS_SHARED_MEDICINES_DELETED,
+                        message=SUCCESS_MEDICINES_DELETED,
                         code="SHARED_USER_CALENDAR_MEDICINES_DELETE_SUCCESS",
                         uid=receiver_uid,
                         origin="SHARED_USER_CALENDAR_MEDICINES_DELETE",
@@ -186,7 +186,7 @@ def handle_delete_shared_user_calendar_medicines(calendar_id):
                     )
 
                 return success_response(
-                    message=SUCCESS_SHARED_MEDICINES_DELETED,
+                    message=SUCCESS_MEDICINES_DELETED,
                     code="SHARED_USER_CALENDAR_MEDICINES_DELETE_SUCCESS",
                     uid=receiver_uid,
                     origin="SHARED_USER_CALENDAR_MEDICINES_DELETE",
