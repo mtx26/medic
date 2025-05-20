@@ -1,4 +1,4 @@
-import { auth } from "./firebase";
+import { auth } from "../services/firebase";
 import { getGlobalReloadUser } from "../contexts/UserContext";
 
 import { 
@@ -38,6 +38,7 @@ const syncUserToSupabase = async (user) => {
 
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "Erreur API Supabase");
+    
   } catch (error) {
     log.error("Erreur lors de la synchro Supabase", error.message, {
       origin: "SYNC_USER_SUPABASE",

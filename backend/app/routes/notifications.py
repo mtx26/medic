@@ -58,8 +58,8 @@ def handle_notifications():
 
                 for notif in notifications_data:
                     content = notif.get("content") or {}
-                    calendar_id = content.get("calendar_id")
                     sender_uid = notif.get("sender_uid")
+                    calendar_id = content.get("calendar_id")
                     notification_id = notif.get("id")
 
                     if not calendar_id:
