@@ -99,9 +99,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
     const updated = [...medicinesData]; // copie du tableau
     const numericFields = ['tablet_count', 'interval_days'];
   
-    if (field === 'time_of_day') {
-      updated[index][field] = [value];
-    } else if (numericFields.includes(field)) {
+    if (numericFields.includes(field)) {
       updated[index][field] = value === '' ? '' : parseFloat(value);
     } else {
       updated[index][field] = value;
@@ -126,9 +124,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
       tablet_count: med.tablet_count !== '' &&
                     med.tablet_count !== null &&
                     !isNaN(parseFloat(med.tablet_count)),
-      time_of_day: med.time_of_day !== '' &&
-            med.time_of_day.length > 0 &&
-            ['morning', 'noon', 'evening'].includes(med.time_of_day),
+      time_of_day: ['morning', 'noon', 'evening'].includes(med.time_of_day),
       interval_days: med.interval_days !== '' &&
                      med.interval_days !== null &&
                      !isNaN(parseInt(med.interval_days)),
@@ -454,9 +450,9 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
                         <div className="col-6 col-md-2">
                           <div className="form-floating">
                             <select
-                              className="form-select form-select-sm"
+                              className={`form-select form-select-sm ${isFieldChanged(item.data.id, 'time_of_day') ? 'field-changed' : ''}`}
                               id={`moment-${item.data.id}`}
-                              value={item.data?.time_of_day[0] || ''}
+                              value={item.data?.time_of_day || ''}
                               onChange={(e) => handleMedChange(item.data.id, 'time_of_day', e.target.value)}
                             >
                               <option value="" disabled hidden>Choisir</option>
