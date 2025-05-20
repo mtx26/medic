@@ -71,12 +71,28 @@ export const useRealtimeTokens = (setTokensList, setLoadingStates) => {
 				}
 			)
 			.subscribe();
+		
+		const deleteChannel = supabase
+			.channel(`delete-tokens-${user.uid}`)
+			.on(
+				'postgres_changes',
+				{
+					event: 'DELETE',
+					schema: 'public',
+					table: 'shared_tokens',
+				},
+				() => {
+					fetchTokens();
+				}
+			)
+			.subscribe();
 
-		channelRef.current = channel;
+		channelRef.current = [channel, deleteChannel];
 
 		return () => {
 			if (channelRef.current) {
-				supabase.removeChannel(channelRef.current);
+				supabase.removeChannel(channelRef.current[0]);
+				supabase.removeChannel(channelRef.current[1]);
 				channelRef.current = null;
 			}
 		};

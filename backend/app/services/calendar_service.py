@@ -1,10 +1,13 @@
-from datetime import datetime, timedelta, date
+from datetime import datetime, timedelta, date, timezone
 import calendar
 from app.utils.logger import log_backend as logger
 from app.db.connection import get_connection
 from app.utils.messages import (
     WARNING_UNAUTHORIZED_ACCESS,
-    ERROR_SHARED_VERIFICATION
+    ERROR_SHARED_VERIFICATION,
+    ERROR_CALENDAR_VERIFY,
+    ERROR_TOKEN_VERIFY,
+    ERROR_TOKEN_OWNER_VERIFY,
 )
 
 def verify_calendar_share(calendar_id : str, receiver_uid : str) -> bool:
@@ -57,6 +60,68 @@ def verify_calendar(calendar_id : str, uid : str) -> bool:
         })
         return False
 
+def verify_token(token : str) -> bool:
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT * FROM shared_tokens WHERE id = %s", (token,))
+                token_data = cursor.fetchone()
+                if not token_data:
+                    return False
+
+                calendar_id = token_data.get("calendar_id")
+                owner_uid = token_data.get("owner_uid")
+                expires_at = token_data.get("expires_at")
+                revoked = token_data.get("revoked")
+                permissions = token_data.get("permissions")
+
+                if not verify_calendar(calendar_id, owner_uid):
+                    return False
+
+                now = datetime.now(timezone.utc).date()
+                
+                if expires_at and now > expires_at.date():
+                    return False
+
+                if revoked:
+                    return False
+
+                if "read" not in permissions:
+                    return False
+
+                return calendar_id
+
+    except Exception as e:
+        logger.error(ERROR_TOKEN_VERIFY, {
+            "origin": "TOKEN_VERIFY_ERROR",
+            "token": token,
+            "error": str(e)
+        })
+        return False
+
+def verify_token_owner(token : str, uid : str) -> bool:
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT * FROM shared_tokens WHERE id = %s", (token,))
+                token_data = cursor.fetchone()
+                if not token_data:
+                    return False
+
+                if token_data.get("owner_uid") != uid:
+                    return False
+
+                return True
+
+    except Exception as e:
+        logger.error(ERROR_TOKEN_OWNER_VERIFY, {
+            "origin": "TOKEN_OWNER_VERIFY_ERROR",
+            "token": token,
+            "error": str(e)
+        })
+        return False
+
+
 def is_medication_due(med, current_date):
     start_raw = med.get("start_date", "")
 
@@ -66,10 +131,8 @@ def is_medication_due(med, current_date):
     else:
         start = current_date  # fallback si aucune date valide
 
-    print(start)
-
     delta_days = (current_date - start).days
-    print(delta_days)
+
 
     if delta_days < 0:
         return False

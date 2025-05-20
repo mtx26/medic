@@ -4,8 +4,8 @@ from datetime import datetime, timezone
 import secrets
 from . import api
 from flask import request
-from firebase_admin import firestore
-from app.services.calendar_service import generate_schedule, generate_table
+from app.db.connection import get_connection
+from app.services.calendar_service import generate_schedule, generate_table, verify_calendar, verify_token_owner, verify_token
 from app.utils.messages import (
     SUCCESS_TOKENS_FETCHED,
     SUCCESS_TOKEN_CREATED,
@@ -32,16 +32,13 @@ from app.utils.messages import (
     ERROR_TOKEN_REVOKE,
     ERROR_TOKEN_EXPIRATION_UPDATE,
     ERROR_TOKEN_PERMISSIONS_UPDATE,
-    ERROR_CALENDAR_TOKEN_GENERATE,
+    ERROR_TOKEN_GENERATE,
     ERROR_TOKEN_METADATA_FETCH,
     ERROR_TOKEN_DELETE,
-    ERROR_MEDICINES_FETCH
+    ERROR_MEDICINES_FETCH,
+    WARNING_TOKEN_ALREADY_SHARED,
+    ERROR_CALENDAR_TOKEN_GENERATE,
 )
-
-
-def get_db():
-    from firebase_admin import firestore
-    return firestore.client()
 
 # Route pour récupérer tous les tokens et les informations associées
 @api.route("/tokens", methods=["GET"])
@@ -51,19 +48,17 @@ def handle_tokens():
             user = verify_firebase_token()
             uid = user["uid"]
 
-            db = get_db()
+            with get_connection() as conn:
+                with conn.cursor() as cursor:
+                    cursor.execute("SELECT * FROM shared_tokens WHERE owner_uid = %s", (uid,))
+                    tokens_list = cursor.fetchall()
 
-            tokens_ref = db.collection("shared_tokens").get()
-            tokens = []
-            for doc in tokens_ref:
-                if doc.to_dict().get("owner_uid") == uid:
-                    tokens.append(doc.to_dict())
             return success_response(
                 message=SUCCESS_TOKENS_FETCHED, 
                 code="TOKENS_FETCH", 
                 uid=uid, 
                 origin="TOKENS_FETCH", 
-                data={"tokens": tokens}
+                data={"tokens": tokens_list}
             )
         
     except Exception as e:
@@ -84,8 +79,6 @@ def handle_create_token(calendar_id):
         user = verify_firebase_token()
         owner_uid = user["uid"]
 
-        db = get_db()
-
         data = request.get_json(force=True)
 
         expires_at = data.get("expiresAt")
@@ -93,48 +86,35 @@ def handle_create_token(calendar_id):
             expires_at = None
             
         permissions = data.get("permissions")
-
         
         if not permissions:
             permissions = ["read"]
 
-        # Verifier si le calendrier existe
-        doc = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id).get()
-        if not doc.exists:
-            return warning_response(
-                message=WARNING_CALENDAR_NOT_FOUND, 
-                code="CALENDAR_NOT_FOUND", 
-                status_code=404, 
-                uid=owner_uid, 
-                origin="CALENDAR_NOT_FOUND", 
-                log_extra={"calendar_id": calendar_id}
-            )
+        verify_calendar(calendar_id, owner_uid)
 
 
         # Verifier si le calendrier est déjà partagé
-        doc_2 = db.collection("shared_tokens").get()
-        for doc in doc_2:
-            if doc.to_dict().get("owner_uid") == owner_uid:
-                if doc.to_dict().get("calendar_id") == calendar_id:
-                    return warning_response(
-                        message=WARNING_CALENDAR_ALREADY_SHARED, 
-                        code="CALENDAR_ALREADY_SHARED", 
-                        status_code=400, 
-                        uid=owner_uid, 
-                        origin="CALENDAR_ALREADY_SHARED", 
-                        log_extra={"calendar_id": calendar_id}
-                    )
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT * FROM shared_tokens WHERE calendar_id = %s AND owner_uid = %s", (calendar_id, owner_uid))
+                token = cursor.fetchone()
+                if token:
+                        return warning_response(
+                            message=WARNING_TOKEN_ALREADY_SHARED, 
+                            code="TOKEN_ALREADY_SHARED", 
+                            status_code=400, 
+                            uid=owner_uid, 
+                            origin="TOKEN_ALREADY_SHARED", 
+                            log_extra={"calendar_id": calendar_id}
+                        )
+                
         
-        # Créer un nouveau lien de partage
-        token = secrets.token_hex(16)
-        db.collection("shared_tokens").document(token).set({
-            "token": token,
-            "calendar_id": calendar_id,
-            "owner_uid": owner_uid,
-            "expires_at": expires_at,
-            "permissions": permissions,
-            "revoked": False
-        })
+                cursor.execute(
+                    """
+                    INSERT INTO shared_tokens (calendar_id, expires_at, permissions, revoked, owner_uid) VALUES (%s, %s, %s, %s, %s)
+                    """,
+                    (calendar_id, expires_at, permissions, False, owner_uid)
+                )
 
         return success_response(
             message=SUCCESS_TOKEN_CREATED, 
@@ -163,22 +143,7 @@ def handle_update_revoke_token(token):
         user = verify_firebase_token()
         owner_uid = user["uid"]
 
-        db = get_db()
-
-
-        doc = db.collection("shared_tokens").document(token).get()
-
-        if not doc.exists:
-            return warning_response(
-                message=WARNING_TOKEN_NOT_FOUND, 
-                code="TOKEN_NOT_FOUND", 
-                status_code=404, 
-                uid=owner_uid, 
-                origin="TOKEN_REVOKE", 
-                log_extra={"token": token}
-            )
-        
-        if doc.to_dict().get("owner_uid") != owner_uid:
+        if not verify_token_owner(token, owner_uid):
             return warning_response(
                 message=WARNING_TOKEN_NOT_AUTHORIZED, 
                 code="TOKEN_NOT_AUTHORIZED", 
@@ -188,24 +153,16 @@ def handle_update_revoke_token(token):
                 log_extra={"token": token}
             )
 
-        db.collection("shared_tokens").document(token).update({
-            "revoked": not doc.to_dict().get("revoked")
-        })
-        if db.collection("shared_tokens").document(token).get().to_dict().get("revoked"):
-            return success_response(
-                message=SUCCESS_TOKEN_REVOKED, 
-                code="TOKEN_REVOKED", 
-                uid=owner_uid, 
-                origin="TOKEN_REVOKE", 
-                log_extra={"token": token}
-            )
-        else:
-            return success_response(
-                message=SUCCESS_TOKEN_REACTIVATED, 
-                code="TOKEN_REACTIVATED", 
-                uid=owner_uid, 
-                origin="TOKEN_REVOKE", 
-                log_extra={"token": token}
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("UPDATE shared_tokens SET revoked = not revoked WHERE id = %s AND owner_uid = %s", (token, owner_uid))
+
+        return success_response(
+            message=SUCCESS_TOKEN_REACTIVATED, 
+            code="TOKEN_REACTIVATED", 
+            uid=owner_uid, 
+            origin="TOKEN_REVOKE", 
+            log_extra={"token": token}
             )
 
     except Exception as e:
@@ -227,23 +184,15 @@ def handle_update_token_expiration(token):
         user = verify_firebase_token()
         owner_uid = user["uid"]
 
-        db = get_db()
-
         data = request.get_json(force=True)
+        expires_at = data.get("expiresAt")
+        if not expires_at:
+            expires_at = None
 
-        doc = db.collection("shared_tokens").document(token).get()
+        if expires_at:
+            expires_at = datetime.strptime(expires_at, "%Y-%m-%d").date()
 
-        if not doc.exists:
-            return warning_response(
-                message=WARNING_TOKEN_NOT_FOUND, 
-                code="TOKEN_NOT_FOUND", 
-                status_code=404, 
-                uid=owner_uid, 
-                origin="TOKEN_EXPIRATION_UPDATE", 
-                log_extra={"token": token}
-            )
-        
-        if doc.to_dict().get("owner_uid") != owner_uid:
+        if not verify_token_owner(token, owner_uid):
             return warning_response(
                 message=WARNING_TOKEN_NOT_AUTHORIZED, 
                 code="TOKEN_NOT_AUTHORIZED", 
@@ -252,15 +201,10 @@ def handle_update_token_expiration(token):
                 origin="TOKEN_EXPIRATION_UPDATE", 
                 log_extra={"token": token}
             )
-        expires_at = data.get("expiresAt")
-        if not expires_at:
-            db.collection("shared_tokens").document(token).update({
-                "expires_at": None
-            })
-        else:
-            db.collection("shared_tokens").document(token).update({
-                "expires_at": datetime.strptime(expires_at, "%Y-%m-%d")
-            })
+        
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("UPDATE shared_tokens SET expires_at = %s WHERE id = %s AND owner_uid = %s", (expires_at, token, owner_uid))
 
         return success_response(
             message=SUCCESS_TOKEN_EXPIRATION_UPDATED, 
@@ -289,36 +233,23 @@ def handle_update_token_permissions(token):
         user = verify_firebase_token()
         owner_uid = user["uid"]
 
-        db = get_db()
-
         data = request.get_json(force=True)
 
-        doc = db.collection("shared_tokens").document(token).get()
-
-        if not doc.exists:
-            return warning_response(
-                message=WARNING_TOKEN_NOT_FOUND, 
-                code="TOKEN_NOT_FOUND", 
-                status_code=404, 
-                uid=owner_uid, 
-                origin="TOKEN_NOT_FOUND", 
-                log_extra={"token": token}
-            )
-        
-        if doc.to_dict().get("owner_uid") != owner_uid:
+        if not verify_token_owner(token, owner_uid):
             return warning_response(
                 message=WARNING_TOKEN_NOT_AUTHORIZED, 
                 code="TOKEN_NOT_AUTHORIZED", 
                 status_code=403, 
                 uid=owner_uid, 
-                origin="TOKEN_NOT_AUTHORIZED", 
+                origin="TOKEN_PERMISSIONS_UPDATE", 
                 log_extra={"token": token}
             )
-
+        
         permissions = data.get("permissions")
-        db.collection("shared_tokens").document(token).update({
-            "permissions": permissions
-        })
+
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("UPDATE shared_tokens SET permissions = %s WHERE id = %s AND owner_uid = %s", (permissions, token, owner_uid))
 
         return success_response(
             message=SUCCESS_TOKEN_PERMISSIONS_UPDATED, 
@@ -350,10 +281,8 @@ def handle_generate_token_schedule(token):
         else:
             start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
 
-        db = get_db()
-
-        doc = db.collection("shared_tokens").document(token).get()
-        if not doc.exists:
+        calendar_id = verify_token(token)
+        if not calendar_id:
             return warning_response(
                 message=WARNING_TOKEN_INVALID, 
                 code="TOKEN_INVALID", 
@@ -363,78 +292,42 @@ def handle_generate_token_schedule(token):
                 log_extra={"token": token}
             )
 
-        data = doc.to_dict()
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT * FROM calendars WHERE id = %s", (calendar_id,))
+                calendar = cursor.fetchone()
+                if not calendar:
+                    return warning_response(
+                        message=WARNING_CALENDAR_NOT_FOUND, 
+                        code="CALENDAR_NOT_FOUND", 
+                        status_code=404, 
+                        uid="unknown", 
+                        origin="TOKEN_GENERATE_SCHEDULE", 
+                        log_extra={"token": token}
+                    )
 
-        calendar_id = data.get("calendar_id")
-        owner_uid = data.get("owner_uid")
-        expires_at = data.get("expires_at")
-        permissions = data.get("permissions")
-        revoked = data.get("revoked")
+                calendar_name = calendar.get("calendar_name")
 
-        now = datetime.now(timezone.utc).date()
-        if expires_at and now > expires_at.date():
-            return warning_response(
-                message=WARNING_TOKEN_EXPIRED, 
-                code="TOKEN_EXPIRED", 
-                status_code=404, 
-                uid="unknown", 
-                origin="TOKEN_GENERATE_SCHEDULE", 
-                log_extra={"token": token}
-            )
+                cursor.execute("SELECT * FROM medicines WHERE calendar_id = %s", (calendar_id,))
+                medicines = cursor.fetchall()
+                if not medicines:
+                    return success_response(
+                        message=SUCCESS_CALENDAR_GENERATED, 
+                        code="CALENDAR_GENERATED_SUCCESS", 
+                        uid="unknown", 
+                        origin="TOKEN_GENERATE_SCHEDULE", 
+                        data={"medicines": 0, "schedule": [], "calendar_name": calendar_name, "table": {}},
+                        log_extra={"token": token}
+                    )
 
-        if revoked:
-            return warning_response(
-                message=WARNING_TOKEN_REVOKED, 
-                code="TOKEN_REVOKED", 
-                status_code=404, 
-                uid="unknown", 
-                origin="TOKEN_GENERATE_SCHEDULE", 
-                log_extra={"token": token}
-            )
-
-        if "read" not in permissions:
-            return warning_response(
-                message=WARNING_TOKEN_NO_READ_PERMISSION, 
-                code="TOKEN_NO_READ_PERMISSION", 
-                status_code=403, 
-                uid="unknown", 
-                origin="TOKEN_GENERATE_SCHEDULE", 
-                log_extra={"token": token}
-            )
-
-        doc_1 = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id)
-        if not doc_1.get().exists:
-            return warning_response(
-                message=WARNING_CALENDAR_NOT_FOUND, 
-                code="CALENDAR_NOT_FOUND", 
-                status_code=404, 
-                uid="unknown", 
-                origin="TOKEN_GENERATE_SCHEDULE", 
-                log_extra={"token": token}
-            )
-
-        calendar_name = doc_1.get().to_dict().get("calendar_name")
-
-        doc_2 = doc_1.collection("medicines")
-        if not doc_2.get():
-            return success_response(
-                message=SUCCESS_SHARED_CALENDARS_LOAD, 
-                code="SHARED_CALENDARS_LOAD_SUCCESS", 
-                uid=uid, 
-                origin="TOKEN_GENERATE_SCHEDULE",
-                data={"medicines": 0, "schedule": [], "calendar_name": calendar_name, "table": {}}
-            )
-
-        medicines = [med.to_dict() for med in doc_2.get()]
 
         schedule = generate_schedule(start_date, medicines)
         table = generate_table(start_date, medicines)
 
-
         return success_response(
             message=SUCCESS_CALENDAR_GENERATED, 
             code="CALENDAR_GENERATED_SUCCESS", 
-            uid=owner_uid, 
+            uid="unknown",
             origin="TOKEN_GENERATE_SCHEDULE", 
             data={"medicines": len(medicines), "schedule": schedule, "calendar_name": calendar_name, "table": table},
             log_extra={"token": token}
@@ -445,7 +338,7 @@ def handle_generate_token_schedule(token):
             message=ERROR_CALENDAR_TOKEN_GENERATE,
             code="CALENDAR_TOKEN_GENERATE_ERROR", 
             status_code=500, 
-            uid=owner_uid, 
+            uid="unknown", 
             origin="TOKEN_GENERATE_SCHEDULE", 
             error=str(e),
             log_extra={"token": token}
@@ -455,10 +348,7 @@ def handle_generate_token_schedule(token):
 @api.route("/tokens/<token>", methods=["GET"])
 def get_token_metadata(token):
     try:
-        db = get_db()
-
-        doc = db.collection("shared_tokens").document(token).get()
-        if not doc.exists:
+        if not verify_token(token):
             return warning_response(
                 message=WARNING_TOKEN_INVALID,
                 code="TOKEN_INVALID",
@@ -468,45 +358,22 @@ def get_token_metadata(token):
                 log_extra={"token": token}
             )
 
-        data = doc.to_dict()
-        calendar_id = data.get("calendar_id")
-        owner_uid = data.get("owner_uid")
-        expires_at = data.get("expires_at")
-        revoked = data.get("revoked")
-        permissions = data.get("permissions")
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT * FROM shared_tokens WHERE id = %s", (token,))
+                token_data = cursor.fetchone()
+                if not token_data:
+                    return warning_response(
+                        message=WARNING_TOKEN_NOT_FOUND, 
+                        code="TOKEN_NOT_FOUND", 
+                        status_code=404, 
+                        uid="unknown", 
+                        origin="TOKEN_METADATA_LOAD", 
+                        log_extra={"token": token}
+                    )
 
-        # Vérification simple
-        now = datetime.now(timezone.utc).date()
-        if expires_at and now > expires_at.date():
-            return warning_response(
-                message=WARNING_TOKEN_EXPIRED,
-                code="TOKEN_EXPIRED",
-                status_code=403,
-                uid="unknown",
-                origin="TOKEN_METADATA_LOAD",
-                log_extra={"token": token}
-            )
-
-        if revoked:
-            return warning_response(
-                message=WARNING_TOKEN_REVOKED,
-                code="TOKEN_REVOKED",
-                status_code=403,
-                uid="unknown",
-                origin="TOKEN_METADATA_LOAD",
-                log_extra={"token": token}
-            )
-        
-        if "read" not in permissions:
-            return warning_response(
-                message=WARNING_TOKEN_NO_READ_PERMISSION,
-                code="TOKEN_NO_READ_PERMISSION",
-                status_code=403,
-                uid="unknown",
-                origin="TOKEN_METADATA_LOAD",
-                log_extra={"token": token}
-            )
-        
+                calendar_id = token_data.get("calendar_id")
+                owner_uid = token_data.get("owner_uid")
 
         return success_response(
             message=SUCCESS_TOKEN_METADATA_FETCHED,
@@ -539,11 +406,7 @@ def handle_delete_token(token):
         user = verify_firebase_token()
         owner_uid = user["uid"]
 
-        db = get_db()
-
-        doc = db.collection("shared_tokens").document(token).get()
-
-        if not doc.exists:
+        if not verify_token_owner(token, owner_uid):
             return warning_response(
                 message=WARNING_TOKEN_NOT_FOUND, 
                 code="TOKEN_NOT_FOUND", 
@@ -553,17 +416,10 @@ def handle_delete_token(token):
                 log_extra={"token": token}
             )
 
-        if doc.to_dict().get("owner_uid") != owner_uid:
-            return warning_response(
-                message=WARNING_TOKEN_NOT_AUTHORIZED, 
-                code="TOKEN_NOT_AUTHORIZED", 
-                status_code=403, 
-                uid=owner_uid, 
-                origin="TOKEN_DELETE", 
-                log_extra={"token": token}
-            )
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("DELETE FROM shared_tokens WHERE id = %s", (token,))
 
-        db.collection("shared_tokens").document(token).delete()
         return success_response(
             message=SUCCESS_TOKEN_DELETED, 
             code="TOKEN_DELETE_SUCCESS", 

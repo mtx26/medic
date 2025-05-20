@@ -232,11 +232,8 @@ def handle_user_shared_calendar_schedule(calendar_id):
                         data={"medicines": 0, "schedule": [], "calendar_name": calendar_name, "table": {}}
                     )
 
-        print(medicines)
         schedule = generate_schedule(start_date, medicines)
         table = generate_table(start_date, medicines)
-        print(schedule)
-        print(table)
     
         return success_response(
             message=SUCCESS_SHARED_CALENDAR_FETCHED, 

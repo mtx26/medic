@@ -31,7 +31,6 @@ const fetchCalendars = async (user, setCalendarsData, setLoadingStates) => {
       count: data.calendars?.length,
     });
   } catch (err) {
-    console.error("[useRealtimeCalendars] Failed to fetch calendars", err);
     setLoadingStates(prev => ({ ...prev, calendars: false }));
   }
 };

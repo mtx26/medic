@@ -838,7 +838,7 @@ function App() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       // trier par ordre alphabétique
-      const medicinesSortedByName = data.medicines.sort((a, b) => a.name.localeCompare(b.name));
+      const medicinesSortedByName = data.medicines ? data.medicines.sort((a, b) => a.name.localeCompare(b.name)) : [];
       logEvent(analytics, 'update_shared_user_calendar_medicines', {
         calendarId: calendarId,
         uid: auth.currentUser.uid,

@@ -32,6 +32,7 @@ def get_user_info(uid):
             user = cursor.fetchone()
             return user.get("display_name"), user.get("email"), user.get("photo_url")
 
+# Route pour récupérer toutes les notifications
 @api.route("/notifications", methods=["GET"])
 def handle_notifications():
     try:
@@ -59,6 +60,7 @@ def handle_notifications():
                     content = notif.get("content") or {}
                     calendar_id = content.get("calendar_id")
                     sender_uid = content.get("sender_uid")
+                    notification_id = notif.get("id")
 
                     if not calendar_id:
                         continue
@@ -67,11 +69,19 @@ def handle_notifications():
                     if calendar_id not in calendar_name_cache:
                         calendar_name_cache[calendar_id] = safely_get_calendar_name(calendar_id)
                     calendar_name = calendar_name_cache[calendar_id]
+                    print(calendar_name)
 
                     # Cache sender info
                     if sender_uid not in sender_info_cache:
                         sender_info_cache[sender_uid] = get_user_info(sender_uid)
                     sender_name, sender_email, sender_photo_url = sender_info_cache[sender_uid]
+                    print(sender_name)
+
+                    if not calendar_name or not sender_name or not sender_email or not sender_photo_url:
+                        cursor.execute("DELETE FROM notifications WHERE id = %s", (notification_id,))
+                        continue
+
+
 
                     notifications.append({
                         "notification_id": notif.get("id"),
