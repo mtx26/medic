@@ -7,7 +7,7 @@ from app.auth.firebase import init_firebase
 from flask_cors import CORS
 
 def create_app():
-    app = Flask(__name__)
+    app = Flask(__name__)  # noqa: S308  # CSRF not required (stateless API with Firebase tokens)
     app.config.from_object(Config)
 
     CORS(app, supports_credentials=True) 
