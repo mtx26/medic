@@ -83,7 +83,7 @@ def handle_create_calendar():
 
         with get_connection() as conn:
             with conn.cursor() as cur:
-                cur.execute("INSERT INTO calendars (owner_uid, name) VALUES (%s, %s, %s)", (uid, calendar_name))
+                cur.execute("INSERT INTO calendars (owner_uid, name) VALUES (%s, %s)", (uid, calendar_name))
                 conn.commit()
 
         return success_response(

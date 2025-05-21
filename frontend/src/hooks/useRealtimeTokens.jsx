@@ -90,9 +90,8 @@ export const useRealtimeTokens = (setTokensList, setLoadingStates) => {
 		channelRef.current = [channel, deleteChannel];
 
 		return () => {
-			if (channelRef.current) {
-				supabase.removeChannel(channelRef.current[0]);
-				supabase.removeChannel(channelRef.current[1]);
+			if (channelRef.current && typeof channelRef.current.unsubscribe === "function") {
+				channelRef.current.unsubscribe();
 				channelRef.current = null;
 			}
 		};

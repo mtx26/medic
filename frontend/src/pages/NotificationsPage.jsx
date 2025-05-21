@@ -137,11 +137,11 @@ function NotificationsPage({ notifications, sharedUserCalendars }) {
 
                     <HoveredUserProfile
                       user={{
-                        photo_url: notif.receiver_photo_url,
-                        display_name: notif.receiver_name,
-                        email: notif.receiver_email
+                        photo_url: notif.owner_photo_url,
+                        display_name: notif.owner_name,
+                        email: notif.owner_email
                       }}
-                      trigger={<strong>{notif.receiver_name}</strong>}
+                      trigger={<strong>{notif.owner_name}</strong>}
                     />
                     {" "}a retiré le calendrier <strong>{notif.calendar_name}</strong>
                   </p>

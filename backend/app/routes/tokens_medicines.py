@@ -19,7 +19,8 @@ from app.utils.messages import (
 @api.route("/tokens/<token>/medicines", methods=["GET"])
 def handle_token_medicines(token):
     try:
-        if not verify_token(token):
+        calendar_id = verify_token(token)
+        if not calendar_id:
             return warning_response(
                 message=WARNING_TOKEN_INVALID,
                 code="TOKEN_INVALID",
@@ -32,8 +33,6 @@ def handle_token_medicines(token):
 
         with get_connection() as conn:
             with conn.cursor() as cursor:
-                
-                calendar_id = token_data.get("calendar_id")
                 cursor.execute("SELECT * FROM medicines WHERE calendar_id = %s", (calendar_id,))
                 medicines = cursor.fetchall()
 

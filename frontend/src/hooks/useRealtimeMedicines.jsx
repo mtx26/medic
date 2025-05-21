@@ -152,8 +152,8 @@ export const useRealtimePersonalMedicines = (
     channelRef.current = channel;
 
     return () => {
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
+      if (channelRef.current && typeof channelRef.current.unsubscribe === "function") {
+        channelRef.current.unsubscribe();
         channelRef.current = null;
       }
     };
@@ -212,8 +212,8 @@ export const useRealtimeTokenMedicines = (
 
     return () => {
       try {
-        if (channelRef.current) {
-          supabase.removeChannel(channelRef.current);
+        if (channelRef.current && typeof channelRef.current.unsubscribe === "function") {
+          channelRef.current.unsubscribe();
           channelRef.current = null;
         }
       } catch (err) {
@@ -291,8 +291,8 @@ export const useRealtimeSharedUserMedicines = (
 
     return () => {
       try { 
-        if (channelRef.current) {
-          supabase.removeChannel(channelRef.current);
+        if (channelRef.current && typeof channelRef.current.unsubscribe === "function") {
+          channelRef.current.unsubscribe();
           channelRef.current = null;
         }
       } catch (err) {

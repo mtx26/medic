@@ -123,9 +123,8 @@ export const useRealtimeCalendars = (setCalendarsData, setLoadingStates) => {
 
     return () => {
       try {
-        if (channelRef.current) {
-          supabase.removeChannel(channelRef.current[0]);
-          supabase.removeChannel(channelRef.current[1]);
+        if (channelRef.current && typeof channelRef.current.unsubscribe === "function") {
+          channelRef.current.unsubscribe();
           channelRef.current = null;
         }
       } catch (err) {
@@ -165,7 +164,7 @@ export const useRealtimeSharedCalendars = (setSharedCalendarsData, setLoadingSta
           event: '*',
           schema: 'public',
           table: 'shared_calendars',
-          filter: `uid=eq.${user.uid}`,
+          filter: `receiver_uid=eq.${user.uid}`,
         },
         () => {
           fetchSharedCalendars(user, setSharedCalendarsData, setLoadingStates);
@@ -191,9 +190,8 @@ export const useRealtimeSharedCalendars = (setSharedCalendarsData, setLoadingSta
     channelRef.current = { channel, deleteChannel };
     return () => {
       try {
-        if (channelRef.current) {
-          supabase.removeChannel(channelRef.current[0]);
-          supabase.removeChannel(channelRef.current[1]);
+        if (channelRef.current && typeof channelRef.current.unsubscribe === "function") {
+          channelRef.current.unsubscribe();
           channelRef.current = null;
         }
       } catch (err) {

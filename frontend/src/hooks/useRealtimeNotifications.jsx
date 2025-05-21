@@ -115,10 +115,8 @@ export const useRealtimeNotifications = (setNotificationsData, setLoadingStates)
 
     return () => {
       try {
-        if (channelRef.current) {
-          supabase.removeChannel(channelRef.current[0]);
-          supabase.removeChannel(channelRef.current[1]);
-          supabase.removeChannel(channelRef.current[2]);
+        if (channelRef.current && typeof channelRef.current.unsubscribe === "function") {
+          channelRef.current.unsubscribe();
           channelRef.current = null;
         }
       } catch (err) {

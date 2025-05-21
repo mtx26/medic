@@ -15,7 +15,7 @@ const LinkShareOptions = ({
   VITE_URL
 }) => {
   if (existingShareToken) {
-    const link = `${VITE_URL}/shared-token-calendar/${existingShareToken.token}`;
+    const link = `${VITE_URL}/shared-token-calendar/${existingShareToken.id}`;
     return (
       <>
         <p>Un lien existe déjà pour ce calendrier.</p>

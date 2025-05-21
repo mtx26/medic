@@ -34,7 +34,7 @@ def handle_shared_calendars():
 
         with get_connection() as conn:
             with conn.cursor() as cursor:
-                cursor.execute("SELECT * FROM shared_calendars WHERE receiver_uid = %s", (uid,))
+                cursor.execute("SELECT * FROM shared_calendars WHERE receiver_uid = %s AND accepted = true", (uid,))
                 shared_users = cursor.fetchall()
 
                 if not shared_users:
