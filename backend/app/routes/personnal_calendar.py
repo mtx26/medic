@@ -81,10 +81,9 @@ def handle_create_calendar():
                 log_extra={"calendar_name": calendar_name}
             )
 
-        calendar_id = secrets.token_hex(16)
         with get_connection() as conn:
             with conn.cursor() as cur:
-                cur.execute("INSERT INTO calendars (id, owner_uid, name) VALUES (%s, %s, %s)", (calendar_id, uid, calendar_name))
+                cur.execute("INSERT INTO calendars (owner_uid, name) VALUES (%s, %s, %s)", (uid, calendar_name))
                 conn.commit()
 
         return success_response(
@@ -140,17 +139,6 @@ def handle_delete_calendar():
 
                 cur.execute("DELETE FROM calendars WHERE id = %s AND owner_uid = %s", (calendar_id, uid))
                 conn.commit()
-
-
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute("SELECT * FROM shared_tokens WHERE calendar_id = %s AND owner_uid = %s", (calendar_id, uid))
-                shared_tokens = cur.fetchall()
-                for token in shared_tokens:
-                    token_data = token.to_dict()
-                    if token_data.get("owner_uid") == uid and token_data.get("calendar_id") == calendar_id:
-                        cur.execute("DELETE FROM shared_tokens WHERE id = %s AND owner_uid = %s", (token.id, uid))
-                        conn.commit()
 
         return success_response(
             message=SUCCESS_CALENDAR_DELETED, 

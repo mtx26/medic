@@ -293,10 +293,10 @@ def handle_delete_user_shared_calendar(calendar_id):
             
                 cursor.execute(
                     """
-                    INSERT INTO notifications (type, user_id, content, read) 
+                    INSERT INTO notifications (type, user_id, content, sender_uid) 
                     VALUES (%s, %s, %s::jsonb, %s)
                     """,
-                    ("calendar_shared_deleted_by_receiver", owner_uid, json.dumps({"calendar_id": calendar_id, "sender_uid": receiver_uid}), False)
+                    ("calendar_shared_deleted_by_receiver", owner_uid, json.dumps({"calendar_id": calendar_id}), receiver_uid )
                 )
 
         return success_response(
@@ -362,23 +362,24 @@ def handle_delete_user_shared_user(calendar_id, receiver_uid):
                     )
 
                 cursor.execute(
-                    "DELETE FROM notifications WHERE user_id = %s AND type = %s AND content = %s::jsonb",
+                    "DELETE FROM notifications WHERE user_id = %s AND type = %s AND content = %s::jsonb AND sender_uid = %s",
                     (
                         receiver_uid,
                         "calendar_invitation",
-                        json.dumps({"calendar_id": calendar_id, "sender_uid": owner_uid})
+                        json.dumps({"calendar_id": calendar_id}),
+                        owner_uid
                     )
                 )                
                 cursor.execute(
                     """
-                    INSERT INTO notifications (type, user_id, content, read) 
+                    INSERT INTO notifications (type, user_id, content, sender_uid) 
                     VALUES (%s, %s, %s::jsonb, %s)
                     """,
                     (
                         "calendar_shared_deleted_by_owner",
                         owner_uid,
-                        json.dumps({"calendar_id": calendar_id, "sender_uid": receiver_uid}),
-                        False
+                        json.dumps({"calendar_id": calendar_id}), 
+                        receiver_uid
                     )
                 )
 

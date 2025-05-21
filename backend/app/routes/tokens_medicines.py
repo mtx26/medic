@@ -28,21 +28,11 @@ def handle_token_medicines(token):
                 origin="TOKEN_MEDICINES_LOAD",
                 log_extra={"token": token}
             )
+            
 
         with get_connection() as conn:
             with conn.cursor() as cursor:
-                cursor.execute("SELECT * FROM shared_tokens WHERE id = %s", (token,))
-                token_data = cursor.fetchone()
-                if not token_data:
-                    return warning_response(
-                        message=WARNING_CALENDAR_NOT_FOUND,
-                        code="CALENDAR_NOT_FOUND",
-                        status_code=404,
-                        uid="unknown",
-                        origin="TOKEN_MEDICINES_LOAD",
-                        log_extra={"token": token}
-                    )
-
+                
                 calendar_id = token_data.get("calendar_id")
                 cursor.execute("SELECT * FROM medicines WHERE calendar_id = %s", (calendar_id,))
                 medicines = cursor.fetchall()

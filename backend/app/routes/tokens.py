@@ -116,13 +116,13 @@ def handle_create_token(calendar_id):
                     (calendar_id, expires_at, permissions, False, owner_uid)
                 )
 
-        return success_response(
-            message=SUCCESS_TOKEN_CREATED, 
-            code="TOKEN_CREATED", 
-            uid=owner_uid, 
-            origin="TOKEN_CREATE",
-            log_extra={"calendar_id": calendar_id}
-        )
+                return success_response(
+                    message=SUCCESS_TOKEN_CREATED, 
+                    code="TOKEN_CREATED", 
+                    uid=owner_uid, 
+                    origin="TOKEN_CREATE",
+                    log_extra={"calendar_id": calendar_id}
+                )
 
     except Exception as e:
         return error_response(
@@ -157,13 +157,13 @@ def handle_update_revoke_token(token):
             with conn.cursor() as cursor:
                 cursor.execute("UPDATE shared_tokens SET revoked = not revoked WHERE id = %s AND owner_uid = %s", (token, owner_uid))
 
-        return success_response(
-            message=SUCCESS_TOKEN_REACTIVATED, 
-            code="TOKEN_REACTIVATED", 
-            uid=owner_uid, 
-            origin="TOKEN_REVOKE", 
-            log_extra={"token": token}
-            )
+                return success_response(
+                    message=SUCCESS_TOKEN_REACTIVATED, 
+                    code="TOKEN_REACTIVATED", 
+                    uid=owner_uid, 
+                    origin="TOKEN_REVOKE", 
+                    log_extra={"token": token}
+                    )
 
     except Exception as e:
         return error_response(
@@ -206,13 +206,13 @@ def handle_update_token_expiration(token):
             with conn.cursor() as cursor:
                 cursor.execute("UPDATE shared_tokens SET expires_at = %s WHERE id = %s AND owner_uid = %s", (expires_at, token, owner_uid))
 
-        return success_response(
-            message=SUCCESS_TOKEN_EXPIRATION_UPDATED, 
-            code="TOKEN_EXPIRATION_UPDATED", 
-            uid=owner_uid, 
-            origin="TOKEN_EXPIRATION_UPDATE", 
-            log_extra={"token": token}
-        )
+                return success_response(
+                    message=SUCCESS_TOKEN_EXPIRATION_UPDATED, 
+                    code="TOKEN_EXPIRATION_UPDATED", 
+                    uid=owner_uid, 
+                    origin="TOKEN_EXPIRATION_UPDATE", 
+                    log_extra={"token": token}
+                )
 
     except Exception as e:
         return error_response(
@@ -251,13 +251,13 @@ def handle_update_token_permissions(token):
             with conn.cursor() as cursor:
                 cursor.execute("UPDATE shared_tokens SET permissions = %s WHERE id = %s AND owner_uid = %s", (permissions, token, owner_uid))
 
-        return success_response(
-            message=SUCCESS_TOKEN_PERMISSIONS_UPDATED, 
-            code="TOKEN_PERMISSIONS_UPDATED", 
-            uid=owner_uid, 
-            origin="TOKEN_PERMISSIONS_UPDATE", 
-            log_extra={"token": token}
-        )
+                return success_response(
+                    message=SUCCESS_TOKEN_PERMISSIONS_UPDATED, 
+                    code="TOKEN_PERMISSIONS_UPDATED", 
+                    uid=owner_uid, 
+                    origin="TOKEN_PERMISSIONS_UPDATE", 
+                    log_extra={"token": token}
+                )
 
     except Exception as e:
         return error_response(
@@ -321,17 +321,17 @@ def handle_generate_token_schedule(token):
                     )
 
 
-        schedule = generate_schedule(start_date, medicines)
-        table = generate_table(start_date, medicines)
+                schedule = generate_schedule(start_date, medicines)
+                table = generate_table(start_date, medicines)
 
-        return success_response(
-            message=SUCCESS_CALENDAR_GENERATED, 
-            code="CALENDAR_GENERATED_SUCCESS", 
-            uid="unknown",
-            origin="TOKEN_GENERATE_SCHEDULE", 
-            data={"medicines": len(medicines), "schedule": schedule, "calendar_name": calendar_name, "table": table},
-            log_extra={"token": token}
-        )
+                return success_response(
+                    message=SUCCESS_CALENDAR_GENERATED, 
+                    code="CALENDAR_GENERATED_SUCCESS", 
+                    uid="unknown",
+                    origin="TOKEN_GENERATE_SCHEDULE", 
+                    data={"medicines": len(medicines), "schedule": schedule, "calendar_name": calendar_name, "table": table},
+                    log_extra={"token": token}
+                )
 
     except Exception as e:
         return error_response(
@@ -375,17 +375,14 @@ def get_token_metadata(token):
                 calendar_id = token_data.get("calendar_id")
                 owner_uid = token_data.get("owner_uid")
 
-        return success_response(
-            message=SUCCESS_TOKEN_METADATA_FETCHED,
-            code="TOKEN_METADATA_SUCCESS",
-            origin="TOKEN_METADATA_FETCH",
-            uid="unknown",
-            data={
-                "calendar_id": calendar_id,
-                "owner_uid": owner_uid,
-            },
-            log_extra={"token": token}
-        )
+                return success_response(
+                    message=SUCCESS_TOKEN_METADATA_FETCHED,
+                    code="TOKEN_METADATA_SUCCESS",
+                    origin="TOKEN_METADATA_FETCH",
+                    uid="unknown",
+                    data={"calendar_id": calendar_id, "owner_uid": owner_uid,},
+                    log_extra={"token": token}
+                )
 
     except Exception as e:
         return error_response(
@@ -420,13 +417,13 @@ def handle_delete_token(token):
             with conn.cursor() as cursor:
                 cursor.execute("DELETE FROM shared_tokens WHERE id = %s", (token,))
 
-        return success_response(
-            message=SUCCESS_TOKEN_DELETED, 
-            code="TOKEN_DELETE_SUCCESS", 
-            uid=owner_uid, 
-            origin="TOKEN_DELETE", 
-            log_extra={"token": token}
-        )
+                return success_response(
+                    message=SUCCESS_TOKEN_DELETED, 
+                    code="TOKEN_DELETE_SUCCESS", 
+                    uid=owner_uid, 
+                    origin="TOKEN_DELETE", 
+                    log_extra={"token": token}
+                )
 
     except Exception as e:
         return error_response(

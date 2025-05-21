@@ -90,8 +90,8 @@ def handle_send_invitation(calendar_id):
                     VALUES (%s, %s, %s, %s)
                     """,
                     (
-                        receiver_uid,                         # user_id
-                        "calendar_invitation",               # type
+                        receiver_uid,
+                        "calendar_invitation",
                         json.dumps({
                             "calendar_id": calendar_id
                         }),
@@ -162,7 +162,7 @@ def handle_accept_invitation(notification_id):
                     )
                 
                 calendar_id = notification.get("content").get("calendar_id")
-                sender_uid = notification.get("content").get("sender_uid")
+                sender_uid = notification.get("sender_uid")
 
                 # Dire que l'utilisateur receveur a accepté l'invitation
                 cursor.execute(
@@ -244,7 +244,7 @@ def handle_reject_invitation(notification_id):
                     )
 
                 calendar_id = notification.get("content").get("calendar_id")
-                owner_uid = notification.get("content").get("sender_uid")
+                owner_uid = notification.get("sender_uid")
 
                 # Supprimer la notif
                 cursor.execute(
