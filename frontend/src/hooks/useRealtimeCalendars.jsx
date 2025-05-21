@@ -1,9 +1,9 @@
 import { useEffect, useContext, useRef } from "react";
-import { auth, db, analytics } from "../services/firebase";
-import { onSnapshot, collection } from "firebase/firestore";
+import { auth, analytics } from "../services/firebase";
 import { log } from "../utils/logger";
 import { UserContext } from '../contexts/UserContext';
 import { logEvent } from "firebase/analytics";
+import { supabase } from "../services/supabaseClient";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -20,7 +20,7 @@ const fetchCalendars = async (user, setCalendarsData, setLoadingStates) => {
     if (!res.ok) throw new Error(data.error);
 
     const sortedCalendars = data.calendars.sort((a, b) =>
-      a.calendar_name.localeCompare(b.calendar_name)
+      a.name.localeCompare(b.name)
     );
 
     setCalendarsData(sortedCalendars);
@@ -31,7 +31,6 @@ const fetchCalendars = async (user, setCalendarsData, setLoadingStates) => {
       count: data.calendars?.length,
     });
   } catch (err) {
-    console.error("[useRealtimeCalendars] Failed to fetch calendars", err);
     setLoadingStates(prev => ({ ...prev, calendars: false }));
   }
 };
@@ -70,21 +69,9 @@ const fetchSharedCalendars = async (user, setSharedCalendarsData, setLoadingStat
   }
 };
 
-const listenToFirestoreChanges = (ref, delay, callback) => {
-  const timeoutRef = { current: null };
-
-  const unsubscribe = onSnapshot(ref, () => {
-    clearTimeout(timeoutRef.current);
-    timeoutRef.current = setTimeout(callback, delay);
-  });
-
-  return { unsubscribe, timeoutRef };
-};
-
-export const useRealtimeCalendars = (setCalendarsData, setLoadingStates) => { 
+export const useRealtimeCalendars = (setCalendarsData, setLoadingStates) => {
   const { currentUser, authReady } = useContext(UserContext);
-  const timeoutRef = useRef(null);
-  const unsubscribeRef = useRef(null);
+  const channelRef = useRef(null);
 
   useEffect(() => {
     if (!(authReady && currentUser)) {
@@ -98,28 +85,60 @@ export const useRealtimeCalendars = (setCalendarsData, setLoadingStates) => {
       return;
     }
 
-    const calendarsRef = collection(db, "users", user.uid, "calendars");
+    fetchCalendars(user, setCalendarsData, setLoadingStates);
 
-    const { unsubscribe, timeoutRef } = listenToFirestoreChanges(
-      calendarsRef,
-      250,
-      () => fetchCalendars(user, setCalendarsData, setLoadingStates)
-    );
-    unsubscribeRef.current = unsubscribe;    
+    // Abonnement realtime Supabase
+    const channel = supabase
+      .channel('calendars-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'calendars',
+          filter: `owner_uid=eq.${user.uid}`,
+        },
+        () => {
+          fetchCalendars(user, setCalendarsData, setLoadingStates);
+        }
+      )
+      .subscribe();
+
+    const deleteChannel = supabase
+      .channel('calendars-delete-watch')
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'calendars',
+        },
+        () => {
+          fetchCalendars(user, setCalendarsData, setLoadingStates);
+        }
+      )
+      .subscribe();
+
+    channelRef.current = { channel, deleteChannel };
 
     return () => {
-      if (unsubscribeRef.current) unsubscribeRef.current();
-      clearTimeout(timeoutRef.current);
+      try {
+        if (channelRef.current && typeof channelRef.current.unsubscribe === "function") {
+          channelRef.current.unsubscribe();
+          channelRef.current = null;
+        }
+      } catch (err) {
+        log.error(err.message, err, {
+          origin: "REALTIME_CALENDARS_INIT_ERROR",
+        });
+      }
     };
-
   }, [authReady, currentUser, setCalendarsData, setLoadingStates]);
-}
-
+};
 
 export const useRealtimeSharedCalendars = (setSharedCalendarsData, setLoadingStates) => {
   const { currentUser, authReady } = useContext(UserContext);
-  const timeoutRef = useRef(null);
-  const unsubscribeRef = useRef(null);
+  const channelRef = useRef(null);
 
   useEffect(() => {
     if (!(authReady && currentUser)) {
@@ -133,19 +152,52 @@ export const useRealtimeSharedCalendars = (setSharedCalendarsData, setLoadingSta
       return;
     }
 
-    const sharedCalendarsRef = collection(db, "users", user.uid, "shared_calendars");
+    fetchSharedCalendars(user, setSharedCalendarsData, setLoadingStates);
 
-    const { unsubscribe, timeoutRef } = listenToFirestoreChanges(
-      sharedCalendarsRef,
-      250,
-      () => fetchSharedCalendars(user, setSharedCalendarsData, setLoadingStates)
-    );
-    unsubscribeRef.current = unsubscribe;
+    // Abonnement realtime Supabase pour les shared_calendars
+    const channel = supabase
+      .channel('shared-calendars-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'shared_calendars',
+          filter: `receiver_uid=eq.${user.uid}`,
+        },
+        () => {
+          fetchSharedCalendars(user, setSharedCalendarsData, setLoadingStates);
+        }
+      )
+      .subscribe();
 
+    const deleteChannel = supabase
+      .channel('shared-calendars-delete-watch')
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'shared_calendars',
+        },
+        () => {
+          fetchSharedCalendars(user, setSharedCalendarsData, setLoadingStates);
+        }
+      )
+      .subscribe();
+
+    channelRef.current = { channel, deleteChannel };
     return () => {
-      if (unsubscribeRef.current) unsubscribeRef.current();
-      clearTimeout(timeoutRef.current);
+      try {
+        if (channelRef.current && typeof channelRef.current.unsubscribe === "function") {
+          channelRef.current.unsubscribe();
+          channelRef.current = null;
+        }
+      } catch (err) {
+        log.error(err.message, err, {
+          origin: "REALTIME_SHARED_CALENDARS_INIT_ERROR",
+        });
+      }
     };
   }, [authReady, currentUser, setSharedCalendarsData, setLoadingStates]);
-}
-
+};

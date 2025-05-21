@@ -66,19 +66,19 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
     const loadCounts = async () => {
       const counts = {};
       for (const calendarData of personalCalendars.calendarsData) {
-        const rep = await personalCalendars.fetchPersonalCalendarMedicineCount(calendarData.calendar_id);
+        const rep = await personalCalendars.fetchPersonalCalendarMedicineCount(calendarData.id);
         if (rep.success) {
-          counts[calendarData.calendar_id] = rep.count;
+          counts[calendarData.id] = rep.count;
         } else {
-          counts[calendarData.calendar_id] = 0;
+          counts[calendarData.id] = 0;
         }
       }
       for (const calendarData of sharedUserCalendars.sharedCalendarsData) {
-        const rep = await sharedUserCalendars.fetchSharedUserCalendarMedicineCount(calendarData.calendar_id, calendarData.owner_uid);
+        const rep = await sharedUserCalendars.fetchSharedUserCalendarMedicineCount(calendarData.id, calendarData.owner_uid);
         if (rep.success) {
-          counts[calendarData.calendar_id] = rep.count;
+          counts[calendarData.id] = rep.count;
         } else {
-          counts[calendarData.calendar_id] = 0;
+          counts[calendarData.id] = 0;
         }
       }
       setCount(counts); 
@@ -190,7 +190,7 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
             key={index}
             className="list-group-item"
           >
-            {selectedAlert === "calendar"+calendarData.calendar_id && (
+            {selectedAlert === "calendar"+calendarData.id && (
               <AlertSystem
                 type={alertType}
                 message={alertMessage}
@@ -207,11 +207,11 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
             <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
             {/* Partie gauche : Nom du calendrier et nombre de médicaments */}
             <div className="flex-grow-1">
-              <strong>{calendarData.calendar_name}</strong>
+              <strong>{calendarData.name}</strong>
               <div className="text-muted small">
               Nombre de médicaments :
               <span className="fw-semibold ms-1">
-                {count[calendarData.calendar_id] ?? "..."}
+                {count[calendarData.id] ?? "..."}
               </span>
               </div>
             </div>
@@ -219,19 +219,19 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
             {/* Partie pour renommer un calendrier */}
             <div className="input-group input-group w-100 w-md-auto">
               <input
-              id={"renameCalendarName"+calendarData.calendar_id}
+              id={"renameCalendarName"+calendarData.id}
               type="text"
               className="form-control form-control"
               placeholder="Nouveau nom"
-              value={renameValues[calendarData.calendar_id] || ""} // Valeur du champ de renommage
+              value={renameValues[calendarData.id] || ""} // Valeur du champ de renommage
               onChange={(e) =>
-                setRenameValues({ ...renameValues, [calendarData.calendar_id]: e.target.value }) // Mise à jour de l'état
+                setRenameValues({ ...renameValues, [calendarData.id]: e.target.value }) // Mise à jour de l'état
               }
               />
               <button
                 className="btn btn-warning"
                 title="Renommer"
-                onClick={() => handleRenameClick(calendarData.calendar_id)}
+                onClick={() => handleRenameClick(calendarData.id)}
               >
               <i className="bi bi-pencil"></i>
               </button>
@@ -243,7 +243,7 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
                 type="button"
                 className="btn btn-outline-success"
                 title="Ouvrir"
-                onClick={() => navigate('/calendar/' + calendarData.calendar_id)} // Navigation vers le calendrier
+                onClick={() => navigate('/calendar/' + calendarData.id)} // Navigation vers le calendrier
               >
               Ouvrir
               </button>
@@ -253,13 +253,13 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
                 className="btn btn-outline-warning"
                 title="Partager"
                 onClick={async () => {
-                  setCalendarNameToShare(calendarData.calendar_name);  // On retient quel calendrier partager
-                  setCalendarIdToShare(calendarData.calendar_id);
+                  setCalendarNameToShare(calendarData.name);  // On retient quel calendrier partager
+                  setCalendarIdToShare(calendarData.id);
                   setExistingShareToken(null);
                   const token = await tokenCalendars.tokensList.find(
-                    (t) => t.calendar_id === calendarData.calendar_id && !t.revoked && t.owner_uid === currentUser.uid
+                    (t) => t.calendar_id === calendarData.id && !t.revoked && t.owner_uid === currentUser.uid
                   );
-                  const rep = await sharedUserCalendars.fetchSharedUsers(calendarData.calendar_id);
+                  const rep = await sharedUserCalendars.fetchSharedUsers(calendarData.id);
                   if (rep.success) {
                     setSharedUsersData(rep.users);
                   }
@@ -277,10 +277,10 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
               title="Supprimer"
               onClick={() => {
                 setAlertType("confirm-danger");
-                setSelectedAlert("calendar"+calendarData.calendar_id);
+                setSelectedAlert("calendar"+calendarData.id);
                 setAlertMessage("❌ Supprimer le calendrier ?");
                 setOnConfirmAction(() => async () => {
-                  await personalCalendars.deleteCalendar(calendarData.calendar_id);
+                  await personalCalendars.deleteCalendar(calendarData.id);
                 });
               }}
               >
@@ -325,12 +325,12 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
           <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
             <div className="flex-grow-1">
               <strong>
-                {calendarData.calendar_name}{" "}
+                {calendarData.name}{" "}
               </strong>
               <div className="text-muted small">
                 Nombre de médicaments :
                 <span className="fw-semibold ms-1">
-                  {count[calendarData.calendar_id] ?? "..."}
+                  {count[calendarData.id] ?? "..."}
                 </span>
               </div>
               <div className="text-muted small d-flex align-items-center ">
@@ -359,7 +359,7 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
                 type="button"
                 className="btn btn-outline-success"
                 title="Ouvrir"
-                onClick={() => navigate('/shared-user-calendar/' + calendarData.calendar_id)}
+                onClick={() => navigate('/shared-user-calendar/' + calendarData.id)}
               >
                 Ouvrir
               </button>
@@ -372,7 +372,7 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
                   setSelectedAlert("sharedCalendar");
                   setAlertMessage("❌ Supprimer le calendrier partagé ?");
                   setOnConfirmAction(() => async () => {
-                    const rep = await sharedUserCalendars.deleteSharedCalendar(calendarData.calendar_id);
+                    const rep = await sharedUserCalendars.deleteSharedCalendar(calendarData.id);
                     if (rep.success) {
                       setAlertType("success");
                       setSelectedAlert("sharedCalendar");

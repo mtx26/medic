@@ -1,9 +1,9 @@
 import { useEffect, useContext, useRef } from "react";
-import { collection, onSnapshot } from "firebase/firestore";
-import { auth, db, analytics } from "../services/firebase";
+import { auth, analytics } from "../services/firebase";
 import { UserContext } from "../contexts/UserContext";
 import { log } from "../utils/logger";
 import { logEvent } from "firebase/analytics";
+import { supabase } from "../services/supabaseClient";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -108,17 +108,6 @@ const fetchSharedUserMedicines = async (user, calendarId, setMedicinesData, setO
   }
 };
 
-const listenWithDelay = (ref, delay, callback) => {
-  const timeoutRef = { current: null };
-
-  const unsubscribe = onSnapshot(ref, () => {
-    clearTimeout(timeoutRef.current);
-    timeoutRef.current = setTimeout(callback, delay);
-  });
-
-  return { unsubscribe, timeoutRef };
-};
-
 export const useRealtimePersonalMedicines = (
   calendarId,
   setMedicinesData,
@@ -126,8 +115,7 @@ export const useRealtimePersonalMedicines = (
   setLoadingMedicines
 ) => {
   const { currentUser, authReady } = useContext(UserContext);
-  const timeoutRef = useRef(null);
-  const unsubscribeRef = useRef(null);
+  const channelRef = useRef(null);
 
   useEffect(() => {
     if (!authReady || !currentUser || !calendarId) {
@@ -141,52 +129,76 @@ export const useRealtimePersonalMedicines = (
       return;
     }
 
-    const medRef = collection(db, "users", user.uid, "calendars", calendarId, "medicines");
+    // Fetch initial
+    fetchPersonalMedicines(user, calendarId, setMedicinesData, setOriginalMedicinesData, setLoadingMedicines);
 
-    const { unsubscribe, timeoutRef: tRef } = listenWithDelay(
-      medRef,
-      250,
-      () => fetchPersonalMedicines(user, calendarId, setMedicinesData, setOriginalMedicinesData, setLoadingMedicines)
-    );
-    unsubscribeRef.current = unsubscribe;
-    timeoutRef.current = tRef.current;
+    // Supabase realtime
+    const channel = supabase
+      .channel(`personal-meds-${calendarId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'medicines',
+          filter: `calendar_id=eq.${calendarId}`,
+        },
+        () => {
+          fetchPersonalMedicines(user, calendarId, setMedicinesData, setOriginalMedicinesData, setLoadingMedicines);
+        }
+      )
+      .subscribe();
+
+    channelRef.current = channel;
 
     return () => {
-      if (unsubscribeRef.current) unsubscribeRef.current();
-      clearTimeout(timeoutRef.current);
+      if (channelRef.current && typeof channelRef.current.unsubscribe === "function") {
+        channelRef.current.unsubscribe();
+        channelRef.current = null;
+      }
     };
-  }, [authReady, currentUser, calendarId, setMedicinesData, setOriginalMedicinesData, setLoadingMedicines]);
+  }, [authReady, currentUser, calendarId]);
 };
-
 
 export const useRealtimeTokenMedicines = (
   token,
   setMedicinesData,
   setLoadingMedicines
 ) => {
-  const timeoutRef = useRef(null);
-  const unsubscribeRef = useRef(null); // 🔧 pour clean up correct
+  const channelRef = useRef(null);
 
   useEffect(() => {
     if (!token) return;
-  
+
     const initListener = async () => {
       try {
-        const res = await fetch(`${API_URL}/api/tokens/${token}`, {
-          method: "GET",
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await fetch(`${API_URL}/api/tokens/${token}`);
         const data = await res.json();
         if (!res.ok) throw new Error(data.error);
-  
-        const medRef = collection(db, "users", data.owner_uid, "calendars", data.calendar_id, "medicines");
-        const { unsubscribe, timeoutRef: tRef } = listenWithDelay(
-          medRef,
-          250,
-          () => fetchTokenMedicines(token, setMedicinesData, setLoadingMedicines)
-        );
-        unsubscribeRef.current = unsubscribe;
-        timeoutRef.current = tRef.current;
+
+        const { calendar_id } = data;
+
+        // Fetch initial
+        await fetchTokenMedicines(token, setMedicinesData, setLoadingMedicines);
+
+        // Supabase realtime
+        const channel = supabase
+          .channel(`token-meds-${calendar_id}`)
+          .on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: 'medicines',
+              filter: `calendar_id=eq.${calendar_id}`,
+            },
+            () => {
+              fetchTokenMedicines(token, setMedicinesData, setLoadingMedicines);
+            }
+          )
+          .subscribe();
+
+        channelRef.current = channel;
       } catch (err) {
         setLoadingMedicines(false);
         log.error(err.message, err, {
@@ -195,18 +207,24 @@ export const useRealtimeTokenMedicines = (
         });
       }
     };
-  
-    initListener();
-  
-    return () => {
-      if (unsubscribeRef.current) unsubscribeRef.current();
-      clearTimeout(timeoutRef.current);
-    };
-  }, [token, setMedicinesData, setLoadingMedicines]);
-  
-};
 
-  
+    initListener();
+
+    return () => {
+      try {
+        if (channelRef.current && typeof channelRef.current.unsubscribe === "function") {
+          channelRef.current.unsubscribe();
+          channelRef.current = null;
+        }
+      } catch (err) {
+        log.error(err.message, err, {
+          origin: "REALTIME_TOKEN_INIT_ERROR",
+          token,
+        });
+      }
+    };
+  }, [token]);
+};
 
 export const useRealtimeSharedUserMedicines = (
   calendarId,
@@ -215,8 +233,7 @@ export const useRealtimeSharedUserMedicines = (
   setLoadingMedicines
 ) => {
   const { currentUser, authReady } = useContext(UserContext);
-  const timeoutRef = useRef(null); // 🔧 manquant
-  const unsubscribeRef = useRef(null);
+  const channelRef = useRef(null);
 
   useEffect(() => {
     if (!calendarId || !authReady || !currentUser) {
@@ -234,28 +251,32 @@ export const useRealtimeSharedUserMedicines = (
       try {
         const token = await user.getIdToken();
         const res = await fetch(`${API_URL}/api/shared/users/calendars/${calendarId}`, {
-          method: "GET",
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error);
 
-        const medRef = collection(
-          db,
-          "users",
-          data.owner_uid,
-          "calendars",
-          calendarId,
-          "medicines"
-        );
+        // Fetch initial
+        fetchSharedUserMedicines(user, calendarId, setMedicinesData, setOriginalMedicinesData, setLoadingMedicines);
 
-        const { unsubscribe, timeoutRef: tRef } = listenWithDelay(
-          medRef,
-          250,
-          () => fetchSharedUserMedicines(user, calendarId, setMedicinesData, setOriginalMedicinesData, setLoadingMedicines)
-        );
-        unsubscribeRef.current = unsubscribe;
-        timeoutRef.current = tRef.current;
+        // Supabase realtime
+        const channel = supabase
+          .channel(`shared-user-meds-${calendarId}`)
+          .on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: 'medicines',
+              filter: `calendar_id=eq.${calendarId}`,
+            },
+            () => {
+              fetchSharedUserMedicines(user, calendarId, setMedicinesData, setOriginalMedicinesData, setLoadingMedicines);
+            }
+          )
+          .subscribe();
+
+        channelRef.current = channel;
       } catch (err) {
         setLoadingMedicines(false);
         log.error(err.message, err, {
@@ -269,8 +290,18 @@ export const useRealtimeSharedUserMedicines = (
     initListener();
 
     return () => {
-      if (unsubscribeRef.current) unsubscribeRef.current();
-      clearTimeout(timeoutRef.current);
+      try { 
+        if (channelRef.current && typeof channelRef.current.unsubscribe === "function") {
+          channelRef.current.unsubscribe();
+          channelRef.current = null;
+        }
+      } catch (err) {
+        log.error(err.message, err, {
+          origin: "REALTIME_SHARED_USER_MEDICINES_ERROR",
+          calendarId,
+          uid: user?.uid,
+        });
+      }
     };
-  }, [calendarId, authReady, currentUser, setMedicinesData, setOriginalMedicinesData, setLoadingMedicines]);
+  }, [calendarId, authReady, currentUser]);
 };

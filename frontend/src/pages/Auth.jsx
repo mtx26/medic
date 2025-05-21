@@ -112,6 +112,7 @@ function Auth() {
                 <input
                   type="text"
                   className="form-control"
+                  id="name"
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -124,6 +125,7 @@ function Auth() {
               <input
                 type="email"
                 className="form-control"
+                id="email"
                 required
                 value={email}
                 autoComplete="email"
@@ -136,6 +138,7 @@ function Auth() {
               <input
                 type={passwordVisible ? "text" : "password"}
                 className="form-control"
+                id="password"
                 required
                 value={password}
                 autoComplete="current-password"
@@ -156,7 +159,7 @@ function Auth() {
 
             {activeTab === "register" && (
               <div className="form-check mb-3 text-left">
-                <input className="form-check-input" type="checkbox" required id="terms" />
+                <input className="form-check-input" type="checkbox" required id="terms" name="terms"/>
                 <label className="form-check-label" htmlFor="terms">
                   J’accepte les <Link to="/terms" className="text-decoration-none">conditions générales</Link>
                 </label>

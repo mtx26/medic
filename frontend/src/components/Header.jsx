@@ -66,7 +66,7 @@ function Navbar({ sharedProps }) {
                     <>
                       {notificationsData.filter(notif => !notif.read).slice(0, 5).map((notif) => (
                         <div key={notif.notification_id}>
-                          {notif.type === "calendar_invitation" && (
+                          {notif.notification_type === "calendar_invitation" && (
                             <li 
                               key={notif.notification_id} 
                               className="dropdown-item py-2 fs-6 bg-light border-start border-4 border-primary p-2 rounded"
@@ -81,11 +81,11 @@ function Navbar({ sharedProps }) {
                                   <i className="bi bi-person-plus-fill me-2 text-primary"></i>
                                   <HoveredUserProfile
                                     user={{
-                                      photo_url: notif.owner_photo_url,
-                                      display_name: notif.owner_name,
-                                      email: notif.owner_email
+                                      photo_url: notif.sender_photo_url,
+                                      display_name: notif.sender_name,
+                                      email: notif.sender_email
                                     }}
-                                    trigger={<strong>{notif.owner_name}</strong>}
+                                    trigger={<strong>{notif.sender_name}</strong>}
                                   />
                                   {" "}vous invite à rejoindre son calendrier <strong>{notif.calendar_name}</strong>
                                 </p>
@@ -110,7 +110,7 @@ function Navbar({ sharedProps }) {
                               </div>
                             </li>
                           )}
-                          {notif.type === "calendar_invitation_accepted" && (
+                          {notif.notification_type === "calendar_invitation_accepted" && (
                             <li 
                               key={notif.notification_id} 
                               className="dropdown-item py-2 fs-6 bg-light border-start border-4 border-primary p-2 rounded"
@@ -124,11 +124,11 @@ function Navbar({ sharedProps }) {
                                 <i className="bi bi-check-circle-fill me-2 text-success"></i>
                                 <HoveredUserProfile
                                   user={{
-                                    photo_url: notif.receiver_photo_url,
-                                    display_name: notif.receiver_name,
-                                    email: notif.receiver_email
+                                    photo_url: notif.sender_photo_url,
+                                    display_name: notif.sender_name,
+                                    email: notif.sender_email
                                   }}
-                                  trigger={<strong>{notif.receiver_name}</strong>}
+                                  trigger={<strong>{notif.sender_name}</strong>}
                                 />
                                 {" "}a accepté votre invitation pour rejoindre le calendrier <strong>{notif.calendar_name}</strong>
                               </p>
@@ -139,7 +139,7 @@ function Navbar({ sharedProps }) {
                               </small>
                             </li>
                           )}
-                          {notif.type === "calendar_invitation_rejected" && (
+                          {notif.notification_type === "calendar_invitation_rejected" && (
                             <li 
                               key={notif.notification_id} 
                               className="dropdown-item py-2 fs-6 bg-light border-start border-4 border-primary p-2 rounded"
@@ -153,11 +153,11 @@ function Navbar({ sharedProps }) {
                                 <i className="bi bi-x-circle-fill me-2 text-danger"></i>
                                 <HoveredUserProfile
                                   user={{
-                                    photo_url: notif.receiver_photo_url,
-                                    display_name: notif.receiver_name,
-                                    email: notif.receiver_email
+                                    photo_url: notif.sender_photo_url,
+                                    display_name: notif.sender_name,
+                                    email: notif.sender_email
                                   }}
-                                  trigger={<strong>{notif.receiver_name}</strong>}
+                                  trigger={<strong>{notif.sender_name}</strong>}
                                 />
                                 {" "}a rejeté votre invitation pour rejoindre le calendrier <strong>{notif.calendar_name}</strong>
                               </p>
@@ -168,7 +168,7 @@ function Navbar({ sharedProps }) {
                               </small>            
                             </li>
                           )}
-                          {notif.type === "calendar_shared_deleted_by_owner" && (
+                          {notif.notification_type === "calendar_shared_deleted_by_owner" && (
                             <li 
                               key={notif.notification_id} 
                               className="dropdown-item py-2 fs-6 bg-light border-start border-4 border-primary p-2 rounded"
@@ -182,11 +182,11 @@ function Navbar({ sharedProps }) {
                                 <i className="bi bi-trash-fill me-2 text-danger"></i>
                                 <HoveredUserProfile
                                   user={{
-                                    photo_url: notif.owner_photo_url,
-                                    display_name: notif.owner_name,
-                                    email: notif.owner_email
+                                    photo_url: notif.sender_photo_url,
+                                    display_name: notif.sender_name,
+                                    email: notif.sender_email
                                   }}
-                                  trigger={<strong>{notif.owner_name}</strong>}
+                                  trigger={<strong>{notif.sender_name}</strong>}
                                 />
                                 {" "}a arrêté de partager le calendrier <strong>{notif.calendar_name}</strong> avec vous
                               </p>
@@ -197,7 +197,7 @@ function Navbar({ sharedProps }) {
                               </small>
                             </li>
                           )}
-                          {notif.type === "calendar_shared_deleted_by_receiver" && (
+                          {notif.notification_type === "calendar_shared_deleted_by_receiver" && (
                             <li 
                               key={notif.notification_id} 
                               className="dropdown-item py-2 fs-6 bg-light border-start border-4 border-primary p-2 rounded"
@@ -211,11 +211,11 @@ function Navbar({ sharedProps }) {
                                 <i className="bi bi-trash-fill me-2 text-danger"></i>
                                 <HoveredUserProfile
                                   user={{
-                                    photo_url: notif.receiver_photo_url,
-                                    display_name: notif.receiver_name,
-                                    email: notif.receiver_email
+                                    photo_url: notif.sender_photo_url,
+                                    display_name: notif.sender_name,
+                                    email: notif.sender_email
                                   }}
-                                  trigger={<strong>{notif.receiver_name}</strong>}
+                                  trigger={<strong>{notif.sender_name}</strong>}
                                 />
                                 {" "}a retiré le calendrier <strong>{notif.calendar_name}</strong> que vous lui aviez partagé.
                               </p>

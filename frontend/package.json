@@ -9,6 +9,7 @@
     "@fullcalendar/react": "^6.1.17",
     "@popperjs/core": "^2.11.8",
     "@radix-ui/react-popover": "^1.1.12",
+    "@supabase/supabase-js": "^2.49.5",
     "bootstrap": "^5.3.3",
     "date-fns": "^4.1.0",
     "firebase": "^11.7.1",
@@ -16,7 +17,8 @@
     "react": "^19.1.0",
     "react-calendar": "^5.1.0",
     "react-dom": "^19.1.0",
-    "react-router-dom": "^7.6.0"
+    "react-router-dom": "^7.6.0",
+    "uuid": "^11.1.0"
   },
   "scripts": {
     "dev": "vite",

@@ -15,12 +15,12 @@ const LinkShareOptions = ({
   VITE_URL
 }) => {
   if (existingShareToken) {
-    const link = `${VITE_URL}/shared-token-calendar/${existingShareToken.token}`;
+    const link = `${VITE_URL}/shared-token-calendar/${existingShareToken.id}`;
     return (
       <>
         <p>Un lien existe déjà pour ce calendrier.</p>
         <div className="input-group">
-          <input type="text" className="form-control" value={link} readOnly />
+          <input type="text" className="form-control" value={link} id={"existingShareTokenLink-"+existingShareToken.id} readOnly />
           <button
             className="btn btn-outline-warning"
             onClick={() => {
@@ -60,6 +60,7 @@ const LinkShareOptions = ({
         <input
           type="datetime-local"
           className="form-control"
+          id={"newTokenExpiration-"+new Date().getTime()}
           value={expiresAt}
           onChange={(e) => setExpiresAt(e.target.value)}
         />
@@ -122,6 +123,7 @@ const AccountShareOptions = ({
         placeholder="Email du destinataire"
         value={emailToInvite}
         onChange={(e) => setEmailToInvite(e.target.value)}
+        id="emailToInvite"
       />
       <button
         type="button"

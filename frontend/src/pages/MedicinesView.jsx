@@ -6,7 +6,7 @@ import { useRealtimeMedicinesSwitcher } from '../hooks/useRealtimeMedicinesSwitc
 import { getCalendarSourceMap } from '../utils/calendarSourceMap';
 import { useContext } from 'react';
 import { UserContext } from '../contexts/UserContext';
-
+import { formatToLocalISODate } from '../utils/dateUtils';
 
 function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
   // 📍 Paramètres d'URL et navigation
@@ -77,44 +77,28 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
     setGroupedMedicines(result);
   };   
 
+
   // 🔄 Détection des modifications
   const isFieldChanged = (id, field) => {
+    if (!originalMedicinesData) return false;
     const original = originalMedicinesData.find(med => med.id === id);
     const current = medicinesData.find(med => med.id === id);
     if (!original || !current) return false;
     return JSON.stringify(original[field]) !== JSON.stringify(current[field]);
   };
 
+  // 🔄 Détection des nouveaux médicaments
   const isNewMed = (id) => {
+    if (!originalMedicinesData) return false;
     return !originalMedicinesData.some((med) => med.id === id);
   };  
-  
-  // 🔄 Gestion des modifications
-  const handleMedChange = (id, field, value) => {
-    const index = medicinesData.findIndex((med) => med.id === id);
-    if (index === -1) return; // id introuvable, on ne fait rien
-  
-    const updated = [...medicinesData]; // copie du tableau
-    const numericFields = ['tablet_count', 'interval_days'];
-  
-    if (field === 'time') {
-      updated[index][field] = [value];
-    } else if (numericFields.includes(field)) {
-      updated[index][field] = value === '' ? '' : parseFloat(value);
-    } else {
-      updated[index][field] = value;
-    }
-  
-    setMedicinesData(updated);
-    setHighlightedField({ id, field });
-  };
-  
+
   // 🔄 Validation des médicaments
   const getMedFieldValidity = (med) => {
     if (!med || typeof med !== 'object') return {
       name: false,
       tablet_count: false,
-      time: false,
+      time_of_day: false,
       interval_days: false,
       start_date: false
     };
@@ -124,27 +108,75 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
       tablet_count: med.tablet_count !== '' &&
                     med.tablet_count !== null &&
                     !isNaN(parseFloat(med.tablet_count)),
-      time: Array.isArray(med.time) &&
-            med.time.length > 0 &&
-            ['morning', 'noon', 'evening'].includes(med.time[0]),
+      time_of_day: ['morning', 'noon', 'evening'].includes(med.time_of_day),
       interval_days: med.interval_days !== '' &&
-                     med.interval_days !== null &&
-                     !isNaN(parseInt(med.interval_days)),
+                      med.interval_days !== null &&
+                      !isNaN(parseInt(med.interval_days)),
       start_date: parseInt(med.interval_days) === 1 ||
                   (typeof med.start_date === 'string' && med.start_date.trim() !== '')
     };
   };
-
   const allMedsValid = medicinesData.length > 0 && medicinesData.every(
     (med) => {
       const validity = getMedFieldValidity(med);
       return Object.values(validity).every(Boolean);
     }
   );
+  
+  // 🔄 Gestion des modifications
+  const handleMedChange = (id, field, value) => {
+    const index = medicinesData.findIndex((med) => med.id === id);
+    if (index === -1) return; // id introuvable, on ne fait rien
+  
+    const updated = [...medicinesData]; // copie du tableau
+    const numericFields = ['tablet_count', 'interval_days'];
+  
+    if (numericFields.includes(field)) {
+      updated[index][field] = value === '' ? '' : parseFloat(value);
+    } else {
+      updated[index][field] = value;
+    }
+  
+    setMedicinesData(updated);
+    setHighlightedField({ id, field });
+  };
+
+  // 🔄 Détection des modifications
+  const getChangedFields = () => {
+    const changes = [];
+  
+    for (const current of medicinesData) {
+      const original = originalMedicinesData.find(med => med.id === current.id);
+  
+      // ➕ Nouveau médicament → on envoie tout
+      if (!original) {
+        changes.push({ ...current });
+        continue;
+      }
+  
+      // 🔄 Médicament existant → on détecte les différences
+      const diff = { id: current.id };
+      let hasChange = false;
+  
+      for (const key of Object.keys(current)) {
+        if (key === 'id') continue;
+        if (JSON.stringify(current[key]) !== JSON.stringify(original[key])) {
+          diff[key] = current[key];
+          hasChange = true;
+        }
+      }
+  
+      if (hasChange) changes.push(diff);
+    }
+  
+    return changes;
+  };
+  
 
   // 🔄 Enregistrement des modifications
   const handleSave = async () => {
-    const rep = await calendarSource.updateMedicines(calendarId, medicinesData);
+    const changes = getChangedFields();
+    const rep = await calendarSource.updateMedicines(calendarId, changes);
     if (rep.success) {
       setAlertMessage("✅ " + rep.message);
       setAlertType("success");
@@ -170,11 +202,13 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
 
   // 🔄 Suppression des médicaments
   const handleDelete = async () => {
-    const rep = await calendarSource.deleteMedicines(calendarId, checked, medicinesData);
+    const rep = await calendarSource.deleteMedicines(calendarId, checked);
     if (rep.success) {
-      setMedicinesData(rep.medicinesData);
+      if (rep.medicinesData) {
+        setMedicinesData(rep.medicinesData);
+        setOriginalMedicinesData(rep.originalMedicinesData);
+      }
       setChecked([]);
-      setOriginalMedicinesData(JSON.parse(JSON.stringify(rep.originalMedicinesData)));
       setAlertMessage("✅ " + rep.message);
       setAlertType("success");
       getGroupedMedicinesList(rep.medicinesData);
@@ -450,10 +484,10 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
                         <div className="col-6 col-md-2">
                           <div className="form-floating">
                             <select
-                              className="form-select form-select-sm"
+                              className={`form-select form-select-sm ${isFieldChanged(item.data.id, 'time_of_day') ? 'field-changed' : ''}`}
                               id={`moment-${item.data.id}`}
-                              value={item.data?.time[0] || ''}
-                              onChange={(e) => handleMedChange(item.data.id, 'time', e.target.value)}
+                              value={item.data?.time_of_day || ''}
+                              onChange={(e) => handleMedChange(item.data.id, 'time_of_day', e.target.value)}
                             >
                               <option value="" disabled hidden>Choisir</option>
                               <option value="morning">Matin</option>
@@ -488,7 +522,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
                               className={`form-control form-control-sm ${!validity.start_date ? 'is-invalid' : ''} ${isFieldChanged(item.data.id, 'start_date') ? 'field-changed' : ''}`}
                               id={`start-${item.data.id}`}
                               placeholder="Date de début"
-                              value={item.data?.start_date || ''}
+                              value={item.data?.start_date ? formatToLocalISODate(item.data?.start_date) : ''}
                               onChange={(e) => handleMedChange(item.data.id, 'start_date', e.target.value)}
                               title="Date de début"
                             />

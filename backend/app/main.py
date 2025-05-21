@@ -1,15 +1,13 @@
 # app.py
-from flask import Flask
+from flask import Flask, jsonify
 from flask_cors import CORS
-from config import Config
-from routes import api
-from logger import log_backend as logger
+from app.config.config import Config
+from app.utils.logger import log_backend as logger
 import os
+from app.db.connection import get_connection
+from app import create_app
 
-app = Flask(__name__)
-CORS(app)
-app.config.from_object(Config)
-app.register_blueprint(api)
+app = create_app()
 
 
 # 🚀 Lancement en local ou sur Render

@@ -28,7 +28,7 @@ function NotificationsPage({ notifications, sharedUserCalendars }) {
                 title={!notif.read ? "Marquer comme lue" : ""}
               >
                 {/* Invitation reçue */}
-                {notif.type === "calendar_invitation" && (
+                {notif.notification_type === "calendar_invitation" && (
                   <>
                     {!notif.accepted ? (
                       <>
@@ -36,11 +36,11 @@ function NotificationsPage({ notifications, sharedUserCalendars }) {
                           <i className="bi bi-person-plus-fill text-primary me-2" style={{ verticalAlign: "middle" }}></i>
                           <HoveredUserProfile
                             user={{
-                              photo_url: notif.owner_photo_url,
-                              display_name: notif.owner_name,
-                              email: notif.owner_email,
+                              photo_url: notif.sender_photo_url,
+                              display_name: notif.sender_name,
+                              email: notif.sender_email,
                             }}
-                            trigger={<strong>{notif.owner_name}</strong>}
+                            trigger={<strong>{notif.sender_name}</strong>}
                           />
                           {" "}vous invite à rejoindre le calendrier <strong>{notif.calendar_name}</strong>
                         </p>
@@ -69,11 +69,11 @@ function NotificationsPage({ notifications, sharedUserCalendars }) {
                         Vous avez rejoint le calendrier <strong>{notif.calendar_name}</strong> de{" "}
                         <HoveredUserProfile
                           user={{
-                            photo_url: notif.owner_photo_url,
-                            display_name: notif.owner_name,
-                            email: notif.owner_email
+                            photo_url: notif.sender_photo_url,
+                            display_name: notif.sender_name,
+                            email: notif.sender_email
                           }}
-                          trigger={<strong>{notif.owner_name}</strong>}
+                          trigger={<strong>{notif.sender_name}</strong>}
                         />
                       </p>
                     )}
@@ -81,41 +81,41 @@ function NotificationsPage({ notifications, sharedUserCalendars }) {
                 )}
 
                 {/* Invitation acceptée */}
-                {notif.type === "calendar_invitation_accepted" && (
+                {notif.notification_type === "calendar_invitation_accepted" && (
                   <p className="mb-0">
                     <i className="bi bi-check-circle-fill text-success me-2" style={{ verticalAlign: "middle" }}></i>
 
                     <HoveredUserProfile
                       user={{
-                        photo_url: notif.receiver_photo_url,
-                        display_name: notif.receiver_name,
-                        email: notif.receiver_email
+                        photo_url: notif.sender_photo_url,
+                        display_name: notif.sender_name,
+                        email: notif.sender_email
                       }}
-                      trigger={<strong>{notif.receiver_name}</strong>}
+                      trigger={<strong>{notif.sender_name}</strong>}
                     />
                     {" "}a accepté votre invitation pour rejoindre le calendrier <strong>{notif.calendar_name}</strong>
                   </p>
                 )}
 
                 {/* Invitation refusée */}
-                {notif.type === "calendar_invitation_rejected" && (
+                {notif.notification_type === "calendar_invitation_rejected" && (
                   <p className="mb-0">
                     <i className="bi bi-x-circle-fill text-danger me-2" style={{ verticalAlign: "middle" }}></i>
 
                     <HoveredUserProfile
                       user={{
-                        photo_url: notif.receiver_photo_url,
-                        display_name: notif.receiver_name,
-                        email: notif.receiver_email
+                        photo_url: notif.sender_photo_url,
+                        display_name: notif.sender_name,
+                        email: notif.sender_email
                       }}
-                      trigger={<strong>{notif.receiver_name}</strong>}
+                      trigger={<strong>{notif.sender_name}</strong>}
                     />
                     {" "}a refusé votre invitation pour rejoindre le calendrier <strong>{notif.calendar_name}</strong>
                   </p>
                 )}
 
                 {/* Calendrier partagé supprimé */}
-                {notif.type === "calendar_shared_deleted_by_owner" && (
+                {notif.notification_type === "calendar_shared_deleted_by_owner" && (
                   <p className="mb-0">
                     <i className="bi bi-trash-fill me-2 text-danger" style={{ verticalAlign: "middle" }}></i>
 
@@ -131,17 +131,17 @@ function NotificationsPage({ notifications, sharedUserCalendars }) {
                   </p>
                 )}
 
-                {notif.type === "calendar_shared_deleted_by_receiver" && (
+                {notif.notification_type === "calendar_shared_deleted_by_receiver" && (
                   <p className="mb-0">
                     <i className="bi bi-trash-fill me-2 text-danger" style={{ verticalAlign: "middle" }}></i>
 
                     <HoveredUserProfile
                       user={{
-                        photo_url: notif.receiver_photo_url,
-                        display_name: notif.receiver_name,
-                        email: notif.receiver_email
+                        photo_url: notif.owner_photo_url,
+                        display_name: notif.owner_name,
+                        email: notif.owner_email
                       }}
-                      trigger={<strong>{notif.receiver_name}</strong>}
+                      trigger={<strong>{notif.owner_name}</strong>}
                     />
                     {" "}a retiré le calendrier <strong>{notif.calendar_name}</strong>
                   </p>

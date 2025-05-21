@@ -40,7 +40,7 @@ function MedicinesList() {
     );
   }
 
-  const groupedMedicines = groupMedicinesByName(medicinesData);
+  const groupedMedicines = medicinesData ? groupMedicinesByName(medicinesData) : {};
 
   return (
     <div className="container mt-4">
@@ -68,8 +68,8 @@ function MedicinesList() {
               <strong>{key} {groupedMedicines[key][0].dose != null ? `${groupedMedicines[key][0].dose} mg` : ""}</strong> 
               {groupedMedicines[key].map((med, index) => (
                 <div key={index} className="text-muted small">
-                  {med.time[0] === "morning" ? "Matin" : "Soir"} - {med.tablet_count} comprimé(s) - Tous les {med.interval_days} jour(s)
-                  {med.start_date && ` à partir du ${med.start_date}`}
+                  {med.time_of_day[0] === "morning" ? "Matin" : "Soir"} - {med.tablet_count} comprimé(s) - Tous les {med.interval_days} jour(s)
+                  {med.start_date && ` à partir du ${new Date(med.start_date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })}`}
                 </div>
               ))}
             </li>

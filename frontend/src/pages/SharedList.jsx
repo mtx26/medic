@@ -32,19 +32,19 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
 
   const handleCopyLink = async (token) => {
     try {
-      await navigator.clipboard.writeText(`${VITE_URL}/shared-token-calendar/${token.token}`);
+      await navigator.clipboard.writeText(`${VITE_URL}/shared-token-calendar/${token.id}`);
       setAlertType("success");
       setAlertMessage("🔗 Lien copié !");
-      setAlertId(token.token);
+      setAlertId(token.id);
     } catch {
       setAlertType("danger");
       setAlertMessage("❌ Erreur lors de la copie du lien.");
-      setAlertId(token.token);
+      setAlertId(token.id);
     }
   };
 
-  const handleUpdateTokenExpiration = async (token, date) => {
-    const rep = await tokenCalendars.updateTokenExpiration(token.token, date);
+  const handleUpdateTokenExpiration = async (tokenId, date) => {
+    const rep = await tokenCalendars.updateTokenExpiration(tokenId, date);
     if (rep.success) {
       setAlertType("success");
       setAlertMessage("✅ " + rep.message);
@@ -52,11 +52,11 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
       setAlertType("danger");
       setAlertMessage("❌ " + rep.error);
     }
-    setAlertId(token.token);
+    setAlertId(tokenId);
   };
 
-  const handleUpdateTokenPermissions = async (token, value) => {
-    const rep = await tokenCalendars.updateTokenPermissions(token.token, value);
+  const handleUpdateTokenPermissions = async (tokenId, value) => {
+    const rep = await tokenCalendars.updateTokenPermissions(tokenId, value);
     if (rep.success) {
       setAlertType("success");
       setAlertMessage("✅ " + rep.message);
@@ -64,11 +64,11 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
       setAlertType("danger");
       setAlertMessage("❌ " + rep.error);
     }
-    setAlertId(token.token);
+    setAlertId(tokenId);
   };
 
-  const handleToggleToken = async (token) => {
-    const rep = await tokenCalendars.updateRevokeToken(token.token);
+  const handleToggleToken = async (tokenId) => {
+    const rep = await tokenCalendars.updateRevokeToken(tokenId);
     if (rep.success) {
       setAlertType("success");
       setAlertMessage("✅ " + rep.message);
@@ -76,37 +76,40 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
       setAlertType("danger");
       setAlertMessage("❌ " + rep.error);
     }
-    setAlertId(token.token);
+    setAlertId(tokenId);
   };
 
-  const handleDeleteToken = (token) => {
+  const handleDeleteToken = (tokenId) => {
     setAlertType("confirm-danger");
     setAlertMessage("❌ Supprimer le lien ?");
-    setAlertId(token.token);
+    setAlertId(tokenId);
     setOnConfirmAction(() => async () => {
-      await tokenCalendars.deleteToken(token.token);
-    });
-  };
-
-  const handleDeleteUser = (calendarId, user) => {
-    setAlertType("confirm-danger");
-    setAlertMessage("❌ Supprimer l'accès ?");
-    setAlertId(user.receiver_uid + "-" + calendarId);
-    setOnConfirmAction(() => async () => {
-      const rep = await sharedUserCalendars.deleteSharedUser(calendarId, user.receiver_uid);
+      const rep = await tokenCalendars.deleteToken(tokenId);
       if (rep.success) {
         setAlertType("success");
         setAlertMessage("✅ " + rep.message);
-        setAlertId(user.receiver_uid + "-" + calendarId);
-        setTimeout(async () => {
-          await setGroupedSharedFunction();
-        }, 1000);
       } else {
         setAlertType("danger");
         setAlertMessage("❌ " + rep.error);
-        setAlertId(user.receiver_uid + "-" + calendarId);
       }
+      setAlertId(tokenId);
     });
+  };
+
+  const handleDeleteUser = async (calendarId, user) => {
+    const rep = await sharedUserCalendars.deleteSharedUser(calendarId, user.receiver_uid);
+    if (rep.success) {
+      setAlertType("success");
+      setAlertMessage("✅ " + rep.message);
+      setAlertId(user.receiver_uid + "-" + calendarId);
+      setTimeout(async () => {
+        await setGroupedSharedFunction();
+      }, 1000);
+    } else {
+      setAlertType("danger");
+      setAlertMessage("❌ " + rep.error);
+      setAlertId(user.receiver_uid + "-" + calendarId);
+    }
   };
 
   const handleSendInvitation = async (calendarId) => {
@@ -149,19 +152,19 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
     const grouped = {};
 
     for (const calendar of personalCalendars.calendarsData) {
-      grouped[calendar.calendar_id] = {
+      grouped[calendar.id] = {
         tokens: [],
         users: [],
-        calendar_name: calendar.calendar_name,
+        calendar_name: calendar.name,
       };
 
-      const rep = await sharedUserCalendars.fetchSharedUsers(calendar.calendar_id);
+      const rep = await sharedUserCalendars.fetchSharedUsers(calendar.id);
       if (rep.success) {
-        grouped[calendar.calendar_id].users = rep.users;
+        grouped[calendar.id].users = rep.users;
       }
       // Initialisation pour l'ajout d'un lien de partage
-      setPermissions(prev => ({ ...prev, [calendar.calendar_id]: "read" }));
-      setExpiresAt(prev => ({ ...prev, [calendar.calendar_id]: null }));
+      setPermissions(prev => ({ ...prev, [calendar.id]: "read" }));
+      setExpiresAt(prev => ({ ...prev, [calendar.id]: null }));
     }
 
     for (const token of tokenCalendars.tokensList) {
@@ -196,7 +199,6 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
   return (
     <div className="container mt-4">
       <h2 className="mb-4">Gestion des calendriers partagés</h2>
-
       {Object.entries(groupedShared).map(([calendarId, data]) => (
         <div key={calendarId} className="card mb-4">
           <div className="card-body">
@@ -207,10 +209,10 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
             <ul className="list-group">
               <h6 className="">Liens de partage :</h6>
               {(data.tokens || []).map((token) => (
-                <div key={token.token}>
+                <div key={token.id}>
 
                   {/* Alert */}
-                  {alertMessage && alertId === token.token && (
+                  {alertMessage && alertId === token.id && (
                     <AlertSystem
                       type={alertType}
                       message={alertMessage}
@@ -225,7 +227,7 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                     />
                   )}
                     
-                  <li key={token.token} className="list-group-item">
+                  <li key={token.id} className="list-group-item">
                     <div className="row align-items-center g-2">
 
                       {/* Lien */}
@@ -235,10 +237,10 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                             <i className="bi bi-link-45deg"></i>
                           </span>
                           <input
-                            id={"tokenLink"+token.token}
+                            id={"tokenLink"+token.id}
                             type="text"
                             className="form-control"
-                            value={`${VITE_URL}/shared-token-calendar/${token.token}`}
+                            value={`${VITE_URL}/shared-token-calendar/${token.id}`}
                             readOnly
                           />
                           <button
@@ -254,15 +256,15 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                       {/* Jamais + Expiration */}
                       <div className={`d-flex align-items-center gap-2 col-md-4`}>
                         <select
-                          id={"tokenExpiration"+token.token}
+                          id={"tokenExpiration"+token.id}
                           className="form-select"
                           value={token.expires_at === null ? "" : "date"}
                           onChange={(e) => {
                             const value = e.target.value;
                             if (value === "") {
-                              handleUpdateTokenExpiration(token, null);
+                              handleUpdateTokenExpiration(token.id, null);
                             } else {
-                              handleUpdateTokenExpiration(token, today);
+                              handleUpdateTokenExpiration(token.id, today);
                             }
                           }}
                           title="Expiration"
@@ -273,13 +275,13 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
 
                         {token.expires_at !== null && (
                           <input
-                            id={"tokenDate"+token.token}
+                            id={"tokenDate"+token.id}
                             type="date"
                             className="form-control"
                             style={{ minWidth: "120px" }}
                             value={formatToLocalISODate(token.expires_at)}
                             onChange={(e) => {
-                              handleUpdateTokenExpiration(token, formatToLocalISODate(e.target.value));
+                              handleUpdateTokenExpiration(token.id, formatToLocalISODate(e.target.value));
                             }}
                             title="Choisir une date d'expiration"
                             min={formatToLocalISODate(today)}
@@ -292,11 +294,11 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                       {/* Permissions */}
                       <div className="col-md-2">
                         <select
-                          id={"tokenPermissions"+token.token}
+                          id={"tokenPermissions"+token.id}
                           className="form-select"
                           value={token.permissions}
                           onChange={(e) => {
-                            handleUpdateTokenPermissions(token, e.target.value);
+                            handleUpdateTokenPermissions(token.id, e.target.value);
                           }}
                           title="Permissions"
                         >
@@ -310,7 +312,7 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                         <button
                           className={`btn ${token.revoked ? 'btn-outline-danger' : 'btn-outline-success'}`}
                           onClick={async () => {
-                            handleToggleToken(token)
+                            handleToggleToken(token.id)
                           }}
                           title={token.revoked ? "Réactiver" : "Désactiver"}
                         >
@@ -318,7 +320,7 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                         </button>
                         <button
                           className="btn btn-outline-danger"
-                          onClick={() => handleDeleteToken(token)}
+                          onClick={() => handleDeleteToken(token.id)}
                           title="Supprimer"
                         >
                           <i className="bi bi-trash"></i>

@@ -1,12 +1,12 @@
 from . import api
-from auth import verify_firebase_token
+from app.utils.validators import verify_firebase_token
 from datetime import datetime, timezone
 from flask import request
-from firebase_admin import firestore
-from function import generate_schedule, generate_table
+from app.db.connection import get_connection
+from app.services.calendar_service import generate_schedule, generate_table
 import secrets
-from response import success_response, error_response, warning_response
-from messages import (
+from app.utils.response import success_response, error_response, warning_response
+from app.utils.messages import (
     SUCCESS_CALENDARS_FETCHED,
     SUCCESS_CALENDAR_CREATED,
     SUCCESS_CALENDAR_DELETED,
@@ -19,22 +19,32 @@ from messages import (
     ERROR_CALENDAR_GENERATE,
     WARNING_CALENDAR_NOT_FOUND,
     WARNING_CALENDAR_NAME_MISSING,
-    WARNING_CALENDAR_ALREADY_EXISTS,
+    WARNING_CALENDAR_ALREADY_SHARED,
     WARNING_CALENDAR_UNCHANGED,
     WARNING_CALENDAR_INVALID_NAME,
     WARNING_CALENDAR_INVALID_ID
 )
-db = firestore.client()
 
 # Route pour récupérer les calendriers de l'utilisateur
-@api.route("/api/calendars", methods=["GET"])
+@api.route("/calendars", methods=["GET"])
 def handle_calendars():
     try:
         user = verify_firebase_token()
         uid = user["uid"]
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT * FROM calendars WHERE owner_uid = %s", (uid,))
+                calendars = cur.fetchall()
 
-        calendars_ref = db.collection("users").document(uid).collection("calendars")
-        calendars = [calendar.to_dict() for calendar in calendars_ref.stream()]
+                if calendars is None:
+                    return warning_response(
+                        message=WARNING_CALENDAR_NOT_FOUND, 
+                        code="CALENDAR_FETCH_ERROR", 
+                        status_code=404, 
+                        uid=uid, 
+                        origin="CALENDAR_FETCH", 
+                        log_extra={"calendar_id": calendar_id}
+                    )
         return success_response(
             message=SUCCESS_CALENDARS_FETCHED, 
             code="CALENDAR_FETCH_SUCCESS", 
@@ -54,7 +64,7 @@ def handle_calendars():
 
 
 # Route pour créer un calendrier
-@api.route("/api/calendars", methods=["POST"])
+@api.route("/calendars", methods=["POST"])
 def handle_create_calendar():
     try:
         user = verify_firebase_token()
@@ -71,25 +81,10 @@ def handle_create_calendar():
                 log_extra={"calendar_name": calendar_name}
             )
 
-        calendar_id = secrets.token_hex(16)
-        doc = db.collection("users").document(uid).collection("calendars").document(calendar_id).get()
-
-        if doc.exists:
-            return warning_response(
-                message=WARNING_CALENDAR_ALREADY_EXISTS, 
-                code="CALENDAR_CREATE_ERROR", 
-                status_code=409, 
-                uid=uid, 
-                origin="CALENDAR_CREATE", 
-                log_extra={"calendar_name": calendar_name}
-            )
-
-        db.collection("users").document(uid).collection("calendars").document(calendar_id).set({
-            "calendar_id": calendar_id,
-            "calendar_name": calendar_name,
-            "medicines": "",
-            "last_updated": firestore.SERVER_TIMESTAMP
-        }, merge=True)
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("INSERT INTO calendars (owner_uid, name) VALUES (%s, %s)", (uid, calendar_name))
+                conn.commit()
 
         return success_response(
             message=SUCCESS_CALENDAR_CREATED, 
@@ -111,7 +106,7 @@ def handle_create_calendar():
 
 
 # Route pour supprimer un calendrier
-@api.route("/api/calendars", methods=["DELETE"])
+@api.route("/calendars", methods=["DELETE"])
 def handle_delete_calendar():
     try:
         user = verify_firebase_token()
@@ -128,23 +123,22 @@ def handle_delete_calendar():
                 log_extra={"calendar_id": calendar_id}
             )
 
-        doc_ref = db.collection("users").document(uid).collection("calendars").document(calendar_id)
-        if not doc_ref.get().exists:
-            return warning_response(
-                message=WARNING_CALENDAR_NOT_FOUND, 
-                code="CALENDAR_DELETE_ERROR", 
-                status_code=404, 
-                uid=uid, 
-                origin="CALENDAR_DELETE_ERROR", 
-                log_extra={"calendar_id": calendar_id}
-            )
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT * FROM calendars WHERE id = %s AND owner_uid = %s", (calendar_id, uid))
+                calendar = cur.fetchone()
+                if calendar is None:
+                    return warning_response(
+                        message=WARNING_CALENDAR_NOT_FOUND, 
+                        code="CALENDAR_DELETE_ERROR", 
+                        status_code=404, 
+                        uid=uid, 
+                        origin="CALENDAR_DELETE_ERROR", 
+                        log_extra={"calendar_id": calendar_id}
+                    )
 
-        doc_ref.delete()
-
-        for doc in db.collection("shared_tokens").get():
-            token_data = doc.to_dict()
-            if token_data.get("owner_uid") == uid and token_data.get("calendar_id") == calendar_id:
-                db.collection("shared_tokens").document(doc.id).delete()
+                cur.execute("DELETE FROM calendars WHERE id = %s AND owner_uid = %s", (calendar_id, uid))
+                conn.commit()
 
         return success_response(
             message=SUCCESS_CALENDAR_DELETED, 
@@ -166,7 +160,7 @@ def handle_delete_calendar():
 
 
 # Route pour renommer un calendrier
-@api.route("/api/calendars", methods=["PUT"])
+@api.route("/calendars", methods=["PUT"])
 def handle_rename_calendar():
     try:
         user = verify_firebase_token()
@@ -175,49 +169,35 @@ def handle_rename_calendar():
         calendar_id = data.get("calendarId")
         new_calendar_name = data.get("newCalendarName")
 
-        doc_ref = db.collection("users").document(uid).collection("calendars").document(calendar_id)
-        if not doc_ref.get().exists:
-            return warning_response(
-                message=WARNING_CALENDAR_NOT_FOUND, 
-                code="CALENDAR_RENAME_ERROR", 
-                status_code=404, 
-                uid=uid, 
-                origin="CALENDAR_RENAME", 
-                log_extra={"calendar_id": calendar_id, "new_calendar_name": new_calendar_name})
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT name FROM calendars WHERE id = %s AND owner_uid = %s", (calendar_id, uid))
+                result = cur.fetchone()
 
-        old_calendar_name = doc_ref.get().to_dict().get("calendar_name")
-        if not old_calendar_name or not new_calendar_name:
-            return warning_response(
-                message=WARNING_CALENDAR_INVALID_NAME, 
-                code="CALENDAR_RENAME_ERROR", 
-                status_code=400, 
-                uid=uid, 
-                origin="CALENDAR_RENAME", 
-                log_extra={"calendar_id": calendar_id, "old_calendar_name": old_calendar_name, "new_calendar_name": new_calendar_name}
-            )
+                if result is None:
+                    return warning_response(
+                        message=WARNING_CALENDAR_NOT_FOUND, 
+                        code="CALENDAR_RENAME_ERROR", 
+                        status_code=404, 
+                        uid=uid, 
+                        origin="CALENDAR_RENAME", 
+                        log_extra={"calendar_id": calendar_id, "new_calendar_name": new_calendar_name})
 
-        if old_calendar_name == new_calendar_name:
-            return warning_response(
-                message=WARNING_CALENDAR_UNCHANGED, 
-                code="CALENDAR_RENAME_ERROR", 
-                status_code=400, 
-                uid=uid, 
-                origin="CALENDAR_RENAME", 
-                log_extra={"calendar_id": calendar_id, "old_calendar_name": old_calendar_name, "new_calendar_name": new_calendar_name})
+                old_name = result['name']
 
-        doc_ref.update({"calendar_name": new_calendar_name})
-
-        for doc in db.collection("shared_tokens").get():
-            token_data = doc.to_dict()
-            if token_data.get("owner_uid") == uid and token_data.get("calendar_name") == old_calendar_name:
-                db.collection("shared_tokens").document(doc.id).update({"calendar_name": new_calendar_name})
+                if new_calendar_name != old_name:
+                    cur.execute(
+                        "UPDATE calendars SET name = %s WHERE id = %s AND owner_uid = %s",
+                        (new_calendar_name, calendar_id, uid)
+                    )
+                    conn.commit()
 
         return success_response(
             message=SUCCESS_CALENDAR_RENAMED, 
             code="CALENDAR_RENAME_SUCCESS", 
             uid=uid, 
             origin="CALENDAR_RENAME", 
-            log_extra={"calendar_id": calendar_id, "old_calendar_name": old_calendar_name, "new_calendar_name": new_calendar_name}
+            log_extra={"calendar_id": calendar_id, "old_calendar_name": old_name, "new_calendar_name": new_calendar_name}
         )
 
     except Exception as e:
@@ -231,7 +211,7 @@ def handle_rename_calendar():
   
 
 # Route pour générer le calendrier 
-@api.route("/api/calendars/<calendar_id>/schedule", methods=["GET"])
+@api.route("/calendars/<calendar_id>/schedule", methods=["GET"])
 def handle_calendar_schedule(calendar_id):
     try:
         user = verify_firebase_token()
@@ -243,32 +223,33 @@ def handle_calendar_schedule(calendar_id):
         else:
             start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
         
-        doc_1 = db.collection("users").document(owner_uid).collection("calendars").document(calendar_id)
-        if not doc_1.get().exists:
-            return warning_response(
-                message=WARNING_CALENDAR_NOT_FOUND, 
-                code="CALENDAR_GENERATE_ERROR", 
-                status_code=404, 
-                uid=owner_uid, 
-                origin="CALENDAR_GENERATE", 
-                log_extra={"calendar_id": calendar_id}
-                )
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT * FROM calendars WHERE id = %s AND owner_uid = %s", (calendar_id, owner_uid))
+                calendar = cur.fetchone()
+                if calendar is None:
+                    return warning_response(
+                        message=WARNING_CALENDAR_NOT_FOUND, 
+                        code="CALENDAR_GENERATE_ERROR", 
+                        status_code=404, 
+                        uid=owner_uid, 
+                        origin="CALENDAR_GENERATE", 
+                        log_extra={"calendar_id": calendar_id}
+                    )
 
-        calendar_name = doc_1.get().to_dict().get("calendar_name")
+                calendar_name = calendar.get("name")
 
-        doc_2 = doc_1.collection("medicines")
-        if not doc_2.get():
-            return success_response(
-                message=SUCCESS_CALENDAR_GENERATED, 
-                code="CALENDAR_GENERATE_SUCCESS", 
-                uid=owner_uid, 
-                origin="CALENDAR_GENERATE", 
-                data={"medicines": 0, "schedule": [], "calendar_name": calendar_name, "table": {}},
-                log_extra={"calendar_id": calendar_id}
-            )
-        
-        medicines = [med.to_dict() for med in doc_2.get()]
-
+                cur.execute("SELECT * FROM medicines WHERE calendar_id = %s", (calendar_id,))
+                medicines = cur.fetchall()
+                if medicines is None:
+                    return success_response(
+                        message=SUCCESS_CALENDAR_GENERATED, 
+                        code="CALENDAR_GENERATE_SUCCESS", 
+                        uid=owner_uid, 
+                        origin="CALENDAR_GENERATE", 
+                        data={"medicines": 0, "schedule": [], "calendar_name": calendar_name, "table": {}},
+                        log_extra={"calendar_id": calendar_id}
+                    )
         schedule = generate_schedule(start_date, medicines)
         table = generate_table(start_date, medicines)
 
