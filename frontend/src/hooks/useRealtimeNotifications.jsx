@@ -121,8 +121,7 @@ export const useRealtimeNotifications = (setNotificationsData, setLoadingStates)
         }
       } catch (err) {
         log.error(err.message, err, {
-          origin: "REALTIME_TOKEN_INIT_ERROR",
-          token,
+          origin: "REALTIME_NOTIFICATIONS_INIT_ERROR",
         });
       }
     };
