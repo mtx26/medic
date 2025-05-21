@@ -129,8 +129,7 @@ export const useRealtimeCalendars = (setCalendarsData, setLoadingStates) => {
         }
       } catch (err) {
         log.error(err.message, err, {
-          origin: "REALTIME_TOKEN_INIT_ERROR",
-          token,
+          origin: "REALTIME_CALENDARS_INIT_ERROR",
         });
       }
     };
@@ -196,8 +195,7 @@ export const useRealtimeSharedCalendars = (setSharedCalendarsData, setLoadingSta
         }
       } catch (err) {
         log.error(err.message, err, {
-          origin: "REALTIME_TOKEN_INIT_ERROR",
-          token,
+          origin: "REALTIME_SHARED_CALENDARS_INIT_ERROR",
         });
       }
     };
