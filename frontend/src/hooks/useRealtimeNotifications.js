@@ -50,7 +50,6 @@ export const useRealtimeNotifications = (setNotificationsData, setLoadingStates)
 
   useEffect(() => {
     if (!(authReady && currentUser)) {
-      setLoadingStates(prev => ({ ...prev, notifications: false }));
       return;
     }
 

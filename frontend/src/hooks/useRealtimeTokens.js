@@ -13,7 +13,6 @@ export const useRealtimeTokens = (setTokensList, setLoadingStates) => {
 
 	useEffect(() => {
 		if (!(authReady && currentUser)) {
-			setLoadingStates(prev => ({ ...prev, tokens: false }));
 			return;
 		}
 

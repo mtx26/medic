@@ -13,6 +13,7 @@ import { useRealtimeNotifications } from './hooks/useRealtimeNotifications';
 import { useRealtimeTokens } from './hooks/useRealtimeTokens';
 import { formatToLocalISODate } from './utils/dateUtils';
 import { v4 as uuidv4 } from 'uuid';
+import RealtimeManager from './components/RealtimeManager';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -31,8 +32,6 @@ function App() {
     notifications: true,
   });
   const isInitialLoading = Object.values(loadingStates).some((v) => v);
-
-  const generateHexToken = (length = 16) => [...crypto.getRandomValues(new Uint8Array(length))].map(b => b.toString(16).padStart(2, '0')).join('');
 
   // Fonction pour récupérer les calendriers, les calendriers partagés, les notifications et les tokens
   useRealtimeCalendars(setCalendarsData, setLoadingStates);
@@ -983,6 +982,13 @@ function App() {
       <div className="d-flex flex-column min-vh-100">
         <Navbar sharedProps={sharedProps}/>
         <main className="flex-grow-1 d-flex flex-column">
+          <RealtimeManager
+            setCalendarsData={setCalendarsData}
+            setSharedCalendarsData={setSharedCalendarsData}
+            setNotificationsData={setNotificationsData}
+            setTokensList={setTokensList}
+            setLoadingStates={setLoadingStates}
+          />
           {isInitialLoading ? (
             <div className="flex-grow-1 d-flex justify-content-center align-items-center">
               <output className="spinner-border text-primary">

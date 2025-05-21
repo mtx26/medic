@@ -75,7 +75,6 @@ export const useRealtimeCalendars = (setCalendarsData, setLoadingStates) => {
 
   useEffect(() => {
     if (!(authReady && currentUser)) {
-      setLoadingStates(prev => ({ ...prev, calendars: false }));
       return;
     }
 
@@ -142,7 +141,6 @@ export const useRealtimeSharedCalendars = (setSharedCalendarsData, setLoadingSta
 
   useEffect(() => {
     if (!(authReady && currentUser)) {
-      setLoadingStates(prev => ({ ...prev, sharedCalendars: false }));
       return;
     }
 
