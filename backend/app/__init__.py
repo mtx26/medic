@@ -10,9 +10,14 @@ def create_app():
     app = Flask(__name__)  # noqa: S308  # CSRF not required (stateless API with Firebase tokens)
     app.config.from_object(Config)
 
-    CORS(app, supports_credentials=True) 
+    # 🔒 Pas de session ni formulaire : CSRF non nécessaire
+    app.config["WTF_CSRF_ENABLED"] = False  # Safe: stateless API with Firebase tokens (no cookies)
 
-    register_routes(app)     # Enregistre toutes les routes Flask
-    init_firebase()         # Initialise Firebase
+    # 🌍 Active CORS avec cookies si jamais Firebase envoie une session (optionnel)
+    CORS(app, supports_credentials=True)
+
+    # 🔧 Enregistrement des routes et services
+    register_routes(app)
+    init_firebase()
 
     return app
