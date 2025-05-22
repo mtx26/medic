@@ -973,6 +973,13 @@ function App() {
   useEffect(() => {
     if (authReady && currentUser === null) {
       resetAppData();
+      setLoadingStates(current => ({
+        ...current,
+        calendars: false, 
+        sharedCalendars: false, 
+        notifications: false, 
+        tokens: false,
+      }));
     }
   }, [authReady, currentUser]);
   
@@ -982,13 +989,16 @@ function App() {
       <div className="d-flex flex-column min-vh-100">
         <Navbar sharedProps={sharedProps}/>
         <main className="flex-grow-1 d-flex flex-column">
-          <RealtimeManager
-            setCalendarsData={setCalendarsData}
-            setSharedCalendarsData={setSharedCalendarsData}
-            setNotificationsData={setNotificationsData}
-            setTokensList={setTokensList}
-            setLoadingStates={setLoadingStates}
-          />
+          {authReady && currentUser === null && (
+            <RealtimeManager
+              setCalendarsData={setCalendarsData}
+              setSharedCalendarsData={setSharedCalendarsData}
+              setNotificationsData={setNotificationsData}
+              setTokensList={setTokensList}
+              setLoadingStates={setLoadingStates}
+            />
+          )}
+
           {isInitialLoading ? (
             <div className="flex-grow-1 d-flex justify-content-center align-items-center">
               <output className="spinner-border text-primary">
