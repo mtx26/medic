@@ -12,13 +12,11 @@ import ShareCalendarModal from '../components/ShareCalendarModal';
 function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
 
   const navigate = useNavigate(); 
-  const { authReady, currentUser } = useContext(UserContext); // Contexte d'authentification
+  const { currentUser } = useContext(UserContext); // Contexte d'authentification
 
   // 📅 Gestion des calendriers
-  const [loadingCalendars, setLoadingCalendars] = useState(true); // État de chargement des calendriers
   const [newCalendarName, setNewCalendarName] = useState(''); // État pour le nom du nouveau calendrier
   const [renameValues, setRenameValues] = useState({}); // État pour les valeurs de renommage de calendrier
-  const [count, setCount] = useState({}); // État pour le nombre de médicaments par calendrier
 
   // ⚠️ Alertes et confirmations
   const [alertType, setAlertType] = useState(""); // État pour le type d'alerte
@@ -52,52 +50,6 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
       setSelectedAlert("calendar" + calendarId);
     });
   };  
-
-  useEffect(() => {
-    if (authReady && currentUser) {
-      setLoadingCalendars(false);
-    }
-  }, [authReady, currentUser]);
-  
-  
-  // Chargement du nombre de médicaments pour chaque calendrier
-  useEffect(() => {
-    if (authReady && currentUser && personalCalendars.calendarsData.length > 0) {
-    const loadCounts = async () => {
-      const counts = {};
-      for (const calendarData of personalCalendars.calendarsData) {
-        const rep = await personalCalendars.fetchPersonalCalendarMedicineCount(calendarData.id);
-        if (rep.success) {
-          counts[calendarData.id] = rep.count;
-        } else {
-          counts[calendarData.id] = 0;
-        }
-      }
-      for (const calendarData of sharedUserCalendars.sharedCalendarsData) {
-        const rep = await sharedUserCalendars.fetchSharedUserCalendarMedicineCount(calendarData.id, calendarData.owner_uid);
-        if (rep.success) {
-          counts[calendarData.id] = rep.count;
-        } else {
-          counts[calendarData.id] = 0;
-        }
-      }
-      setCount(counts); 
-    };
-    loadCounts();
-    }
-  }, [personalCalendars, sharedUserCalendars, authReady, currentUser]);
-
-  if (loadingCalendars) {
-    return (
-      <div className="d-flex justify-content-center align-items-center" style={{ height: '60vh' }}>
-        <output className="spinner-border text-primary">
-          <span className="visually-hidden">Chargement des calendriers...</span>
-        </output>
-      </div>
-    );
-  }
-  
-  
 
   return (
 <div className="container align-items-center d-flex flex-column gap-3">
@@ -211,7 +163,7 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
               <div className="text-muted small">
               Nombre de médicaments :
               <span className="fw-semibold ms-1">
-                {count[calendarData.id] ?? "..."}
+                {calendarData.medicines_count ?? "..."}
               </span>
               </div>
             </div>
@@ -257,7 +209,7 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
                   setCalendarIdToShare(calendarData.id);
                   setExistingShareToken(null);
                   const token = await tokenCalendars.tokensList.find(
-                    (t) => t.calendar_id === calendarData.id && !t.revoked && t.owner_uid === currentUser.uid
+                    (t) => t.calendar_id === calendarData.id
                   );
                   const rep = await sharedUserCalendars.fetchSharedUsers(calendarData.id);
                   if (rep.success) {
@@ -330,7 +282,7 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
               <div className="text-muted small">
                 Nombre de médicaments :
                 <span className="fw-semibold ms-1">
-                  {count[calendarData.id] ?? "..."}
+                  {calendarData.medicines_count ?? "..."}
                 </span>
               </div>
               <div className="text-muted small d-flex align-items-center ">

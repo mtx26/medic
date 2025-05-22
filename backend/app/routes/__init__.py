@@ -5,7 +5,6 @@ api = Blueprint('api', __name__)
 # Importer les sous-modules pour enregistrer leurs routes
 from .status import *
 from .log import *
-from .medicines_count import *
 from .personnal_calendar import *
 from .personnal_medicines import *
 from .shared_users import *

@@ -65,6 +65,11 @@ def handle_shared_calendars():
                             origin="SHARED_CALENDARS_LOAD",
                             log_extra={"calendar_id": calendar_id}
                         )
+                    medicines_count = cursor.execute("SELECT COUNT(*) FROM medicines WHERE calendar_id = %s", (calendar_id,))
+                    medicines_count = cursor.fetchone()
+                    if medicines_count is None:
+                        medicines_count = 0
+                    calendar["medicines_count"] = medicines_count.get("count")
                     calendar_name = calendar.get("name")
 
                     cursor.execute("SELECT * FROM users WHERE id = %s", (uid,))

@@ -43,8 +43,13 @@ def handle_calendars():
                         status_code=404, 
                         uid=uid, 
                         origin="CALENDAR_FETCH", 
-                        log_extra={"calendar_id": calendar_id}
                     )
+                for calendar in calendars:
+                    medicines_count = cur.execute("SELECT COUNT(*) FROM medicines WHERE calendar_id = %s", (calendar["id"],))
+                    medicines_count = cur.fetchone()
+                    if medicines_count is None:
+                        medicines_count = 0
+                    calendar["medicines_count"] = medicines_count.get("count")
         return success_response(
             message=SUCCESS_CALENDARS_FETCHED, 
             code="CALENDAR_FETCH_SUCCESS", 
