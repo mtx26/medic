@@ -86,17 +86,15 @@ def handle_update_shared_user_calendar_medicines(calendar_id):
                 log_extra={"calendar_id": calendar_id}
             )
 
-        for change in changes:
-            med_id = change.get("id")
-            print(change)
-            
-            if med_id:
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                for change in changes:
+                    med_id = change.get("id")
+                    
+                    if med_id:
 
-                fields = []
-                values = []
-
-                with get_connection() as conn:
-                    with conn.cursor() as cursor:
+                        fields = []
+                        values = []
                         cursor.execute("SELECT * FROM medicines WHERE id = %s", (med_id,))
                         med = cursor.fetchone()
                         if not med:
@@ -104,7 +102,6 @@ def handle_update_shared_user_calendar_medicines(calendar_id):
                                 "INSERT INTO medicines (id, calendar_id, name, tablet_count, time_of_day, interval_days, start_date, dose) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", 
                                 (med_id, calendar_id, change.get("name"), change.get("tablet_count"), change.get("time_of_day"), change.get("interval_days"), change.get("start_date"), change.get("dose"))
                             )
-                            print(f"Médicament {med_id} ajouté avec succès")
                         
                         else:
                             for field in ["name", "tablet_count", "time_of_day", "interval_days", "start_date", "dose"]:
@@ -114,19 +111,18 @@ def handle_update_shared_user_calendar_medicines(calendar_id):
                             if fields:
                                 query = f"UPDATE medicines SET {', '.join(fields)} WHERE id = %s"
                                 cursor.execute(query, (*values, med_id))
-                                print(f"Médicament {med_id} mis à jour avec succès")
 
                         cursor.execute("SELECT * FROM medicines WHERE calendar_id = %s", (calendar_id,))
                         medicines = cursor.fetchall()
 
-                        return success_response(
-                            message=SUCCESS_SHARED_MEDICINES_UPDATED,
-                            code="SHARED_USER_CALENDAR_MEDICINES_UPDATE_SUCCESS",
-                            uid=receiver_uid,
-                            origin="SHARED_USER_CALENDAR_MEDICINES_UPDATE",
-                            data={"medicines": medicines},
-                            log_extra={"calendar_id": calendar_id}
-                        )
+        return success_response(
+            message=SUCCESS_SHARED_MEDICINES_UPDATED,
+            code="SHARED_USER_CALENDAR_MEDICINES_UPDATE_SUCCESS",
+            uid=receiver_uid,
+            origin="SHARED_USER_CALENDAR_MEDICINES_UPDATE",
+            data={"medicines": medicines},
+            log_extra={"calendar_id": calendar_id}
+        )
 
     except Exception as e:
         return error_response(

@@ -837,7 +837,7 @@ function App() {
   }, []);
 
   // Fonction pour mettre à jour les médicaments d’un calendrier partagé par un utilisateur
-  const updateSharedUserCalendarMedicines = useCallback(async (calendarId, medicinesData) => {
+  const updateSharedUserCalendarMedicines = useCallback(async (calendarId, changes) => {
     try {
       const token = await auth.currentUser.getIdToken();
       const res = await fetch(`${API_URL}/api/shared/users/calendars/${calendarId}/medicines`, {
@@ -846,7 +846,7 @@ function App() {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ medicines: medicinesData }),
+        body: JSON.stringify({ changes }),
       }); 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
