@@ -127,12 +127,15 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
   }, [authReady, currentUser, calendarId, calendarType, calendarSource.fetchSchedule]);
 
 
+  // 📍 Filtrage des événements pour un jour spécifique
   useEffect(() => {
     if (!selectedDate || !calendarEvents.length) return;
     const filtered = calendarEvents.filter((event) => event.start.startsWith(selectedDate));
     setEventsForDay(filtered);
   }, [selectedDate, calendarEvents]);
 
+
+  // 📍 Mémoisation des événements pour le calendrier
   const memoizedEvents = useMemo(() => {
     return calendarEvents.map((event) => ({
       title: `${event.title} ${event.dose != null ? `${event.dose} mg` : ""} (${event.tablet_count})`,
@@ -141,9 +144,10 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
     }));
   }, [calendarEvents]);  
 
+  
+  // 📍 Récupération des informations de l'utilisateur propriétaire du calendrier
   useEffect(() => {
     if (!currentUser || !calendarId) return;
-
     if (calendarType === 'sharedUser') {
       if (calendarSource.calendarsData.find((calendar) => calendar.id === calendarId)) {
         const owner_user = calendarSource.calendarsData.find((calendar) => calendar.id === calendarId);
@@ -155,6 +159,7 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
       }
     }
   }, [calendarType, calendarSource.calendarsData, calendarId, currentUser]);
+
 
   if ( loading === undefined && calendarId) {
     return (
@@ -173,8 +178,6 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
       </div>
     );
   }
-  
-  
 
   return (
     <div>

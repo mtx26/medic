@@ -52,6 +52,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
     );
   };
 
+
   // 🔄 Groupement des médicaments par nom
   const getGroupedMedicinesList = (medicines) => {
     const sorted = [...medicines].sort((a, b) =>
@@ -87,11 +88,13 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
     return JSON.stringify(original[field]) !== JSON.stringify(current[field]);
   };
 
+  
   // 🔄 Détection des nouveaux médicaments
   const isNewMed = (id) => {
     if (!originalMedicinesData) return false;
     return !originalMedicinesData.some((med) => med.id === id);
   };  
+
 
   // 🔄 Validation des médicaments
   const getMedFieldValidity = (med) => {
@@ -123,6 +126,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
     }
   );
   
+
   // 🔄 Gestion des modifications
   const handleMedChange = (id, field, value) => {
     const index = medicinesData.findIndex((med) => med.id === id);
@@ -140,6 +144,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
     setMedicinesData(updated);
     setHighlightedField({ id, field });
   };
+
 
   // 🔄 Détection des modifications
   const getChangedFields = () => {
@@ -200,35 +205,35 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
     setOnConfirmAction(() => handleSave);
   };
 
-  // 🔄 Suppression des médicaments
-  const handleDelete = async () => {
-    const rep = await calendarSource.deleteMedicines(calendarId, checked);
-    if (rep.success) {
-      if (rep.medicinesData) {
-        setMedicinesData(rep.medicinesData);
-        setOriginalMedicinesData(rep.originalMedicinesData);
-      }
-      setChecked([]);
-      setAlertMessage("✅ " + rep.message);
-      setAlertType("success");
-      getGroupedMedicinesList(rep.medicinesData);
-    } else {
-      setAlertMessage("❌ " + rep.error);
-      setAlertType("danger");
-      setMedicinesData(JSON.parse(JSON.stringify(originalMedicinesData)));
-    }
-    setTimeout(() => {
-      setAlertMessage("");
-      setAlertType("");
-    }, 2000);
-    setOnConfirmAction(null);
-  };
   
+  // 🔄 Suppression des médicaments
   const onDeleteClick = () => {
     setAlertType("confirm-danger");
     setAlertMessage("❌ Supprimer les médicaments ?");
-    setOnConfirmAction(() => handleDelete);
-  };  
+    setOnConfirmAction(() => async () => {
+      const rep = await calendarSource.deleteMedicines(calendarId, checked);
+      if (rep.success) {
+        if (rep.medicinesData) {
+          setMedicinesData(rep.medicinesData);
+          setOriginalMedicinesData(rep.originalMedicinesData);
+        }
+        setChecked([]);
+        setAlertMessage("✅ " + rep.message);
+        setAlertType("success");
+        getGroupedMedicinesList(rep.medicinesData);
+      } else {
+        setAlertMessage("❌ " + rep.error);
+        setAlertType("danger");
+        setMedicinesData(JSON.parse(JSON.stringify(originalMedicinesData)));
+      }
+      setTimeout(() => {
+        setAlertMessage("");
+        setAlertType("");
+        }, 2000);
+        setOnConfirmAction(null);
+      });
+    };
+
 
   // 🔄 Gestion des médicaments en temps réel
   useRealtimeMedicinesSwitcher(
@@ -239,12 +244,14 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
     setLoadingMedicines
   );  
 
+
   // 🔄 Gestion du rendu
   useEffect(() => {
     if (authReady && medicinesData.length > 0) {
       getGroupedMedicinesList(medicinesData);
     }
   }, [authReady, medicinesData]);
+
 
   // 🔄 Gestion du focus 
   useEffect(() => {
@@ -260,6 +267,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
     }
   }, [highlightedField]);
   
+
   // 🔄 Gestion du chargement
   if (loadingMedicines === undefined) {
     return (
@@ -273,7 +281,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
   
   if (loadingMedicines === false) {
     return (
-      <div className="text-center mt-5">
+      <div className="alert alert-danger text-center mt-5" role="alert">
         ❌ Ce lien de calendrier partagé est invalide ou a expiré.
       </div>
     );
@@ -523,7 +531,11 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
                               id={`start-${item.data.id}`}
                               placeholder="Date de début"
                               value={item.data?.start_date ? formatToLocalISODate(item.data?.start_date) : ''}
-                              onChange={(e) => handleMedChange(item.data.id, 'start_date', e.target.value)}
+                              onChange={(e) => {
+                                const value = e.target.value ? e.target.value : null;
+                                console.log(value)
+                                handleMedChange(item.data.id, 'start_date', value)
+                              }}
                               title="Date de début"
                             />
                             <label htmlFor={`start-${item.data.id}`}>Date de début</label>

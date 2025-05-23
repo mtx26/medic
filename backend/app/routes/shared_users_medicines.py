@@ -73,7 +73,8 @@ def handle_update_shared_user_calendar_medicines(calendar_id):
     try:
         user = verify_firebase_token()
         receiver_uid = user["uid"]
-
+        medicines = []
+        
         changes = request.json.get("changes", [])
 
         if not verify_calendar_share(calendar_id, receiver_uid):
