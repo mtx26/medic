@@ -175,9 +175,9 @@ def handle_accept_invitation(notification_id):
                 # Dire que la notif a été lue
                 cursor.execute(
                     """
-                    UPDATE notifications SET read = TRUE WHERE id = %s
+                    UPDATE notifications SET read = TRUE WHERE id = %s AND user_id = %s
                     """,
-                    (notification_id,)
+                    (notification_id, receiver_uid)
                 )
 
                 # Créer une notif pour l'utilisateur expéditeur

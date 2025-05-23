@@ -49,7 +49,6 @@ def handle_shared_calendars():
                 calendars_list = []
                 for shared_user in shared_users:
 
-                    owner_uid = shared_user.get("owner_uid")
                     calendar_id = shared_user.get("calendar_id")
                     access = shared_user.get("access", "read")
 
@@ -65,17 +64,19 @@ def handle_shared_calendars():
                             origin="SHARED_CALENDARS_LOAD",
                             log_extra={"calendar_id": calendar_id}
                         )
+                    owner_uid = calendar.get("owner_uid")
+
+                    # Récupère le nombre de médicaments
                     medicines_count = cursor.execute("SELECT COUNT(*) FROM medicines WHERE calendar_id = %s", (calendar_id,))
                     medicines_count = cursor.fetchone()
-                    if medicines_count is None:
-                        medicines_count = 0
-                    calendar["medicines_count"] = medicines_count.get("count")
+                    medicines_count = medicines_count.get("count", 0)
+
                     calendar_name = calendar.get("name")
 
+                    # Récupère les infos de l'owner
                     cursor.execute("SELECT * FROM users WHERE id = %s", (owner_uid,))
                     owner = cursor.fetchone()
                     if owner is None:
-                        print(f"Owner not found for calendar {calendar_id}")
                         return warning_response(
                             message=WARNING_SHARED_USER_NOT_FOUND,
                             code="SHARED_CALENDARS_LOAD_ERROR",
@@ -101,16 +102,17 @@ def handle_shared_calendars():
                         "owner_name": owner_name,
                         "owner_photo_url": owner_photo_url,
                         "owner_email": owner_email,
-                        "access": access
+                        "access": access,
+                        "medicines_count": medicines_count
                     })
 
-        return success_response(
-            message=SUCCESS_SHARED_CALENDARS_FETCHED, 
-            code="SHARED_CALENDARS_LOAD_SUCCESS", 
-            uid=uid, 
-            origin="SHARED_CALENDARS_LOAD",
-            data={"calendars": calendars_list}
-        )
+                return success_response(
+                    message=SUCCESS_SHARED_CALENDARS_FETCHED, 
+                    code="SHARED_CALENDARS_LOAD_SUCCESS", 
+                    uid=uid, 
+                    origin="SHARED_CALENDARS_LOAD",
+                    data={"calendars": calendars_list}
+                )
 
     except Exception as e:
         return error_response(
