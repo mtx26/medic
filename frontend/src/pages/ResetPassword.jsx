@@ -4,6 +4,8 @@ import { resetPassword } from "../services/authService";
 function ResetPassword() {
   const [email, setEmail] = useState(""); // État pour l'adresse e-mail
 
+  
+  // 🔄 Réinitialisation du mot de passe
   const handleReset = (e) => {
     e.preventDefault();
     resetPassword(email);

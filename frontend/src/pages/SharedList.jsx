@@ -27,9 +27,18 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
   const [emailsToInvite, setEmailsToInvite] = useState([]); // E-mails à inviter au partage
 
 
+  // 🔄 Initialisation des permissions et des dates d'expiration
+  for (const calendar of personalCalendars.calendarsData) {
+    setPermissions(prev => ({ ...prev, [calendar.id]: "read" }));
+    setExpiresAt(prev => ({ ...prev, [calendar.id]: null }));
+  }
+
+
   // 📅 Date du jour
   const today = formatToLocalISODate(new Date()); // Date du jour au format 'YYYY-MM-DD'
 
+
+  // 📄 Copie du lien
   const handleCopyLink = async (token) => {
     try {
       await navigator.clipboard.writeText(`${VITE_URL}/shared-token-calendar/${token.id}`);
@@ -43,6 +52,8 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
     }
   };
 
+
+  // 📅 Mise à jour de la date d'expiration
   const handleUpdateTokenExpiration = async (tokenId, date) => {
     const rep = await tokenCalendars.updateTokenExpiration(tokenId, date);
     if (rep.success) {
@@ -55,6 +66,8 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
     setAlertId(tokenId);
   };
 
+
+  // 📄 Mise à jour des permissions
   const handleUpdateTokenPermissions = async (tokenId, value) => {
     const rep = await tokenCalendars.updateTokenPermissions(tokenId, value);
     if (rep.success) {
@@ -67,6 +80,8 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
     setAlertId(tokenId);
   };
 
+
+  // 🔄 Activation/désactivation du lien
   const handleToggleToken = async (tokenId) => {
     const rep = await tokenCalendars.updateRevokeToken(tokenId);
     if (rep.success) {
@@ -79,6 +94,8 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
     setAlertId(tokenId);
   };
 
+
+  // 🔄 Suppression du lien
   const handleDeleteToken = (tokenId) => {
     setAlertType("confirm-danger");
     setAlertMessage("❌ Supprimer le lien ?");
@@ -96,6 +113,8 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
     });
   };
 
+
+  // 🔄 Suppression de l'utilisateur
   const handleDeleteUser = async (calendarId, user) => {
     const rep = await sharedUserCalendars.deleteSharedUser(calendarId, user.receiver_uid);
     if (rep.success) {
@@ -112,6 +131,8 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
     }
   };
 
+
+  // 📄 Envoi d'une invitation
   const handleSendInvitation = async (calendarId) => {
     const rep = await sharedUserCalendars.sendInvitation(emailsToInvite[calendarId], calendarId);
     if (rep.success) {
@@ -129,6 +150,8 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
     }
   }; 
 
+
+  // 🔄 Création d'un lien de partage
   const handleCreateToken = async (calendarId) => {
     const rep = await tokenCalendars.createToken(calendarId, expiresAt[calendarId], permissions[calendarId]);
     if (rep.success) {
@@ -142,12 +165,16 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
     }
   };
 
+
+  // 🔄 Chargement des données
   useEffect(() => {
     if (authReady && currentUser) {
       setLoading(false);
     }
   }, [authReady, currentUser]);
 
+
+  // 🔄 Fonction pour mettre à jour les données groupées
   const setGroupedSharedFunction = useCallback(async () => {
     const grouped = {};
 
@@ -162,9 +189,6 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
       if (rep.success) {
         grouped[calendar.id].users = rep.users;
       }
-      // Initialisation pour l'ajout d'un lien de partage
-      setPermissions(prev => ({ ...prev, [calendar.id]: "read" }));
-      setExpiresAt(prev => ({ ...prev, [calendar.id]: null }));
     }
 
     for (const token of tokenCalendars.tokensList) {
@@ -177,14 +201,16 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
     setLoadingGroupedShared(false);
   }, [personalCalendars.calendarsData, sharedUserCalendars, tokenCalendars.tokensList]);
   
-  
+
+  // 🔄 Chargement des données groupées
   useEffect(() => {
     if (loading === false && authReady && currentUser && personalCalendars.calendarsData) {
       setGroupedSharedFunction();
     }
   }, [loading, authReady, currentUser, personalCalendars.calendarsData, tokenCalendars.tokensList, setGroupedSharedFunction]);
-  
 
+
+  // 🔄 Rendu du composant
   if (loading || loadingGroupedShared) {
     return (
       <div className="d-flex justify-content-center align-items-center" style={{ height: "60vh" }}>
@@ -289,8 +315,6 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                         )}
                       </div>
 
-
-
                       {/* Permissions */}
                       <div className="col-md-2">
                         <select
@@ -355,22 +379,22 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                   <li className="list-group-item" key={calendarId}>
                     <div className="row align-items-center g-2">
 
-                    {/* Lien */}
-                    <div className="col-md-4">
-                      <div className="input-group">
-                        <span className="input-group-text bg-primary text-white">
-                          <i className="bi bi-link-45deg"></i>
-                        </span>
-                        <input
-                          id={"newTokenLink"+calendarId}
-                          type="text"
-                          className="form-control text-muted bg-light"
-                          value="Nouveau lien de partage"
-                          disabled
-                          style={{ fontStyle: 'italic', fontWeight: 500 }}
-                        />
+                      {/* Lien */}
+                      <div className="col-md-4">
+                        <div className="input-group">
+                          <span className="input-group-text bg-primary text-white">
+                            <i className="bi bi-link-45deg"></i>
+                          </span>
+                          <input
+                            id={"newTokenLink"+calendarId}
+                            type="text"
+                            className="form-control text-muted bg-light"
+                            value="Nouveau lien de partage"
+                            disabled
+                            style={{ fontStyle: 'italic', fontWeight: 500 }}
+                          />
+                        </div>
                       </div>
-                    </div>
 
                       {/* Jamais + Expiration */}
                       <div className={`d-flex align-items-center gap-2 ${expiresAt[calendarId] === null ? 'col-md-2' : 'col-md-4'}`}>
@@ -529,7 +553,7 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
 
               {/* Ajouter un utilisateur */}
               <div>
-
+                
                 {/* Alert */}
                 {alertMessage && alertId === "addUser-"+calendarId && (
                   <AlertSystem
@@ -545,7 +569,6 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                     }}
                   />
                 )}
-
 
                 <li className="list-group-item" key={calendarId}>
                   <div className="row align-items-center g-2">
