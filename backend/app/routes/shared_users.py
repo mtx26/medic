@@ -72,7 +72,7 @@ def handle_shared_calendars():
                     calendar["medicines_count"] = medicines_count.get("count")
                     calendar_name = calendar.get("name")
 
-                    cursor.execute("SELECT * FROM users WHERE id = %s", (uid,))
+                    cursor.execute("SELECT * FROM users WHERE id = %s", (owner_uid,))
                     owner = cursor.fetchone()
                     if owner is None:
                         print(f"Owner not found for calendar {calendar_id}")
