@@ -109,8 +109,7 @@ const AccountShareOptions = ({
   handleInvite
 }) => {
   const isValidEmail = (email) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+    return typeof email === 'string' && email.includes('@') && email.includes('.');
   };
 
   return (
