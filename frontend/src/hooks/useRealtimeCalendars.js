@@ -1,5 +1,5 @@
 import { useEffect, useContext, useRef } from "react";
-import { auth, analytics } from "../services/firebase";
+import { auth, analyticsPromise } from "../services/firebase";
 import { log } from "../utils/logger";
 import { UserContext } from '../contexts/UserContext';
 import { logEvent } from "firebase/analytics";
@@ -26,7 +26,16 @@ const fetchCalendars = async (user, setCalendarsData, setLoadingStates) => {
     setCalendarsData(sortedCalendars);
     setLoadingStates(prev => ({ ...prev, calendars: false }));
 
-    logEvent(analytics, 'fetch_calendars', {
+    analyticsPromise.then((analytics) => {
+      if (analytics) {
+        logEvent(analytics, "fetch_calendars", {
+          uid: user.uid,
+          count: data.calendars?.length,
+        });
+      }
+    });
+    log.info(data.message, {
+      origin: "CALENDARS_FETCH_SUCCESS",
       uid: user.uid,
       count: data.calendars?.length,
     });
@@ -51,9 +60,13 @@ const fetchSharedCalendars = async (user, setSharedCalendarsData, setLoadingStat
     setSharedCalendarsData(data.calendars);
     setLoadingStates(prev => ({ ...prev, sharedCalendars: false }));
 
-    logEvent(analytics, 'fetch_shared_calendars', {
-      uid: user.uid,
-      count: data.calendars?.length,
+    analyticsPromise.then((analytics) => {
+      if (analytics) {
+        logEvent(analytics, "fetch_shared_calendars", {
+          uid: user.uid,
+          count: data.calendars?.length,
+        });
+      }
     });
     log.info(data.message, {
       origin: "SHARED_CALENDARS_FETCH_SUCCESS",

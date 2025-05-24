@@ -1,6 +1,6 @@
 import { useContext, useEffect, useRef } from 'react';
 import { UserContext } from '../contexts/UserContext';
-import { auth, analytics } from '../services/firebase';
+import { auth, analyticsPromise } from "../services/firebase";
 import { supabase } from '../services/supabaseClient';
 import { log } from '../utils/logger';
 import { logEvent } from 'firebase/analytics';
@@ -26,9 +26,13 @@ const fetchNotifications = async (user, setNotificationsData, setLoadingStates) 
     setNotificationsData(sortedNotifications);
     setLoadingStates(prev => ({ ...prev, notifications: false }));
 
-    logEvent(analytics, 'fetch_notifications', {
-      uid: user.uid,
-      count: data.notifications?.length,
+    analyticsPromise.then((analytics) => {
+      if (analytics) {
+        logEvent(analytics, 'fetch_notifications', {
+          uid: user.uid,
+          count: data.notifications?.length,
+        });
+      }
     });
     log.info(data.message, {
       origin: "NOTIFICATIONS_FETCH_SUCCESS",

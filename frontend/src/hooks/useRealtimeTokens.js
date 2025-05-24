@@ -1,6 +1,6 @@
 import { useContext, useEffect, useRef } from 'react';
 import { UserContext } from '../contexts/UserContext';
-import { auth, analytics } from '../services/firebase';
+import { auth, analyticsPromise } from '../services/firebase';
 import { log } from '../utils/logger';
 import { logEvent } from 'firebase/analytics';
 import { supabase } from '../services/supabaseClient';
@@ -34,9 +34,13 @@ export const useRealtimeTokens = (setTokensList, setLoadingStates) => {
 					if (!res.ok) throw new Error(data.error);
 					setTokensList(data.tokens);
 					setLoadingStates(prev => ({ ...prev, tokens: false }));
-					logEvent(analytics, 'fetch_tokens', {
-						uid: user.uid,
-						count: data.tokens?.length,
+					analyticsPromise.then((analytics) => {
+						if (analytics) {
+							logEvent(analytics, 'fetch_tokens', {
+								uid: user.uid,
+								count: data.tokens?.length,
+							});
+						}
 					});
 					log.info(data.message, {
 						origin: "TOKENS_FETCH_SUCCESS",

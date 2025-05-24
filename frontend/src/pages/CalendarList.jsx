@@ -1,18 +1,14 @@
-import React, { useEffect, useState, useContext, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UserContext } from '../contexts/UserContext';
 import AlertSystem from '../components/AlertSystem';
 import HoveredUserProfile from '../components/HoveredUserProfile';
 import ShareCalendarModal from '../components/ShareCalendarModal';
-//import { analytics } from '../services/firebase';
-//import { logEvent } from 'firebase/analytics';
 
 
 
 function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
 
   const navigate = useNavigate(); 
-  const { currentUser } = useContext(UserContext); // Contexte d'authentification
 
   // 📅 Gestion des calendriers
   const [newCalendarName, setNewCalendarName] = useState(''); // État pour le nom du nouveau calendrier

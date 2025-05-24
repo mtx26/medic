@@ -1,5 +1,5 @@
 import { useEffect, useContext, useRef } from "react";
-import { auth, analytics } from "../services/firebase";
+import { auth, analyticsPromise } from "../services/firebase";
 import { UserContext } from "../contexts/UserContext";
 import { log } from "../utils/logger";
 import { logEvent } from "firebase/analytics";
@@ -23,10 +23,14 @@ const fetchPersonalMedicines = async (user, calendarId, setMedicinesData, setOri
     setOriginalMedicinesData(JSON.parse(JSON.stringify(sorted)));
     setLoadingMedicines(true);
 
-    logEvent(analytics, 'fetch_personal_calendar_medicines', {
-      uid: user.uid,
-      count: data.medicines.length,
-      calendarId,
+    analyticsPromise.then((analytics) => {
+      if (analytics) {
+        logEvent(analytics, 'fetch_personal_calendar_medicines', {
+          uid: user.uid,
+          count: data.medicines.length,
+          calendarId,
+        });
+      }
     });
     log.info(data.message, {
       origin: "REALTIME_MEDICINES_SUCCESS",
@@ -54,8 +58,12 @@ const fetchTokenMedicines = async (token, setMedicinesData, setLoadingMedicines)
     setMedicinesData(sorted);
     setLoadingMedicines(true);
 
-    logEvent(analytics, "fetch_token_calendar_medicines", {
-      count: data.medicines.length,
+    analyticsPromise.then((analytics) => {
+      if (analytics) {
+        logEvent(analytics, "fetch_token_calendar_medicines", {
+          count: data.medicines.length,
+        });
+      }
     });
     log.info(data.message, {
       origin: "REALTIME_TOKEN_MEDICINES_SUCCESS",
@@ -87,10 +95,14 @@ const fetchSharedUserMedicines = async (user, calendarId, setMedicinesData, setO
     setOriginalMedicinesData(JSON.parse(JSON.stringify(sorted)));
     setLoadingMedicines(true);
 
-    logEvent(analytics, "fetch_shared_user_calendar_medicines", {
-      uid: user.uid,
-      count: data.medicines.length,
-      calendarId,
+    analyticsPromise.then((analytics) => {
+      if (analytics) {
+        logEvent(analytics, "fetch_shared_user_calendar_medicines", {
+          uid: user.uid,
+          count: data.medicines.length,
+          calendarId,
+        });
+      }
     });
     log.info(data.message, {
       origin: "REALTIME_SHARED_USER_MEDICINES_SUCCESS",
