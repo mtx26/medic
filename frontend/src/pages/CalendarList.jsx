@@ -32,7 +32,23 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
 
   // 👥 Partage ciblé par utilisateur
   const [sharedUsersData, setSharedUsersData] = useState([]); // État pour les données des utilisateurs ayant accès
-  
+
+  // 🔄 Ajout d'un calendrier
+  const handleAddCalendarClick = async () => {
+    const rep = await personalCalendars.addCalendar(newCalendarName);
+    if (rep.success) {
+      setAlertMessage("✅ " + rep.message);
+      setAlertType("success");
+      setSelectedAlert("header");
+    } else {
+      setAlertMessage("❌ " + rep.error);
+      setAlertType("danger");
+      setSelectedAlert("header");
+    }
+    setNewCalendarName("");
+  };
+
+  // 🔄 Renommage d'un calendrier
   const handleRenameClick = (calendarId) => {
     setAlertType("confirm-safe");
     setSelectedAlert("calendar" + calendarId);
@@ -49,7 +65,59 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
       }
       setSelectedAlert("calendar" + calendarId);
     });
+  };
+
+  const handleDeleteCalendarClick = (calendarId) => {
+    setAlertType("confirm-danger");
+    setSelectedAlert("calendar" + calendarId);
+    setAlertMessage("❌ Supprimer le calendrier ?");
+    setOnConfirmAction(() => async () => {
+      const rep = await personalCalendars.deleteCalendar(calendarId);
+      if (rep.success) {
+        setAlertType("success");
+        setAlertMessage("✅ " + rep.message);
+        setSelectedAlert("calendar");
+      } else {
+        setAlertType("danger");
+        setAlertMessage("❌ " + rep.error);
+        setSelectedAlert("calendar" + calendarId);
+      }
+    });
+  };
+
+  // 🔗 Partager un calendrier
+  const handleShareCalendarClick = async (calendarData) => {
+    setCalendarNameToShare(calendarData.name);  // On retient quel calendrier partager
+    setCalendarIdToShare(calendarData.id);
+    setExistingShareToken(null);
+    const token = await tokenCalendars.tokensList.find(
+      (t) => t.calendar_id === calendarData.id
+    );
+    const rep = await sharedUserCalendars.fetchSharedUsers(calendarData.id);
+    if (rep.success) {
+      setSharedUsersData(rep.users);
+    }
+    setExistingShareToken(token || null);
+    shareModalRef.current?.open();
   };  
+
+  const handleDeleteSharedCalendarClick = (calendarId) => {
+    setAlertType("confirm-danger");
+    setSelectedAlert("sharedCalendar" + calendarId);
+    setAlertMessage("❌ Supprimer le calendrier partagé ?");
+    setOnConfirmAction(() => async () => {
+      const rep = await sharedUserCalendars.deleteSharedCalendar(calendarId);
+      if (rep.success) {
+        setAlertType("success");
+        setAlertMessage("✅ " + rep.message);
+        setSelectedAlert("sharedCalendar");
+      } else {
+        setAlertType("danger");
+        setAlertMessage("❌ " + rep.error);
+        setSelectedAlert("sharedCalendar" + calendarId);
+      }
+    });
+  };
 
   return (
 <div className="container align-items-center d-flex flex-column gap-3">
@@ -98,19 +166,7 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
       onChange={(e) => setNewCalendarName(e.target.value)} // Mise à jour du nom du nouveau calendrier
       />
       <button
-      onClick={async() => {
-        const rep = await personalCalendars.addCalendar(newCalendarName);
-        if (rep.success) {
-          setAlertMessage("✅ " + rep.message);
-          setAlertType("success");
-          setSelectedAlert("header");
-        } else {
-          setAlertMessage("❌ " + rep.error);
-          setAlertType("danger");
-          setSelectedAlert("header");
-        }
-        setNewCalendarName("");
-      }} // Ajout d'un nouveau calendrier
+      onClick={handleAddCalendarClick}
       className="btn btn-primary"
       title="Ajouter un calendrier"
       >
@@ -204,20 +260,7 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
                 type="button"
                 className="btn btn-outline-warning"
                 title="Partager"
-                onClick={async () => {
-                  setCalendarNameToShare(calendarData.name);  // On retient quel calendrier partager
-                  setCalendarIdToShare(calendarData.id);
-                  setExistingShareToken(null);
-                  const token = await tokenCalendars.tokensList.find(
-                    (t) => t.calendar_id === calendarData.id
-                  );
-                  const rep = await sharedUserCalendars.fetchSharedUsers(calendarData.id);
-                  if (rep.success) {
-                    setSharedUsersData(rep.users);
-                  }
-                  setExistingShareToken(token || null);
-                  shareModalRef.current?.open();
-                }}
+                onClick={() => handleShareCalendarClick(calendarData)}
               >
                 <i className="bi bi-box-arrow-up"></i>
               </button>
@@ -227,14 +270,7 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
               type="button"
               className="btn btn-outline-danger"
               title="Supprimer"
-              onClick={() => {
-                setAlertType("confirm-danger");
-                setSelectedAlert("calendar"+calendarData.id);
-                setAlertMessage("❌ Supprimer le calendrier ?");
-                setOnConfirmAction(() => async () => {
-                  await personalCalendars.deleteCalendar(calendarData.id);
-                });
-              }}
+              onClick={() => handleDeleteCalendarClick(calendarData.id)}
               >
               <i className="bi bi-trash3"></i>
               </button>
@@ -254,19 +290,20 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
   <div className="card p-3 shadow-sm w-100" style={{ maxWidth: '800px' }}>
     <h5 className="mb-3">Calendriers partagés</h5>
 
+    {/* 🔔 Alertes et confirmations */}
     {selectedAlert === "sharedCalendar" && (
       <AlertSystem
-      type={alertType}
-      message={alertMessage}
-      onClose={() => {
-        setAlertMessage("");
-        setOnConfirmAction(null);
-        setSelectedAlert(null);
-      }}
-      onConfirm={() => {
-        if (onConfirmAction) onConfirmAction();
-      }}
-    />
+        type={alertType}
+        message={alertMessage}
+        onClose={() => {
+          setAlertMessage("");
+          setOnConfirmAction(null);
+          setSelectedAlert(null);
+        }}
+        onConfirm={() => {
+          if (onConfirmAction) onConfirmAction();
+        }}
+      />
     )}
 
     {/* Liste des calendriers partagés */}  
@@ -274,6 +311,23 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
       <div className="list-group">
         {sharedUserCalendars.sharedCalendarsData.map((calendarData, index) => (
         <div key={index} className="list-group-item">
+
+          {/* 🔔 Alertes et confirmations */}
+          {selectedAlert === "sharedCalendar" + calendarData.id && (
+            <AlertSystem
+              type={alertType}
+              message={alertMessage}
+              onClose={() => {
+                setAlertMessage("");
+                setOnConfirmAction(null);
+                setSelectedAlert(null);
+              }}
+              onConfirm={() => {
+                if (onConfirmAction) onConfirmAction();
+              }}
+            />
+          )}
+
           <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
             <div className="flex-grow-1">
               <strong>
@@ -319,23 +373,7 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
                 type="button"
                 className="btn btn-outline-danger"
                 title="Supprimer"
-                onClick={() => {
-                  setAlertType("confirm-danger");
-                  setSelectedAlert("sharedCalendar");
-                  setAlertMessage("❌ Supprimer le calendrier partagé ?");
-                  setOnConfirmAction(() => async () => {
-                    const rep = await sharedUserCalendars.deleteSharedCalendar(calendarData.id);
-                    if (rep.success) {
-                      setAlertType("success");
-                      setSelectedAlert("sharedCalendar");
-                      setAlertMessage("✅ " + rep.message);
-                    } else {
-                      setAlertType("danger");
-                      setSelectedAlert("sharedCalendar");
-                      setAlertMessage("❌ " + rep.error);
-                    }
-                  });
-                }}
+                onClick={() => handleDeleteSharedCalendarClick(calendarData.id)}
               >
                 <i className="bi bi-trash3"></i>
               </button>

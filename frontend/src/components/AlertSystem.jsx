@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import PropTypes from 'prop-types';
+
 
 function AlertSystem({ type = "info", message, onClose, onConfirm = null, duration = 3000 }) {
   const isConfirm = type.startsWith("confirm");
@@ -68,5 +70,20 @@ function AlertSystem({ type = "info", message, onClose, onConfirm = null, durati
     </div>
   );
 }
+
+AlertSystem.propTypes = {
+  type: PropTypes.oneOf([
+    "info",
+    "success",
+    "warning",
+    "danger",
+    "confirm-safe",
+    "confirm-danger",
+  ]),
+  message: PropTypes.string.isRequired,
+  onClose: PropTypes.func.isRequired,
+  onConfirm: PropTypes.func,
+  duration: PropTypes.number,
+};
 
 export default AlertSystem;
