@@ -52,7 +52,7 @@ npm run dev
 
 ## 🧠 Technologies utilisées
 
-- **Frontend** : React, Bootstrap, RSuite, FullCalendar, html2pdf.js
+- **Frontend** : React, Bootstrap, RSuite, FullCalendar
 - **Backend** : Flask, Supabase (PostgreSQL via psycopg2)
 - **Auth** : Firebase Authentication
 - **CI/CD** : GitHub Actions, SonarCloud
