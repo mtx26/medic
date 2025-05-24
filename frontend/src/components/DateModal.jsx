@@ -25,7 +25,10 @@ const DateModal = forwardRef(({ selectedDate, eventsForDay, onNext, onPrev, onSe
                   weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
                 })}
               </h5>
-              <button type="button" className="btn-close" onClick={() => setVisible(false)}></button>
+              <button
+                className="btn-close"
+                onClick={() => setVisible(false)}
+              ></button>
             </div>
             <div className="modal-body">
               <WeeklyEventContent
@@ -38,7 +41,12 @@ const DateModal = forwardRef(({ selectedDate, eventsForDay, onNext, onPrev, onSe
               />
             </div>
             <div className="modal-footer">
-              <button className="btn btn-secondary" onClick={() => setVisible(false)}>Fermer</button>
+              <button 
+                className="btn btn-secondary"
+                onClick={() => setVisible(false)}
+              >
+                Fermer
+              </button>
             </div>
           </div>
         </div>

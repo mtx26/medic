@@ -140,7 +140,6 @@ const AccountShareOptions = ({
         id="emailToInvite"
       />
       <button
-        type="button"
         className="btn btn-outline-primary"
         onClick={handleInvite}
       >
@@ -270,21 +269,22 @@ const ShareCalendarModal = forwardRef(({
         <div className="modal-content">
           <div className="modal-header">
             <h5 className="modal-title">Partager le calendrier <strong>{calendarName}</strong></h5>
-            <button type="button" className="btn-close" onClick={() => ref.current.close()}></button>
+            <button 
+              className="btn-close" 
+              onClick={() => ref.current.close()}
+            ></button>
           </div>
 
           <div className="modal-body">
             <div className="mb-4 text-center">
               <div className="btn-group" role="group">
                 <button
-                  type="button"
                   className={`btn ${shareMethod === 'link' ? 'btn-primary' : 'btn-outline-primary'}`}
                   onClick={() => setShareMethod('link')}
                 >
                   <i className="bi bi-link"></i> Lien
                 </button>
                 <button
-                  type="button"
                   className={`btn ${shareMethod === 'account' ? 'btn-primary' : 'btn-outline-primary'}`}
                   onClick={() => setShareMethod('account')}
                 >
@@ -321,9 +321,17 @@ const ShareCalendarModal = forwardRef(({
           </div>
 
           <div className="modal-footer">
-            <button type="button" className="btn btn-outline-secondary" onClick={() => ref.current.close()}>Fermer</button>
+            <button 
+              className="btn btn-outline-secondary" 
+              onClick={() => ref.current.close()}
+            >
+              Fermer
+            </button>
             {!existingShareToken && shareMethod === 'link' && (
-              <button type="button" className="btn btn-outline-primary" onClick={handleCreateToken}>
+              <button 
+                className="btn btn-outline-primary" 
+                onClick={handleCreateToken}
+              >
                 Partager
               </button>
             )}

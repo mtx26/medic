@@ -62,7 +62,10 @@ function Auth() {
           {/* Auth Form */}
           <div className="text-center mb-3">
             <p>{activeTab === "login" ? "Se connecter avec :" : "S'inscrire avec :"}</p>
-            <button className="btn btn-outline-danger rounded-pill px-3 py-2" onClick={GoogleHandleLogin}>
+            <button 
+              className="btn btn-outline-danger rounded-pill px-3 py-2" 
+              onClick={GoogleHandleLogin}
+            >
               <i className="bi bi-google"></i>
             </button>
             <p className="text-center mt-3 mb-0 text-muted">ou avec email :</p>

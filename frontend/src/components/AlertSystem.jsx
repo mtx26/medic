@@ -56,7 +56,6 @@ function AlertSystem({ type = "info", message, onClose, onConfirm = null, durati
             </div>
           ) : (
             <button
-              type="button"
               className="btn-close"
               onClick={() => {
                 setVisible(false);

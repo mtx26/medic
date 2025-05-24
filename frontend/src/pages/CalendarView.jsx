@@ -297,7 +297,6 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
             {/* Bouton pour partager le calendrier */}
             {calendarType === 'personal' && (
               <button
-                type="button"
                 className="btn btn-outline-warning"
                 title="Partager"
                 onClick={handleShareCalendarClick}

@@ -46,7 +46,11 @@ export default function WeeklyEventContent({
       )}
 
       <div className="d-flex justify-content-between align-items-center mb-3">
-        <button className="btn btn-outline-secondary btn-sm" onClick={onPrev} disabled={isFirstDay}>
+        <button 
+          className="btn btn-outline-secondary btn-sm" 
+          onClick={onPrev} 
+          disabled={isFirstDay}
+        >
           <i className="bi bi-arrow-left"></i>
         </button>
 
@@ -85,7 +89,11 @@ export default function WeeklyEventContent({
           )}
         </div>
 
-        <button className="btn btn-outline-secondary btn-sm" onClick={onNext} disabled={isLastDay}>
+        <button 
+          className="btn btn-outline-secondary btn-sm" 
+          onClick={onNext} 
+          disabled={isLastDay}
+        >
           <i className="bi bi-arrow-right"></i>
         </button>
       </div>

@@ -248,7 +248,6 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
             {/* Boutons d'action : ouvrir ou supprimer */}
             <div className="btn-group btn-group">
               <button
-                type="button"
                 className="btn btn-outline-success"
                 title="Ouvrir"
                 onClick={() => navigate('/calendar/' + calendarData.id)} // Navigation vers le calendrier
@@ -257,7 +256,6 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
               </button>
 
               <button
-                type="button"
                 className="btn btn-outline-warning"
                 title="Partager"
                 onClick={() => handleShareCalendarClick(calendarData)}
@@ -267,7 +265,6 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
 
 
               <button
-              type="button"
               className="btn btn-outline-danger"
               title="Supprimer"
               onClick={() => handleDeleteCalendarClick(calendarData.id)}
@@ -362,7 +359,6 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
 
             <div className="btn-group btn-group">
               <button
-                type="button"
                 className="btn btn-outline-success"
                 title="Ouvrir"
                 onClick={() => navigate('/shared-user-calendar/' + calendarData.id)}
@@ -370,7 +366,6 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
                 Ouvrir
               </button>
               <button
-                type="button"
                 className="btn btn-outline-danger"
                 title="Supprimer"
                 onClick={() => handleDeleteSharedCalendarClick(calendarData.id)}

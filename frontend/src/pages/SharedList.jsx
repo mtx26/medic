@@ -344,7 +344,7 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                           }}
                           title={token.revoked ? "Réactiver" : "Désactiver"}
                         >
-                          <i className={`bi ${token.revoked ? 'bi-toggle-off' : 'bi-toggle-on'} button-icon`}></i>
+                          <i className={`bi ${token.revoked ? 'bi-toggle-off' : 'bi-toggle-on'}`}></i>
                         </button>
                         <button
                           className="btn btn-outline-danger"

@@ -47,7 +47,6 @@ function Navbar({ sharedProps }) {
               <li className="nav-item dropdown">
                 <button
                   className="nav-link position-relative bg-transparent border-0"
-                  type="button"
                   id="notifDropdown"
                   data-bs-toggle="dropdown"
                   aria-expanded="false"
@@ -102,7 +101,12 @@ function Navbar({ sharedProps }) {
                                   >
                                     Accepter
                                   </button>
-                                  <button className="btn btn-sm btn-outline-danger" onClick={() => rejectInvitation(notif.notification_id)}>Rejeter</button>
+                                  <button 
+                                    className="btn btn-sm btn-outline-danger" 
+                                    onClick={() => rejectInvitation(notif.notification_id)}
+                                  >
+                                    Rejeter
+                                  </button>
                                 </div>
                                 <small 
                                   className="text-muted"
@@ -249,7 +253,6 @@ function Navbar({ sharedProps }) {
               <li className="nav-item dropdown">
                 <button
                   className="nav-link dropdown-toggle d-flex align-items-center border-0 bg-transparent"
-                  type="button"
                   id="userDropdown"
                   data-bs-toggle="dropdown"
                   aria-expanded="false"
@@ -275,7 +278,14 @@ function Navbar({ sharedProps }) {
                       <li><Link className="dropdown-item" to="/profile"><i className="bi bi-person fs-5 me-2"></i> Mon profil</Link></li>
                       <li><Link className="dropdown-item" to="/account"><i className="bi bi-gear fs-5 me-2"></i> Paramètres</Link></li>
                       <li><hr className="dropdown-divider" /></li>
-                      <li><button className="dropdown-item" onClick={handleLogout}><i className="bi bi-unlock fs-5 me-2"></i> Déconnexion</button></li>
+                      <li>
+                        <button 
+                          className="dropdown-item" 
+                          onClick={handleLogout}
+                        >
+                          <i className="bi bi-unlock fs-5 me-2"></i> Déconnexion
+                        </button>
+                      </li>
                     </>
                   ) : (
                     <>
@@ -299,7 +309,6 @@ function Navbar({ sharedProps }) {
 
           <button
             className="navbar-toggler position-relative"
-            type="button"
             data-bs-toggle="offcanvas"
             data-bs-target="#offcanvasNavbar"
             aria-controls="offcanvasNavbar"
@@ -323,7 +332,6 @@ function Navbar({ sharedProps }) {
                 Menu
               </h5>
               <button
-                type="button"
                 className="btn-close"
                 data-bs-dismiss="offcanvas"
                 aria-label="Close"
@@ -382,7 +390,11 @@ function Navbar({ sharedProps }) {
                       </button>
                     </li>
                     <li className="nav-item">
-                      <button className="nav-link btn btn-link text-start" onClick={handleLogout} data-bs-dismiss="offcanvas">
+                      <button 
+                        className="nav-link btn btn-link text-start" 
+                        onClick={handleLogout} 
+                        data-bs-dismiss="offcanvas"
+                      >
                         <i className="bi bi-unlock fs-5 me-2"></i> Déconnexion
                       </button>
                     </li>
