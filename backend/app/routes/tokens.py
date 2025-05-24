@@ -157,9 +157,13 @@ def handle_update_revoke_token(token):
             with conn.cursor() as cursor:
                 cursor.execute("UPDATE shared_tokens SET revoked = not revoked WHERE id = %s AND owner_uid = %s", (token, owner_uid))
 
+                cursor.execute("SELECT revoked FROM shared_tokens WHERE id = %s AND owner_uid = %s", (token, owner_uid))
+                revoked = cursor.fetchone()
+                revoked = revoked.get("revoked")
+
                 return success_response(
-                    message=SUCCESS_TOKEN_REACTIVATED, 
-                    code="TOKEN_REACTIVATED", 
+                    message=SUCCESS_TOKEN_REVOKED if revoked else SUCCESS_TOKEN_REACTIVATED, 
+                    code="TOKEN_REVOKE_SUCCESS" if revoked else "TOKEN_REACTIVATED_SUCCESS", 
                     uid=owner_uid, 
                     origin="TOKEN_REVOKE", 
                     log_extra={"token": token}
