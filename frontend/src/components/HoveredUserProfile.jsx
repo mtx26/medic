@@ -27,6 +27,8 @@ export default function HoveredUserProfile({ user, trigger, containerRef = null 
     <Popover.Root open={open} onOpenChange={setOpen}>
       <Popover.Trigger asChild>
       <span
+        role="button"
+        tabIndex={0}
         onClick={handleClick}
         onPointerEnter={handleMouseEnter}
         onPointerLeave={handleMouseLeave}
