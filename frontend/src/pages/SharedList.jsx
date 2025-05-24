@@ -27,13 +27,6 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
   const [emailsToInvite, setEmailsToInvite] = useState([]); // E-mails à inviter au partage
 
 
-  // 🔄 Initialisation des permissions et des dates d'expiration
-  for (const calendar of personalCalendars.calendarsData) {
-    setPermissions(prev => ({ ...prev, [calendar.id]: "read" }));
-    setExpiresAt(prev => ({ ...prev, [calendar.id]: null }));
-  }
-
-
   // 📅 Date du jour
   const today = formatToLocalISODate(new Date()); // Date du jour au format 'YYYY-MM-DD'
 
@@ -208,6 +201,17 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
       setGroupedSharedFunction();
     }
   }, [loading, authReady, currentUser, personalCalendars.calendarsData, tokenCalendars.tokensList, setGroupedSharedFunction]);
+
+
+  // 🔄 Initialisation des permissions et des dates d'expiration
+  useEffect(() => {
+    if (loading === false && authReady && currentUser && personalCalendars.calendarsData) {
+      for (const calendar of personalCalendars.calendarsData) {
+        setPermissions(prev => ({ ...prev, [calendar.id]: "read" }));
+        setExpiresAt(prev => ({ ...prev, [calendar.id]: null }));
+      }
+    }
+  }, [loading, authReady, currentUser, personalCalendars.calendarsData]);
 
 
   // 🔄 Rendu du composant
