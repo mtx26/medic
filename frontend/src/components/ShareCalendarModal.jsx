@@ -72,6 +72,7 @@ const LinkShareOptions = ({
           id={"newTokenExpiration-"+new Date().getTime()}
           value={expiresAt}
           onChange={(e) => setExpiresAt(e.target.value)}
+          min={new Date().toISOString().slice(0, 10)}
         />
       )}
       <label htmlFor="newTokenPermissions" className="form-label mt-2">Permissions</label>
@@ -213,8 +214,8 @@ const ShareCalendarModal = forwardRef(({
     }
   };  
 
-  const isValidShared = (expiresAt, expiration) => {
-    return ((expiresAt !== "" ) && (expiresAt >= new Date().toISOString().slice(0, 10))) || (expiration === 'never');
+  const isValidShared = (expiresAt) => {
+    return (expiresAt !== "" );
   };
 
   // Fermer le modal
@@ -325,7 +326,7 @@ const ShareCalendarModal = forwardRef(({
                   navigate={navigate}
                   refObj={ref}
                   VITE_URL={VITE_URL}
-                  isValidShared={isValidShared(expiresAt, expiration)}
+                  isValidShared={isValidShared(expiresAt)}
                 />
               </div>
             ) : (
@@ -351,7 +352,7 @@ const ShareCalendarModal = forwardRef(({
               <button 
                 className="btn btn-outline-primary" 
                 onClick={handleCreateToken}
-                disabled={!isValidShared(expiresAt, expiration)}
+                disabled={!isValidShared(expiresAt)}
               >
                 Partager
               </button>

@@ -22,14 +22,18 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
   const [groupedShared, setGroupedShared] = useState({}); // Données groupées des partages
 
   // 🔗 Données liées aux partages
-  const [expiresAt, setExpiresAt] = useState([]); // Dates d'expiration des liens partagés
-  const [permissions, setPermissions] = useState([]); // Permissions associées aux partages
-  const [emailsToInvite, setEmailsToInvite] = useState([]); // E-mails à inviter au partage
+  const [expiresAt, setExpiresAt] = useState({}); // Dates d'expiration des liens partagés
+  const [permissions, setPermissions] = useState({}); // Permissions associées aux partages
+  const [expirationType, setExpirationType] = useState({});
+  const [emailsToInvite, setEmailsToInvite] = useState({}); // E-mails à inviter au partage
 
 
   // 📅 Date du jour
   const today = formatToLocalISODate(new Date()); // Date du jour au format 'YYYY-MM-DD'
 
+  const isValidShared = (expiresAt) => {
+    return (expiresAt !== "" )
+  };
 
   // 📄 Copie du lien
   const handleCopyLink = (token) => async () => {
@@ -47,7 +51,7 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
 
 
   // 📅 Mise à jour de la date d'expiration
-  const handleUpdateTokenExpiration = (tokenId, date) => async () => {
+  const handleUpdateTokenExpiration = async (tokenId, date) => {
     const rep = await tokenCalendars.updateTokenExpiration(tokenId, date);
     if (rep.success) {
       setAlertType("success");
@@ -61,7 +65,7 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
 
 
   // 📄 Mise à jour des permissions
-  const handleUpdateTokenPermissions = (tokenId, value) => async () => {
+  const handleUpdateTokenPermissions = async (tokenId, value) => {
     const rep = await tokenCalendars.updateTokenPermissions(tokenId, value);
     if (rep.success) {
       setAlertType("success");
@@ -216,10 +220,10 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
       for (const calendar of personalCalendars.calendarsData) {
         setPermissions(prev => ({ ...prev, [calendar.id]: "read" }));
         setExpiresAt(prev => ({ ...prev, [calendar.id]: null }));
+        setExpirationType(prev => ({ ...prev, [calendar.id]: 'never' }));
       }
     }
   }, [loading, authReady, currentUser, personalCalendars.calendarsData]);
-
 
   // 🔄 Rendu du composant
   if (loading || loadingGroupedShared) {
@@ -407,32 +411,45 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                       </div>
 
                       {/* Jamais + Expiration */}
-                      <div className={`d-flex align-items-center gap-2 ${expiresAt[calendarId] === null ? 'col-md-2' : 'col-md-4'}`}>
+                      <div className={`d-flex align-items-center gap-2 col-md-4`}>
                         <select
-                          id={"newTokenExpiration"+calendarId}
-                          className="form-select"
-                          value={expiresAt[calendarId] === null ? '' : 'date'}
-                          title="Expire jamais"
+                          id={`newTokenExpiration${calendarId}`}
+                          className={`form-select`}
+                          value={expirationType[calendarId] || 'never'}
+                          title="Expiration"
                           onChange={(e) => {
-                            setExpiresAt(prev => ({ ...prev, [calendarId]: e.target.value === '' ? null : today}));
+                            const val = e.target.value;
+                            setExpirationType(prev => ({ ...prev, [calendarId]: val }));
+                            if (val === 'never') {
+                              setExpiresAt(prev => ({ ...prev, [calendarId]: null }));
+                            } else {
+                              setExpiresAt(prev => ({ ...prev, [calendarId]: prev[calendarId] || '' }));
+                            }
                           }}
                         >
-                          <option value=''>Jamais</option>
+                          <option value="never">Jamais</option>
                           <option value="date">Expiration le</option>
                         </select>
-                        {expiresAt[calendarId] !== null && (
+
+                        {expirationType[calendarId] === 'date' && (
                           <input
-                            id={"newTokenDate"+calendarId}
+                            id={`newTokenDate${calendarId}`}
                             type="date"
-                            className="form-control"
+                            className={`form-control ${!isValidShared(expiresAt[calendarId]) ? 'is-invalid' : ''}`}
                             style={{ minWidth: "120px" }}
                             title="Expiration"
-                            value={expiresAt[calendarId]}
-                            onChange={(e) => setExpiresAt(prev => ({ ...prev, [calendarId]: e.target.value }))}
+                            value={expiresAt[calendarId] || ''}
+                            onChange={(e) => {
+                              setExpiresAt(prev => ({
+                                ...prev,
+                                [calendarId]: e.target.value
+                              }));
+                            }}
                             min={today}
                           />
                         )}
                       </div>
+
                       
                       {/* Permissions */}
                       <div className="col-md-2">
@@ -451,11 +468,12 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                       </div>
 
                       {/* Actions */}
-                      <div className={`d-flex justify-content-end gap-2 ${expiresAt[calendarId] === null ? 'col-md-4' : 'col-md-2'}`}>
+                      <div className={`d-flex gap-2 justify-content-end col-md-2`}>
                         <button 
-                        className="btn btn-success"
-                        title="Ajouter"
-                        onClick={handleCreateToken(calendarId)}
+                          className="btn btn-success"
+                          title="Ajouter"
+                          onClick={handleCreateToken(calendarId)}
+                          disabled={!isValidShared(expiresAt[calendarId])}
                         >
                           <i className="bi bi-plus"></i>
                         </button>
