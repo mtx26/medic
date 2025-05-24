@@ -22,6 +22,8 @@ from app.utils.messages import (
     WARNING_ALREADY_INVITED
 )
 
+NOTIFICATION_INSERT = "INSERT INTO notifications (user_id, type, content, sender_uid) VALUES (%s, %s, %s, %s)"
+
 
 # Route pour envoyer une invitation à un utilisateur pour un partage de calendrier
 @api.route("/invitations/send/<calendar_id>", methods=["POST"])
@@ -85,10 +87,7 @@ def handle_send_invitation(calendar_id):
         
                 # Créer une notif pour l'utilisateur receveur
                 cursor.execute(
-                    """
-                    INSERT INTO notifications (user_id, type, content, sender_uid)
-                    VALUES (%s, %s, %s, %s)
-                    """,
+                    NOTIFICATION_INSERT,
                     (
                         receiver_uid,
                         "calendar_invitation",
@@ -182,10 +181,7 @@ def handle_accept_invitation(notification_id):
 
                 # Créer une notif pour l'utilisateur expéditeur
                 cursor.execute(
-                    """
-                    INSERT INTO notifications (user_id, type, content, sender_uid)
-                    VALUES (%s, %s, %s, %s)
-                    """,
+                    NOTIFICATION_INSERT,
                     (sender_uid, "calendar_invitation_accepted", json.dumps({
                         "calendar_id": calendar_id
                     }), receiver_uid)
@@ -255,10 +251,7 @@ def handle_reject_invitation(notification_id):
                 )
                 # Créer une notif pour l'utilisateur expéditeur
                 cursor.execute(
-                    """
-                    INSERT INTO notifications (user_id, type, content, sender_uid)
-                    VALUES (%s, %s, %s, %s)
-                    """,
+                    NOTIFICATION_INSERT,
                     (owner_uid, "calendar_invitation_rejected", json.dumps({
                         "calendar_id": calendar_id
                     }), receiver_uid)
