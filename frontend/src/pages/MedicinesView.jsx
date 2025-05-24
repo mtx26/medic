@@ -205,34 +205,30 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
     setOnConfirmAction(() => handleSave);
   };
 
+  const deleteConfirmAction = async () => {
+    const rep = await calendarSource.deleteMedicines(calendarId, checked);
+    if (rep.success) {
+      if (rep.medicinesData) {
+        setMedicinesData(rep.medicinesData);
+        setOriginalMedicinesData(rep.originalMedicinesData);
+      }
+      setChecked([]);
+      setAlertMessage("✅ " + rep.message);
+      setAlertType("success");
+      getGroupedMedicinesList(rep.medicinesData);
+    } else {
+      setAlertMessage("❌ " + rep.error);
+      setAlertType("danger");
+      setMedicinesData(JSON.parse(JSON.stringify(originalMedicinesData)));
+    }
+  };
   
   // 🔄 Suppression des médicaments
   const onDeleteClick = () => {
     setAlertType("confirm-danger");
     setAlertMessage("❌ Supprimer les médicaments ?");
-    setOnConfirmAction(() => async () => {
-      const rep = await calendarSource.deleteMedicines(calendarId, checked);
-      if (rep.success) {
-        if (rep.medicinesData) {
-          setMedicinesData(rep.medicinesData);
-          setOriginalMedicinesData(rep.originalMedicinesData);
-        }
-        setChecked([]);
-        setAlertMessage("✅ " + rep.message);
-        setAlertType("success");
-        getGroupedMedicinesList(rep.medicinesData);
-      } else {
-        setAlertMessage("❌ " + rep.error);
-        setAlertType("danger");
-        setMedicinesData(JSON.parse(JSON.stringify(originalMedicinesData)));
-      }
-      setTimeout(() => {
-        setAlertMessage("");
-        setAlertType("");
-        }, 2000);
-        setOnConfirmAction(null);
-      });
-    };
+    setOnConfirmAction(() => () => deleteConfirmAction());
+  };
 
 
   // 🔄 Gestion des médicaments en temps réel
