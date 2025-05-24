@@ -1,6 +1,9 @@
 import { forwardRef, useState, useImperativeHandle } from 'react';
 import { useNavigate } from 'react-router-dom';
 import HoveredUserProfile from './HoveredUserProfile';
+import PropTypes from 'prop-types';
+
+const VITE_URL = import.meta.env.VITE_VITE_URL;
 
 const LinkShareOptions = ({
   existingShareToken,
@@ -12,7 +15,6 @@ const LinkShareOptions = ({
   handleCopyLink,
   navigate,
   refObj,
-  VITE_URL
 }) => {
   if (existingShareToken) {
     const link = `${VITE_URL}/shared-token-calendar/${existingShareToken.id}`;
@@ -79,6 +81,18 @@ const LinkShareOptions = ({
   );
 };
 
+LinkShareOptions.propTypes = {
+  existingShareToken: PropTypes.object,
+  calendarName: PropTypes.string.isRequired,
+  expiresAt: PropTypes.string.isRequired,
+  setExpiresAt: PropTypes.func.isRequired,
+  permissions: PropTypes.string.isRequired,
+  setPermissions: PropTypes.func.isRequired,
+  handleCopyLink: PropTypes.func.isRequired,
+  navigate: PropTypes.func.isRequired,
+  refObj: PropTypes.shape({ current: PropTypes.any }),
+  VITE_URL: PropTypes.string.isRequired,
+};
 
 const AccountShareOptions = ({
   sharedUsersData,
@@ -136,23 +150,38 @@ const AccountShareOptions = ({
   </div>
 );
 
+AccountShareOptions.propTypes = {
+  sharedUsersData: PropTypes.arrayOf(
+    PropTypes.shape({
+      receiver_uid: PropTypes.string.isRequired,
+      receiver_email: PropTypes.string.isRequired,
+      receiver_name: PropTypes.string.isRequired,
+      receiver_photo_url: PropTypes.string,
+      accepted: PropTypes.bool.isRequired,
+      access: PropTypes.string.isRequired,
+    })
+  ).isRequired,
+  calendarName: PropTypes.string.isRequired,
+  emailToInvite: PropTypes.string.isRequired,
+  setEmailToInvite: PropTypes.func.isRequired,
+  handleInvite: PropTypes.func.isRequired,
+};
 
 
 const ShareCalendarModal = forwardRef(({
-  calendarId,
-  calendarName,
-  existingShareToken,
+  calendarId, 
+  calendarName, 
+  existingShareToken, 
   sharedUsersData,
-  tokenCalendars,
-  sharedUserCalendars,
-  setAlertType,
-  setAlertMessage,
-  setSelectedAlert,
+  tokenCalendars, 
+  sharedUserCalendars, 
+  setAlertType, 
+  setAlertMessage, 
+  setSelectedAlert, 
   alertCategory = undefined
 }, ref) => {
   const navigate = useNavigate();
 
-  const VITE_URL = import.meta.env.VITE_VITE_URL;
 
   const [shareMethod, setShareMethod] = useState('link');
   const [expiresAt, setExpiresAt] = useState(null);
@@ -305,4 +334,27 @@ const ShareCalendarModal = forwardRef(({
   );
 });
 
+ShareCalendarModal.propTypes = {
+  calendarId: PropTypes.string.isRequired,
+  calendarName: PropTypes.string.isRequired,
+  existingShareToken: PropTypes.object,
+  sharedUsersData: PropTypes.arrayOf(
+    PropTypes.shape({
+      receiver_uid: PropTypes.string.isRequired,
+      receiver_email: PropTypes.string.isRequired,
+      receiver_name: PropTypes.string.isRequired,
+      receiver_photo_url: PropTypes.string,
+      accepted: PropTypes.bool.isRequired,
+      access: PropTypes.string.isRequired,
+    })
+  ).isRequired,
+  tokenCalendars: PropTypes.object.isRequired,
+  sharedUserCalendars: PropTypes.object.isRequired,
+  setAlertType: PropTypes.func.isRequired,
+  setAlertMessage: PropTypes.func.isRequired,
+  setSelectedAlert: PropTypes.func,
+  alertCategory: PropTypes.string,
+};
+
 export default ShareCalendarModal;
+

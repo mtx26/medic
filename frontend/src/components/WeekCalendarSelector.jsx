@@ -2,10 +2,13 @@ import React from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import { getWeekDaysISOStrings, getMondayFromDate, formatToLocalISODate } from '../utils/dateUtils';
+import PropTypes from 'prop-types';
+
 
 export default function WeekCalendarSelector({ selectedDate, onWeekSelect }) {
   
   const monday = getMondayFromDate(selectedDate);
+  const today = formatToLocalISODate(new Date());
 
   // Fonction appelée au clic
   const handleChange = (date) => {
@@ -22,17 +25,12 @@ export default function WeekCalendarSelector({ selectedDate, onWeekSelect }) {
         tileClassName={({ date, view }) => {
           if (view === 'month') {
             const date_iso = formatToLocalISODate(date);
-            const today_monday = getMondayFromDate(formatToLocalISODate(new Date()));
 
-            if (getWeekDaysISOStrings(monday).includes(date_iso)) {
-
-              if (getWeekDaysISOStrings(today_monday).includes(date_iso)) {
-                return 'border border-warning border-2 bg-primary text-white';
-              }
-              return 'text-white bg-primary';
+            if (today === date_iso) {
+              return 'bg-success text-white';
             }
-            if (getWeekDaysISOStrings(today_monday).includes(date_iso)) {
-              return 'border border-warning border-2 highlight-week-today';
+            if (getWeekDaysISOStrings(monday).includes(date_iso)) {
+              return 'bg-primary text-white';
             }
           }
           return null;
@@ -41,3 +39,8 @@ export default function WeekCalendarSelector({ selectedDate, onWeekSelect }) {
     </div>
   );
 }
+
+WeekCalendarSelector.propTypes = {
+  selectedDate: PropTypes.string.isRequired,
+  onWeekSelect: PropTypes.func.isRequired,
+};

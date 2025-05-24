@@ -2,8 +2,10 @@ import React from "react";
 import ArrowControls from "./ArrowControls";
 import WeekDayCircles from "./WeekDayCircles";
 import { getMondayFromDate, getWeekDaysISOStrings } from "../utils/dateUtils";
+import PropTypes from 'prop-types';
 
-function WeeklyEventContent({
+
+export default function WeeklyEventContent({
   ifModal,
   selectedDate,
   eventsForDay,
@@ -91,4 +93,12 @@ function WeeklyEventContent({
   );
 }
 
-export default WeeklyEventContent;
+WeeklyEventContent.propTypes = {
+  ifModal: PropTypes.bool.isRequired,
+  selectedDate: PropTypes.string.isRequired,
+  eventsForDay: PropTypes.array.isRequired,
+  onSelectDate: PropTypes.func.isRequired,
+  onNext: PropTypes.func.isRequired,
+  onPrev: PropTypes.func.isRequired,
+};
+

@@ -1,6 +1,8 @@
 import * as Popover from "@radix-ui/react-popover";
 import { useState } from "react";
 import useIsTouchDevice from "../hooks/useIsTouchDevice";
+import PropTypes from 'prop-types';
+
 
 export default function HoveredUserProfile({ user, trigger, containerRef = null }) {
   const [open, setOpen] = useState(false);
@@ -75,3 +77,9 @@ export default function HoveredUserProfile({ user, trigger, containerRef = null 
     </Popover.Root>
   );
 }
+
+HoveredUserProfile.propTypes = {
+  user: PropTypes.object.isRequired,
+  trigger: PropTypes.node.isRequired,
+  containerRef: PropTypes.object,
+};

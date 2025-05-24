@@ -2,6 +2,8 @@ import { useLocation } from 'react-router-dom';
 import { useRealtimeCalendars, useRealtimeSharedCalendars } from '../hooks/useRealtimeCalendars';
 import { useRealtimeNotifications } from '../hooks/useRealtimeNotifications';
 import { useRealtimeTokens } from '../hooks/useRealtimeTokens';
+import PropTypes from 'prop-types';
+
 
 export default function RealtimeManager({ setCalendarsData, setSharedCalendarsData, setNotificationsData, setTokensList, setLoadingStates }) {
   const location = useLocation();
@@ -27,3 +29,12 @@ export default function RealtimeManager({ setCalendarsData, setSharedCalendarsDa
 
   return null; // pas de rendu visuel, juste des hooks
 }
+
+RealtimeManager.propTypes = {
+  setCalendarsData: PropTypes.func.isRequired,
+  setSharedCalendarsData: PropTypes.func.isRequired,
+  setNotificationsData: PropTypes.func.isRequired,
+  setTokensList: PropTypes.func.isRequired,
+  setLoadingStates: PropTypes.func.isRequired,
+};
+

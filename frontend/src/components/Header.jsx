@@ -5,6 +5,8 @@ import { handleLogout } from "../services/authService";
 import { useNavigate } from "react-router-dom";
 import HoveredUserProfile from "./HoveredUserProfile";
 import 'bootstrap';
+import PropTypes from 'prop-types';
+
 
 function Navbar({ sharedProps }) {
   const { userInfo } = useContext(UserContext);
@@ -412,3 +414,8 @@ function Navbar({ sharedProps }) {
 }
 
 export default Navbar;
+
+Navbar.propTypes = {
+  sharedProps: PropTypes.object.isRequired,
+};
+

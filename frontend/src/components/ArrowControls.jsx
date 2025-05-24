@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import PropTypes from 'prop-types';
 
 export default function ArrowControls({ onLeft, onRight }) {
 
@@ -18,3 +19,8 @@ export default function ArrowControls({ onLeft, onRight }) {
 
   return null;
 }
+
+ArrowControls.propTypes = {
+  onLeft: PropTypes.func.isRequired,
+  onRight: PropTypes.func.isRequired,
+};

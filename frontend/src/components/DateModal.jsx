@@ -1,7 +1,7 @@
 import { forwardRef, useImperativeHandle, useState } from "react";
 import ReactDOM from "react-dom";
 import WeeklyEventContent from "./WeeklyEventContent";
-
+import PropTypes from 'prop-types';
 
 const DateModal = forwardRef(({ selectedDate, eventsForDay, onNext, onPrev, onSelectDate }, ref) => {
   const [visible, setVisible] = useState(false);
@@ -50,3 +50,11 @@ const DateModal = forwardRef(({ selectedDate, eventsForDay, onNext, onPrev, onSe
 });
 
 export default DateModal;
+
+DateModal.propTypes = {
+  selectedDate: PropTypes.string.isRequired,
+  eventsForDay: PropTypes.array.isRequired,
+  onNext: PropTypes.func.isRequired,
+  onPrev: PropTypes.func.isRequired,
+  onSelectDate: PropTypes.func.isRequired,
+};

@@ -1,4 +1,6 @@
 import { getWeekDaysISOStrings, getMondayFromDate, formatToLocalISODate } from "../utils/dateUtils";
+import PropTypes from 'prop-types';
+
 
 export default function WeekDayCircles({ selectedDate, onSelectDate }) {
   const today = formatToLocalISODate(new Date());
@@ -57,3 +59,8 @@ export default function WeekDayCircles({ selectedDate, onSelectDate }) {
     </div>
   );
 }
+
+WeekDayCircles.propTypes = {
+  selectedDate: PropTypes.string.isRequired,
+  onSelectDate: PropTypes.func.isRequired,
+};
