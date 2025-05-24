@@ -80,10 +80,26 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
 
   const calendarSource = getCalendarSourceMap(personalCalendars, sharedUserCalendars, tokenCalendars)[calendarType];
 
+  // Fonction pour naviguer vers une date
   const onSelectDate = (isoDate) => {
     setSelectedDate(isoDate);
     setEventsForDay(calendarEvents.filter(e => e.start.startsWith(isoDate)));
   }
+
+
+  // Fonction pour naviguer vers la semaine suivante ou precedente
+  const onWeekSelect = async (monday) => {
+    const isoDate = formatToLocalISODate(monday);
+    setStartDate(isoDate);
+    const rep = await calendarSource.fetchSchedule(calendarId, isoDate);
+    if (rep.success) {
+      setCalendarEvents(rep.schedule);
+      setCalendarTable(rep.table);
+      calendarRef.current?.getApi().gotoDate(isoDate);
+      onSelectDate(isoDate);
+    }
+  }
+
 
   // Fonction pour gérer le clic sur une date
   const handleDateClick = (info) => {
@@ -92,6 +108,22 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
     dateModalRef.current?.open();
   }; 
 
+
+  // Fonction pour partager le calendrier
+  const handleShareCalendarClick = async () => {
+    setExistingShareToken(null);
+    const token = await tokenCalendars.tokensList.find(
+      (t) => t.calendar_id === calendarId && !t.revoked && t.owner_uid === currentUser.uid
+    );
+    const rep = await sharedUserCalendars.fetchSharedUsers(calendarId);
+    if (rep.success) {
+      setSharedUsersData(rep.users);
+    }
+    setExistingShareToken(token || null);
+    shareModalRef.current?.open();
+  }
+
+
   // Fonction pour naviguer vers la date suivante ou precedente
   const navigateDay = (direction) => {
     const current = new Date(selectedDate);
@@ -99,6 +131,7 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
     const newDate = formatToLocalISODate(current);
     setSelectedDate(newDate);
   };
+  
   
   // Fonction pour charger le calendrier lorsque l'utilisateur est connecté
   useEffect(() => {
@@ -267,18 +300,7 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
                 type="button"
                 className="btn btn-outline-warning"
                 title="Partager"
-                onClick={async () => {
-                  setExistingShareToken(null);
-                  const token = await tokenCalendars.tokensList.find(
-                    (t) => t.calendar_id === calendarId && !t.revoked && t.owner_uid === currentUser.uid
-                  );
-                  const rep = await sharedUserCalendars.fetchSharedUsers(calendarId);
-                  if (rep.success) {
-                    setSharedUsersData(rep.users);
-                  }
-                  setExistingShareToken(token || null);
-                  shareModalRef.current?.open();
-                }}
+                onClick={handleShareCalendarClick}
               >
                 <i className="bi bi-box-arrow-up"></i>
               </button>
@@ -292,17 +314,7 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
       {calendarTable.length > 0 && (
         <WeekCalendarSelector
           selectedDate={startDate}
-          onWeekSelect={async (monday) => {
-            const isoDate = formatToLocalISODate(monday);
-            setStartDate(isoDate);
-            const rep = await calendarSource.fetchSchedule(calendarId, isoDate);
-            if (rep.success) {
-              setCalendarEvents(rep.schedule);
-              setCalendarTable(rep.table);
-              calendarRef.current?.getApi().gotoDate(isoDate);
-              onSelectDate(isoDate);
-            }
-          }}
+          onWeekSelect={onWeekSelect}
         />
       )}
 

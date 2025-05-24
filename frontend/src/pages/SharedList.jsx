@@ -242,7 +242,7 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                 <div key={token.id}>
 
                   {/* Alert */}
-                  {alertMessage && alertId === token.id && (
+                  {alertId === token.id && (
                     <AlertSystem
                       type={alertType}
                       message={alertMessage}
@@ -366,7 +366,7 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                 <div>
 
                   {/* Alert */}
-                  {alertMessage && alertId === "newLink-"+calendarId && (
+                  {alertId === "newLink-"+calendarId && (
                     <AlertSystem
                       type={alertType}
                       message={alertMessage}
@@ -465,7 +465,7 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
               <h6 className="mt-4">Utilisateurs partagés :</h6>
               {(data.users || []).map((user) => (
                 <div key={user.receiver_uid + "-" + calendarId}>
-                  {alertMessage && alertId === user.receiver_uid + "-" + calendarId && (
+                  {alertId === user.receiver_uid + "-" + calendarId && (
                       <AlertSystem
                       type={alertType}
                       message={alertMessage}
@@ -559,7 +559,7 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
               <div>
                 
                 {/* Alert */}
-                {alertMessage && alertId === "addUser-"+calendarId && (
+                {alertId === "addUser-"+calendarId && (
                   <AlertSystem
                     type={alertType}
                     message={alertMessage}
