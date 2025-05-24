@@ -32,7 +32,7 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
 
 
   // 📄 Copie du lien
-  const handleCopyLink = async (token) => {
+  const handleCopyLink = (token) => async () => {
     try {
       await navigator.clipboard.writeText(`${VITE_URL}/shared-token-calendar/${token.id}`);
       setAlertType("success");
@@ -47,7 +47,7 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
 
 
   // 📅 Mise à jour de la date d'expiration
-  const handleUpdateTokenExpiration = async (tokenId, date) => {
+  const handleUpdateTokenExpiration = (tokenId, date) => async () => {
     const rep = await tokenCalendars.updateTokenExpiration(tokenId, date);
     if (rep.success) {
       setAlertType("success");
@@ -61,7 +61,7 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
 
 
   // 📄 Mise à jour des permissions
-  const handleUpdateTokenPermissions = async (tokenId, value) => {
+  const handleUpdateTokenPermissions = (tokenId, value) => async () => {
     const rep = await tokenCalendars.updateTokenPermissions(tokenId, value);
     if (rep.success) {
       setAlertType("success");
@@ -75,7 +75,7 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
 
 
   // 🔄 Activation/désactivation du lien
-  const handleToggleToken = async (tokenId) => {
+  const handleToggleToken = (tokenId) => async () => {
     const rep = await tokenCalendars.updateRevokeToken(tokenId);
     if (rep.success) {
       setAlertType("success");
@@ -89,7 +89,7 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
 
 
   // 🔄 Suppression du lien
-  const handleDeleteToken = (tokenId) => {
+  const handleDeleteToken = (tokenId) => () => {
     setAlertType("confirm-danger");
     setAlertMessage("❌ Supprimer le lien ?");
     setAlertId(tokenId);
@@ -106,9 +106,16 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
     });
   };
 
+  const deleteUserConfirmAction = (calendarId, user) => () => {
+    setAlertType("confirm-danger");
+    setAlertMessage("❌ Supprimer l'accès ?");
+    setAlertId(user.receiver_uid + "-" + calendarId);
+    setOnConfirmAction(() => () => handleDeleteUser(calendarId, user));
+  };
+
 
   // 🔄 Suppression de l'utilisateur
-  const handleDeleteUser = async (calendarId, user) => {
+  const handleDeleteUser = (calendarId, user) => async () => {
     const rep = await sharedUserCalendars.deleteSharedUser(calendarId, user.receiver_uid);
     if (rep.success) {
       setAlertType("success");
@@ -126,7 +133,7 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
 
 
   // 📄 Envoi d'une invitation
-  const handleSendInvitation = async (calendarId) => {
+  const handleSendInvitation = (calendarId) => async () => {
     const rep = await sharedUserCalendars.sendInvitation(emailsToInvite[calendarId], calendarId);
     if (rep.success) {
       setAlertType("success");
@@ -145,7 +152,7 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
 
 
   // 🔄 Création d'un lien de partage
-  const handleCreateToken = async (calendarId) => {
+  const handleCreateToken = (calendarId) => async () => {
     const rep = await tokenCalendars.createToken(calendarId, expiresAt[calendarId], permissions[calendarId]);
     if (rep.success) {
       setAlertType("success");
@@ -275,7 +282,7 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                           />
                           <button
                             className="btn btn-outline-primary"
-                            onClick={() => handleCopyLink(token)}
+                            onClick={handleCopyLink(token)}
                             title="Copier le lien"
                           >
                             <i className="bi bi-clipboard"></i>
@@ -339,16 +346,15 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                       <div className={`d-flex justify-content-end gap-2 col-md-2`}>
                         <button
                           className={`btn ${token.revoked ? 'btn-outline-danger' : 'btn-outline-success'}`}
-                          onClick={async () => {
-                            handleToggleToken(token.id)
-                          }}
+                          onClick={handleToggleToken(token.id)}
                           title={token.revoked ? "Réactiver" : "Désactiver"}
                         >
                           <i className={`bi ${token.revoked ? 'bi-toggle-off' : 'bi-toggle-on'}`}></i>
                         </button>
                         <button
                           className="btn btn-outline-danger"
-                          onClick={() => handleDeleteToken(token.id)}
+                          
+                          onClick={handleDeleteToken(token.id)}
                           title="Supprimer"
                         >
                           <i className="bi bi-trash"></i>
@@ -449,7 +455,7 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                         <button 
                         className="btn btn-success"
                         title="Ajouter"
-                        onClick={() => handleCreateToken(calendarId)}
+                        onClick={handleCreateToken(calendarId)}
                         >
                           <i className="bi bi-plus"></i>
                         </button>
@@ -536,14 +542,7 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                       <div className="col-md-2 d-flex justify-content-end">
                         <button
                           className="btn btn-outline-danger"
-                          onClick={() => {
-                            setAlertType("confirm-danger");
-                            setAlertMessage("❌ Supprimer l'accès ?");
-                            setAlertId(user.receiver_uid + "-" + calendarId);
-                            setOnConfirmAction(() => () => {
-                              handleDeleteUser(calendarId, user)
-                            });
-                          }}
+                          onClick={deleteUserConfirmAction(calendarId, user)}
                           title="Supprimer l'accès"
                         >
                           <i className="bi bi-trash"></i>
@@ -589,7 +588,7 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                         <button
                           className="btn btn-primary"
                           title="Envoyer une invitation"
-                          onClick={() => handleSendInvitation(calendarId)}
+                          onClick={handleSendInvitation(calendarId)}
                         >
                           <i className="bi bi-envelope-paper"></i>
                         </button>
