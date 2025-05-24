@@ -1,4 +1,4 @@
-import { forwardRef, useState, useImperativeHandle } from 'react';
+import { forwardRef, useState, useImperativeHandle, isValidElement } from 'react';
 import { useNavigate } from 'react-router-dom';
 import HoveredUserProfile from './HoveredUserProfile';
 import PropTypes from 'prop-types';
@@ -10,14 +10,19 @@ const LinkShareOptions = ({
   calendarName,
   expiresAt,
   setExpiresAt,
+  expiration,
+  setExpiration,
   permissions,
   setPermissions,
   handleCopyLink,
   navigate,
   refObj,
+  isValidShared
 }) => {
+
   if (existingShareToken) {
     const link = `${VITE_URL}/shared-token-calendar/${existingShareToken.id}`;
+
     return (
       <>
         <p>Un lien existe déjà pour ce calendrier.</p>
@@ -51,17 +56,19 @@ const LinkShareOptions = ({
       <label htmlFor="newTokenExpiration" className="form-label">Expiration du lien</label>
       <select
         id="newTokenExpiration"
-        className="form-select mb-2"
-        value={expiresAt === null ? '' : 'date'}
-        onChange={(e) => setExpiresAt(e.target.value === '' ? null : '')}
+        className={"form-select mb-2"}
+        value={expiration}
+        onChange={(e) => {
+          setExpiration(e.target.value);
+        }}
       >
-        <option value="">Jamais</option>
+        <option value="never">Jamais</option>
         <option value="date">Choisir une date</option>
       </select>
-      {expiresAt !== null && (
+      {expiration !== 'never' && (
         <input
-          type="datetime-local"
-          className="form-control"
+          type="date"
+          className={`form-control ${isValidShared ? '' : 'is-invalid'}`}
           id={"newTokenExpiration-"+new Date().getTime()}
           value={expiresAt}
           onChange={(e) => setExpiresAt(e.target.value)}
@@ -70,7 +77,7 @@ const LinkShareOptions = ({
       <label htmlFor="newTokenPermissions" className="form-label mt-2">Permissions</label>
       <select
         id="newTokenPermissions"
-        className="form-select"
+        className={"form-select"}
         value={permissions}
         onChange={(e) => setPermissions(e.target.value)}
       >
@@ -100,7 +107,13 @@ const AccountShareOptions = ({
   emailToInvite,
   setEmailToInvite,
   handleInvite
-}) => (
+}) => {
+  const isValidEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  return (
   <div>
     {sharedUsersData.length > 0 && (
       <ul className="list-group mb-3">
@@ -133,7 +146,8 @@ const AccountShareOptions = ({
     <div className="input-group">
       <input
         type="email"
-        className="form-control"
+        autoComplete="email"
+        className={`form-control ${emailToInvite === '' || !isValidEmail(emailToInvite) ? 'is-invalid' : ''}`}
         placeholder="Email du destinataire"
         value={emailToInvite}
         onChange={(e) => setEmailToInvite(e.target.value)}
@@ -142,12 +156,14 @@ const AccountShareOptions = ({
       <button
         className="btn btn-outline-primary"
         onClick={handleInvite}
-      >
+        disabled={emailToInvite === '' || !isValidEmail(emailToInvite)}
+      > 
         Partager
       </button>
     </div>
   </div>
-);
+  );
+};
 
 AccountShareOptions.propTypes = {
   sharedUsersData: PropTypes.arrayOf(
@@ -183,7 +199,8 @@ const ShareCalendarModal = forwardRef(({
 
 
   const [shareMethod, setShareMethod] = useState('link');
-  const [expiresAt, setExpiresAt] = useState(null);
+  const [expiresAt, setExpiresAt] = useState("");
+  const [expiration, setExpiration] = useState('never');
   const [permissions, setPermissions] = useState('read');
   const [emailToInvite, setEmailToInvite] = useState('');
 
@@ -196,6 +213,10 @@ const ShareCalendarModal = forwardRef(({
       setAlertMessage("❌ " + messageOrError);
     }
   };  
+
+  const isValidShared = (expiresAt, expiration) => {
+    return ((expiresAt !== "" ) && (expiresAt >= new Date().toISOString().slice(0, 10))) || (expiration === 'never');
+  };
 
   useImperativeHandle(ref, () => ({
     open: () => {
@@ -300,12 +321,15 @@ const ShareCalendarModal = forwardRef(({
                   calendarName={calendarName}
                   expiresAt={expiresAt}
                   setExpiresAt={setExpiresAt}
+                  expiration={expiration}
+                  setExpiration={setExpiration}
                   permissions={permissions}
                   setPermissions={setPermissions}
                   handleCopyLink={handleCopyLink}
                   navigate={navigate}
                   refObj={ref}
                   VITE_URL={VITE_URL}
+                  isValidShared={isValidShared(expiresAt, expiration)}
                 />
               </div>
             ) : (
@@ -331,6 +355,7 @@ const ShareCalendarModal = forwardRef(({
               <button 
                 className="btn btn-outline-primary" 
                 onClick={handleCreateToken}
+                disabled={!isValidShared(expiresAt, expiration)}
               >
                 Partager
               </button>
