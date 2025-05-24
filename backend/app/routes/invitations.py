@@ -3,8 +3,8 @@ from app.utils.response import success_response, error_response, warning_respons
 from app.utils.validators import verify_firebase_token
 from app.db.connection import get_connection
 from app.services.calendar_service import verify_calendar
+from app.services.user import fetch_user
 from firebase_admin import auth
-import secrets
 from . import api
 import json
 from app.utils.messages import (
@@ -59,9 +59,9 @@ def handle_send_invitation(calendar_id):
                         log_extra={"calendar_id": calendar_id}
                     )
 
-                # Vérifier si l'utilisateur existe  
-                cursor.execute("SELECT * FROM users WHERE id = %s", (receiver_uid,))
-                user = cursor.fetchone()
+                # Vérifier si l'utilisateur existe 
+                user = fetch_user(receiver_uid)
+
                 if not user:
                     return warning_response(
                         message=WARNING_USER_NOT_FOUND, 

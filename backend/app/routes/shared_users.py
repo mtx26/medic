@@ -5,6 +5,7 @@ from firebase_admin import firestore, auth
 from app.services.calendar_service import verify_calendar_share, generate_schedule, generate_table
 import secrets
 from flask import request
+from app.services.user import fetch_user
 from app.utils.response import success_response, error_response, warning_response
 from app.db.connection import get_connection
 import json
@@ -76,8 +77,7 @@ def handle_shared_calendars():
                     calendar_name = calendar.get("name")
 
                     # Récupère les infos de l'owner
-                    cursor.execute("SELECT * FROM users WHERE id = %s", (owner_uid,))
-                    owner = cursor.fetchone()
+                    owner = fetch_user(owner_uid)
                     if owner is None:
                         return warning_response(
                             message=WARNING_SHARED_USER_NOT_FOUND,
@@ -450,8 +450,7 @@ def handle_shared_users(calendar_id):
                     access = shared_user.get("access", "read")
                     accepted = shared_user.get("accepted", False)
 
-                    cursor.execute("SELECT * FROM users WHERE id = %s", (receiver_uid,))
-                    receiver = cursor.fetchone()
+                    receiver = fetch_user(receiver_uid)
                     if not receiver:
                         return warning_response(
                             message=WARNING_SHARED_USER_NOT_FOUND,

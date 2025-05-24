@@ -1,7 +1,7 @@
 from . import api
 from app.utils.validators import verify_firebase_token
 from app.utils.response import success_response, error_response, warning_response
-from app.utils.logger import log_backend as logger
+from app.services.user import fetch_user
 from app.db.connection import get_connection
 from app.utils.messages import (
     SUCCESS_NOTIFICATIONS_FETCHED,
@@ -28,8 +28,7 @@ def safely_get_calendar_name(calendar_id):
 def get_user_info(uid):
     with get_connection() as conn:
         with conn.cursor() as cursor:
-            cursor.execute("SELECT * FROM users WHERE id = %s", (uid,))
-            user = cursor.fetchone()
+            user = fetch_user(uid)
             return user.get("display_name"), user.get("email"), user.get("photo_url")
 
 # Route pour récupérer toutes les notifications
