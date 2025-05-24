@@ -59,61 +59,61 @@ export const useRealtimeNotifications = (setNotificationsData, setLoadingStates)
       return;
     }
 
-    // 🔹 Fetch initial
-    fetchNotifications(user, setNotificationsData, setLoadingStates);
+    if (setNotificationsData) {
+      fetchNotifications(user, setNotificationsData, setLoadingStates);
 
-    // 🔹 Realtime Supabase
-    const channel = supabase
-    .channel(`notifications-${user.uid}`)
-    .on(
-      'postgres_changes',
-      {
-        event: 'insert',
-        schema: 'public',
-        table: 'notifications',
-        filter: `user_id=eq.${user.uid}`,
-      },
-      () => {
-        fetchNotifications(user, setNotificationsData, setLoadingStates);
-      }
-    )
-    .on(
-      'postgres_changes',
-      {
-        event: 'delete',
-        schema: 'public',
-        table: 'notifications',
-      },
-      () => {
-        fetchNotifications(user, setNotificationsData, setLoadingStates);
-      }
-    )
-    .on(
-      'postgres_changes',
-      {
-        event: 'update',
-        schema: 'public',
-        table: 'notifications',
-        filter: `user_id=eq.${user.uid}`,
-      },
-      () => {
-        fetchNotifications(user, setNotificationsData, setLoadingStates);
-      }
-    )
-    .subscribe();
+      // 🔹 Realtime Supabase
+      const channel = supabase
+      .channel(`notifications-${user.uid}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'insert',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${user.uid}`,
+        },
+        () => {
+          fetchNotifications(user, setNotificationsData, setLoadingStates);
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'delete',
+          schema: 'public',
+          table: 'notifications',
+        },
+        () => {
+          fetchNotifications(user, setNotificationsData, setLoadingStates);
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'update',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${user.uid}`,
+        },
+        () => {
+          fetchNotifications(user, setNotificationsData, setLoadingStates);
+        }
+      )
+      .subscribe();
 
-  channelRef.current = channel;
-  return () => {
-    try {
-      if (channelRef.current?.unsubscribe) {
-        channelRef.current.unsubscribe();
-      }
-    } catch (err) {
-      log.error(err.message, err, {
-        origin: "REALTIME_NOTIFICATIONS_UNSUBSCRIBE_ERROR",
-      });
+      channelRef.current = channel;
+      return () => {
+        try {
+          if (channelRef.current?.unsubscribe) {
+            channelRef.current.unsubscribe();
+          }
+        } catch (err) {
+          log.error(err.message, err, {
+            origin: "REALTIME_NOTIFICATIONS_UNSUBSCRIBE_ERROR",
+          });
+        }
+      };
     }
-  };
-
   }, [authReady, currentUser, setNotificationsData, setLoadingStates]);
 };

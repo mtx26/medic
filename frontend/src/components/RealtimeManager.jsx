@@ -19,13 +19,11 @@ export default function RealtimeManager({ setCalendarsData, setSharedCalendarsDa
 
   const isRealtimeEnabled = enabledRoutes.some(route => location.pathname.startsWith(route));
 
-  if (!isRealtimeEnabled) return null;
-
   // ✅ Appel des hooks (OK car toujours dans un composant monté dans <Router>)
-  useRealtimeCalendars(setCalendarsData, setLoadingStates);
-  useRealtimeSharedCalendars(setSharedCalendarsData, setLoadingStates);
-  useRealtimeNotifications(setNotificationsData, setLoadingStates);
-  useRealtimeTokens(setTokensList, setLoadingStates);
+  useRealtimeCalendars(isRealtimeEnabled ? setCalendarsData : null, setLoadingStates);
+  useRealtimeSharedCalendars(isRealtimeEnabled ? setSharedCalendarsData : null, setLoadingStates);
+  useRealtimeNotifications(isRealtimeEnabled ? setNotificationsData : null, setLoadingStates);
+  useRealtimeTokens(isRealtimeEnabled ? setTokensList : null, setLoadingStates);
 
   return null; // pas de rendu visuel, juste des hooks
 }

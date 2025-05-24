@@ -533,7 +533,6 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
                               value={item.data?.start_date ? formatToLocalISODate(item.data?.start_date) : ''}
                               onChange={(e) => {
                                 const value = e.target.value ? e.target.value : null;
-                                console.log(value)
                                 handleMedChange(item.data.id, 'start_date', value)
                               }}
                               title="Date de début"
