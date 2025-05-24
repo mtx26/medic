@@ -17,6 +17,8 @@ from app.utils.messages import (
     WARNING_INVALID_MEDICINE_FORMAT,
 )
 
+SELECT_SHARED_MEDICINES = "SELECT * FROM medicines WHERE calendar_id = %s"
+
 # Route pour récupérer les médicaments d'un calendrier partagé
 @api.route("/shared/users/calendars/<calendar_id>/medicines", methods=["GET"])
 def handle_shared_user_calendar_medicines(calendar_id):
@@ -36,7 +38,7 @@ def handle_shared_user_calendar_medicines(calendar_id):
 
         with get_connection() as conn:
             with conn.cursor() as cursor:
-                cursor.execute("SELECT * FROM medicines WHERE calendar_id = %s", (calendar_id,))
+                cursor.execute(SELECT_SHARED_MEDICINES, (calendar_id,))
                 medicines = cursor.fetchall()
 
             if not medicines:
@@ -144,7 +146,7 @@ def handle_delete_shared_user_calendar_medicines(calendar_id):
             with conn.cursor() as cursor:
                 cursor.execute("DELETE FROM medicines WHERE id IN %s", (tuple(checked),))
                 conn.commit()
-                cursor.execute("SELECT * FROM medicines WHERE calendar_id = %s", (calendar_id,))
+                cursor.execute(SELECT_SHARED_MEDICINES, (calendar_id,))
                 medicines = cursor.fetchall()
                 if not medicines:
                     return success_response(

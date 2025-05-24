@@ -25,6 +25,8 @@ from app.utils.messages import (
     ERROR_SHARED_CALENDARS_FETCH
 )
 
+SELECT_SHARED_CALENDAR = "SELECT * FROM calendars WHERE id = %s"
+
 # Route pour récupérer les calendriers partagés
 @api.route("/shared/users/calendars", methods=["GET"])
 def handle_shared_calendars():
@@ -53,7 +55,7 @@ def handle_shared_calendars():
                     access = shared_user.get("access", "read")
 
                     # Récupère le calendrier nom du calendrier et le nom de l'owner
-                    cursor.execute("SELECT * FROM calendars WHERE id = %s", (calendar_id,))
+                    cursor.execute(SELECT_SHARED_CALENDAR, (calendar_id,))
                     calendar = cursor.fetchone()
                     if not calendar:
                         return warning_response(
@@ -143,7 +145,7 @@ def handle_user_shared_calendar(calendar_id):
         
         with get_connection() as conn:
             with conn.cursor() as cursor:
-                cursor.execute("SELECT * FROM calendars WHERE id = %s", (calendar_id,))
+                cursor.execute(SELECT_SHARED_CALENDAR, (calendar_id,))
                 calendar = cursor.fetchone()
                 if not calendar:
                     return warning_response(
@@ -215,7 +217,7 @@ def handle_user_shared_calendar_schedule(calendar_id):
 
         with get_connection() as conn:
             with conn.cursor() as cursor:
-                cursor.execute("SELECT * FROM calendars WHERE id = %s", (calendar_id,))
+                cursor.execute(SELECT_SHARED_CALENDAR, (calendar_id,))
                 calendar = cursor.fetchone()
                 if not calendar:
                     return warning_response(
@@ -283,7 +285,7 @@ def handle_delete_user_shared_calendar(calendar_id):
 
         with get_connection() as conn:
             with conn.cursor() as cursor:
-                cursor.execute("SELECT * FROM calendars WHERE id = %s", (calendar_id,))
+                cursor.execute(SELECT_SHARED_CALENDAR, (calendar_id,))
                 calendar = cursor.fetchone()
                 if not calendar:
                     return warning_response(
@@ -419,7 +421,7 @@ def handle_shared_users(calendar_id):
 
         with get_connection() as conn:
             with conn.cursor() as cursor:
-                cursor.execute("SELECT * FROM calendars WHERE id = %s AND owner_uid = %s", (calendar_id, owner_uid))
+                cursor.execute(SELECT_SHARED_CALENDAR, (calendar_id,))
                 calendar = cursor.fetchone()
                 if not calendar:
                     return warning_response(
