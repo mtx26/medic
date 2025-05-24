@@ -48,41 +48,46 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
     setNewCalendarName("");
   };
 
+  const renameConfirmAction = async (calendarId) => {
+    const rep = await personalCalendars.renameCalendar(calendarId, renameValues[calendarId]);
+    if (rep.success) {
+      setRenameValues((prev) => ({ ...prev, [calendarId]: "" }));
+      setAlertType("success");
+      setAlertMessage("✅ " + rep.message);
+      setSelectedAlert("calendar" + calendarId);
+    } else {
+      setAlertType("danger");
+      setAlertMessage("❌ " + rep.error);
+      setSelectedAlert("calendar" + calendarId);
+    }
+  };
+
   // 🔄 Renommage d'un calendrier
   const handleRenameClick = (calendarId) => {
     setAlertType("confirm-safe");
     setSelectedAlert("calendar" + calendarId);
     setAlertMessage("✅ Renommer le calendrier ?");
-    setOnConfirmAction(() => async () => {
-      const rep = await personalCalendars.renameCalendar(calendarId, renameValues[calendarId]);
-      if (rep.success) {
-        setRenameValues((prev) => ({ ...prev, [calendarId]: "" }));
-        setAlertType("success");
-        setAlertMessage("✅ " + rep.message);
-      } else {
-        setAlertType("danger");
-        setAlertMessage("❌ " + rep.error);
-      }
+    setOnConfirmAction(() => () => renameConfirmAction(calendarId));
+  };
+
+  const deleteConfirmAction = async (calendarId) => {
+    const rep = await personalCalendars.deleteCalendar(calendarId);
+    if (rep.success) {  
+      setAlertType("success");
+      setAlertMessage("✅ " + rep.message);
+      setSelectedAlert("calendar");
+    } else {
+      setAlertType("danger");
+      setAlertMessage("❌ " + rep.error);
       setSelectedAlert("calendar" + calendarId);
-    });
+    }
   };
 
   const handleDeleteCalendarClick = (calendarId) => {
     setAlertType("confirm-danger");
     setSelectedAlert("calendar" + calendarId);
     setAlertMessage("❌ Supprimer le calendrier ?");
-    setOnConfirmAction(() => async () => {
-      const rep = await personalCalendars.deleteCalendar(calendarId);
-      if (rep.success) {
-        setAlertType("success");
-        setAlertMessage("✅ " + rep.message);
-        setSelectedAlert("calendar");
-      } else {
-        setAlertType("danger");
-        setAlertMessage("❌ " + rep.error);
-        setSelectedAlert("calendar" + calendarId);
-      }
-    });
+    setOnConfirmAction(() => () => deleteConfirmAction(calendarId));
   };
 
   // 🔗 Partager un calendrier
@@ -101,22 +106,24 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
     shareModalRef.current?.open();
   };  
 
+  const deleteSharedCalendarConfirmAction = async (calendarId) => {
+    const rep = await sharedUserCalendars.deleteSharedCalendar(calendarId);
+    if (rep.success) {
+      setAlertType("success");
+      setAlertMessage("✅ " + rep.message);
+      setSelectedAlert("sharedCalendar");
+    } else {
+      setAlertType("danger");
+      setAlertMessage("❌ " + rep.error);
+      setSelectedAlert("sharedCalendar" + calendarId);
+    }
+  };
+
   const handleDeleteSharedCalendarClick = (calendarId) => {
     setAlertType("confirm-danger");
     setSelectedAlert("sharedCalendar" + calendarId);
     setAlertMessage("❌ Supprimer le calendrier partagé ?");
-    setOnConfirmAction(() => async () => {
-      const rep = await sharedUserCalendars.deleteSharedCalendar(calendarId);
-      if (rep.success) {
-        setAlertType("success");
-        setAlertMessage("✅ " + rep.message);
-        setSelectedAlert("sharedCalendar");
-      } else {
-        setAlertType("danger");
-        setAlertMessage("❌ " + rep.error);
-        setSelectedAlert("sharedCalendar" + calendarId);
-      }
-    });
+    setOnConfirmAction(() => () => deleteSharedCalendarConfirmAction(calendarId));
   };
 
   return (

@@ -217,38 +217,35 @@ const ShareCalendarModal = forwardRef(({
     return ((expiresAt !== "" ) && (expiresAt >= new Date().toISOString().slice(0, 10))) || (expiration === 'never');
   };
 
+  // Fermer le modal
+  const handleHidden = (modalEl) => {
+    const modal = window.bootstrap.Modal.getInstance(modalEl);
+    if (modal) modal.dispose();
+
+    modalEl.removeEventListener('hidden.bs.modal', () => handleHidden(modalEl));
+
+    document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+    document.body.classList.remove('modal-open');
+    document.body.style.paddingRight = '';
+  };
+
   useImperativeHandle(ref, () => ({
     open: () => {
       setTimeout(() => {
-        const modal = new window.bootstrap.Modal(document.getElementById('shareModal'), {
-          focus: false
-        });
+        const modal = new window.bootstrap.Modal(document.getElementById('shareModal'), { focus: false });
         modal.show();
       }, 0);
-    },    
+    },
     close: () => {
       const modalEl = document.getElementById('shareModal');
       if (!modalEl) return;
-    
+
+      modalEl.addEventListener('hidden.bs.modal', () => handleHidden(modalEl));
       const modal = window.bootstrap.Modal.getInstance(modalEl);
-      if (modal) {
-        // Ajouter un listener pour "transitionend"
-        const handleHidden = () => {
-          modal.dispose(); // 🔥 Supprime correctement l’instance
-          modalEl.removeEventListener('hidden.bs.modal', handleHidden);
-          
-          // Sécurité : retirer tout backdrop restant
-          document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
-          document.body.classList.remove('modal-open'); // au cas où
-          document.body.style.paddingRight = ''; // au cas où Bootstrap l’a modifié
-        };
-    
-        modalEl.addEventListener('hidden.bs.modal', handleHidden);
-        modal.hide(); // 📦 Lance l’animation de fermeture
-      }
-    
-      document.activeElement?.blur(); // 🔵 Retirer le focus actif (croix, bouton…)
-    }    
+      if (modal) modal.hide();
+
+      document.activeElement?.blur();
+    }
   }));
 
   const handleCopyLink = async (link) => {
