@@ -3,27 +3,27 @@
   xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
   <url>
-    <loc>https://medic.vercel.app/</loc>
+    <loc>https://meditime-app.com/</loc>
     <priority>1.0</priority>
   </url>
 
   <url>
-    <loc>https://medic.vercel.app/login</loc>
+    <loc>https://meditime-app.com/login</loc>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>https://medic.vercel.app/register</loc>
+    <loc>https://meditime-app.com/register</loc>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>https://medic.vercel.app/reset-password</loc>
+    <loc>https://meditime-app.com/reset-password</loc>
     <priority>0.5</priority>
   </url>
 
   <url>
-    <loc>https://medic.vercel.app/verify-email</loc>
+    <loc>https://meditime-app.com/verify-email</loc>
     <priority>0.5</priority>
   </url>
 

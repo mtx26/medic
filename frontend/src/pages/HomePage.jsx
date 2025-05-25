@@ -50,7 +50,7 @@ function HomePage() {
         <div className="text-center">
           <h2 className="fw-bold text-primary">Pourquoi choisir Meditime ?</h2>
           <p className="text-muted mx-auto" style={{ maxWidth: "800px" }}>
-            Parce que la santé ne devrait jamais être laissée au hasard. Avec Meditime, vous avez un outil simple, clair et sécurisé pour organiser vos traitements et ceux de vos proches.
+            Parce que la santé ne devrait jamais être laissée au hasard. Avec MediTime, vous avez un outil simple, clair et sécurisé pour organiser vos traitements et ceux de vos proches.
           </p>
         </div>
       </section>

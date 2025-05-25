@@ -13,4 +13,4 @@ Allow: /reset-password
 Allow: /verify-email
 Allow: /
 
-Sitemap: https://medic-drab.vercel.app/sitemap.xml
+Sitemap: https://meditime-app.com/sitemap.xml

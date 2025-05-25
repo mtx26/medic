@@ -1088,11 +1088,6 @@ function App() {
     }
   }, [authReady]);
 
-  useEffect(() => {
-    console.log(calendarsData);
-  }, [calendarsData]);
-  
-
   return (
     <Router>
       <div className="d-flex flex-column min-vh-100">

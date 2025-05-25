@@ -29,6 +29,10 @@ function Footer() {
               <div className="col-sm-6">
                 <ul className="list-unstyled">
                   <li>
+                    <i className="bi bi-house me-2 text-primary"></i>
+                    <Link to="/" className="text-muted text-decoration-none link-hover">Accueil</Link>
+                  </li>
+                  <li>
                     <i className="bi bi-info-circle me-2 text-primary"></i>
                     <Link to="/about" className="text-muted text-decoration-none link-hover">À propos</Link>
                   </li>
