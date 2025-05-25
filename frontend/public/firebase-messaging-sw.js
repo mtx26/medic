@@ -13,8 +13,11 @@ const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage(function (payload) {
   console.log("[firebase-messaging-sw.js] Message reçu :", payload);
-  self.registration.showNotification(payload.notification.title, {
-    body: payload.notification.body,
-    icon: '/favicon.png',
+
+  const { title, body, icon } = payload.data;
+
+  self.registration.showNotification(title, {
+    body: body,
+    icon: icon || '/favicon.png',
   });
 });

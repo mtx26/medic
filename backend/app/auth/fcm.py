@@ -1,21 +1,3 @@
-import json
-import requests
-from google.auth.transport.requests import Request
-from google.oauth2 import service_account
-from firebase_admin import credentials
-from app.config.config import Config
-
-SCOPES = ["https://www.googleapis.com/auth/firebase.messaging"]
-
-def get_fcm_access_token():
-    print("get_fcm_access_token")
-    service_account_info = json.loads(Config.FIREBASE_CREDENTIALS)
-    credentials_obj = service_account.Credentials.from_service_account_info(
-        service_account_info, scopes=SCOPES
-    )
-    credentials_obj.refresh(Request())
-    return credentials_obj.token, credentials_obj.project_id
-
 def send_fcm_notification(token, title, body):
     print("send_fcm_notification")
     access_token, project_id = get_fcm_access_token()
@@ -30,9 +12,11 @@ def send_fcm_notification(token, title, body):
     payload = {
         "message": {
             "token": token,
-            "notification": {
+            "data": {
                 "title": title,
-                "body": body
+                "body": body,
+                "icon": "/favicon.png",
+                "link": "https://meditime-app.com"
             },
             "webpush": {
                 "fcm_options": {
