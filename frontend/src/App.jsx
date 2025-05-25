@@ -5,7 +5,7 @@ import Navbar from './components/Header';
 import Footer from './components/Footer';
 import AppRoutes from './routes/AppRouter';
 import { log } from './utils/logger';
-import { auth, analyticsPromise } from './services/firebase';
+import { auth, analyticsPromise, requestPermissionAndGetToken} from './services/firebase';
 import { logEvent } from 'firebase/analytics';
 import { UserContext } from './contexts/UserContext';
 import { useRealtimeCalendars, useRealtimeSharedCalendars } from './hooks/useRealtimeCalendars';
@@ -14,8 +14,11 @@ import { useRealtimeTokens } from './hooks/useRealtimeTokens';
 import { formatToLocalISODate } from './utils/dateUtils';
 import { v4 as uuidv4 } from 'uuid';
 import RealtimeManager from './components/RealtimeManager';
+import { getToken, getMessaging } from 'firebase/messaging';
+
 
 const API_URL = import.meta.env.VITE_API_URL;
+const FCM_SERVER_KEY = import.meta.env.VITE_FCM_SERVER_KEY;
 
 function App() {
   const [tokensList, setTokensList] = useState([]);
@@ -1087,6 +1090,104 @@ function App() {
       }));
     }
   }, [authReady]);
+
+  useEffect(() => {
+    if (!auth.currentUser) return;
+
+    auth.currentUser.getIdToken().then(console.log)
+
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker
+        .register("/firebase-messaging-sw.js")
+        .then((registration) => {
+          log.info("[FCM] SW enregistré :", registration, {
+            origin: "FCM_SW_REGISTER_SUCCESS",
+          });
+        })
+        .catch((err) => {
+          log.error("[FCM] Erreur SW :", err, {
+            origin: "FCM_SW_REGISTER_ERROR",
+          });
+        });
+    }
+
+    // 🔐 Demande de permission et envoi du token
+    const sendTokenToBackend = async () => {
+      const token = await requestPermissionAndGetToken();
+      if (!token || !auth.currentUser) return;
+
+      // 🎯 Envoi du token FCM au backend Flask
+      fetch(`${import.meta.env.VITE_API_URL}/api/notifications/register-token`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          uid: auth.currentUser.uid,
+          token: token,
+        }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          log.info("[FCM] Token enregistré côté backend", {
+            uid: auth.currentUser.uid,
+            token: token,
+            origin: "FCM_TOKEN_REGISTER_SUCCESS",
+          });
+        })
+        .catch((error) => {
+          log.error("[FCM] Erreur d’envoi du token", {
+            uid: auth.currentUser.uid,
+            token: token,
+            origin: "FCM_TOKEN_REGISTER_ERROR",
+            error: error,
+          });
+        });
+    };
+
+    sendTokenToBackend();
+
+  }, [auth.currentUser]);
+
+  useEffect(() => {
+    const runFCMTest = async () => {
+      try {
+        const user = auth.currentUser;
+        if (!user) {
+          console.warn("Utilisateur non connecté.");
+          return;
+        }
+
+        const idToken = await user.getIdToken();
+        const messaging = getMessaging();
+        const fcmToken = await getToken(messaging, { vapidKey: FCM_SERVER_KEY });
+
+        console.log("✅ UID :", user.uid);
+        console.log("✅ ID Token :", idToken);
+        console.log("✅ FCM Token :", fcmToken);
+
+        const response = await fetch("http://localhost:5000/api/notifications/send", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + idToken,
+          },
+          body: JSON.stringify({
+            uid: user.uid,
+            title: "🔔 Test via React App",
+            body: "Si tu lis ça, les notifs FCM fonctionnent ✅",
+          }),
+        });
+
+        const result = await response.json();
+        console.log("📬 Réponse du backend :", result);
+      } catch (err) {
+        console.error("❌ Erreur FCM test :", err);
+      }
+    };
+
+    runFCMTest();
+  }, [auth.currentUser]);
 
   return (
     <Router>

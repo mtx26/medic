@@ -2,27 +2,57 @@ import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getAnalytics, isSupported } from "firebase/analytics";
+import { getMessaging, getToken, onMessage } from "firebase/messaging";
+import { log } from "../utils/logger";
+
 
 // 🔐 Configuration Firebase
 const firebaseConfig = {
-  apiKey: "AIzaSyDJzyhnHPkWVYzw38CuLBvj0d9syMTf6uw",
-  authDomain: "medic-mamy.firebaseapp.com",
-  projectId: "medic-mamy",
-  storageBucket: "medic-mamy.firebasestorage.app",
-  messagingSenderId: "90914528083",
-  appId: "1:90914528083:web:84e9a65d36da88b359dfa6",
-  measurementId: "G-4119MN124T",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
 // 🚀 Initialisation
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const messaging = getMessaging(app);
 
-// ✅ Promesse exportée pour éviter `let` mutable
+// 🔔 Récupérer le token de notifications
+export const requestPermissionAndGetToken = async () => {
+  try {
+    const permission = await Notification.requestPermission();
+    if (permission !== "granted") throw new Error("Permission refusée");
+
+    const token = await getToken(messaging, {
+      vapidKey: import.meta.env.VITE_FCM_SERVER_KEY,
+    });
+
+    log.info("[FCM] Token reçu :", {
+      uid: auth.currentUser.uid,
+      token: token,
+      origin: "FCM_TOKEN_RECEIVED",
+    });
+    return token;
+  } catch (err) {
+    log.error("[FCM] Erreur permission ou token", {
+      uid: auth.currentUser.uid,
+      token: token,
+      origin: "FCM_TOKEN_ERROR",
+      error: err,
+    });
+    return null;
+  }
+};
+
 const analyticsPromise = isSupported().then((yes) =>
   yes ? getAnalytics(app) : null
 );
 
 // 📤 Exportation
-export { auth, db, analyticsPromise };
+export { auth, db, analyticsPromise, messaging, onMessage };
