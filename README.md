@@ -1,7 +1,7 @@
 ![Backend CI](https://github.com/mtx26/medic/actions/workflows/backend-ci.yml/badge.svg)
 ![Frontend CI](https://github.com/mtx26/medic/actions/workflows/frontend-ci.yml/badge.svg)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=mtx26_medic&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=mtx26_medic)
-[![Backend Uptime](https://img.shields.io/uptimerobot/status/m800604412-b3dfcffa4d1ddbcda5043748?label=Uptime)](https://stats.uptimerobot.com/grkagF4D8K)
+[![Backend Uptime](https://img.shields.io/uptimerobot/status/m800604412-b3dfcffa4d1ddbcda5043748?label=Backend%20Uptime)](https://stats.uptimerobot.com/grkagF4D8K)
 [![Frontend Uptime](https://img.shields.io/uptimerobot/status/m800604510-1a3da771d8926ec5f29f31c3?label=Frontend%20Uptime)](https://stats.uptimerobot.com/grkagF4D8K)
 
 
