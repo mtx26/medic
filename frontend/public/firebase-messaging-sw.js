@@ -10,14 +10,3 @@ firebase.initializeApp({
 });
 
 const messaging = firebase.messaging();
-
-messaging.onBackgroundMessage(function (payload) {
-  console.log("[firebase-messaging-sw.js] Message reçu :", payload);
-
-  const { title, body } = payload.data;
-
-  self.registration.showNotification(title, {
-    body,
-    icon: '/favicon.png',
-  });
-});

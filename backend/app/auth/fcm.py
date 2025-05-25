@@ -27,10 +27,10 @@ def send_fcm_notification(token, title, body):
     payload = {
         "message": {
             "token": token,
-            "data": {
+            "notification": {
                 "title": title,
                 "body": body,
-                "link": "https://meditime-app.com"
+                "image": "https://meditime-app.com/favicon.png"
             },
             "webpush": {
                 "fcm_options": {
@@ -39,6 +39,7 @@ def send_fcm_notification(token, title, body):
             }
         }
     }
+
 
     response = requests.post(url, headers=headers, json=payload)
     try:
