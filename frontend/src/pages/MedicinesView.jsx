@@ -478,6 +478,8 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
                           <div className="form-floating">
                             <input
                               type="number"
+                              step="5"
+                              min="0"
                               className={`form-control form-control-sm ${isFieldChanged(item.data.id, 'dose') ? 'field-changed' : ''}`}
                               id={`dose-${item.data.id}`}
                               placeholder="Dose"
@@ -494,6 +496,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
                             <input
                               type="number"
                               step="0.25"
+                              min="0"
                               className={`form-control form-control-sm ${!validity.tablet_count ? 'is-invalid' : ''} ${isFieldChanged(item.data.id, 'tablet_count') ? 'field-changed' : ''}`}
                               id={`comps-${item.data.id}`}
                               placeholder="Comprimés"
@@ -528,6 +531,8 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
                           <div className="form-floating">
                             <input
                               type="number"
+                              step="1"
+                              min="0"
                               className={`form-control form-control-sm ${!validity.interval_days ? 'is-invalid' : ''} ${isFieldChanged(item.data.id, 'interval_days') ? 'field-changed' : ''}`}
                               id={`interval-${item.data.id}`}
                               placeholder="Intervalle"
