@@ -159,30 +159,30 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
     )}
 
     {/* Champ pour ajouter un nouveau calendrier */}
-    <div className="input-group mb-4">
-      <input
-        id="newCalendarName"
-        type="text"
-        className="form-control"
-        placeholder="Nom du calendrier"
-        value={newCalendarName}
-        onChange={(e) => setNewCalendarName(e.target.value)} // Mise à jour du nom du nouveau calendrier
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') {
-            handleAddCalendarClick();
-          }
-        }}
-      />
-      <button
-      onClick={handleAddCalendarClick}
-      className="btn btn-primary"
-      title="Ajouter un calendrier"
-      >
-      <i className="bi bi-plus-lg"></i>
-      <span> Ajouter</span>
-      </button>
-    </div>
-
+    <form onSubmit={(e) => {
+      e.preventDefault();
+      handleAddCalendarClick();
+    }}>
+      <div className="input-group mb-4">
+        <input
+          id="newCalendarName"
+          type="text"
+          className="form-control"
+          placeholder="Nom du calendrier"
+          required
+          value={newCalendarName}
+          onChange={(e) => setNewCalendarName(e.target.value)} // Mise à jour du nom du nouveau calendrier
+        />
+        <button
+          type="submit"
+          className="btn btn-primary"
+          title="Ajouter un calendrier"
+        >
+        <i className="bi bi-plus-lg"></i>
+        <span> Ajouter</span>
+        </button>
+      </div>
+    </form>
     {selectedAlert === "calendar" && (
       <AlertSystem
         type={alertType}
@@ -233,28 +233,27 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
             </div>
 
             {/* Partie pour renommer un calendrier */}
-            <div className="input-group input-group w-100 w-md-auto">
+            <form className="input-group input-group w-100 w-md-auto" onSubmit={(e) => {
+              e.preventDefault();
+              handleRenameClick(calendarData.id);
+            }}>
               <input
                 id={"renameCalendarName"+calendarData.id}
                 type="text"
                 className="form-control form-control"
                 placeholder="Nouveau nom"
+                required
                 value={renameValues[calendarData.id] || ""} // Valeur du champ de renommage
                 onChange={(e) => setRenameValues({ ...renameValues, [calendarData.id]: e.target.value })} // Mise à jour de l'état
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    handleRenameClick(calendarData.id);
-                  }
-                }}
               />
               <button
                 className="btn btn-warning"
                 title="Renommer"
-                onClick={() => handleRenameClick(calendarData.id)}
+                type="submit"
               >
               <i className="bi bi-pencil"></i>
               </button>
-            </div>
+            </form>
 
             {/* Boutons d'action : ouvrir ou supprimer */}
             <div className="btn-group btn-group">
