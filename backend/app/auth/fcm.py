@@ -28,9 +28,10 @@ def send_fcm_notification(token, title, body):
     payload = {
         "message": {
             "token": token,
-            "notification": {
+            "data": {
                 "title": title,
-                "body": body
+                "body": body,
+                "link": "https://meditime-app.com"
             },
             "webpush": {
                 "fcm_options": {
