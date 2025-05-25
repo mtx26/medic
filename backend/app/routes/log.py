@@ -8,12 +8,15 @@ def log_handler():
     msg = data.get("message", "")
     level = data.get("type", "info").lower()
     context = data.get("context", {}) or {}
-    error = data.get("error")
-    stack = data.get("stack")
 
+    # Ajoute error et stack dans le contexte si présents
+    if "error" in data:
+        context["error"] = data["error"]
+    if "stack" in data:
+        context["stack"] = data["stack"]
+
+    # Récupère la bonne méthode (info, warning, error, etc.)
     logger_func = getattr(frontend_logger, level, frontend_logger.info)
-    logger_func(msg, extra=context, error=error, stack=stack)
+    logger_func(msg, extra=context)
 
     return {"status": "ok"}
-
-
