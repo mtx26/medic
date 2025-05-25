@@ -30,10 +30,6 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
   // 📅 Date du jour
   const today = formatToLocalISODate(new Date()); // Date du jour au format 'YYYY-MM-DD'
 
-  const isValidShared = (expiresAt) => {
-    return (expiresAt !== "" )
-  };
-
   // 📄 Copie du lien
   const handleCopyLink = async (token) => {
     try {
@@ -391,94 +387,99 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                     />
                   )}
                   <li className="list-group-item" key={calendarId}>
-                    <div className="row align-items-center g-2">
+                    <form onSubmit={ (e) => {
+                      e.preventDefault();
+                      handleCreateToken(calendarId);
+                    }}>
+                      <div className="row align-items-center g-2">
 
-                      {/* Lien */}
-                      <div className="col-md-4">
-                        <div className="input-group">
-                          <span className="input-group-text bg-primary text-white">
-                            <i className="bi bi-link-45deg"></i>
-                          </span>
-                          <input
-                            id={"newTokenLink"+calendarId}
-                            type="text"
-                            className="form-control text-muted bg-light"
-                            value="Nouveau lien de partage"
-                            disabled
-                            style={{ fontStyle: 'italic', fontWeight: 500 }}
-                          />
+                        {/* Lien */}
+                        <div className="col-md-4">
+                          <div className="input-group">
+                            <span className="input-group-text bg-primary text-white">
+                              <i className="bi bi-link-45deg"></i>
+                            </span>
+                            <input
+                              id={"newTokenLink"+calendarId}
+                              type="text"
+                              className="form-control text-muted bg-light"
+                              value="Nouveau lien de partage"
+                              disabled
+                              style={{ fontStyle: 'italic', fontWeight: 500 }}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Jamais + Expiration */}
+                        <div className={`d-flex align-items-center gap-2 col-md-4`}>
+                          <select
+                            id={`newTokenExpiration${calendarId}`}
+                            className={`form-select`}
+                            value={expirationType[calendarId] || 'never'}
+                            title="Expiration"
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setExpirationType(prev => ({ ...prev, [calendarId]: val }));
+                              if (val === 'never') {
+                                setExpiresAt(prev => ({ ...prev, [calendarId]: null }));
+                              } else {
+                                setExpiresAt(prev => ({ ...prev, [calendarId]: prev[calendarId] || '' }));
+                              }
+                            }}
+                          >
+                            <option value="never">Jamais</option>
+                            <option value="date">Expiration le</option>
+                          </select>
+
+                          {expirationType[calendarId] === 'date' && (
+                            <input
+                              id={`newTokenDate${calendarId}`}
+                              type="date"
+                              className={`form-control`}
+                              required
+                              style={{ minWidth: "120px" }}
+                              title="Expiration"
+                              value={expiresAt[calendarId] || ''}
+                              onChange={(e) => {
+                                setExpiresAt(prev => ({
+                                  ...prev,
+                                  [calendarId]: e.target.value
+                                }));
+                              }}
+                              min={today}
+                            />
+                          )}
+                        </div>
+
+                        
+                        {/* Permissions */}
+                        <div className="col-md-2">
+                          <select
+                            id={"newTokenPermissions"+calendarId}
+                            className="form-select"
+                            value={permissions[calendarId]}
+                            title="Permissions"
+                            onChange={(e) => {
+                              setPermissions(prev => ({ ...prev, [calendarId]: e.target.value }));
+                            }}
+                          >
+                            <option value="read">Lecture seule</option>
+                            <option value="edit">Lecture + Édition</option>
+                          </select>
+                        </div>
+
+                        {/* Actions */}
+                        <div className={`d-flex gap-2 justify-content-end col-md-2`}>
+                          <button 
+                            className="btn btn-success"
+                            title="Ajouter"
+                            type="submit"
+                          >
+                            <i className="bi bi-plus"></i>
+                          </button>
                         </div>
                       </div>
-
-                      {/* Jamais + Expiration */}
-                      <div className={`d-flex align-items-center gap-2 col-md-4`}>
-                        <select
-                          id={`newTokenExpiration${calendarId}`}
-                          className={`form-select`}
-                          value={expirationType[calendarId] || 'never'}
-                          title="Expiration"
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            setExpirationType(prev => ({ ...prev, [calendarId]: val }));
-                            if (val === 'never') {
-                              setExpiresAt(prev => ({ ...prev, [calendarId]: null }));
-                            } else {
-                              setExpiresAt(prev => ({ ...prev, [calendarId]: prev[calendarId] || '' }));
-                            }
-                          }}
-                        >
-                          <option value="never">Jamais</option>
-                          <option value="date">Expiration le</option>
-                        </select>
-
-                        {expirationType[calendarId] === 'date' && (
-                          <input
-                            id={`newTokenDate${calendarId}`}
-                            type="date"
-                            className={`form-control ${!isValidShared(expiresAt[calendarId]) ? 'is-invalid' : ''}`}
-                            style={{ minWidth: "120px" }}
-                            title="Expiration"
-                            value={expiresAt[calendarId] || ''}
-                            onChange={(e) => {
-                              setExpiresAt(prev => ({
-                                ...prev,
-                                [calendarId]: e.target.value
-                              }));
-                            }}
-                            min={today}
-                          />
-                        )}
-                      </div>
-
-                      
-                      {/* Permissions */}
-                      <div className="col-md-2">
-                        <select
-                          id={"newTokenPermissions"+calendarId}
-                          className="form-select"
-                          value={permissions[calendarId]}
-                          title="Permissions"
-                          onChange={(e) => {
-                            setPermissions(prev => ({ ...prev, [calendarId]: e.target.value }));
-                          }}
-                        >
-                          <option value="read">Lecture seule</option>
-                          <option value="edit">Lecture + Édition</option>
-                        </select>
-                      </div>
-
-                      {/* Actions */}
-                      <div className={`d-flex gap-2 justify-content-end col-md-2`}>
-                        <button 
-                          className="btn btn-success"
-                          title="Ajouter"
-                          onClick={() => handleCreateToken(calendarId)}
-                          disabled={!isValidShared(expiresAt[calendarId])}
-                        >
-                          <i className="bi bi-plus"></i>
-                        </button>
-                      </div>
-                    </div>
+                    </form>
                   </li>
                 </div>
               )}
