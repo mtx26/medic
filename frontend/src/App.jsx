@@ -19,11 +19,11 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 function App() {
   const [tokensList, setTokensList] = useState([]);
-  const [calendarsData, setCalendarsData] = useState([]);
+  const [calendarsData, setCalendarsData] = useState(null);
   const [notificationsData, setNotificationsData] = useState([]);
   const [sharedCalendarsData, setSharedCalendarsData] = useState([]);
 
-  const { currentUser, authReady } = useContext(UserContext);
+  const { authReady } = useContext(UserContext);
 
   const [loadingStates, setLoadingStates] = useState({
     calendars: true,
@@ -31,7 +31,12 @@ function App() {
     tokens: true,
     notifications: true,
   });
-  const isInitialLoading = Object.values(loadingStates).some((v) => v);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+
+  useEffect(() => {
+    const isLoading = Object.values(loadingStates).some((v) => v);
+    setIsInitialLoading(isLoading);
+  }, [loadingStates]);
 
   // Fonction pour récupérer les calendriers, les calendriers partagés, les notifications et les tokens
   useRealtimeCalendars(setCalendarsData, setLoadingStates);
@@ -1048,13 +1053,17 @@ function App() {
       notificationsData,
       setNotificationsData,
     },
+
+    loadingStates: {
+      isInitialLoading,
+    },
   };
   
 
   const resetAppData = () => {
     
     // CALENDARS
-    setCalendarsData([]);
+    setCalendarsData(null);
     
     // TOKENS
     setTokensList([]);
@@ -1067,7 +1076,7 @@ function App() {
   };
 
   useEffect(() => {
-    if (authReady && currentUser === null) {
+    if (authReady) {
       resetAppData();
       setLoadingStates(current => ({
         ...current,
@@ -1077,7 +1086,11 @@ function App() {
         tokens: false,
       }));
     }
-  }, [authReady, currentUser]);
+  }, [authReady]);
+
+  useEffect(() => {
+    console.log(calendarsData);
+  }, [calendarsData]);
   
 
   return (
@@ -1085,7 +1098,7 @@ function App() {
       <div className="d-flex flex-column min-vh-100">
         <Navbar sharedProps={sharedProps}/>
         <main className="flex-grow-1 d-flex flex-column">
-          {authReady && currentUser === null && (
+          {authReady && (
             <RealtimeManager
               setCalendarsData={setCalendarsData}
               setSharedCalendarsData={setSharedCalendarsData}
@@ -1095,17 +1108,10 @@ function App() {
             />
           )}
 
-          {isInitialLoading ? (
-            <div className="flex-grow-1 d-flex justify-content-center align-items-center">
-              <output className="spinner-border text-primary">
-                <span className="visually-hidden">Chargement des médicaments...</span>
-              </output>
-            </div>
-          ) : (
-            <div className="container mt-4">
-              <AppRoutes sharedProps={sharedProps} />
-            </div>
-          )}
+          <div className="container mt-4">
+            <AppRoutes sharedProps={sharedProps} />
+          </div>
+
         </main>
         <Footer />
       </div>

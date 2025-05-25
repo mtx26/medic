@@ -28,7 +28,7 @@ function Navbar({ sharedProps }) {
           <div className="collapse navbar-collapse justify-content-end">
             <ul className="navbar-nav align-items-center gap-2">
               <li className="nav-item">
-                <Link to="/" className="nav-link">
+                <Link to="/calendars" className="nav-link">
                   <i className="bi bi-calendar-date fs-5"></i> Calendriers
                 </Link>
               </li>

@@ -17,7 +17,6 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
   const [alertId, setAlertId] = useState(null); // Identifiant de l'alerte ciblée
 
   // 🔄 Chargement et données partagées groupées
-  const [loading, setLoading] = useState(true); // État de chargement général
   const [loadingGroupedShared, setLoadingGroupedShared] = useState(true); // État de chargement des partages groupés
   const [groupedShared, setGroupedShared] = useState({}); // Données groupées des partages
 
@@ -166,17 +165,9 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
     }
   };
 
-
-  // 🔄 Chargement des données
-  useEffect(() => {
-    if (authReady && currentUser) {
-      setLoading(false);
-    }
-  }, [authReady, currentUser]);
-
-
   // 🔄 Fonction pour mettre à jour les données groupées
   const setGroupedSharedFunction = useCallback(async () => {
+
     const grouped = {};
 
     for (const calendar of personalCalendars.calendarsData) {
@@ -200,39 +191,48 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
 
     setGroupedShared(grouped);
     setLoadingGroupedShared(false);
+
   }, [personalCalendars.calendarsData, sharedUserCalendars, tokenCalendars.tokensList]);
   
 
   // 🔄 Chargement des données groupées
   useEffect(() => {
-    if (loading === false && authReady && currentUser && personalCalendars.calendarsData) {
+    if (authReady && currentUser && personalCalendars.calendarsData) {
       setGroupedSharedFunction();
     }
-  }, [loading, authReady, currentUser, personalCalendars.calendarsData, tokenCalendars.tokensList, setGroupedSharedFunction]);
+  }, [authReady, currentUser, personalCalendars.calendarsData, tokenCalendars.tokensList, setGroupedSharedFunction]);
 
 
   // 🔄 Initialisation des permissions et des dates d'expiration
   useEffect(() => {
-    if (loading === false && authReady && currentUser && personalCalendars.calendarsData) {
+    if (authReady && currentUser && personalCalendars.calendarsData) {
       for (const calendar of personalCalendars.calendarsData) {
         setPermissions(prev => ({ ...prev, [calendar.id]: "read" }));
         setExpiresAt(prev => ({ ...prev, [calendar.id]: null }));
         setExpirationType(prev => ({ ...prev, [calendar.id]: 'never' }));
       }
     }
-  }, [loading, authReady, currentUser, personalCalendars.calendarsData]);
+  }, [authReady, currentUser, personalCalendars.calendarsData]);
 
-  // 🔄 Rendu du composant
-  if (loading || loadingGroupedShared) {
+  if (loadingGroupedShared) {
     return (
       <div className="d-flex justify-content-center align-items-center" style={{ height: "60vh" }}>
-        <output className="spinner-border text-primary">
-          <span className="visually-hidden">Chargement des liens partagés...</span>
-        </output>
+        <span className="spinner-border text-primary">
+          <span className="visually-hidden">Chargement des calendriers...</span>
+        </span>
+        
       </div>
     );
-  };
-
+  }
+  
+  if (personalCalendars.calendarsData.length === 0) {
+    return (
+      <div className="container mt-4 text-center">
+        <h3 className="text-muted">Aucun calendrier trouvé</h3>
+        <p className="text-muted">Vous pouvez créer un calendrier depuis la page d’accueil.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="container mt-4">
