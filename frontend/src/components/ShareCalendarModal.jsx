@@ -384,7 +384,7 @@ const ShareCalendarModal = forwardRef(({
         {shareMethod === 'link' ? (
           <form onSubmit={(e) => {
             e.preventDefault();
-            handleCreateToken(calendarId);
+            handleCreateToken();
           }}>
             <ModalBody
               shareMethod={shareMethod}
