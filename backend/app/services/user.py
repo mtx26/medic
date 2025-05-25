@@ -17,7 +17,7 @@ def update_existing_user(uid, user_db, display_name, email, photo_url):
             if email and email != user_db["email"]:
                 updates["email"] = email
             if photo_url and not user_db["photo_url"]:
-                photo_url_uploaded = upload_logo(photo_url, uid)
+                photo_url_uploaded = upload_logo(photo_url)
                 updates["photo_url"] = photo_url_uploaded
 
             if updates:
@@ -30,7 +30,7 @@ def update_existing_user(uid, user_db, display_name, email, photo_url):
 
 def insert_new_user(uid, display_name, email, photo_url):
     if photo_url:
-        photo_url = upload_logo(photo_url, uid)
+        photo_url = upload_logo(photo_url)
 
     with get_connection() as conn:
         with conn.cursor() as cursor:
