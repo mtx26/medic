@@ -161,12 +161,17 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
     {/* Champ pour ajouter un nouveau calendrier */}
     <div className="input-group mb-4">
       <input
-      id="newCalendarName"
-      type="text"
-      className="form-control"
-      placeholder="Nom du calendrier"
-      value={newCalendarName}
-      onChange={(e) => setNewCalendarName(e.target.value)} // Mise à jour du nom du nouveau calendrier
+        id="newCalendarName"
+        type="text"
+        className="form-control"
+        placeholder="Nom du calendrier"
+        value={newCalendarName}
+        onChange={(e) => setNewCalendarName(e.target.value)} // Mise à jour du nom du nouveau calendrier
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            handleAddCalendarClick();
+          }
+        }}
       />
       <button
       onClick={handleAddCalendarClick}
@@ -230,14 +235,17 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
             {/* Partie pour renommer un calendrier */}
             <div className="input-group input-group w-100 w-md-auto">
               <input
-              id={"renameCalendarName"+calendarData.id}
-              type="text"
-              className="form-control form-control"
-              placeholder="Nouveau nom"
-              value={renameValues[calendarData.id] || ""} // Valeur du champ de renommage
-              onChange={(e) =>
-                setRenameValues({ ...renameValues, [calendarData.id]: e.target.value }) // Mise à jour de l'état
-              }
+                id={"renameCalendarName"+calendarData.id}
+                type="text"
+                className="form-control form-control"
+                placeholder="Nouveau nom"
+                value={renameValues[calendarData.id] || ""} // Valeur du champ de renommage
+                onChange={(e) => setRenameValues({ ...renameValues, [calendarData.id]: e.target.value })} // Mise à jour de l'état
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleRenameClick(calendarData.id);
+                  }
+                }}
               />
               <button
                 className="btn btn-warning"

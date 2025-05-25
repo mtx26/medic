@@ -1,14 +1,27 @@
 import React, { useState } from 'react';
 import { resetPassword } from "../services/authService";
+import AlertSystem from '../components/AlertSystem';
+
 
 function ResetPassword() {
   const [email, setEmail] = useState(""); // État pour l'adresse e-mail
+  const [formValid, setFormValid] = useState(true);
+  const [alertType, setAlertType] = useState("info");
+  const [alertMessage, setAlertMessage] = useState(null);
 
-  
   // 🔄 Réinitialisation du mot de passe
-  const handleReset = (e) => {
+  const handleReset = async (e) => {
     e.preventDefault();
-    resetPassword(email);
+    const isFormValid = (typeof email === 'string' && email.includes('@') && email.includes('.'));
+    setFormValid(isFormValid);
+    if (isFormValid) {
+      try {
+        await resetPassword(email);
+      } catch (error) {
+      }
+      setAlertType("success");
+      setAlertMessage("Un lien de réinitialisation a été envoyé à votre adresse email.");
+    }
   };
 
   return (
@@ -19,13 +32,17 @@ function ResetPassword() {
             <h5>Réinitialiser le mot de passe</h5>
             <p>Entrez votre adresse email pour recevoir un lien de réinitialisation.</p>
           </div>
-
+            <AlertSystem
+              type={alertType}
+              message={alertMessage}
+              onClose={() => setAlertMessage(null)}
+            />
           <form onSubmit={handleReset}>
             <div className="mb-3">
               <label htmlFor="emailInput" className="form-label">Email</label>
               <input
                 type="email"
-                className="form-control"
+                className={`form-control ${!formValid ? 'is-invalid' : ''}`}
                 id="emailInput"
                 required
                 value={email}
@@ -33,7 +50,7 @@ function ResetPassword() {
               />
             </div>
 
-            <button type="submit" className="btn btn-outline-primary w-100">
+            <button className="btn btn-outline-primary w-100" type="submit" disabled={!formValid}>
               <i className="bi bi-envelope-paper"></i>
               <span> Envoyer le lien</span>
             </button>

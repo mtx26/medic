@@ -367,6 +367,15 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
                     }
                   }}
                   title="Tout sélectionner"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      if (checked.length === medicinesData.length) {
+                        setChecked([]);
+                      } else {
+                        setChecked(medicinesData.map(med => med.id));
+                      }
+                    }
+                  }}
                 />
                 <label htmlFor="check-all" className="form-check-label">
                   Tout sélectionner
@@ -395,6 +404,13 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
                                 }}
                                 id={`check-${item.ids}`}
                                 title="Sélectionner le médicament"
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    for (const id of item.ids) {
+                                      toggleSelection(id);
+                                    }
+                                  }
+                                }}
                               />
                             </div>
                             <label htmlFor={`check-${item.ids}`}>{item.name}</label>
@@ -434,6 +450,11 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
                             onChange={() => toggleSelection(item.data.id)}
                             id={`check-${item.data.id}`}
                             title="Sélectionner le médicament"
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                toggleSelection(item.data.id);
+                              }
+                            }}
                           />
                         </div>
 

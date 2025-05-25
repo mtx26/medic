@@ -27,7 +27,6 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
   const [expirationType, setExpirationType] = useState({});
   const [emailsToInvite, setEmailsToInvite] = useState({}); // E-mails à inviter au partage
 
-
   // 📅 Date du jour
   const today = formatToLocalISODate(new Date()); // Date du jour au format 'YYYY-MM-DD'
 
@@ -134,12 +133,13 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
       setAlertMessage("❌ " + rep.error);
       setAlertId(user.receiver_uid + "-" + calendarId);
     }
-  };
-
+  }; 
 
   // 📄 Envoi d'une invitation
   const handleSendInvitation = async (calendarId) => {
-    const rep = await sharedUserCalendars.sendInvitation(emailsToInvite[calendarId], calendarId);
+    const email = emailsToInvite[calendarId];
+
+    const rep = await sharedUserCalendars.sendInvitation(email, calendarId);
     if (rep.success) {
       setAlertType("success");
       setAlertMessage("✅ " + rep.message);
@@ -594,23 +594,34 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                 <li className="list-group-item" key={calendarId}>
                   <div className="row align-items-center g-2">
                     <div className="col-md-6">
-                      <div className="input-group">
-                        <input
-                          id={"emailToInvite"+calendarId}
-                          type="email"
-                          className="form-control"
-                          placeholder="Email du destinataire"
-                          onChange={(e) => setEmailsToInvite(prev => ({ ...prev, [calendarId]: e.target.value }))}
-                          value={emailsToInvite[calendarId] ?? ""}
-                        />
-                        <button
-                          className="btn btn-primary"
-                          title="Envoyer une invitation"
-                          onClick={() => handleSendInvitation(calendarId)}
-                        >
-                          <i className="bi bi-envelope-paper"></i>
-                        </button>
-                      </div>
+                      <form onSubmit={ (e) => {
+                        e.preventDefault();
+                        handleSendInvitation(calendarId);
+                      }}>
+                        <div className="input-group">
+                          <input
+                            id={"emailToInvite"+calendarId}
+                            type="email"
+                            className={`form-control`}
+                            placeholder="Email du destinataire"
+                            onChange={(e) => setEmailsToInvite(prev => ({ ...prev, [calendarId]: e.target.value }))}
+                            value={emailsToInvite[calendarId] ?? ""}
+                            required
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                handleSendInvitation(calendarId);
+                              }
+                            }}
+                          />
+                          <button
+                            className={`btn btn-primary`}
+                            title="Envoyer une invitation"
+                            type="submit"
+                          >
+                            <i className="bi bi-envelope-paper"></i>
+                          </button>
+                        </div>
+                      </form>
                     </div>
                   </div>
                 </li>
