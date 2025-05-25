@@ -197,9 +197,9 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
   if ( loading === undefined && calendarId) {
     return (
       <div className="d-flex justify-content-center align-items-center" style={{ height: '60vh' }}>
-        <output className="spinner-border text-primary">
-          <span className="visually-hidden">Chargement du calendrier partagé...</span>
-        </output>
+        <div className="spinner-border text-primary">
+          <span className="visually-hidden">Chargement du calendrier...</span>
+        </div>
       </div>
     );
   }

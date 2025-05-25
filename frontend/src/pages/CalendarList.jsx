@@ -122,6 +122,17 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
     setOnConfirmAction(() => () => deleteSharedCalendarConfirmAction(calendarId));
   };
 
+  if (personalCalendars.calendarsData === null) {
+    return (
+      <div className="d-flex justify-content-center align-items-center" style={{ height: '60vh' }}>
+        <div className="spinner-border text-primary">
+          <span className="visually-hidden">Chargement des calendriers...</span>
+        </div>
+      </div>
+    );
+  }
+  
+
   return (
 <div className="container align-items-center d-flex flex-column gap-3">
    
@@ -199,7 +210,7 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
     )}
 
     {/* Liste des calendriers */}
-      {personalCalendars.calendarsData.length > 0 ? (
+    {Array.isArray(personalCalendars.calendarsData) && personalCalendars.calendarsData.length > 0 ? (
         <div className="list-group">
           {personalCalendars.calendarsData.map((calendarData, index) => (
           <div
@@ -314,7 +325,7 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
     )}
 
     {/* Liste des calendriers partagés */}  
-    {sharedUserCalendars.sharedCalendarsData.length > 0 ? (
+    {Array.isArray(sharedUserCalendars.sharedCalendarsData) && sharedUserCalendars.sharedCalendarsData.length > 0 ? (
       <div className="list-group">
         {sharedUserCalendars.sharedCalendarsData.map((calendarData, index) => (
         <div key={index} className="list-group-item">

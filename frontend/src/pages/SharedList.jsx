@@ -217,10 +217,9 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
   if (loadingGroupedShared) {
     return (
       <div className="d-flex justify-content-center align-items-center" style={{ height: "60vh" }}>
-        <span className="spinner-border text-primary">
+        <div className="spinner-border text-primary">
           <span className="visually-hidden">Chargement des calendriers...</span>
-        </span>
-        
+        </div>
       </div>
     );
   }

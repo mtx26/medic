@@ -12,7 +12,7 @@ def upload_logo(file):
         
         result = upload(file)   
         
-        return result["url"]
+        return result["secure_url"]
 
     except Exception as e:
         return None
