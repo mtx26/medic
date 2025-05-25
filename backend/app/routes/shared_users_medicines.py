@@ -5,6 +5,7 @@ from app.utils.response import success_response, error_response, warning_respons
 from app.db.connection import get_connection
 from app.services.calendar_service import verify_calendar_share
 from app.services.medicines import update_medicines
+import time
 from app.utils.messages import (
     SUCCESS_SHARED_MEDICINES_FETCHED,
     SUCCESS_SHARED_MEDICINES_UPDATED,
@@ -23,6 +24,7 @@ SELECT_SHARED_MEDICINES = "SELECT * FROM medicines WHERE calendar_id = %s"
 @api.route("/shared/users/calendars/<calendar_id>/medicines", methods=["GET"])
 def handle_shared_user_calendar_medicines(calendar_id):
     try:
+        t_0 = time.time()
         user = verify_firebase_token()
         receiver_uid = user["uid"]
         
@@ -40,14 +42,15 @@ def handle_shared_user_calendar_medicines(calendar_id):
             with conn.cursor() as cursor:
                 cursor.execute(SELECT_SHARED_MEDICINES, (calendar_id,))
                 medicines = cursor.fetchall()
-
+                t_1 = time.time()
             if not medicines:
                 return success_response(
                     message=SUCCESS_SHARED_MEDICINES_FETCHED, 
                     code="SHARED_USER_CALENDAR_MEDICINES_LOAD_SUCCESS", 
                     uid=receiver_uid, 
                     origin="SHARED_USER_CALENDAR_MEDICINES_LOAD",
-                    data={"medicines": []}
+                    data={"medicines": []},
+                    log_extra={"calendar_id": calendar_id, "time": t_1 - t_0}
                 )
 
         return success_response(
@@ -55,7 +58,8 @@ def handle_shared_user_calendar_medicines(calendar_id):
             code="SHARED_USER_CALENDAR_MEDICINES_LOAD_SUCCESS", 
             uid=receiver_uid, 
             origin="SHARED_USER_CALENDAR_MEDICINES_LOAD",
-            data={"medicines": medicines}
+            data={"medicines": medicines},
+            log_extra={"calendar_id": calendar_id, "time": t_1 - t_0}
         )
 
     except Exception as e:
@@ -74,6 +78,7 @@ def handle_shared_user_calendar_medicines(calendar_id):
 @api.route("/shared/users/calendars/<calendar_id>/medicines", methods=["PUT"])
 def handle_update_shared_user_calendar_medicines(calendar_id):
     try:
+        t_0 = time.time()
         user = verify_firebase_token()
         receiver_uid = user["uid"]
         medicines = []
@@ -91,14 +96,14 @@ def handle_update_shared_user_calendar_medicines(calendar_id):
             )
 
         medicines = update_medicines(calendar_id, changes)
-
+        t_1 = time.time()
         return success_response(
             message=SUCCESS_SHARED_MEDICINES_UPDATED,
             code="SHARED_USER_CALENDAR_MEDICINES_UPDATE_SUCCESS",
             uid=receiver_uid,
             origin="SHARED_USER_CALENDAR_MEDICINES_UPDATE",
             data={"medicines": medicines},
-            log_extra={"calendar_id": calendar_id}
+            log_extra={"calendar_id": calendar_id, "time": t_1 - t_0}
         )
 
     except Exception as e:
@@ -117,6 +122,7 @@ def handle_update_shared_user_calendar_medicines(calendar_id):
 @api.route("/shared/users/calendars/<calendar_id>/medicines", methods=["DELETE"])
 def handle_delete_shared_user_calendar_medicines(calendar_id):
     try:
+        t_0 = time.time()
         user = verify_firebase_token()
         receiver_uid = user["uid"]
 
@@ -148,6 +154,7 @@ def handle_delete_shared_user_calendar_medicines(calendar_id):
                 conn.commit()
                 cursor.execute(SELECT_SHARED_MEDICINES, (calendar_id,))
                 medicines = cursor.fetchall()
+                t_1 = time.time()
                 if not medicines:
                     return success_response(
                         message=SUCCESS_MEDICINES_DELETED,
@@ -155,7 +162,7 @@ def handle_delete_shared_user_calendar_medicines(calendar_id):
                         uid=receiver_uid,
                         origin="SHARED_USER_CALENDAR_MEDICINES_DELETE",
                         data={"medicines": []},
-                        log_extra={"calendar_id": calendar_id}
+                        log_extra={"calendar_id": calendar_id, "time": t_1 - t_0}
                     )
 
                 return success_response(
@@ -164,7 +171,7 @@ def handle_delete_shared_user_calendar_medicines(calendar_id):
                     uid=receiver_uid,
                     origin="SHARED_USER_CALENDAR_MEDICINES_DELETE",
                     data={"medicines": medicines},
-                    log_extra={"calendar_id": calendar_id}
+                    log_extra={"calendar_id": calendar_id, "time": t_1 - t_0}
                 )
 
     except Exception as e:
@@ -174,5 +181,6 @@ def handle_delete_shared_user_calendar_medicines(calendar_id):
             status_code=500,
             uid=receiver_uid,
             origin="SHARED_USER_CALENDAR_MEDICINES_DELETE",
-            error=str(e)
+            error=str(e),
+            log_extra={"calendar_id": calendar_id}
         )

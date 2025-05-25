@@ -14,7 +14,6 @@ from .tokens_medicines import *
 from .invitations import *
 from .notifications import *
 from .user import *
-from .upload import *
 
 
 def register_routes(app):

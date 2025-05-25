@@ -3,6 +3,7 @@ from app.utils.validators import verify_firebase_token
 from app.utils.response import success_response, error_response, warning_response
 from app.services.user import fetch_user
 from app.db.connection import get_connection
+import time
 from app.utils.messages import (
     SUCCESS_NOTIFICATIONS_FETCHED,
     SUCCESS_NOTIFICATION_READ,
@@ -35,6 +36,7 @@ def get_user_info(uid):
 @api.route("/notifications", methods=["GET"])
 def handle_notifications():
     try:
+        t_0 = time.time()
         user = verify_firebase_token()
         uid = user["uid"]
         with get_connection() as conn:
@@ -54,6 +56,7 @@ def handle_notifications():
                 calendar_name_cache = {}
                 sender_info_cache = {}
                 notifications = []
+                t_1 = time.time()
 
                 for notif in notifications_data:
                     content = notif.get("content") or {}
@@ -87,13 +90,15 @@ def handle_notifications():
                         "sender_email": sender_email,
                         "sender_photo_url": sender_photo_url or DEFAULT_PHOTO,
                     })
+                t_2 = time.time()
 
         return success_response(
             message=SUCCESS_NOTIFICATIONS_FETCHED,
             code="NOTIFICATIONS_FETCH_SUCCESS",
             uid=uid,
             origin="NOTIFICATIONS_FETCH",
-            data={"notifications": notifications}
+            data={"notifications": notifications},
+            log_extra={"time": t_2 - t_0, "time_append": t_2 - t_1}
         )
 
     except Exception as e:
@@ -110,6 +115,7 @@ def handle_notifications():
 @api.route("/notifications/<notification_id>", methods=["POST"])
 def handle_read_notification(notification_id):
     try:
+        t_0 = time.time()
         user = verify_firebase_token()
         uid = user["uid"]
 
@@ -128,13 +134,15 @@ def handle_read_notification(notification_id):
                     )
         
                 cursor.execute("UPDATE notifications SET read = TRUE WHERE id = %s AND user_id = %s", (notification_id, uid))
+                conn.commit()
+                t_1 = time.time()
 
         return success_response(
             message=SUCCESS_NOTIFICATION_READ, 
             code="NOTIFICATION_READ_SUCCESS", 
             uid=uid, 
             origin="NOTIFICATION_READ",
-            log_extra={"notification_id": notification_id}
+            log_extra={"notification_id": notification_id, "time": t_1 - t_0}
         )
 
     except Exception as e:

@@ -1,6 +1,7 @@
 from flask import request
 from app.utils.validators import verify_firebase_token
 from datetime import datetime, timezone, timedelta
+import time
 from . import api
 from app.db.connection import get_connection
 from app.services.calendar_service import verify_calendar
@@ -23,6 +24,7 @@ MEDICINES_SELECT = "SELECT * FROM medicines WHERE calendar_id = %s"
 @api.route("/calendars/<calendar_id>/medicines", methods=["GET"])
 def handle_get_medicines(calendar_id):
     try:
+        t_0 = time.time()
         user = verify_firebase_token()
         uid = user["uid"]
 
@@ -40,6 +42,7 @@ def handle_get_medicines(calendar_id):
             with conn.cursor() as cursor:
                 cursor.execute(MEDICINES_SELECT, (calendar_id,))
                 medicines = cursor.fetchall()
+                t_1 = time.time()
                 if not medicines:
                     return success_response(
                         message=SUCCESS_MEDICINES_FETCHED, 
@@ -47,7 +50,7 @@ def handle_get_medicines(calendar_id):
                         uid=uid, 
                         origin="MED_FETCH",
                         data={"medicines": []},
-                        log_extra={"calendar_id": calendar_id}
+                        log_extra={"calendar_id": calendar_id, "time": t_1 - t_0}
                     )
 
         return success_response(
@@ -56,7 +59,7 @@ def handle_get_medicines(calendar_id):
             uid=uid, 
             origin="MED_FETCH",
             data={"medicines": medicines},
-            log_extra={"calendar_id": calendar_id}
+            log_extra={"calendar_id": calendar_id, "time": t_1 - t_0}
         )
 
     except Exception as e:
@@ -74,6 +77,7 @@ def handle_get_medicines(calendar_id):
 @api.route("/calendars/<calendar_id>/medicines", methods=["PUT"])
 def handle_update_medicines(calendar_id):
     try:
+        t_0 = time.time()
         user = verify_firebase_token()
         uid = user["uid"]
         changes = request.json.get("changes")    
@@ -89,14 +93,14 @@ def handle_update_medicines(calendar_id):
             )
 
         medicines = update_medicines(calendar_id, changes)
-
+        t_1 = time.time()
         return success_response(
             message=SUCCESS_MEDICINES_UPDATED,
             code="MED_UPDATE_SUCCESS",
             uid=uid,
             origin="MED_UPDATE",
             data={"medicines": medicines},
-            log_extra={"calendar_id": calendar_id}
+            log_extra={"calendar_id": calendar_id, "time": t_1 - t_0}
         )
 
     except Exception as e:
@@ -114,6 +118,7 @@ def handle_update_medicines(calendar_id):
 @api.route("/calendars/<calendar_id>/medicines", methods=["DELETE"])
 def handle_delete_medicines(calendar_id):
     try:
+        t_0 = time.time()
         user = verify_firebase_token()
         uid = user["uid"]
 
@@ -145,6 +150,7 @@ def handle_delete_medicines(calendar_id):
                 conn.commit()
                 cursor.execute(MEDICINES_SELECT, (calendar_id,))
                 medicines = cursor.fetchall()
+                t_1 = time.time()
                 if not medicines:
                     return success_response(
                         message=SUCCESS_MEDICINES_DELETED,
@@ -152,7 +158,7 @@ def handle_delete_medicines(calendar_id):
                         uid=uid,
                         origin="MED_DELETE",
                         data={"medicines": []},
-                        log_extra={"calendar_id": calendar_id}
+                        log_extra={"calendar_id": calendar_id, "time": t_1 - t_0}
                     )
 
                 return success_response(
@@ -161,7 +167,7 @@ def handle_delete_medicines(calendar_id):
                     uid=uid,
                     origin="MED_DELETE",
                     data={"medicines": medicines},
-                    log_extra={"calendar_id": calendar_id}
+                    log_extra={"calendar_id": calendar_id, "time": t_1 - t_0}
                 )
 
     except Exception as e:

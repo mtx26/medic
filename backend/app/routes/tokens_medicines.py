@@ -2,6 +2,7 @@ from flask import request
 from app.utils.validators import verify_firebase_token
 from datetime import datetime, timezone, timedelta
 from . import api
+import time
 from app.db.connection import get_connection
 from app.services.calendar_service import verify_token
 from app.utils.response import success_response, error_response, warning_response
@@ -19,6 +20,7 @@ from app.utils.messages import (
 @api.route("/tokens/<token>/medicines", methods=["GET"])
 def handle_token_medicines(token):
     try:
+        t_0 = time.time()
         calendar_id = verify_token(token)
         if not calendar_id:
             return warning_response(
@@ -35,13 +37,14 @@ def handle_token_medicines(token):
             with conn.cursor() as cursor:
                 cursor.execute("SELECT * FROM medicines WHERE calendar_id = %s", (calendar_id,))
                 medicines = cursor.fetchall()
+                t_1 = time.time()
 
         return success_response(
             message=SUCCESS_MEDICINES_FETCHED,
             code="MEDICINES_SHARED_LOADED",
             origin="TOKEN_MEDICINES_LOAD",
             data={"medicines": medicines},
-            log_extra={"token": token}
+            log_extra={"token": token, "time": t_1 - t_0}
         )
 
     except Exception as e:

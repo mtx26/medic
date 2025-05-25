@@ -5,6 +5,7 @@ from app.db.connection import get_connection
 from app.services.calendar_service import verify_calendar
 from app.services.user import fetch_user
 from firebase_admin import auth
+import time
 from . import api
 import json
 from app.utils.messages import (
@@ -29,6 +30,7 @@ NOTIFICATION_INSERT = "INSERT INTO notifications (user_id, type, content, sender
 @api.route("/invitations/send/<calendar_id>", methods=["POST"])
 def handle_send_invitation(calendar_id):
     try:
+        t_0 = time.time()
         owner_user = verify_firebase_token()
         owner_uid = owner_user["uid"]
 
@@ -108,12 +110,14 @@ def handle_send_invitation(calendar_id):
                     (receiver_uid, calendar_id, False, "edit")
                 )
 
+                t_1 = time.time()
+
         return success_response(
             message=SUCCESS_INVITATION_SENT, 
             code="INVITATION_SEND_SUCCESS", 
             uid=owner_uid, 
             origin="INVITATION_SEND",
-            log_extra={"calendar_id": calendar_id}
+            log_extra={"calendar_id": calendar_id, "time": t_1 - t_0}
         )
 
     except Exception as e:
@@ -132,6 +136,7 @@ def handle_send_invitation(calendar_id):
 @api.route("/invitations/accept/<notification_id>", methods=["POST"])
 def handle_accept_invitation(notification_id):
     try:
+        t_0 = time.time()
         user = verify_firebase_token()
         receiver_uid = user["uid"]
 
@@ -187,12 +192,14 @@ def handle_accept_invitation(notification_id):
                     }), receiver_uid)
                 )
 
+                t_1 = time.time()
+
         return success_response(
             message=SUCCESS_INVITATION_ACCEPTED, 
             code="INVITATION_ACCEPT_SUCCESS", 
             uid=receiver_uid, 
             origin="INVITATION_ACCEPT",
-            log_extra={"notification_id": notification_id}
+            log_extra={"notification_id": notification_id, "time": t_1 - t_0}
         )
 
     except Exception as e:
@@ -211,6 +218,7 @@ def handle_accept_invitation(notification_id):
 @api.route("/invitations/reject/<notification_id>", methods=["POST"])
 def handle_reject_invitation(notification_id):
     try:
+        t_0 = time.time()
         user = verify_firebase_token()
         receiver_uid = user["uid"]
 
@@ -265,13 +273,14 @@ def handle_reject_invitation(notification_id):
                     (receiver_uid, calendar_id)
                 )
 
+                t_1 = time.time()
 
         return success_response(
             message=SUCCESS_INVITATION_REJECTED, 
             code="INVITATION_REJECT_SUCCESS", 
             uid=receiver_uid, 
             origin="INVITATION_REJECT",
-            log_extra={"notification_id": notification_id}
+            log_extra={"notification_id": notification_id, "time": t_1 - t_0}
         )
 
     except Exception as e:

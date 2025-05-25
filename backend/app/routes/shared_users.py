@@ -3,8 +3,8 @@ from datetime import datetime, timezone
 from . import api
 from firebase_admin import firestore, auth
 from app.services.calendar_service import verify_calendar_share, generate_schedule, generate_table
-import secrets
 from flask import request
+import time
 from app.services.user import fetch_user
 from app.utils.response import success_response, error_response, warning_response
 from app.db.connection import get_connection
@@ -32,6 +32,7 @@ SELECT_SHARED_CALENDAR = "SELECT * FROM calendars WHERE id = %s"
 @api.route("/shared/users/calendars", methods=["GET"])
 def handle_shared_calendars():
     try:
+        t_0 = time.time()
         user = verify_firebase_token()
         uid = user["uid"]
 
@@ -39,6 +40,7 @@ def handle_shared_calendars():
             with conn.cursor() as cursor:
                 cursor.execute("SELECT * FROM shared_calendars WHERE receiver_uid = %s AND accepted = true", (uid,))
                 shared_users = cursor.fetchall()
+                t_1 = time.time()
 
                 if not shared_users:
                     return success_response(
@@ -46,7 +48,8 @@ def handle_shared_calendars():
                         code="SHARED_CALENDARS_LOAD_EMPTY",
                         uid=uid,
                         origin="SHARED_CALENDARS_LOAD",
-                        data={"calendars": []}
+                        data={"calendars": []},
+                        log_extra={"time": t_1 - t_0}
                     )
 
                 calendars_list = []
@@ -108,12 +111,15 @@ def handle_shared_calendars():
                         "medicines_count": medicines_count
                     })
 
+                t_2 = time.time()
+
                 return success_response(
                     message=SUCCESS_SHARED_CALENDARS_FETCHED, 
                     code="SHARED_CALENDARS_LOAD_SUCCESS", 
                     uid=uid, 
                     origin="SHARED_CALENDARS_LOAD",
-                    data={"calendars": calendars_list}
+                    data={"calendars": calendars_list},
+                    log_extra={"time": t_2 - t_0}
                 )
 
     except Exception as e:
@@ -130,6 +136,7 @@ def handle_shared_calendars():
 @api.route("/shared/users/calendars/<calendar_id>", methods=["GET"])
 def handle_user_shared_calendar(calendar_id):
     try:
+        t_0 = time.time()
         user = verify_firebase_token()
         receiver_uid = user["uid"]
 
@@ -159,6 +166,7 @@ def handle_user_shared_calendar(calendar_id):
                 calendar_name = calendar.get("name")
                 owner_uid = calendar.get("owner_uid")
 
+
                 cursor.execute("SELECT * FROM shared_calendars WHERE calendar_id = %s", (calendar_id,))
                 shared_user = cursor.fetchone()
                 if not shared_user:
@@ -171,6 +179,7 @@ def handle_user_shared_calendar(calendar_id):
                         log_extra={"calendar_id": calendar_id}
                     )
                 access = shared_user.get("access", "read")
+                t_2 = time.time()
 
         return success_response(
             message=SUCCESS_SHARED_CALENDAR_FETCHED,
@@ -178,7 +187,7 @@ def handle_user_shared_calendar(calendar_id):
             uid=receiver_uid,
             origin="SHARED_CALENDARS_LOAD",
             data={"calendar_id": calendar_id, "calendar_name": calendar_name, "access": access, "owner_uid": owner_uid},
-            log_extra={"calendar_id": calendar_id}
+            log_extra={"calendar_id": calendar_id, "time": t_2 - t_0}
         )
 
     except Exception as e:
@@ -196,6 +205,7 @@ def handle_user_shared_calendar(calendar_id):
 @api.route("/shared/users/calendars/<calendar_id>/schedule", methods=["GET"])
 def handle_user_shared_calendar_schedule(calendar_id):
     try:
+        t_0 = time.time()
         user = verify_firebase_token()
         uid = user["uid"]
 
@@ -232,25 +242,30 @@ def handle_user_shared_calendar_schedule(calendar_id):
 
                 cursor.execute("SELECT * FROM medicines WHERE calendar_id = %s", (calendar_id,))
                 medicines = cursor.fetchall()
+                t_1 = time.time()
                 if not medicines:
                     return success_response(
                         message=SUCCESS_SHARED_CALENDAR_FETCHED, 
                         code="SHARED_CALENDARS_LOAD_SUCCESS", 
                         uid=uid, 
                         origin="SHARED_CALENDARS_LOAD",
-                        data={"medicines": 0, "schedule": [], "calendar_name": calendar_name, "table": {}}
+                        data={"medicines": 0, "schedule": [], "calendar_name": calendar_name, "table": {}},
+                        log_extra={"calendar_id": calendar_id, "time": t_1 - t_0}
                     )
 
-        schedule = generate_schedule(start_date, medicines)
-        table = generate_table(start_date, medicines)
-    
+                t_2 = time.time()
+                schedule = generate_schedule(start_date, medicines)
+                t_3 = time.time()
+                table = generate_table(start_date, medicines)
+                t_4 = time.time()
+            
         return success_response(
             message=SUCCESS_SHARED_CALENDAR_FETCHED, 
             code="SHARED_CALENDARS_LOAD_SUCCESS", 
             uid=uid, 
             origin="SHARED_CALENDARS_LOAD",
             data={"medicines": len(medicines), "schedule": schedule, "calendar_name": calendar_name, "table": table},
-            log_extra={"calendar_id": calendar_id}
+            log_extra={"calendar_id": calendar_id, "time": t_4 - t_0, "schedule_time": t_3 - t_2, "table_time": t_4 - t_3}
         )
 
     except Exception as e:
@@ -269,6 +284,7 @@ def handle_user_shared_calendar_schedule(calendar_id):
 @api.route("/shared/users/calendars/<calendar_id>", methods=["DELETE"])
 def handle_delete_user_shared_calendar(calendar_id):
     try:
+        t_0 = time.time()
         user = verify_firebase_token()
         receiver_uid = user["uid"]
 
@@ -307,13 +323,14 @@ def handle_delete_user_shared_calendar(calendar_id):
                     """,
                     ("calendar_shared_deleted_by_receiver", owner_uid, json.dumps({"calendar_id": calendar_id}), receiver_uid )
                 )
+                t_1 = time.time()
 
         return success_response(
             message=SUCCESS_SHARED_CALENDAR_DELETED, 
             code="SHARED_CALENDARS_DELETE_SUCCESS", 
             uid=receiver_uid, 
             origin="SHARED_CALENDARS_DELETE",
-            log_extra={"calendar_id": calendar_id}
+            log_extra={"calendar_id": calendar_id, "time": t_1 - t_0}
         )
 
     except Exception as e:
@@ -332,6 +349,7 @@ def handle_delete_user_shared_calendar(calendar_id):
 @api.route("/shared/users/<calendar_id>/<receiver_uid>", methods=["DELETE"])
 def handle_delete_user_shared_user(calendar_id, receiver_uid):
     try:
+        t_0 = time.time()
         user = verify_firebase_token()
         owner_uid = user["uid"]
 
@@ -391,13 +409,15 @@ def handle_delete_user_shared_user(calendar_id, receiver_uid):
                         receiver_uid
                     )
                 )
+                t_1 = time.time()
+
 
         return success_response(
             message=SUCCESS_SHARED_USER_DELETED, 
             code="SHARED_USERS_DELETE_SUCCESS", 
             uid=receiver_uid, 
             origin="SHARED_USERS_DELETE",
-            log_extra={"calendar_id": calendar_id}
+            log_extra={"calendar_id": calendar_id, "time": t_1 - t_0}
         )
 
     except Exception as e:
@@ -416,6 +436,7 @@ def handle_delete_user_shared_user(calendar_id, receiver_uid):
 @api.route("/shared/users/users/<calendar_id>", methods=["GET"])
 def handle_shared_users(calendar_id):
     try:
+        t_0 = time.time()
         user = verify_firebase_token()
         owner_uid = user["uid"]
 
@@ -434,13 +455,15 @@ def handle_shared_users(calendar_id):
 
                 cursor.execute("SELECT * FROM shared_calendars WHERE calendar_id = %s", (calendar_id,))
                 shared_users = cursor.fetchall()
+                t_1 = time.time()
                 if not shared_users:
                     return success_response(
                         message=SUCCESS_SHARED_USERS_FETCHED,
                         code="SHARED_USERS_LOAD_SUCCESS",
                         uid=owner_uid,
                         origin="SHARED_USERS_LOAD",
-                        data={"users": []}
+                        data={"users": []},
+                        log_extra={"calendar_id": calendar_id, "time": t_1 - t_0}
                     )
 
                 shared_users_list = []
@@ -478,12 +501,15 @@ def handle_shared_users(calendar_id):
                         "receiver_email": receiver_email
                     })
 
+                t_2 = time.time()
+
         return success_response(
             message=SUCCESS_SHARED_USERS_FETCHED, 
             code="SHARED_USERS_LOAD_SUCCESS", 
             uid=owner_uid, 
             origin="SHARED_USERS_LOAD",
-            data={"users": shared_users_list}
+            data={"users": shared_users_list},
+            log_extra={"calendar_id": calendar_id, "time": t_2 - t_0}
         )
 
     except Exception as e:
@@ -493,5 +519,6 @@ def handle_shared_users(calendar_id):
             status_code=500, 
             uid=owner_uid, 
             origin="SHARED_USERS_LOAD",
-            error=str(e)
+            error=str(e),
+            log_extra={"calendar_id": calendar_id}
         )
