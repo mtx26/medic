@@ -1,11 +1,12 @@
-# Politique de sécurité – MediTime
+# Security Policy – MediTime
 
-Même si ce projet est privé, sa sécurité est essentielle.
+Even though this project is private, its security is essential.
 
-## Signaler une vulnérabilité
+## Reporting a Vulnerability
 
-Envoyez un email à **mtx_26@outlook.be** avec :
-- Une description détaillée
-- Des étapes de reproduction (si possible)
+Please send an email to **[mtx\_26@outlook.be](mailto:mtx_26@outlook.be)** including:
 
-Délai de réponse : 48h.
+* A detailed description
+* Reproduction steps (if possible)
+
+Response time: 48 hours.
