@@ -34,17 +34,17 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Setup Python
+      - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
 
-      - name: Installer les dépendances
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Créer le fichier .env
+      - name: Create .env file
         run: |
           echo "SECRET_KEY=${SECRET_KEY}" > .env
           echo "ENV=${ENV}" >> .env
@@ -57,12 +57,9 @@ jobs:
           echo "PG_HOST=${PG_HOST}" >> .env
           echo "PG_PORT=${PG_PORT}" >> .env
           echo "PG_DATABASE=${PG_DATABASE}" >> .env
-        
-
 
       - name: Debug .env
         run: cat .env
 
-      - name: Vérifier que Flask se lance avec python -m app.main
+      - name: Check if Flask launches properly
         run: python -m app.main --check
-
