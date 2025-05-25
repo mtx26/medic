@@ -14,27 +14,33 @@ export const UserProvider = ({ children }) => {
     JSON.parse(sessionStorage.getItem("userInfo")) || null
   );
 
-  const reloadUser = async () => {
+  const reloadUser = async (name, photoURL) => {
     const user = auth.currentUser;
     if (!user) return;
 
     try {
       const token = await user.getIdToken();
 
+      const body = {
+        uid: user.uid,
+        display_name: name || user.displayName || null,
+        email: user.email,
+        photo_url: photoURL || user.photoURL || null,
+      };
       const res = await fetch(`${API_URL}/api/user/sync`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ uid: user.uid }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Erreur API Supabase");
 
       const info = {
-        displayName: data.display_name || user.displayName || "Utilisateur",
-        photoURL: data.photo_url || user.photoURL || "https://www.w3schools.com/howto/img_avatar.png",
+        displayName: data.display_name || user.displayName,
+        photoURL: data.photo_url || user.photoURL,
         role: data.role || "user",
         uid: user.uid,
         emailVerified: user.emailVerified,

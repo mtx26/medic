@@ -13,8 +13,9 @@ def handle_user_sync():
         user = verify_firebase_token()
         uid = user["uid"]
 
+
         try:
-            data = request.get_json()
+            user_data = request.get_json()
         except Exception:
             return error_response(
                 message=ERROR_USER_NOT_FOUND,
@@ -25,7 +26,7 @@ def handle_user_sync():
                 error="Invalid JSON body"
             )
 
-        if not data:
+        if not user_data:
             return error_response(
                 message=ERROR_USER_NOT_FOUND,
                 code="USER_SYNC_ERROR",
@@ -34,9 +35,10 @@ def handle_user_sync():
                 origin="USER_SYNC"
             )
 
-        display_name = data.get("display_name")
-        email = data.get("email")
-        photo_url = data.get("photo_url") or None
+        display_name = user_data.get("display_name")
+        email = user_data.get("email")
+        photo_url = user_data.get("photo_url") or None
+        print("[user.py] user_data :", user_data)
 
         user_db = fetch_user(uid)
 

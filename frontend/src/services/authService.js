@@ -15,51 +15,14 @@ import { log } from "../utils/logger";
 
 const GoogleProvider = new GoogleAuthProvider();
 
-const API_URL = import.meta.env.VITE_API_URL;
-
-const syncUserToSupabase = async (user) => {
-  const token = await user.getIdToken();
-  const body = {
-    uid: user.uid,
-    display_name: user.displayName || "Utilisateur",
-    email: user.email,
-    photo_url: user.photoURL || "",
-  };
-
-  try {
-    const res = await fetch(`${API_URL}/api/user/sync`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(body),
-    });
-
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Erreur API Supabase");
-    
-  } catch (error) {
-    log.error("Erreur lors de la synchro Supabase", error.message, {
-      origin: "SYNC_USER_SUPABASE",
-      uid: user.uid,
-    });
-  }
-};
-
-
-
 /**
  * Connexion avec Google
  */
 export const GoogleHandleLogin = async () => {
   try {
-    const result = await signInWithPopup(auth, GoogleProvider);
-    const user = result.user;
+    await signInWithPopup(auth, GoogleProvider);
 
-    await syncUserToSupabase(user);
-
-    getGlobalReloadUser()(); // Rafraîchir les infos utilisateur
+    getGlobalReloadUser()();
 
     log.info("Utilisateur connecté avec Google", {
       origin: "GOOGLE_HANDLE_LOGIN_SUCCESS",
@@ -82,11 +45,9 @@ export const registerWithEmail = async (email, password, name) => {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
 
-    await syncUserToSupabase(user);
-
     await sendEmailVerification(user);
 
-    getGlobalReloadUser()(); // Rafraîchir les infos utilisateur
+    getGlobalReloadUser()(name, user.photoURL);
 
     log.info("Utilisateur inscrit et connecté :", {
       origin: "REGISTER_WITH_EMAIL_SUCCESS",
@@ -109,7 +70,7 @@ export const loginWithEmail = async (email, password) => {
   try {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
 
-    getGlobalReloadUser()(); // Rafraîchir les infos utilisateur
+    getGlobalReloadUser()();
 
     log.info("Utilisateur connecté avec email :", {
       origin: "LOGIN_WITH_EMAIL_SUCCESS",
@@ -149,7 +110,7 @@ export const handleLogout = async () => {
   try {
     await signOut(auth);
 
-    getGlobalReloadUser()(); // Réinitialiser l'état utilisateur après la déconnexion
+    getGlobalReloadUser()();
 
     log.info("Utilisateur déconnecté", {
       origin: "HANDLE_LOGOUT_SUCCESS",

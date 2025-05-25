@@ -74,7 +74,7 @@ const AccountPage = () => {
           Connecté avec Google. Vous ne pouvez pas modifier votre email ou mot de passe.
         </div>
       ) : (
-        <form autoComplete="on" method="post" action="/">
+        <form onSubmit={handleUpdatePassword}>
           {/* Champ Username visible */}
           <div className="mb-3">
             <label htmlFor="email" className="form-label">Email</label>
@@ -98,6 +98,7 @@ const AccountPage = () => {
               id="oldPassword"
               name="current-password"
               autoComplete="current-password"
+              required
               value={oldPassword}
               onChange={(e) => setOldPassword(e.target.value)}
               placeholder="Entrez le mot de passe actuel"
@@ -121,6 +122,7 @@ const AccountPage = () => {
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               placeholder="Entrez le nouveau mot de passe"
+              required
             />
             <i
               className={`bi bi-${newPasswordVisible ? "eye-slash" : "eye"} position-absolute`}
@@ -132,7 +134,6 @@ const AccountPage = () => {
           <button
             type="submit"
             className="btn btn-outline-primary mt-2"
-            onClick={handleUpdatePassword}
           >
             Mettre à jour le mot de passe
           </button>

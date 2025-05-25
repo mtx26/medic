@@ -258,19 +258,24 @@ function Navbar({ sharedProps }) {
                   aria-expanded="false"
                   title="Mon profil"
                 >
-                  {userInfo?.photoURL ? (
-                    <img
-                      src={userInfo.photoURL}
-                      alt="Profil"
-                      className="rounded-circle me-2"
-                      width="32"
-                      height="32"
-                      referrerPolicy="no-referrer"
-                    />
+                  {userInfo ? (
+                    <>
+                      <img
+                        src={userInfo.photoURL || "https://www.w3schools.com/howto/img_avatar.png"}
+                        alt="Profil"
+                        className="rounded-circle me-2"
+                        width="32"
+                        height="32"
+                        referrerPolicy="no-referrer"
+                      />
+                      <span className="text-muted">{userInfo.displayName || "Utilisateur"}</span>
+                    </>
                   ) : (
-                    <i className="bi bi-person-circle fa-lg me-2"></i>
+                    <>
+                      <i className="bi bi-person-circle fs-3 me-2"></i>
+                      <span className="text-muted">Compte</span>
+                    </>
                   )}
-                  {userInfo?.displayName || "Compte"}
                 </button>
                 <ul className="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                   {userInfo ? (
