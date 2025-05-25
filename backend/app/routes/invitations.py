@@ -24,8 +24,6 @@ from app.utils.messages import (
     WARNING_ALREADY_INVITED
 )
 
-NOTIFICATION_INSERT = "INSERT INTO notifications (user_id, type, content, sender_uid) VALUES (%s, %s, %s, %s)"
-
 
 # Route pour envoyer une invitation à un utilisateur pour un partage de calendrier
 @api.route("/invitations/send/<calendar_id>", methods=["POST"])

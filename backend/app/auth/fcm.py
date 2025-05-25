@@ -34,7 +34,7 @@ def send_fcm_notification(token, title, body):
             },
             "webpush": {
                 "fcm_options": {
-                    "link": "https://meditime-app.com"
+                    "link": "https://meditime-app.com/notifications"
                 }
             }
         }

@@ -316,12 +316,13 @@ def handle_delete_user_shared_calendar(calendar_id):
                 owner_uid = calendar.get("owner_uid")
                 cursor.execute("DELETE FROM shared_calendars WHERE receiver_uid = %s AND calendar_id = %s", (receiver_uid, calendar_id))
             
-                cursor.execute(
-                    """
-                    INSERT INTO notifications (type, user_id, content, sender_uid) 
-                    VALUES (%s, %s, %s::jsonb, %s)
-                    """,
-                    ("calendar_shared_deleted_by_receiver", owner_uid, json.dumps({"calendar_id": calendar_id}), receiver_uid )
+                notify_and_record(
+                    uid=owner_uid,
+                    title="📬 Calendrier partagé supprimé",
+                    body="Un utilisateur a supprimé le calendrier partagé.",
+                    notif_type="calendar_shared_deleted_by_receiver",
+                    sender_uid=receiver_uid,
+                    calendar_id=calendar_id
                 )
                 t_1 = time.time()
 
@@ -396,21 +397,16 @@ def handle_delete_user_shared_user(calendar_id, receiver_uid):
                         json.dumps({"calendar_id": calendar_id}),
                         owner_uid
                     )
-                )                
-                cursor.execute(
-                    """
-                    INSERT INTO notifications (type, user_id, content, sender_uid) 
-                    VALUES (%s, %s, %s::jsonb, %s)
-                    """,
-                    (
-                        "calendar_shared_deleted_by_owner",
-                        owner_uid,
-                        json.dumps({"calendar_id": calendar_id}), 
-                        receiver_uid
-                    )
+                )       
+                notify_and_record(
+                    uid=receiver_uid,
+                    title="📬 Calendrier partagé supprimé",
+                    body="Le calendrier partagé a été supprimé par le propriétaire.",
+                    notif_type="calendar_shared_deleted_by_owner",
+                    sender_uid=owner_uid,
+                    calendar_id=calendar_id
                 )
                 t_1 = time.time()
-
 
         return success_response(
             message=SUCCESS_SHARED_USER_DELETED, 
