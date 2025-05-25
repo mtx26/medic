@@ -21,16 +21,16 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Setup Node.js
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
 
-      - name: Installer les dépendances
+      - name: Install dependencies
         run: npm ci
 
-      - name: Lint du code
-        run: npm run lint || echo "Aucun linter configuré"
+      - name: Lint the code
+        run: npm run lint || echo "No linter configured"
 
-      - name: Build de l'app (si applicable)
-        run: npm run build || echo "Pas de build défini"
+      - name: Build the app (if applicable)
+        run: npm run build || echo "No build script defined"
