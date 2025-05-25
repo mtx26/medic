@@ -1,14 +1,14 @@
-# Guide de contribution – MediTime
+# Contribution Guide – MediTime
 
-Merci de contribuer à MediTime, une application de gestion de calendriers médicaux.
+Thank you for contributing to MediTime, a medical calendar management application.
 
-## Prérequis
+## Prerequisites
 
-- **Backend** : Python 3.10+ avec un environnement virtuel (`.venv`)
-- **Frontend** : Node.js v18+
-- **Firebase CLI** (si tu fais des tests avec Firestore localement)
+- **Backend**: Python 3.10+ with a virtual environment (`.venv`)
+- **Frontend**: Node.js v18+
+- **Firebase CLI** (if you're testing Firestore locally)
 
-## Lancement local
+## Local Setup
 
 ```bat
 :: Backend
@@ -21,18 +21,18 @@ python app.py
 cd frontend
 npm install
 npm start
-```
+````
 
-Ou exécute simplement : `launch.bat` à la racine.
+Or simply run: `launch.bat` from the root directory.
 
-## Convention de code
+## Code Conventions
 
-- **Frontend :** `SourceTypeAction` (ex: `TokenCalendarFetch`)
-- **Backend :** logs formatés `[LEVEL] [SOURCE] [MODULE]` avec `success_response` / `error_response`
-- Respect des noms de modules et des séparations React/Flask
+* **Frontend**: `SourceTypeAction` (e.g., `TokenCalendarFetch`)
+* **Backend**: formatted logs `[LEVEL] [SOURCE] [MODULE]` with `success_response` / `error_response`
+* Consistent naming and clear separation between React and Flask modules
 
-## Règles de commit
+## Commit Rules
 
-- ✅ `feat:` nouvelle fonctionnalité
-- 🐛 `fix:` correction de bug
-- 🧼 `refactor:` nettoyage ou amélioration
+* ✅ `feat:` new feature
+* 🐛 `fix:` bug fix
+* 🧼 `refactor:` cleanup or improvement
