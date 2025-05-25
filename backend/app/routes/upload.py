@@ -19,7 +19,7 @@ def upload_logo_route():
             origin="UPLOAD_LOGO"
         )
     
-    url = upload_logo(file, uid)
+    url = upload_logo(file)
     if not url:
         return error_response(
             message=ERROR_IMAGE_UPLOAD,

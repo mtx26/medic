@@ -7,7 +7,7 @@ from app.utils.messages import (
     WARNING_NO_GOOGLE_PHOTO_URL_PROVIDED
 )
 
-def upload_logo(file, uid):
+def upload_logo(file):
     try:
         
         result = upload(file)   
