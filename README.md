@@ -6,43 +6,43 @@
 
 
 
-**MediTime** est une application web moderne de gestion des prises de médicaments, conçue avec **React**, **Flask** et **Firebase** pour l’authentification. Les données sont stockées dans **Supabase**.
+**MediTime** is a modern web application for managing medication schedules, built with **React**, **Flask**, and **Firebase** for authentication. Data is stored in **Supabase**.
 
 ---
 
-## 🚀 Fonctionnalités principales
+## 🚀 Key Features
 
-- 🔐 Authentification Firebase (Google / email)
-- 📅 Création et gestion de calendriers personnels ou partagés
-- 💊 Suivi des médicaments : horaire, dose, fréquence, alternance
-- 🔗 Partage de calendriers par lien public ou avec d’autres utilisateurs Firebase
-- 🔔 Notifications, invitations, gestion des accès
-- 🧾 Journalisation détaillée (frontend et backend)
-- 🔄 Mise à jour en temps réel des données via Supabase Realtime
-- 📱 Interface responsive, optimisée pour mobile
+* 🔐 Firebase Authentication (Google / Email)
+* 📅 Create and manage personal or shared calendars
+* 💊 Medication tracking: time, dose, frequency, alternation
+* 🔗 Share calendars via public links or with other Firebase users
+* 🔔 Notifications, invitations, access management
+* 🧾 Detailed logging (frontend and backend)
+* 🔄 Real-time data updates via Supabase Realtime
+* 📱 Responsive interface, mobile-optimized
 
 ---
 
-## 📁 Structure du projet
+## 📁 Project Structure
 
 ```
 MediTime/
-├── frontend/         # Application React (interface utilisateur)
-├── backend/          # API Flask (auth, logique, accès à Supabase)
-├── .github/          # Workflows GitHub Actions (CI/CD)
-├── launch.bat        # Script de lancement local (Windows)
-└── README.md         # Ce fichier
+├── frontend/         # React app (user interface)
+├── backend/          # Flask API (auth, logic, Supabase access)
+├── .github/          # GitHub Actions workflows (CI/CD)
+├── launch.bat        # Local launch script (Windows)
+└── README.md         # This file
 ```
 
 ---
 
-## ⚙️ Installation rapide
+## ⚙️ Quick Setup
 
 ```bash
 # Backend
 cd backend
 python -m venv .venv
-.venv\Scripts\activate         # ou source .venv/bin/activate sur macOS/Linux
+.venv\Scripts\activate         # or source .venv/bin/activate on macOS/Linux
 pip install -r requirements.txt
 python -m app.main
 
@@ -54,15 +54,15 @@ npm run dev
 
 ---
 
-## 🧠 Technologies utilisées
+## 🧠 Technologies Used
 
-- **Frontend** : React, Bootstrap, RSuite, FullCalendar
-- **Backend** : Flask, Supabase (PostgreSQL via psycopg2)
-- **Auth** : Firebase Authentication
-- **CI/CD** : GitHub Actions, SonarCloud
+* **Frontend**: React, Bootstrap, RSuite, FullCalendar
+* **Backend**: Flask, Supabase (PostgreSQL via psycopg2)
+* **Auth**: Firebase Authentication
+* **CI/CD**: GitHub Actions, SonarCloud
 
 ---
 
-## 📄 Licence
+## 📄 License
 
-Ce projet est **privé**. Voir le fichier [LICENSE](./LICENSE) pour plus d’informations.
+This project is **private**. See the [LICENSE](./LICENSE) file for more information.
