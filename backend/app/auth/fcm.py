@@ -2,7 +2,6 @@ import json
 import requests
 from google.auth.transport.requests import Request
 from google.oauth2 import service_account
-from firebase_admin import credentials
 from app.config.config import Config
 
 SCOPES = ["https://www.googleapis.com/auth/firebase.messaging"]
