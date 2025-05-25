@@ -9,6 +9,9 @@ env_loaded = load_dotenv()
 
 env = os.environ.get("ENV", "production")
 
+def is_railway():
+    return "RAILWAY_STATIC_URL" in os.environ or "RAILWAY_ENVIRONMENT" in os.environ
+
 
 # === Logger Contextual ===
 class ContextualAdapter(logging.LoggerAdapter):
@@ -90,6 +93,9 @@ class DynamicLogWrapper:
 log_backend = DynamicLogWrapper(backend_logger)
 
 def color_line(text, source=None, level=None):
+    if is_railway():
+        return text
+
     colors = {
         "BACKEND": "\x1b[94m",   # Bleu
         "FRONTEND": "\x1b[93m",  # Jaune
