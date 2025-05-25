@@ -15,9 +15,8 @@ const LinkShareOptions = ({
   permissions,
   setPermissions,
   handleCopyLink,
-  navigate,
-  refObj,
-  isValidShared
+  navigate, 
+  refObj
 }) => {
 
   if (existingShareToken) {
@@ -29,16 +28,18 @@ const LinkShareOptions = ({
         <div className="input-group">
           <input type="text" className="form-control" value={link} id={"existingShareTokenLink-"+existingShareToken.id} readOnly />
           <button
+            type="button"
             className="btn btn-outline-warning"
             onClick={() => {
               navigate('/shared-calendar');
-              refObj.current.close();
+              refObj?.current?.close();
             }}
             title="Gérer le lien"
           >
             <i className="bi bi-gear"></i>
           </button>
           <button
+            type="button"
             className="btn btn-outline-primary"
             onClick={() => handleCopyLink(link)}
             title="Copier le lien"
@@ -68,11 +69,12 @@ const LinkShareOptions = ({
       {expiration !== 'never' && (
         <input
           type="date"
-          className={`form-control ${isValidShared ? '' : 'is-invalid'}`}
+          className={`form-control`}
           id={"newTokenExpiration-"+new Date().getTime()}
           value={expiresAt}
           onChange={(e) => setExpiresAt(e.target.value)}
           min={new Date().toISOString().slice(0, 10)}
+          required
         />
       )}
       <label htmlFor="newTokenPermissions" className="form-label mt-2">Permissions</label>
@@ -99,7 +101,6 @@ LinkShareOptions.propTypes = {
   handleCopyLink: PropTypes.func.isRequired,
   navigate: PropTypes.func.isRequired,
   refObj: PropTypes.shape({ current: PropTypes.any }),
-  VITE_URL: PropTypes.string.isRequired,
 };
 
 const AccountShareOptions = ({
@@ -109,9 +110,6 @@ const AccountShareOptions = ({
   setEmailToInvite,
   handleInvite
 }) => {
-  const isValidEmail = (email) => {
-    return typeof email === 'string' && email.includes('@') && email.includes('.');
-  };
 
   return (
   <div>
@@ -143,24 +141,29 @@ const AccountShareOptions = ({
       </ul>
     )}
     <p>Envoyer une invitation pour accéder à <strong>{calendarName}</strong>.</p>
-    <div className="input-group">
-      <input
-        type="email"
-        autoComplete="email"
-        className={`form-control ${emailToInvite === '' || !isValidEmail(emailToInvite) ? 'is-invalid' : ''}`}
-        placeholder="Email du destinataire"
-        value={emailToInvite}
-        onChange={(e) => setEmailToInvite(e.target.value)}
-        id="emailToInvite"
-      />
-      <button
-        className="btn btn-outline-primary"
-        onClick={handleInvite}
-        disabled={emailToInvite === '' || !isValidEmail(emailToInvite)}
-      > 
-        Partager
-      </button>
-    </div>
+    <form onSubmit={(e) => {
+      e.preventDefault();
+      handleInvite();
+    }}>
+      <div className="input-group">
+        <input
+          type="email"
+          autoComplete="email"
+          className={`form-control`}
+          placeholder="Email du destinataire"
+          value={emailToInvite}
+          onChange={(e) => setEmailToInvite(e.target.value)}
+          id="emailToInvite"
+          required
+        />
+        <button
+          className="btn btn-outline-primary"
+          type="submit"
+        > 
+          <i className="bi bi-person-plus-fill"></i>
+        </button>
+      </div>
+    </form>
   </div>
   );
 };
@@ -182,6 +185,106 @@ AccountShareOptions.propTypes = {
   handleInvite: PropTypes.func.isRequired,
 };
 
+const ModalBody = ({
+  shareMethod,
+  setShareMethod,
+  existingShareToken,
+  calendarName,
+  expiresAt,
+  setExpiresAt,
+  expiration,
+  setExpiration,
+  permissions,
+  setPermissions,
+  handleCopyLink,
+  handleInvite,
+  emailToInvite,
+  setEmailToInvite,
+  sharedUsersData,
+  refObj
+}) => {
+  const navigate = useNavigate();
+
+  return (
+  <div className="modal-content">
+    <div className="modal-header">
+      <h5 className="modal-title">Partager le calendrier <strong>{calendarName}</strong></h5>
+      <button
+        type="button"
+        className="btn-close" 
+        onClick={() => refObj?.current?.close()}
+      ></button>
+    </div>
+
+    <div className="modal-body">
+      <div className="mb-4 text-center">
+        <div className="btn-group" role="group">
+          <button
+            type="button"
+            className={`btn ${shareMethod === 'link' ? 'btn-primary' : 'btn-outline-primary'}`}
+            onClick={() => setShareMethod('link')}
+          >
+            <i className="bi bi-link"></i> Lien
+          </button>
+          <button
+            type="button"
+            className={`btn ${shareMethod === 'account' ? 'btn-primary' : 'btn-outline-primary'}`}
+            onClick={() => setShareMethod('account')}
+          >
+            <i className="bi bi-person-plus-fill"></i> Compte
+          </button>
+        </div>
+      </div>
+
+      {shareMethod === 'link' ? (
+        <div className="d-flex flex-column gap-3">
+          <LinkShareOptions
+            existingShareToken={existingShareToken}
+            calendarName={calendarName}
+            expiresAt={expiresAt}
+            setExpiresAt={setExpiresAt}
+            expiration={expiration}
+            setExpiration={setExpiration}
+            permissions={permissions}
+            setPermissions={setPermissions}
+            handleCopyLink={handleCopyLink}
+            navigate={navigate}
+            refObj={refObj}
+          />
+        </div>
+      ) : (
+        <AccountShareOptions
+          sharedUsersData={sharedUsersData}
+          calendarName={calendarName}
+          emailToInvite={emailToInvite}
+          setEmailToInvite={setEmailToInvite}
+          handleInvite={handleInvite}
+        />
+      )}
+
+    </div>
+
+    <div className="modal-footer">
+      <button
+        type="button"
+        className="btn btn-outline-secondary" 
+        onClick={() => refObj?.current?.close()}
+      >
+        Fermer
+      </button>
+      {!existingShareToken && shareMethod === 'link' && (
+        <button 
+          className="btn btn-outline-primary" 
+          type="submit"
+        >
+          Partager
+        </button>
+      )}
+    </div>
+  </div>
+)};
+
+
 
 const ShareCalendarModal = forwardRef(({
   calendarId, 
@@ -195,8 +298,6 @@ const ShareCalendarModal = forwardRef(({
   setSelectedAlert, 
   alertCategory = undefined
 }, ref) => {
-  const navigate = useNavigate();
-
 
   const [shareMethod, setShareMethod] = useState('link');
   const [expiresAt, setExpiresAt] = useState("");
@@ -213,10 +314,6 @@ const ShareCalendarModal = forwardRef(({
       setAlertMessage("❌ " + messageOrError);
     }
   };  
-
-  const isValidShared = (expiresAt) => {
-    return (expiresAt !== "" );
-  };
 
   // Fermer le modal
   const handleHidden = (modalEl) => {
@@ -253,7 +350,7 @@ const ShareCalendarModal = forwardRef(({
     try {
       await navigator.clipboard.writeText(link);
       triggerAlert("success", "Lien copié !");
-      ref.current.close();
+      ref?.current?.close();
     } catch {
       triggerAlert("danger", "Erreur lors de la copie du lien.");
     }
@@ -263,7 +360,7 @@ const ShareCalendarModal = forwardRef(({
   const handleInvite = async () => {
     const rep = await sharedUserCalendars.sendInvitation(emailToInvite, calendarId);
     triggerAlert(rep.success ? "success" : "danger", rep.success ? rep.message : rep.error);
-    ref.current.close();
+    ref?.current?.close();
   };  
 
   const handleCreateToken = async () => {
@@ -278,87 +375,56 @@ const ShareCalendarModal = forwardRef(({
     } else {
       triggerAlert("danger", rep.error);
     }
-    ref.current.close();
+    ref?.current?.close();
   };  
 
   return (
     <div className="modal fade" tabIndex="-1" id="shareModal">
       <div className="modal-dialog">
-        <div className="modal-content">
-          <div className="modal-header">
-            <h5 className="modal-title">Partager le calendrier <strong>{calendarName}</strong></h5>
-            <button 
-              className="btn-close" 
-              onClick={() => ref.current.close()}
-            ></button>
-          </div>
-
-          <div className="modal-body">
-            <div className="mb-4 text-center">
-              <div className="btn-group" role="group">
-                <button
-                  className={`btn ${shareMethod === 'link' ? 'btn-primary' : 'btn-outline-primary'}`}
-                  onClick={() => setShareMethod('link')}
-                >
-                  <i className="bi bi-link"></i> Lien
-                </button>
-                <button
-                  className={`btn ${shareMethod === 'account' ? 'btn-primary' : 'btn-outline-primary'}`}
-                  onClick={() => setShareMethod('account')}
-                >
-                  <i className="bi bi-person-plus-fill"></i> Compte
-                </button>
-              </div>
-            </div>
-
-            {shareMethod === 'link' ? (
-              <div className="d-flex flex-column gap-3">
-                <LinkShareOptions
-                  existingShareToken={existingShareToken}
-                  calendarName={calendarName}
-                  expiresAt={expiresAt}
-                  setExpiresAt={setExpiresAt}
-                  expiration={expiration}
-                  setExpiration={setExpiration}
-                  permissions={permissions}
-                  setPermissions={setPermissions}
-                  handleCopyLink={handleCopyLink}
-                  navigate={navigate}
-                  refObj={ref}
-                  VITE_URL={VITE_URL}
-                  isValidShared={isValidShared(expiresAt)}
-                />
-              </div>
-            ) : (
-              <AccountShareOptions
-                sharedUsersData={sharedUsersData}
-                calendarName={calendarName}
-                emailToInvite={emailToInvite}
-                setEmailToInvite={setEmailToInvite}
-                handleInvite={handleInvite}
-              />
-            )}
-
-          </div>
-
-          <div className="modal-footer">
-            <button 
-              className="btn btn-outline-secondary" 
-              onClick={() => ref.current.close()}
-            >
-              Fermer
-            </button>
-            {!existingShareToken && shareMethod === 'link' && (
-              <button 
-                className="btn btn-outline-primary" 
-                onClick={handleCreateToken}
-                disabled={!isValidShared(expiresAt)}
-              >
-                Partager
-              </button>
-            )}
-          </div>
-        </div>
+        {shareMethod === 'link' ? (
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            handleCreateToken(calendarId);
+          }}>
+            <ModalBody
+              shareMethod={shareMethod}
+              setShareMethod={setShareMethod}
+              existingShareToken={existingShareToken}
+              calendarName={calendarName}
+              expiresAt={expiresAt}
+              setExpiresAt={setExpiresAt}
+              expiration={expiration}
+              setExpiration={setExpiration}
+              permissions={permissions}
+              setPermissions={setPermissions}
+              handleCopyLink={handleCopyLink}
+              handleInvite={handleInvite}
+              emailToInvite={emailToInvite}
+              setEmailToInvite={setEmailToInvite}
+              sharedUsersData={sharedUsersData}
+              refObj={ref}
+            />
+          </form>
+        ) : (
+          <ModalBody
+            shareMethod={shareMethod}
+            setShareMethod={setShareMethod}
+            existingShareToken={existingShareToken}
+            calendarName={calendarName}
+            expiresAt={expiresAt}
+            setExpiresAt={setExpiresAt}
+            expiration={expiration}
+            setExpiration={setExpiration}
+            permissions={permissions}
+            setPermissions={setPermissions}
+            handleCopyLink={handleCopyLink}
+            handleInvite={handleInvite}
+            emailToInvite={emailToInvite}
+            setEmailToInvite={setEmailToInvite}
+            sharedUsersData={sharedUsersData}
+            refObj={ref}
+          />
+        )}
       </div>
     </div>
   );
