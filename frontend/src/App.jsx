@@ -1149,46 +1149,6 @@ function App() {
 
   }, [auth.currentUser]);
 
-  useEffect(() => {
-    const runFCMTest = async () => {
-      try {
-        const user = auth.currentUser;
-        if (!user) {
-          console.warn("Utilisateur non connecté.");
-          return;
-        }
-
-        const idToken = await user.getIdToken();
-        const messaging = getMessaging();
-        const fcmToken = await getToken(messaging, { vapidKey: FCM_SERVER_KEY });
-
-        console.log("✅ UID :", user.uid);
-        console.log("✅ ID Token :", idToken);
-        console.log("✅ FCM Token :", fcmToken);
-
-        const response = await fetch("http://localhost:5000/api/notifications/send", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: "Bearer " + idToken,
-          },
-          body: JSON.stringify({
-            uid: user.uid,
-            title: "🔔 Test via React App",
-            body: "Si tu lis ça, les notifs FCM fonctionnent ✅",
-          }),
-        });
-
-        const result = await response.json();
-        console.log("📬 Réponse du backend :", result);
-      } catch (err) {
-        console.error("❌ Erreur FCM test :", err);
-      }
-    };
-
-    runFCMTest();
-  }, [auth.currentUser]);
-
   return (
     <Router>
       <div className="d-flex flex-column min-vh-100">

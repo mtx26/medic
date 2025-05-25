@@ -4,6 +4,7 @@ from app.utils.validators import verify_firebase_token
 from app.db.connection import get_connection
 from app.services.calendar_service import verify_calendar
 from app.services.user import fetch_user
+from app.services.notifications import notify_and_record
 from firebase_admin import auth
 import time
 from . import api
@@ -88,17 +89,15 @@ def handle_send_invitation(calendar_id):
                     )
         
                 # Créer une notif pour l'utilisateur receveur
-                cursor.execute(
-                    NOTIFICATION_INSERT,
-                    (
-                        receiver_uid,
-                        "calendar_invitation",
-                        json.dumps({
-                            "calendar_id": calendar_id
-                        }),
-                        owner_uid
-                    )
+                notify_and_record(
+                    uid=receiver_uid,
+                    title="📬 Nouvelle invitation à un calendrier",
+                    body="Tu as été invité à rejoindre un calendrier partagé.",
+                    notif_type="calendar_invitation",
+                    sender_uid=owner_uid,
+                    calendar_id=calendar_id
                 )
+
 
 
                 # Sauvegarder l'invitation dans la collection "shared_calendars" dans le calendrier de l'utilisateur owner
@@ -185,11 +184,13 @@ def handle_accept_invitation(notification_id):
                 )
 
                 # Créer une notif pour l'utilisateur expéditeur
-                cursor.execute(
-                    NOTIFICATION_INSERT,
-                    (sender_uid, "calendar_invitation_accepted", json.dumps({
-                        "calendar_id": calendar_id
-                    }), receiver_uid)
+                notify_and_record(
+                    uid=sender_uid,
+                    title="✅ Invitation acceptée",
+                    body="Ton invitation a été acceptée.",
+                    notif_type="calendar_invitation_accepted",
+                    sender_uid=receiver_uid,
+                    calendar_id=calendar_id
                 )
 
                 t_1 = time.time()
@@ -258,12 +259,15 @@ def handle_reject_invitation(notification_id):
                     (notification_id, receiver_uid)
                 )
                 # Créer une notif pour l'utilisateur expéditeur
-                cursor.execute(
-                    NOTIFICATION_INSERT,
-                    (owner_uid, "calendar_invitation_rejected", json.dumps({
-                        "calendar_id": calendar_id
-                    }), receiver_uid)
+                notify_and_record(
+                    uid=owner_uid,
+                    title="❌ Invitation refusée",
+                    body="Ton invitation a été refusée.",
+                    notif_type="calendar_invitation_rejected",
+                    sender_uid=receiver_uid,
+                    calendar_id=calendar_id
                 )
+
 
                 # Supprimer la notif dans la collection "shared_calendars" dans le calendrier de l'utilisateur owner
                 cursor.execute(
