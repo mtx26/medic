@@ -226,7 +226,6 @@ def generate_table(start_date, medications):
     for moment in table_by_moment:
         table_by_moment[moment].sort(key=lambda x: x["title"].lower())
     
-    print(table_by_moment)
     return table_by_moment
 
 
