@@ -11,7 +11,7 @@ function HomePage() {
       <header className="bg-light border-bottom py-5">
         <div className="container text-center">
           <i className="bi bi-capsule display-1 text-primary"></i>
-          <h1 className="mt-3 fw-bold text-primary">Meditime</h1>
+          <h1 className="mt-3 fw-bold text-primary">MediTime</h1>
           <p className="lead text-muted">
             L'application pour gérer, suivre et partager vos traitements médicaux au quotidien.
           </p>
