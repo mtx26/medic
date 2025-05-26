@@ -27,7 +27,7 @@ function PrivateRoute({ element }) {
   if (!userInfo && authReady) {
     return <Navigate to="/" />;
   }
-  if (!userInfo.emailVerified && authReady) {
+  if (!userInfo?.emailVerified && authReady) {
     return <Navigate to="/verify-email" />;
   }
   return element;

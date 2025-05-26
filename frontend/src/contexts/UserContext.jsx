@@ -1,6 +1,7 @@
 import { createContext, useState, useEffect } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "../services/firebase";
+import { log } from "../utils/logger";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -51,7 +52,10 @@ export const UserProvider = ({ children }) => {
       setUserInfo(info);
       sessionStorage.setItem("userInfo", JSON.stringify(info));
     } catch (error) {
-      console.error("[UserContext] Erreur lors du chargement API :", error);
+      log.error("[UserContext] Erreur lors du chargement API :", {
+        error,
+        origin: "USER_CONTEXT_RELOAD_USER_ERROR",
+      });
     }
   };
 

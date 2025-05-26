@@ -1094,8 +1094,6 @@ function App() {
   useEffect(() => {
     if (!auth.currentUser) return;
 
-    auth.currentUser.getIdToken().then(console.log)
-
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker
         .register("/firebase-messaging-sw.js")

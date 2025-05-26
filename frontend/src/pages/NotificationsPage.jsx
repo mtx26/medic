@@ -118,14 +118,13 @@ function NotificationsPage({ notifications, sharedUserCalendars }) {
                 {notif.notification_type === "calendar_shared_deleted_by_owner" && (
                   <p className="mb-0">
                     <i className="bi bi-trash-fill me-2 text-danger" style={{ verticalAlign: "middle" }}></i>
-
                     <HoveredUserProfile
                       user={{
-                        photo_url: notif.owner_photo_url,
-                        display_name: notif.owner_name,
-                        email: notif.owner_email
+                        photo_url: notif.sender_photo_url,
+                        display_name: notif.sender_name,
+                        email: notif.sender_email
                       }}
-                      trigger={<strong>{notif.owner_name}</strong>}
+                      trigger={<strong>{notif.sender_name}</strong>}
                     />
                     {" "}a arrêté de partager le calendrier <strong>{notif.calendar_name}</strong> avec vous
                   </p>
@@ -137,11 +136,11 @@ function NotificationsPage({ notifications, sharedUserCalendars }) {
 
                     <HoveredUserProfile
                       user={{
-                        photo_url: notif.owner_photo_url,
-                        display_name: notif.owner_name,
-                        email: notif.owner_email
+                        photo_url: notif.sender_photo_url,
+                        display_name: notif.sender_name,
+                        email: notif.sender_email
                       }}
-                      trigger={<strong>{notif.owner_name}</strong>}
+                      trigger={<strong>{notif.sender_name}</strong>}
                     />
                     {" "}a retiré le calendrier <strong>{notif.calendar_name}</strong>
                   </p>
