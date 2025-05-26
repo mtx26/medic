@@ -432,6 +432,7 @@ function App() {
       if (!res.ok) throw new Error(data.error);
       const scheduleSortedByTitle = data.schedule.sort((a, b) => a.title.localeCompare(b.title));
       const scheduleSortedByMoment = scheduleSortedByTitle.sort((a, b) => new Date(a.start) - new Date(b.start));
+      const tableSortedByTitle = data.table.sort((a, b) => a.title.localeCompare(b.title));
       analyticsPromise.then((analytics) => {
         if (analytics) {
           logEvent(analytics, 'fetch_token_calendar_schedule', {
@@ -446,7 +447,7 @@ function App() {
         "token": token,
         "eventCount": scheduleSortedByMoment?.length,
       });
-      return {success: true, message: data.message, code: data.code, schedule: scheduleSortedByMoment, calendarName: data.calendar_name, table: data.table};
+      return {success: true, message: data.message, code: data.code, schedule: scheduleSortedByMoment, calendarName: data.calendar_name, table: tableSortedByTitle};
     } catch (err) {
       log.error(err.message || "Échec de récupération du calendrier partagé", err, {
         origin: "SHARED_CALENDAR_FETCH_ERROR",
