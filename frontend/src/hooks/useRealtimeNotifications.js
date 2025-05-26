@@ -49,11 +49,11 @@ const fetchNotifications = async (user, setNotificationsData, setLoadingStates) 
 };
 
 export const useRealtimeNotifications = (setNotificationsData, setLoadingStates) => {
-  const { currentUser, authReady } = useContext(UserContext);
+  const { userInfo } = useContext(UserContext);
   const channelRef = useRef(null);
 
   useEffect(() => {
-    if (!(authReady && currentUser)) {
+    if (!userInfo) {
       return;
     }
 
@@ -119,5 +119,5 @@ export const useRealtimeNotifications = (setNotificationsData, setLoadingStates)
         }
       };
     }
-  }, [authReady, currentUser, setNotificationsData, setLoadingStates]);
+  }, [userInfo, setNotificationsData, setLoadingStates]);
 };

@@ -14,7 +14,6 @@ import { useRealtimeTokens } from './hooks/useRealtimeTokens';
 import { formatToLocalISODate } from './utils/dateUtils';
 import { v4 as uuidv4 } from 'uuid';
 import RealtimeManager from './components/RealtimeManager';
-import { getToken, getMessaging } from 'firebase/messaging';
 
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -26,7 +25,7 @@ function App() {
   const [notificationsData, setNotificationsData] = useState([]);
   const [sharedCalendarsData, setSharedCalendarsData] = useState([]);
 
-  const { authReady } = useContext(UserContext);
+  const { userInfo } = useContext(UserContext);
 
   const [loadingStates, setLoadingStates] = useState({
     calendars: true,
@@ -1070,17 +1069,15 @@ function App() {
   };
 
   useEffect(() => {
-    if (authReady) {
-      resetAppData();
-      setLoadingStates(current => ({
-        ...current,
-        calendars: false, 
-        sharedCalendars: false, 
-        notifications: false, 
-        tokens: false,
-      }));
-    }
-  }, [authReady]);
+    resetAppData();
+    setLoadingStates(current => ({
+      ...current,
+      calendars: false, 
+      sharedCalendars: false, 
+      notifications: false, 
+      tokens: false,
+    }));
+  }, [userInfo]);
 
   useEffect(() => {
     if (!auth.currentUser) return;
@@ -1143,7 +1140,7 @@ function App() {
       <div className="d-flex flex-column min-vh-100">
         <Navbar sharedProps={sharedProps}/>
         <main className="flex-grow-1 d-flex flex-column">
-          {authReady && (
+          {userInfo && (
             <RealtimeManager
               setCalendarsData={setCalendarsData}
               setSharedCalendarsData={setSharedCalendarsData}

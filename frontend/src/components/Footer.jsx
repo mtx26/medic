@@ -4,7 +4,7 @@ import { UserContext } from "../contexts/UserContext";
 
 function Footer() {
   const location = useLocation();
-  const { authReady } = useContext(UserContext);
+  const { userInfo } = useContext(UserContext);
 
   const hiddenFooterRoutes = [
     "/login",
@@ -46,7 +46,7 @@ function Footer() {
                   </li>
                 </ul>
               </div>
-              {authReady && (
+              {userInfo && (
                 <div className="col-sm-6">
                   <ul className="list-unstyled">
                     <li>

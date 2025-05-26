@@ -8,7 +8,7 @@ const VITE_URL = import.meta.env.VITE_VITE_URL;
 
 function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) {
   // 🔐 Contexte d'authentification
-  const { authReady, currentUser } = useContext(UserContext); // Contexte de l'utilisateur connecté
+  const { userInfo } = useContext(UserContext); // Contexte de l'utilisateur connecté
 
   // ⚠️ Alertes et confirmations
   const [alertType, setAlertType] = useState(""); // Type d'alerte (ex. success, error)
@@ -197,22 +197,22 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
 
   // 🔄 Chargement des données groupées
   useEffect(() => {
-    if (authReady && currentUser && personalCalendars.calendarsData) {
+    if (userInfo && personalCalendars.calendarsData) {
       setGroupedSharedFunction();
     }
-  }, [authReady, currentUser, personalCalendars.calendarsData, tokenCalendars.tokensList, setGroupedSharedFunction]);
+  }, [userInfo, personalCalendars.calendarsData, tokenCalendars.tokensList, setGroupedSharedFunction]);
 
 
   // 🔄 Initialisation des permissions et des dates d'expiration
   useEffect(() => {
-    if (authReady && currentUser && personalCalendars.calendarsData) {
+    if (userInfo && personalCalendars.calendarsData) {
       for (const calendar of personalCalendars.calendarsData) {
         setPermissions(prev => ({ ...prev, [calendar.id]: "read" }));
         setExpiresAt(prev => ({ ...prev, [calendar.id]: null }));
         setExpirationType(prev => ({ ...prev, [calendar.id]: 'never' }));
       }
     }
-  }, [authReady, currentUser, personalCalendars.calendarsData]);
+  }, [userInfo, personalCalendars.calendarsData]);
 
   if (loadingGroupedShared) {
     return (

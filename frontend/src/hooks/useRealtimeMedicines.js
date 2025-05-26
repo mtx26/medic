@@ -126,11 +126,11 @@ export const useRealtimePersonalMedicines = (
   setOriginalMedicinesData,
   setLoadingMedicines
 ) => {
-  const { currentUser, authReady } = useContext(UserContext);
+  const { userInfo } = useContext(UserContext);
   const channelRef = useRef(null);
 
   useEffect(() => {
-    if (!authReady || !currentUser || !calendarId) {
+    if (!userInfo || !calendarId) {
       setLoadingMedicines(undefined);
       return;
     }
@@ -169,7 +169,7 @@ export const useRealtimePersonalMedicines = (
         channelRef.current = null;
       }
     };
-  }, [authReady, currentUser, calendarId]);
+  }, [userInfo, calendarId]);
 };
 
 export const useRealtimeTokenMedicines = (
@@ -244,11 +244,11 @@ export const useRealtimeSharedUserMedicines = (
   setOriginalMedicinesData,
   setLoadingMedicines
 ) => {
-  const { currentUser, authReady } = useContext(UserContext);
+  const { userInfo } = useContext(UserContext);
   const channelRef = useRef(null);
 
   useEffect(() => {
-    if (!calendarId || !authReady || !currentUser) {
+    if (!calendarId || !userInfo) {
       setLoadingMedicines(undefined);
       return;
     }
@@ -315,5 +315,5 @@ export const useRealtimeSharedUserMedicines = (
         });
       }
     };
-  }, [calendarId, authReady, currentUser]);
+  }, [calendarId, userInfo]);
 };

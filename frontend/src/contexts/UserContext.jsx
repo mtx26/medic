@@ -9,10 +9,8 @@ const UserContext = createContext(null);
 let globalReloadUser = () => {};
 
 export const UserProvider = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState(null);
-  const [authReady, setAuthReady] = useState(false);
   const [userInfo, setUserInfo] = useState(() =>
-    JSON.parse(sessionStorage.getItem("userInfo")) || null
+    JSON.parse(localStorage.getItem("userInfo")) || null
   );
 
   const reloadUser = async (name, photoURL) => {
@@ -50,7 +48,7 @@ export const UserProvider = ({ children }) => {
       };
 
       setUserInfo(info);
-      sessionStorage.setItem("userInfo", JSON.stringify(info));
+      localStorage.setItem("userInfo", JSON.stringify(info));
     } catch (error) {
       log.error("[UserContext] Erreur lors du chargement API :", {
         error,
@@ -62,21 +60,24 @@ export const UserProvider = ({ children }) => {
   globalReloadUser = reloadUser;
 
   useEffect(() => {
+    const current = auth.currentUser;
+    if (current) {
+      reloadUser();
+    }
+  
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setCurrentUser(user);
-      setAuthReady(true);
       if (user) await reloadUser();
       else {
         setUserInfo(null);
-        sessionStorage.removeItem("userInfo");
+        localStorage.removeItem("userInfo");
       }
     });
-
+  
     return () => unsubscribe();
-  }, []);
+  }, []);  
 
   return (
-    <UserContext.Provider value={{ authReady, currentUser, userInfo }}>
+    <UserContext.Provider value={{ userInfo }}>
       {children}
     </UserContext.Provider>
   );

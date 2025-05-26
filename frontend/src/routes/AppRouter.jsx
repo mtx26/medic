@@ -22,12 +22,12 @@ import MedicinesList from '../pages/MedicinesList';
 import NotFound from '../pages/NotFound';
 
 function PrivateRoute({ element }) {
-  const { userInfo, authReady } = useContext(UserContext);
+  const { userInfo } = useContext(UserContext);
 
-  if (!userInfo && authReady) {
+  if (!userInfo) {
     return <Navigate to="/" />;
   }
-  if (!userInfo?.emailVerified && authReady) {
+  if (!userInfo.emailVerified) {
     return <Navigate to="/verify-email" />;
   }
   return element;
@@ -47,14 +47,14 @@ function RouteWithLoader({ element, isLoading }) {
 }
 
 function AppRoutes({ sharedProps }) {
-  const { userInfo, authReady } = useContext(UserContext);
+  const { userInfo } = useContext(UserContext);
 
   return (
       <Routes>
-        <Route path="/login" element={userInfo && authReady ? <Navigate to="/calendars" /> : <Auth />}  />
-        <Route path="/register" element={userInfo && authReady ? <Navigate to="/calendars" /> : <Auth />} />
-        <Route path="/reset-password" element={userInfo && authReady ? <Navigate to="/calendars" /> : <ResetPassword />} />
-        <Route path="/verify-email" element={userInfo && authReady ? <VerifyEmail/> : <Navigate to="/login" />} />
+        <Route path="/login" element={userInfo ? <Navigate to="/calendars" /> : <Auth />}  />
+        <Route path="/register" element={userInfo ? <Navigate to="/calendars" /> : <Auth />} />
+        <Route path="/reset-password" element={userInfo ? <Navigate to="/calendars" /> : <ResetPassword />} />
+        <Route path="/verify-email" element={userInfo ? <VerifyEmail/> : <Navigate to="/login" />} />
 
         <Route path="/account" element={
           <PrivateRoute 

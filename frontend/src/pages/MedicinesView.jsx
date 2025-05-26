@@ -27,7 +27,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
   const [highlightedField, setHighlightedField] = useState(null); // { id: string, field: string }
   const [groupedMedicines, setGroupedMedicines] = useState([]);
 
-  const { authReady } = useContext(UserContext);
+  const { userInfo } = useContext(UserContext);
 
   // 🔄 Modifications
   const hasChanges = JSON.stringify(medicinesData) !== JSON.stringify(originalMedicinesData); // Détection des changements dans les médicaments
@@ -243,10 +243,10 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
 
   // 🔄 Gestion du rendu
   useEffect(() => {
-    if (authReady && medicinesData.length > 0) {
+    if (userInfo && medicinesData.length > 0) {
       getGroupedMedicinesList(medicinesData);
     }
-  }, [authReady, medicinesData]);
+  }, [userInfo, medicinesData]);
 
 
   // 🔄 Gestion du focus 

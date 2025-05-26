@@ -8,11 +8,11 @@ import { supabase } from '../services/supabaseClient';
 const API_URL = import.meta.env.VITE_API_URL;
 
 export const useRealtimeTokens = (setTokensList, setLoadingStates) => {
-	const { currentUser, authReady } = useContext(UserContext);
+	const { userInfo } = useContext(UserContext);
 	const channelRef = useRef(null);
 
 	useEffect(() => {
-		if (!(authReady && currentUser)) {
+		if (!userInfo) {
 			return;
 		}
 
@@ -100,5 +100,5 @@ export const useRealtimeTokens = (setTokensList, setLoadingStates) => {
 				}
 			};
 		}
-	}, [authReady, currentUser, setTokensList, setLoadingStates]);
+	}, [userInfo, setTokensList, setLoadingStates]);
 };

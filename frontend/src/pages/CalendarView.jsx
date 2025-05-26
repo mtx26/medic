@@ -27,7 +27,7 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
   const params = useParams();
 
   // 🔐 Contexte d'authentification
-  const { authReady, currentUser } = useContext(UserContext); // Contexte de l'utilisateur connecté
+  const { userInfo } = useContext(UserContext); // Contexte de l'utilisateur connecté
   
   const calendarRef = useRef(null);
   const [selectedDate, setSelectedDate] = useState(formatToLocalISODate(new Date())); // Date sélectionnée
@@ -113,7 +113,7 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
   const handleShareCalendarClick = async () => {
     setExistingShareToken(null);
     const token = await tokenCalendars.tokensList.find(
-      (t) => t.calendar_id === calendarId && !t.revoked && t.owner_uid === currentUser.uid
+      (t) => t.calendar_id === calendarId && !t.revoked && t.owner_uid === userInfo.uid
     );
     const rep = await sharedUserCalendars.fetchSharedUsers(calendarId);
     if (rep.success) {
@@ -135,9 +135,9 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
   
   // Fonction pour charger le calendrier lorsque l'utilisateur est connecté
   useEffect(() => {
-    if (!authReady || !calendarId) return;
+    if (!userInfo || !calendarId) return;
     const load = async () => {
-      if (calendarType === 'token' || currentUser) {
+      if (calendarType === 'token' || userInfo) {
         const rep = await calendarSource.fetchSchedule(calendarId);
         if (rep.success) {
           if (!isEqual(rep.schedule, calendarEvents)) {
@@ -157,7 +157,7 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
     };
 
     load();
-  }, [authReady, currentUser, calendarId, calendarType, calendarSource.fetchSchedule]);
+  }, [userInfo, calendarId, calendarType, calendarSource.fetchSchedule]);
 
 
   // 📍 Filtrage des événements pour un jour spécifique
@@ -180,7 +180,7 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
   
   // 📍 Récupération des informations de l'utilisateur propriétaire du calendrier
   useEffect(() => {
-    if (!currentUser || !calendarId) return;
+    if (!userInfo || !calendarId) return;
     if (calendarType === 'sharedUser') {
       if (calendarSource.calendarsData.find((calendar) => calendar.id === calendarId)) {
         const owner_user = calendarSource.calendarsData.find((calendar) => calendar.id === calendarId);
@@ -191,7 +191,7 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
         });
       }
     }
-  }, [calendarType, calendarSource.calendarsData, calendarId, currentUser]);
+  }, [calendarType, calendarSource.calendarsData, calendarId, userInfo]);
 
 
   if ( loading === undefined && calendarId) {

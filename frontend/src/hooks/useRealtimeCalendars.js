@@ -83,11 +83,11 @@ const fetchSharedCalendars = async (user, setSharedCalendarsData, setLoadingStat
 };
 
 export const useRealtimeCalendars = (setCalendarsData, setLoadingStates) => {
-  const { currentUser, authReady } = useContext(UserContext);
+  const { userInfo } = useContext(UserContext);
   const channelRef = useRef(null);
 
   useEffect(() => {
-    if (!(authReady && currentUser)) {
+    if (!userInfo) {
       return;
     }
 
@@ -147,15 +147,15 @@ export const useRealtimeCalendars = (setCalendarsData, setLoadingStates) => {
         }
       };
     }
-  }, [authReady, currentUser, setCalendarsData, setLoadingStates]);
+  }, [userInfo, setCalendarsData, setLoadingStates]);
 };
 
 export const useRealtimeSharedCalendars = (setSharedCalendarsData, setLoadingStates) => {
-  const { currentUser, authReady } = useContext(UserContext);
+  const { userInfo } = useContext(UserContext);
   const channelRef = useRef(null);
 
   useEffect(() => {
-    if (!(authReady && currentUser)) {
+    if (!userInfo) {
       return;
     }
 
@@ -213,5 +213,5 @@ export const useRealtimeSharedCalendars = (setSharedCalendarsData, setLoadingSta
         }
       };
     }
-  }, [authReady, currentUser, setSharedCalendarsData, setLoadingStates]);
+  }, [userInfo, setSharedCalendarsData, setLoadingStates]);
 };
