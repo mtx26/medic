@@ -283,20 +283,14 @@ function App() {
           });
         }
       });
-      // trier les events par titre et par date
-      const scheduleSortedByTitle = data.schedule.sort((a, b) => a.title.localeCompare(b.title));
-      const scheduleSortedByMoment = scheduleSortedByTitle.sort((a, b) => new Date(a.start) - new Date(b.start));
-      
-      // trier le table par titre
-      const tableSortedByTitle = data.table.sort((a, b) => a.title.localeCompare(b.title));
 
       log.info(data.message, {
         origin: "CALENDAR_FETCH_SUCCESS",
         "uid": auth.currentUser.uid,
-        "eventCount": scheduleSortedByMoment?.length,
+        "eventCount": data.schedule?.length,
         "calendarId": calendarId,
       });
-      return { success: true, message: data.message, code: data.code, schedule: scheduleSortedByMoment, calendarName: data.calendar_name, table: tableSortedByTitle};
+      return { success: true, message: data.message, code: data.code, schedule: data.schedule, calendarName: data.calendar_name, table: data.table};
     } catch (err) {
       log.error(err.message || "Erreur lors de la récupération du calendrier", err, {
         origin: "CALENDAR_FETCH_ERROR",
@@ -430,24 +424,22 @@ function App() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      const scheduleSortedByTitle = data.schedule.sort((a, b) => a.title.localeCompare(b.title));
-      const scheduleSortedByMoment = scheduleSortedByTitle.sort((a, b) => new Date(a.start) - new Date(b.start));
-      const tableSortedByTitle = data.table.sort((a, b) => a.title.localeCompare(b.title));
+
       analyticsPromise.then((analytics) => {
         if (analytics) {
           logEvent(analytics, 'fetch_token_calendar_schedule', {
             token: token,
             uid: auth.currentUser.uid,
-            count: scheduleSortedByMoment?.length,
+            count: data.schedule?.length,
           });
         }
       });
       log.info(data.message, {
         origin: "SHARED_CALENDAR_FETCH_SUCCESS",
         "token": token,
-        "eventCount": scheduleSortedByMoment?.length,
+        "eventCount": data.schedule?.length,
       });
-      return {success: true, message: data.message, code: data.code, schedule: scheduleSortedByMoment, calendarName: data.calendar_name, table: tableSortedByTitle};
+      return {success: true, message: data.message, code: data.code, schedule: data.schedule, calendarName: data.calendar_name, table: data.table};
     } catch (err) {
       log.error(err.message || "Échec de récupération du calendrier partagé", err, {
         origin: "SHARED_CALENDAR_FETCH_ERROR",
@@ -906,14 +898,12 @@ function App() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      const scheduleSortedByTitle = data.schedule.sort((a, b) => a.title.localeCompare(b.title));
-      const scheduleSortedByMoment = scheduleSortedByTitle.sort((a, b) => new Date(a.start) - new Date(b.start));
       analyticsPromise.then((analytics) => {
         if (analytics) {
           logEvent(analytics, 'fetch_shared_user_calendar_schedule', {
             calendarId: calendarId,
             uid: auth.currentUser.uid,
-            count: scheduleSortedByMoment?.length,
+            count: data.schedule?.length,
           });
         }
       });
@@ -922,7 +912,7 @@ function App() {
         calendarId,
         startDate,
       });
-      return {success: true, message: data.message, code: data.code, schedule: scheduleSortedByMoment, calendarName: data.calendar_name, table: data.table};
+      return {success: true, message: data.message, code: data.code, schedule: data.schedule, calendarName: data.calendar_name, table: data.table};
     } catch (err) {
       log.error(err.message || "Échec de récupération du calendrier partagé par un utilisateur", err, {
         origin: "SHARED_USER_CALENDAR_FETCH_ERROR",

@@ -181,35 +181,53 @@ def generate_schedule(start_date, medications):
                         "dose" : dose
                     }
                 schedule.append(pils_data)
-
+                
+    # trier les événements par date et par alphabet
+    schedule.sort(key=lambda x: (x["start"], x["title"]))
     return schedule
 
 """
-[
+{
+  "morning": [
     {
-        "title": "Doliprane",
-        "cells": {
-            "Matin": {
-                "Lun": "1",
-                "Mer": "2"
-            }
-        }
+      "title": "Doliprane",
+      "cells": {
+        "Mon": 1,
+        "Tue": 2
+      },
+      "dose": "500mg"
     },
     ...
-]
+  ],
+  "evening": [ ... ]
+}
+
+
 """
 def generate_table(start_date, medications):
     monday = start_date - timedelta(days=start_date.weekday())
     total_day = 7
-    calendar_table = []
+    table_by_moment = {
+        "morning": [],
+        "noon": [],
+        "evening": []
+    }
 
     for med in medications:
         med_table = build_medication_table(med, monday, total_day)
         if not med_table:
             continue
-        merge_or_append(calendar_table, med.get("name"), med_table, med.get("dose", None))
 
-    return calendar_table
+        moment = med.get("time_of_day")
+        if moment not in table_by_moment:
+            continue
+        merge_or_append_by_moment(table_by_moment[moment], med.get("name"), med_table.get(moment, {}), med.get("dose", None))
+
+    for moment in table_by_moment:
+        table_by_moment[moment].sort(key=lambda x: x["title"].lower())
+    
+    print(table_by_moment)
+    return table_by_moment
 
 
 def build_medication_table(med, monday, total_day):
@@ -229,22 +247,22 @@ def build_medication_table(med, monday, total_day):
     return table
 
 
-def merge_or_append(calendar_table, name, med_table, dose):
-    for entry in calendar_table:
+def merge_or_append_by_moment(moment_list, name, cells, dose):
+    for entry in moment_list:
         if entry["title"] != name:
             continue
 
-        for moment, days in med_table.items():
-            if moment not in entry["cells"]:
-                entry["cells"][moment] = {}
+        if entry["dose"] != dose:
+            continue
 
-            for day, value in days.items():
-                entry["cells"][moment][day] = entry["cells"][moment].get(day, 0) + value
+        for day, value in cells.items():
+            entry["cells"][day] = entry["cells"].get(day, 0) + value
 
         return
 
-    calendar_table.append({
+    # Sinon, on ajoute une nouvelle entrée
+    moment_list.append({
         "title": name,
-        "cells": med_table,
+        "cells": cells,
         "dose": dose
     })

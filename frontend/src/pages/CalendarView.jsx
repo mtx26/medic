@@ -310,55 +310,58 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
       </div>
 
       {/* Régénérer le calendrier */}
-      {calendarTable.length > 0 && (
+      {Object.keys(calendarTable).length > 0 && (
         <WeekCalendarSelector
           selectedDate={startDate}
           onWeekSelect={onWeekSelect}
         />
       )}
-
-      {calendarTable.length > 0 ? (
+      {Object.keys(calendarTable).length > 0 ? (
         <>
           {/* Tableau hebdomadaire */}
           <div className="mb-5">
             <h4 className="mb-4"><i className="bi bi-table"></i> Tableau hebdomadaire</h4>
-            {calendarTable.map((table, index) => (
-              <div className="card border border-secondary-subtle mb-4" key={index}>
-                <div className="card-header bg-light fw-semibold text-dark">
-                  <i className="bi bi-capsule me-2"></i>{table.title} {table.dose != null ? `${table.dose} mg` : ""}
-                </div>
-                <div className="card-body p-0">
-                  <div className="table-responsive">
-                    <table className="table table-sm table-bordered text-center align-middle mb-0 table-striped">
-                      <thead className="table-light">
-                        <tr>
-                          <th>Moment</th>
-                          {days.map((day) => (
-                            <th key={day}>{days_map[day]}</th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {Object.entries(table.cells).map(([moment, momentsObj]) => (
-                          <tr key={moment}>
-                            <td style={{ minWidth: "70px" }}>
-                              <strong>{moment_map[moment]}</strong>
-                            </td>
-                            {days.map((day) => (
-                              <td key={day}>
-                                {momentsObj[day] && (
-                                  <span className="text-muted small px-2 py-1 rounded d-inline-block">
-                                    {momentsObj[day]}
-                                  </span>
-                                )}
-                              </td>
-                            ))}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+            {/*trier matin, midi, soir et supprimer les moments non présents*/}
+            {Object.keys(calendarTable).sort((a, b) => {
+              const order = ['morning', 'noon', 'evening'];
+              return order.indexOf(a) - order.indexOf(b);
+            }).filter((moment) => calendarTable[moment].length > 0).map((moment) => (
+              <div key={moment}>
+                <h5 className="mb-4"> <i className="bi bi-clock-fill"></i> {moment_map[moment]}</h5>
+                {calendarTable[moment].map((table, index) => (
+                  <div className="card border border-secondary-subtle mb-4" key={index}>
+                    <div className="card-header bg-light fw-semibold text-dark">
+                      <i className="bi bi-capsule me-2"></i>{table.title} {table.dose != null ? `${table.dose} mg` : ""}
+                    </div>
+                    <div className="card-body p-0">
+                      <div className="table-responsive">
+                        <table className="table table-sm table-bordered text-center align-middle mb-0 table-striped">
+                          <thead className="table-light">
+                            <tr>
+                              {days.map((day) => (
+                                <th key={day}>{days_map[day]}</th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              {days.map((day) => (
+                                <td key={day}>
+                                  {table.cells[day] && (
+                                    <span className="text-muted small px-2 py-1 rounded d-inline-block">
+                                      {table.cells[day]}
+                                    </span>
+                                  )}
+                                </td>
+                              ))}
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
                   </div>
-                </div>
+                ))}
+                <hr className="mt-4" />
               </div>
             ))}
           </div>
