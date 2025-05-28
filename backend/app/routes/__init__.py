@@ -14,7 +14,7 @@ from .tokens_medicines import *
 from .invitations import *
 from .notifications import *
 from .user import *
-from .medicine_boxes import *
+
 
 def register_routes(app):
     app.register_blueprint(api, url_prefix='/api')

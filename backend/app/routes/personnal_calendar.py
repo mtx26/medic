@@ -271,3 +271,97 @@ def handle_calendar_schedule(calendar_id):
             log_extra={"calendar_id": calendar_id}
         )
 
+
+# Route pour récupérer les boites de médicaments d'un calendrier
+@api.route("/calendars/<calendar_id>/boxes", methods=["GET"])
+def handle_medicine_boxes(calendar_id):
+    try:
+        t_0 = time.time()
+        user = verify_firebase_token()
+        uid = user["uid"]
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                SELECT mb.id, mb.name, mb.stock_quantity, mb.stock_alert_threshold, mb.calendar_id, c.name AS calendar_name
+                FROM medicine_boxes mb
+                JOIN calendars c ON mb.calendar_id = c.id
+                WHERE c.id = %s AND c.owner_uid = %s
+                """, (calendar_id, uid))
+                boxes = cur.fetchall()
+                t_1 = time.time()
+                if boxes is None:
+                    return success_response(
+                        message=SUCCESS_MEDICINE_BOXES_FETCHED,
+                        code="MEDICINE_BOXES_FETCHED",
+                        uid=uid,
+                        origin="GET_MEDICINE_BOXES",
+                        data={"boxes": []},
+                        log_extra={"time": t_1 - t_0, "calendar_id": calendar_id, "boxes_count": 0}
+                    )
+                t_2 = time.time()
+
+        return success_response(
+            message=SUCCESS_MEDICINE_BOXES_FETCHED,
+            code="MEDICINE_BOXES_FETCHED",
+            uid=uid,
+            origin="GET_MEDICINE_BOXES",
+            data={"boxes": boxes},
+            log_extra={"time": t_2 - t_0, "calendar_id": calendar_id, "boxes_count": len(boxes)}
+        )
+
+    except Exception as e:
+        return error_response(
+            message=ERROR_MEDICINE_BOXES_FETCH,
+            code="GET_MEDICINE_BOXES_ERROR",
+            status_code=500,
+            uid=uid,
+            origin="GET_MEDICINE_BOXES",
+            error=str(e),
+            log_extra={"calendar_id": calendar_id}
+        )
+
+
+# Route pour créer une boite de médicaments
+@api.route("/calendars/<calendar_id>/boxes", methods=["POST"])
+def handle_create_medicine_box(calendar_id):
+    try:
+        t_0 = time.time()
+        uid = verify_firebase_token()
+
+        data = request.get_json()
+        calendar_id = data.get("calendar_id")
+        name = data.get("name")
+        stock_quantity = data.get("stock_quantity")
+
+        if not calendar_id or not name or not stock_quantity:
+            return error_response(
+                message=ERROR_MEDICINE_BOX_CREATE,
+                code="MISSING_REQUIRED_FIELDS",
+                status_code=400,
+                uid=uid,
+                origin="CREATE_MEDICINE_BOX",
+            )
+
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("INSERT INTO medicine_boxes (calendar_id, name, stock_quantity) VALUES (%s, %s, %s)", (calendar_id, name, stock_quantity))
+                conn.commit()
+                t_1 = time.time()
+        return success_response(
+            message=SUCCESS_MEDICINE_BOX_CREATED,
+            code="MEDICINE_BOX_CREATED",
+            uid=uid,
+            origin="CREATE_MEDICINE_BOX",
+            log_extra={"time": t_1 - t_0, "calendar_id": calendar_id}
+        )
+
+    except Exception as e:
+        return error_response(
+            message=ERROR_MEDICINE_BOX_CREATE,
+            code="CREATE_MEDICINE_BOX_ERROR",
+            status_code=500,
+            uid=uid,
+            origin="CREATE_MEDICINE_BOX",
+            error=str(e),
+            log_extra={"calendar_id": calendar_id}
+        )

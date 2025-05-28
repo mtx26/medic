@@ -34,6 +34,8 @@ def check_low_stock_and_notify():
 
             title = "Stock faible"
             body = f"Le médicament '{name}' est presque épuisé ({qty} restants)."
+            
+            # TODO: ajouter le lien pour ouvrir la boîte de médicament dans l'application
             link = urljoin(Config.FRONTEND_URL, f"/medication/{id}")
             try:
                 notify_and_record(

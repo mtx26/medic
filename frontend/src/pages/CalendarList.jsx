@@ -152,8 +152,8 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
   />
 
 
-  <div className="p-1 w-100" style={{ maxWidth: '800px' }}>
-    <h5 className="mb-2 fw-bold">Mes calendriers</h5>
+  <div className="w-100" style={{ maxWidth: '800px' }}>
+    <h4 className="mb-3 fw-bold">Mes calendriers</h4>
     {selectedAlert === "header" && (
       <AlertSystem
         type={alertType}
@@ -174,7 +174,7 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
       e.preventDefault();
       handleAddCalendarClick();
     }}>
-      <div className="input-group mb-2">
+      <div className="input-group mb-2 shadow-sm">
         <input
           id="newCalendarName"
           type="text"
@@ -194,6 +194,7 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
         </button>
       </div>
     </form>
+
     {selectedAlert === "calendar" && (
       <AlertSystem
         type={alertType}
@@ -211,7 +212,7 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
 
     {/* Liste des calendriers */}
     {Array.isArray(personalCalendars.calendarsData) && personalCalendars.calendarsData.length > 0 ? (
-        <div className="list-group">
+        <div className="list-group shadow-sm">
           {personalCalendars.calendarsData.map((calendarData, index) => (
           <div
             key={index}
@@ -234,7 +235,7 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
             <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
               {/* Partie gauche : Nom du calendrier et nombre de médicaments */}
               <div className="flex-grow-1">
-                <strong>{calendarData.name}</strong>
+                <h5 className="mb-1 fs-semibold">{calendarData.name}</h5>
                 <div className="text-muted small">
                 Nombre de médicaments :
                 <span className="fw-semibold ms-1">
@@ -306,7 +307,7 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
 
 
   <div className="p-1 w-100" style={{ maxWidth: '800px' }}>
-    <h5 className="mb-2 fw-bold">Calendriers partagés</h5>
+    <h4 className="mb-3 fw-bold">Calendriers partagés</h4>
 
     {/* 🔔 Alertes et confirmations */}
     {selectedAlert === "sharedCalendar" && (
@@ -326,7 +327,7 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
 
     {/* Liste des calendriers partagés */}  
     {Array.isArray(sharedUserCalendars.sharedCalendarsData) && sharedUserCalendars.sharedCalendarsData.length > 0 ? (
-      <div className="list-group">
+      <div className="list-group shadow-sm">
         {sharedUserCalendars.sharedCalendarsData.map((calendarData, index) => (
         <div key={index} className="list-group-item">
 
@@ -348,9 +349,7 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
 
           <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-2">
             <div className="flex-grow-1">
-              <strong>
-                {calendarData.name}{" "}
-              </strong>
+                <h5 className="mb-1 fs-semibold">{calendarData.name}</h5>
               <div className="text-muted small">
                 Nombre de médicaments :
                 <span className="fw-semibold ms-1">
