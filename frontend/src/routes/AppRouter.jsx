@@ -77,7 +77,7 @@ function AppRoutes({ sharedProps }) {
           />
         } />
 
-        <Route path="/shared-calendar" element={
+        <Route path="/shared-calendars" element={
           <PrivateRoute 
             element={
               <RouteWithLoader
@@ -128,7 +128,16 @@ function AppRoutes({ sharedProps }) {
             }
           />
         } />
-        
+        <Route path="/shared-user-calendar/:calendarId/boxes" element={
+          <PrivateRoute 
+            element={
+              <RouteWithLoader
+                element={<BoxesView {...sharedProps} />}
+                isLoading={sharedProps.loadingStates.isInitialLoading}
+              />
+            }
+          />
+        } />
         <Route path="/shared-user-calendar/:calendarId/medicines" element={
             <PrivateRoute 
               element={

@@ -13,16 +13,16 @@ def check_low_stock_and_notify():
 
     try:
         conn = get_connection()
-        cur = conn.cursor()
+        cursor = conn.cursor()
 
-        cur.execute("""
+        cursor.execute("""
             SELECT m.id, m.name, m.stock_quantity, m.stock_alert_threshold, c.owner_uid, m.calendar_id
             FROM medicine_boxes m
             JOIN calendars c ON m.calendar_id = c.id
-            WHERE m.stock_quantity <= m.stock_alert_threshold AND m.stock_quantity > 0 AND m.stock_alert_threshold > 0
+            WHERE m.stock_quantity <= m.stock_alert_threshold AND m.stock_alert_threshold > 0
         """)
 
-        results = cur.fetchall()
+        results = cursor.fetchall()
 
         for result in results:
             id = result.get("id")
@@ -61,23 +61,23 @@ def check_low_stock_and_notify():
 def decrease_stock():
     try:
         with get_connection() as conn:
-            with conn.cursor() as cur:
+            with conn.cursor() as cursor:
 
-                cur.execute("SELECT * FROM medicine_boxes WHERE stock_quantity > 0")
-                results = cur.fetchall()
+                cursor.execute("SELECT * FROM medicine_boxes WHERE stock_quantity > 0")
+                results = cursor.fetchall()
 
                 for result in results:
                     id = result.get("id")
                     name = result.get("name")
                     qty = result.get("stock_quantity")
                     calendar_id = result.get("calendar_id")
-                    cur.execute("SELECT * FROM medicines WHERE box_id = %s", (id,))
-                    result = cur.fetchall()
+                    cursor.execute("SELECT * FROM medicines WHERE box_id = %s", (id,))
+                    result = cursor.fetchall()
                     for r in result:
                         if is_medication_due(r, datetime.now().date()):
                             tablet_count = r.get("tablet_count")
                             new_qty = qty - tablet_count
-                            cur.execute("UPDATE medicine_boxes SET stock_quantity = %s WHERE id = %s", (new_qty, id))
+                            cursor.execute("UPDATE medicine_boxes SET stock_quantity = %s WHERE id = %s", (new_qty, id))
 
             conn.commit()
 

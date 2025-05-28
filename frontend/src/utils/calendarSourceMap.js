@@ -15,8 +15,7 @@ export const getCalendarSourceMap = (personalCalendars, sharedUserCalendars, tok
       addMedicine: sharedUserCalendars.addMedicine,
       deleteMedicines: sharedUserCalendars.deleteSharedUserCalendarMedicines,
       updateMedicines: sharedUserCalendars.updateSharedUserCalendarMedicines,
-      // TODO: add updateBox for sharedUserCalendars
-      updateBox: null
+      updateBox: sharedUserCalendars.updateSharedBox,
     },
     token: {
       fetchSchedule: tokenCalendars.fetchTokenCalendarSchedule,

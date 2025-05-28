@@ -1022,7 +1022,53 @@ function App() {
       return {success: false, error: err.message, code: err.code, medicinesData: [], originalMedicinesData: []};
     }
   }, []);
+
+  // Fonction pour récupérer les boites de médicaments d'un calendrier partagé
+  const fetchSharedBoxes = useCallback(async (calendarId) => {
+    try {
+      const token = await auth.currentUser.getIdToken();
+      const res = await fetch(`${API_URL}/api/shared/users/calendars/${calendarId}/boxes`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      return {success: true, message: data.message, code: data.code, boxes: data.boxes};
+    } catch (err) {
+      log.error(err.message || "Échec de récupération des boites de médicaments d'un calendrier partagé", err, {
+        origin: "SHARED_BOXES_FETCH_ERROR",
+        calendarId,
+      });
+      return {success: false, error: err.message, code: err.code, boxes: []};
+    }
+  }, []);
   
+  // Fonction pour mettre à jour une boite de médicaments d'un calendrier partagé
+  const updateSharedBox = useCallback(async (calendarId, boxId, box) => {
+    try {
+      const token = await auth.currentUser.getIdToken();
+      const res = await fetch(`${API_URL}/api/shared/users/calendars/${calendarId}/boxes/${boxId}`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(box),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      return {success: true, message: data.message, code: data.code};
+    } catch (err) {
+      log.error(err.message || "Échec de mise à jour de la boite de médicaments partagée", err, {
+        origin: "SHARED_BOX_UPDATE_ERROR",
+        calendarId,
+        boxId,
+      });
+      return {success: false, error: err.message, code: err.code};
+    }
+  }, []);
 
   const sharedProps = {
     personalCalendars: {
@@ -1053,7 +1099,8 @@ function App() {
       addMedicine,
       sharedCalendarsData,
       setSharedCalendarsData,
-      // TODO: add updateBox for sharedUserCalendars
+      fetchSharedBoxes,
+      updateSharedBox,
     },
   
     tokenCalendars: {

@@ -160,8 +160,8 @@ def register_token():
 
     try:
         with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute("""
+            with conn.cursor() as cursor:
+                cursor.execute("""
                     INSERT INTO fcm_tokens (uid, token)
                     VALUES (%s, %s)
                     ON CONFLICT (uid)
@@ -203,9 +203,9 @@ def send_notification():
 
     try:
         with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute("SELECT token FROM fcm_tokens WHERE uid = %s", (uid,))
-                result = cur.fetchone()
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT token FROM fcm_tokens WHERE uid = %s", (uid,))
+                result = cursor.fetchone()
                 if not result:
                     return error_response(
                         message="Aucun token FCM trouvé pour cet utilisateur", 

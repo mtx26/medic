@@ -503,3 +503,118 @@ def handle_shared_users(calendar_id):
             error=str(e),
             log_extra={"calendar_id": calendar_id}
         )
+
+
+# Route pour récupérer les boites de médicaments d'un calendrier partagé
+@api.route("/shared/users/calendars/<calendar_id>/boxes", methods=["GET"])
+def handle_shared_boxes(calendar_id):
+    try:
+        t_0 = time.time()
+        user = verify_firebase_token()
+        uid = user["uid"]
+
+        if not verify_calendar_share(calendar_id, uid):
+            return warning_response(
+                message=WARNING_UNAUTHORIZED_ACCESS,
+                code="SHARED_BOXES_LOAD_ERROR",
+                status_code=403,
+                uid=uid,
+                origin="SHARED_BOXES_LOAD"
+            )
+
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("""
+                SELECT mb.id, mb.name, mb.box_capacity, mb.stock_quantity, mb.stock_alert_threshold, mb.calendar_id, c.name AS calendar_name
+                FROM medicine_boxes mb
+                JOIN calendars c ON mb.calendar_id = c.id
+                WHERE c.id = %s
+                """, (calendar_id,))
+                boxes = cursor.fetchall()
+                t_1 = time.time()
+                if not boxes:
+                    return success_response(
+                        message=SUCCESS_SHARED_BOXES_FETCHED,
+                        code="SHARED_BOXES_LOAD_SUCCESS",
+                        uid=uid,
+                        origin="SHARED_BOXES_LOAD",
+                        data={"boxes": []},
+                        log_extra={"calendar_id": calendar_id, "time": t_1 - t_0}
+                    )
+
+                t_2 = time.time()
+
+        return success_response(
+            message=SUCCESS_SHARED_BOXES_FETCHED,
+            code="SHARED_BOXES_LOAD_SUCCESS",
+            uid=uid,
+            origin="SHARED_BOXES_LOAD",
+            data={"boxes": boxes},
+            log_extra={"calendar_id": calendar_id, "time": t_2 - t_0}
+        )
+
+    except Exception as e:
+        return error_response(
+            message=ERROR_SHARED_BOXES_FETCH,
+            code="SHARED_BOXES_ERROR",
+            status_code=500,
+            uid=uid,
+            origin="SHARED_BOXES_LOAD",
+            error=str(e),
+            log_extra={"calendar_id": calendar_id}
+        )
+
+# Route pour modifier une boite de médicaments d'un calendrier partagé
+@api.route("/shared/users/calendars/<calendar_id>/boxes/<box_id>", methods=["PUT"])
+def handle_update_shared_box(calendar_id, box_id):
+    try:
+        t_0 = time.time()
+        user = verify_firebase_token()
+        uid = user["uid"]
+        data = request.get_json()
+        print(data)
+        name = data.get("name")
+        box_capacity = data.get("box_capacity")
+        stock_alert_threshold = data.get("stock_alert_threshold")
+        stock_quantity = data.get("stock_quantity")
+        print(name, box_capacity, stock_alert_threshold, stock_quantity)
+
+
+        if not verify_calendar_share(calendar_id, uid):
+            return warning_response(
+                message=WARNING_UNAUTHORIZED_ACCESS,
+                code="SHARED_BOXES_UPDATE_ERROR",
+                status_code=403,
+                uid=uid,
+                origin="SHARED_BOXES_UPDATE"
+            )
+
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("""
+                    UPDATE medicine_boxes 
+                    SET name = %s, box_capacity = %s, stock_alert_threshold = %s, stock_quantity = %s 
+                    WHERE id = %s AND calendar_id = %s
+                """, (name, box_capacity, stock_alert_threshold, stock_quantity, box_id, calendar_id))
+                conn.commit()
+                t_1 = time.time()
+
+        return success_response(
+            message=SUCCESS_SHARED_BOX_UPDATED,
+            code="SHARED_BOXES_UPDATE_SUCCESS",
+            uid=uid,
+            origin="SHARED_BOXES_UPDATE",
+            log_extra={"calendar_id": calendar_id, "box_id": box_id, "time": t_1 - t_0}
+        )
+
+    except Exception as e:
+        return error_response(
+            message=ERROR_SHARED_BOX_UPDATE,
+            code="SHARED_BOXES_UPDATE_ERROR",
+            status_code=500,
+            uid=uid,
+            origin="SHARED_BOXES_UPDATE",
+            error=str(e),
+            log_extra={"calendar_id": calendar_id, "box_id": box_id}
+        )
+

@@ -33,7 +33,7 @@ function Navbar({ sharedProps }) {
                 </Link>
               </li>
               <li className="nav-item">
-                <Link to="/shared-calendar" className="nav-link">
+                <Link to="/shared-calendars" className="nav-link">
                   <i className="bi bi-box-arrow-up fs-5"></i> Partagés
                 </Link>
               </li>
@@ -315,7 +315,7 @@ function Navbar({ sharedProps }) {
             <i className="bi bi-calendar-event fs-4"></i>
             <div className="small">Calendrier</div>
           </div>
-          <div className="text-center" onClick={() => navigate('/shared-calendar')}>
+          <div className="text-center" onClick={() => navigate('/shared-calendars')}>
             <i className="bi bi-people fs-4"></i>
             <div className="small">Partages</div>
           </div>
