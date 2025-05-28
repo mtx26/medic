@@ -215,7 +215,7 @@ def send_notification():
                         origin="FCM_SEND"
                     )
                 token = result.get("token")
-                status_code, result_data = send_fcm_notification(token=token, title=title, body=body)
+                status_code, result_data = send_fcm_notification(token=token, title=title, body=body, link=None)
 
 
         if status_code == 200:
