@@ -19,8 +19,8 @@ function Navbar({ sharedProps }) {
   return (
     <>
       {/* NAVBAR PC */}
-      <nav className="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm py-2 d-none d-lg-flex sticky-top">
-        <div className="container">
+      <nav className="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm py-2 sticky-top">
+        <div className="container-fluid">
           <Link to="/" className="navbar-brand fw-bold text-primary fs-4">
             <i className="bi bi-capsule"></i> MediTime
           </Link>
@@ -305,136 +305,32 @@ function Navbar({ sharedProps }) {
         </div>
       </nav>
 
-      {/* NAVBAR MOBILE */}
-      <nav className="navbar navbar-light bg-white border-bottom shadow-sm py-2 d-lg-none sticky-top">
-        <div className="container-fluid">
-          <Link to="/" className="navbar-brand fw-bold text-primary fs-4">
-            <i className="bi bi-capsule"></i> MediTime
-          </Link>
-          
-          <div className="d-flex justify-content-end">
-            {/*notification*/}
-            <button
-              className="nav-link position-relative bg-transparent border-0 me-4"
-              onClick={() => navigate("/notifications")}
-              id="notifLink"
-              title="Notifications"
-            >
-              <i className="bi bi-bell fs-5"></i>
-              {notificationsData.filter(notif => !notif.read).length > 0 && (
-                <span className="position-absolute top-10 start-90 translate-middle badge rounded-pill bg-danger fs-7">
-                  {notificationsData.filter(notif => !notif.read).length}
-                </span>
-              )}
-            </button>
-
-            <button
-              className="navbar-toggler"
-              data-bs-toggle="offcanvas"
-              data-bs-target="#offcanvasNavbar"
-              aria-controls="offcanvasNavbar"
-            >
-              <span className="navbar-toggler-icon"></span>
-            </button>
-
-            <div
-              className="offcanvas offcanvas-end"
-              tabIndex="-1"
-              id="offcanvasNavbar"
-              aria-labelledby="offcanvasNavbarLabel"
-            >
-              <div className="offcanvas-header">
-                <h5 className="offcanvas-title" id="offcanvasNavbarLabel">
-                  Menu
-                </h5>
-                <button
-                  className="btn-close"
-                  data-bs-dismiss="offcanvas"
-                  aria-label="Close"
-                ></button>
-              </div>
-              <div className="offcanvas-body">
-                <ul className="navbar-nav">
-                  {/* Navigation */}
-                  <li className="nav-item">
-                    <button onClick={() => navigate("/calendars")} className="nav-link" data-bs-dismiss="offcanvas">
-                      <i className="bi bi-calendar-date fs-5 me-2"></i> Calendriers
-                    </button>
-                  </li>
-                  <li className="nav-item">
-                    <button onClick={() => navigate("/shared-calendar")} className="nav-link" data-bs-dismiss="offcanvas">
-                      <i className="bi bi-box-arrow-up fs-5 me-2"></i> Partagés
-                    </button>
-                  </li>
-                  {userInfo?.role === "admin" && (
-                    <li className="nav-item">
-                      <button onClick={() => navigate("/admin")} className="nav-link" data-bs-dismiss="offcanvas">
-                        <i className="bi bi-lock fs-5 me-2"></i> Admin
-                      </button>
-                    </li>
-                  )}
-                  <li className="nav-item">
-                    <button
-                      onClick={() => navigate("/notifications")}
-                      className="nav-link btn btn-link p-0 text-start"
-                      data-bs-dismiss="offcanvas"
-                      style={{ textDecoration: "none" }}
-                    >
-                      <div className="position-relative d-inline-block me-2">
-                        <i className="bi bi-bell fs-5"></i>
-                        {notificationsData.filter(notif => !notif.read).length > 0 && (
-                          <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger fs-7">
-                            {notificationsData.filter(notif => !notif.read).length}
-                          </span>
-                        )}
-                      </div>
-                      <span className="text-muted">Notifications</span>
-                    </button>
-                  </li>
-
-                  {userInfo && (
-                    <>
-                      <hr />
-                      <li className="nav-item">
-                        <button onClick={() => navigate("/profile")} className="nav-link" data-bs-dismiss="offcanvas">
-                          <i className="bi bi-person fs-5 me-2"></i> Mon profil
-                        </button>
-                      </li>
-                      <li className="nav-item">
-                        <button onClick={() => navigate("/account")} className="nav-link" data-bs-dismiss="offcanvas">
-                          <i className="bi bi-gear fs-5 me-2"></i> Paramètres
-                        </button>
-                      </li>
-                      <li className="nav-item">
-                        <button 
-                          className="nav-link btn btn-link text-start" 
-                          onClick={handleLogout} 
-                          data-bs-dismiss="offcanvas"
-                        >
-                          <i className="bi bi-unlock fs-5 me-2"></i> Déconnexion
-                        </button>
-                      </li>
-                    </>
-                  )}
-
-                  {!userInfo && (
-                    <>
-                      <hr />
-                      <li className="nav-item">
-                        <button onClick={() => navigate("/login")} className="nav-link" data-bs-dismiss="offcanvas">
-                          <i className="bi bi-box-arrow-in-right fs-5 me-2"></i> Connexion
-                        </button>
-                      </li>
-                      <li className="nav-item">
-                        <button onClick={() => navigate("/register")} className="nav-link" data-bs-dismiss="offcanvas">
-                          <i className="bi bi-person-plus fs-5 me-2"></i> Inscription
-                        </button>
-                      </li>
-                    </>
-                  )}
-                </ul>
-              </div>
-            </div>
+      <nav className="navbar fixed-bottom bg-white shadow-sm py-2 border-top d-lg-none">
+        <div className="container-fluid d-flex justify-content-around">
+          <div className="text-center" onClick={() => navigate('/')}>
+            <i className="bi bi-house fs-4"></i>
+            <div className="small">Accueil</div>
+          </div>
+          <div className="text-center" onClick={() => navigate('/calendars')}>
+            <i className="bi bi-calendar-event fs-4"></i>
+            <div className="small">Calendrier</div>
+          </div>
+          <div className="text-center" onClick={() => navigate('/shared-calendar')}>
+            <i className="bi bi-people fs-4"></i>
+            <div className="small">Partages</div>
+          </div>
+          <div className="text-center position-relative" onClick={() => navigate('/notifications')}>
+            <i className="bi bi-bell fs-4"></i>
+            <div className="small">Notifs</div>
+            {notificationsData.filter(notif => !notif.read).length > 0 && (
+              <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger fs-7">
+                {notificationsData.filter(notif => !notif.read).length}
+              </span>
+            )}
+          </div>
+          <div className="text-center" onClick={() => navigate('/account')}>
+            <i className="bi bi-person-circle fs-4"></i>
+            <div className="small">Comptes</div>
           </div>
         </div>
       </nav>

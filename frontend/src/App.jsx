@@ -15,9 +15,7 @@ import { formatToLocalISODate } from './utils/dateUtils';
 import { v4 as uuidv4 } from 'uuid';
 import RealtimeManager from './components/RealtimeManager';
 
-
 const API_URL = import.meta.env.VITE_API_URL;
-const FCM_SERVER_KEY = import.meta.env.VITE_FCM_SERVER_KEY;
 
 function App() {
   const [tokensList, setTokensList] = useState([]);
@@ -1139,7 +1137,7 @@ function App() {
     <Router>
       <div className="d-flex flex-column min-vh-100">
         <Navbar sharedProps={sharedProps}/>
-        <main className="flex-grow-1 d-flex flex-column">
+        <main className="flex-grow-1 d-flex flex-column pb-5 pb-md-0">
           {userInfo && (
             <RealtimeManager
               setCalendarsData={setCalendarsData}
@@ -1150,7 +1148,7 @@ function App() {
             />
           )}
 
-          <div className="container mt-4">
+          <div className="container mt-4 pb-5 pb-md-0">
             <AppRoutes sharedProps={sharedProps} />
           </div>
 
