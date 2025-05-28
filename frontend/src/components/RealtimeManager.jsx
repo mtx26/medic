@@ -16,7 +16,7 @@ export default function RealtimeManager({ setCalendarsData, setSharedCalendarsDa
     "/shared-token-calendar/",
     "/notifications",
     "/account",
-    "/shared-calendar"
+    "/shared-calendars"
   ];
 
   const isRealtimeEnabled = enabledRoutes.some(route => location.pathname.startsWith(route));

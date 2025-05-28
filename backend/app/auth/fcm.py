@@ -2,6 +2,7 @@ import json
 import requests
 from google.auth.transport.requests import Request
 from google.oauth2 import service_account
+from urllib.parse import urljoin
 from app.config.config import Config
 
 SCOPES = ["https://www.googleapis.com/auth/firebase.messaging"]
@@ -14,7 +15,7 @@ def get_fcm_access_token():
     credentials_obj.refresh(Request())
     return credentials_obj.token, credentials_obj.project_id
 
-def send_fcm_notification(token, title, body):
+def send_fcm_notification(token, title, body, link):
     access_token, project_id = get_fcm_access_token()
 
     url = f"https://fcm.googleapis.com/v1/projects/{project_id}/messages:send"
@@ -30,11 +31,11 @@ def send_fcm_notification(token, title, body):
             "notification": {
                 "title": title,
                 "body": body,
-                "image": "https://meditime-app.com/favicon.png"
+                "image": urljoin(Config.FRONTEND_URL, "/favicon.png")
             },
             "webpush": {
                 "fcm_options": {
-                    "link": "https://meditime-app.com/notifications"
+                    "link": link if link else urljoin(Config.FRONTEND_URL, "/notifications")
                 }
             }
         }

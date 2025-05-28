@@ -152,8 +152,8 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
   />
 
 
-  <div className="card p-3 shadow-sm w-100" style={{ maxWidth: '800px' }}>
-    <h5 className="mb-3">Mes calendriers</h5>
+  <div className="w-100" style={{ maxWidth: '800px' }}>
+    <h4 className="mb-3 fw-bold">Mes calendriers</h4>
     {selectedAlert === "header" && (
       <AlertSystem
         type={alertType}
@@ -174,7 +174,7 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
       e.preventDefault();
       handleAddCalendarClick();
     }}>
-      <div className="input-group mb-4">
+      <div className="input-group mb-2 shadow-sm">
         <input
           id="newCalendarName"
           type="text"
@@ -194,6 +194,7 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
         </button>
       </div>
     </form>
+
     {selectedAlert === "calendar" && (
       <AlertSystem
         type={alertType}
@@ -211,7 +212,7 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
 
     {/* Liste des calendriers */}
     {Array.isArray(personalCalendars.calendarsData) && personalCalendars.calendarsData.length > 0 ? (
-        <div className="list-group">
+        <div className="list-group shadow-sm">
           {personalCalendars.calendarsData.map((calendarData, index) => (
           <div
             key={index}
@@ -231,68 +232,68 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
                 }}
               />
             )}
-            <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
-            {/* Partie gauche : Nom du calendrier et nombre de médicaments */}
-            <div className="flex-grow-1">
-              <strong>{calendarData.name}</strong>
-              <div className="text-muted small">
-              Nombre de médicaments :
-              <span className="fw-semibold ms-1">
-                {calendarData.medicines_count ?? "..."}
-              </span>
+            <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
+              {/* Partie gauche : Nom du calendrier et nombre de médicaments */}
+              <div className="flex-grow-1">
+                <h5 className="mb-1 fs-semibold">{calendarData.name}</h5>
+                <div className="text-muted small">
+                Nombre de médicaments :
+                <span className="fw-semibold ms-1">
+                  {calendarData.medicines_count ?? "..."}
+                </span>
+                </div>
               </div>
-            </div>
 
-            {/* Partie pour renommer un calendrier */}
-            <form className="input-group input-group w-100 w-md-auto" onSubmit={(e) => {
-              e.preventDefault();
-              handleRenameClick(calendarData.id);
-            }}>
-              <input
-                id={"renameCalendarName"+calendarData.id}
-                type="text"
-                className="form-control form-control"
-                placeholder="Nouveau nom"
-                required
-                value={renameValues[calendarData.id] || ""} // Valeur du champ de renommage
-                onChange={(e) => setRenameValues({ ...renameValues, [calendarData.id]: e.target.value })} // Mise à jour de l'état
-              />
-              <button
-                className="btn btn-warning"
-                title="Renommer"
-                type="submit"
-              >
-              <i className="bi bi-pencil"></i>
-              </button>
-            </form>
+              {/* Partie pour renommer un calendrier */}
+              <form className="input-group input-group w-100 w-md-auto" onSubmit={(e) => {
+                e.preventDefault();
+                handleRenameClick(calendarData.id);
+              }}>
+                <input
+                  id={"renameCalendarName"+calendarData.id}
+                  type="text"
+                  className="form-control form-control"
+                  placeholder="Nouveau nom"
+                  required
+                  value={renameValues[calendarData.id] || ""} // Valeur du champ de renommage
+                  onChange={(e) => setRenameValues({ ...renameValues, [calendarData.id]: e.target.value })} // Mise à jour de l'état
+                />
+                <button
+                  className="btn btn-warning"
+                  title="Renommer"
+                  type="submit"
+                >
+                <i className="bi bi-pencil"></i>
+                </button>
+              </form>
 
-            {/* Boutons d'action : ouvrir ou supprimer */}
-            <div className="btn-group btn-group">
-              <button
-                className="btn btn-outline-success"
-                title="Ouvrir"
-                onClick={() => navigate('/calendar/' + calendarData.id)} // Navigation vers le calendrier
-              >
-              Ouvrir
-              </button>
+              {/* Boutons d'action : ouvrir ou supprimer */}
+              <div className="btn-group btn-group w-md-auto">
+                <button
+                  className="btn btn-outline-success"
+                  title="Ouvrir"
+                  onClick={() => navigate('/calendar/' + calendarData.id)} // Navigation vers le calendrier
+                >
+                  Ouvrir
+                </button>
 
-              <button
-                className="btn btn-outline-warning"
-                title="Partager"
-                onClick={() => handleShareCalendarClick(calendarData)}
-              >
-                <i className="bi bi-box-arrow-up"></i>
-              </button>
+                <button
+                  className="btn btn-outline-warning"
+                  title="Partager"
+                  onClick={() => handleShareCalendarClick(calendarData)}
+                >
+                  <i className="bi bi-box-arrow-up"></i>
+                </button>
 
 
-              <button
-              className="btn btn-outline-danger"
-              title="Supprimer"
-              onClick={() => handleDeleteCalendarClick(calendarData.id)}
-              >
-              <i className="bi bi-trash3"></i>
-              </button>
-            </div>
+                <button
+                  className="btn btn-outline-danger"
+                  title="Supprimer"
+                  onClick={() => handleDeleteCalendarClick(calendarData.id)}
+                >
+                  <i className="bi bi-trash3"></i>
+                </button>
+              </div>
             </div>
           </div>
           ))}
@@ -305,8 +306,8 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
   </div>
 
 
-  <div className="card p-3 shadow-sm w-100" style={{ maxWidth: '800px' }}>
-    <h5 className="mb-3">Calendriers partagés</h5>
+  <div className="p-1 w-100" style={{ maxWidth: '800px' }}>
+    <h4 className="mb-3 fw-bold">Calendriers partagés</h4>
 
     {/* 🔔 Alertes et confirmations */}
     {selectedAlert === "sharedCalendar" && (
@@ -326,7 +327,7 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
 
     {/* Liste des calendriers partagés */}  
     {Array.isArray(sharedUserCalendars.sharedCalendarsData) && sharedUserCalendars.sharedCalendarsData.length > 0 ? (
-      <div className="list-group">
+      <div className="list-group shadow-sm">
         {sharedUserCalendars.sharedCalendarsData.map((calendarData, index) => (
         <div key={index} className="list-group-item">
 
@@ -346,11 +347,9 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
             />
           )}
 
-          <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+          <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-2">
             <div className="flex-grow-1">
-              <strong>
-                {calendarData.name}{" "}
-              </strong>
+                <h5 className="mb-1 fs-semibold">{calendarData.name}</h5>
               <div className="text-muted small">
                 Nombre de médicaments :
                 <span className="fw-semibold ms-1">

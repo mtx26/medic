@@ -6,24 +6,7 @@ from app.db.connection import get_connection
 from app.services.calendar_service import generate_schedule, generate_table
 import time
 from app.utils.response import success_response, error_response, warning_response
-from app.utils.messages import (
-    SUCCESS_CALENDARS_FETCHED,
-    SUCCESS_CALENDAR_CREATED,
-    SUCCESS_CALENDAR_DELETED,
-    SUCCESS_CALENDAR_RENAMED,
-    SUCCESS_CALENDAR_GENERATED,
-    ERROR_CALENDARS_FETCH,
-    ERROR_CALENDAR_CREATE,
-    ERROR_CALENDAR_DELETE,
-    ERROR_CALENDAR_RENAME,
-    ERROR_CALENDAR_GENERATE,
-    WARNING_CALENDAR_NOT_FOUND,
-    WARNING_CALENDAR_NAME_MISSING,
-    WARNING_CALENDAR_ALREADY_SHARED,
-    WARNING_CALENDAR_UNCHANGED,
-    WARNING_CALENDAR_INVALID_NAME,
-    WARNING_CALENDAR_INVALID_ID
-)
+from app.utils.messages import *
 
 # Route pour récupérer les calendriers de l'utilisateur
 @api.route("/calendars", methods=["GET"])
@@ -33,9 +16,9 @@ def handle_calendars():
         user = verify_firebase_token()
         uid = user["uid"]
         with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute("SELECT * FROM calendars WHERE owner_uid = %s", (uid,))
-                calendars = cur.fetchall()
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT * FROM calendars WHERE owner_uid = %s", (uid,))
+                calendars = cursor.fetchall()
 
                 if calendars is None:
                     return warning_response(
@@ -46,8 +29,8 @@ def handle_calendars():
                         origin="CALENDAR_FETCH", 
                     )
                 for calendar in calendars:
-                    medicines_count = cur.execute("SELECT COUNT(*) FROM medicines WHERE calendar_id = %s", (calendar["id"],))
-                    medicines_count = cur.fetchone()
+                    medicines_count = cursor.execute("SELECT COUNT(*) FROM medicines WHERE calendar_id = %s", (calendar["id"],))
+                    medicines_count = cursor.fetchone()
                     calendar["medicines_count"] = medicines_count.get("count", 0)
         t_1 = time.time()
         return success_response(
@@ -89,8 +72,8 @@ def handle_create_calendar():
             )
 
         with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute("INSERT INTO calendars (owner_uid, name) VALUES (%s, %s)", (uid, calendar_name))
+            with conn.cursor() as cursor:
+                cursor.execute("INSERT INTO calendars (owner_uid, name) VALUES (%s, %s)", (uid, calendar_name))
                 conn.commit()
         t_1 = time.time()
         return success_response(
@@ -132,9 +115,9 @@ def handle_delete_calendar():
             )
 
         with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute("SELECT * FROM calendars WHERE id = %s AND owner_uid = %s", (calendar_id, uid))
-                calendar = cur.fetchone()
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT * FROM calendars WHERE id = %s AND owner_uid = %s", (calendar_id, uid))
+                calendar = cursor.fetchone()
                 t_1 = time.time()
                 if calendar is None:
                     return warning_response(
@@ -146,7 +129,7 @@ def handle_delete_calendar():
                         log_extra={"calendar_id": calendar_id}
                     )
 
-                cur.execute("DELETE FROM calendars WHERE id = %s AND owner_uid = %s", (calendar_id, uid))
+                cursor.execute("DELETE FROM calendars WHERE id = %s AND owner_uid = %s", (calendar_id, uid))
                 conn.commit()
         t_2 = time.time()
         return success_response(
@@ -180,9 +163,9 @@ def handle_rename_calendar():
         new_calendar_name = data.get("newCalendarName")
 
         with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute("SELECT name FROM calendars WHERE id = %s AND owner_uid = %s", (calendar_id, uid))
-                result = cur.fetchone()
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT name FROM calendars WHERE id = %s AND owner_uid = %s", (calendar_id, uid))
+                result = cursor.fetchone()
 
                 if result is None:
                     return warning_response(
@@ -196,7 +179,7 @@ def handle_rename_calendar():
                 old_name = result['name']
 
                 if new_calendar_name != old_name:
-                    cur.execute(
+                    cursor.execute(
                         "UPDATE calendars SET name = %s WHERE id = %s AND owner_uid = %s",
                         (new_calendar_name, calendar_id, uid)
                     )
@@ -235,9 +218,9 @@ def handle_calendar_schedule(calendar_id):
             start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
         
         with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute("SELECT * FROM calendars WHERE id = %s AND owner_uid = %s", (calendar_id, owner_uid))
-                calendar = cur.fetchone()
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT * FROM calendars WHERE id = %s AND owner_uid = %s", (calendar_id, owner_uid))
+                calendar = cursor.fetchone()
                 if calendar is None:
                     return warning_response(
                         message=WARNING_CALENDAR_NOT_FOUND, 
@@ -250,8 +233,8 @@ def handle_calendar_schedule(calendar_id):
 
                 calendar_name = calendar.get("name")
 
-                cur.execute("SELECT * FROM medicines WHERE calendar_id = %s", (calendar_id,))
-                medicines = cur.fetchall()
+                cursor.execute("SELECT * FROM medicines WHERE calendar_id = %s", (calendar_id,))
+                medicines = cursor.fetchall()
                 t_1 = time.time()
                 if medicines is None:
                     return success_response(
@@ -288,3 +271,149 @@ def handle_calendar_schedule(calendar_id):
             log_extra={"calendar_id": calendar_id}
         )
 
+
+# Route pour récupérer les boites de médicaments d'un calendrier
+@api.route("/calendars/<calendar_id>/boxes", methods=["GET"])
+def handle_boxes(calendar_id):
+    try:
+        t_0 = time.time()
+        user = verify_firebase_token()
+        uid = user["uid"]
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("""
+                SELECT mb.id, mb.name, mb.box_capacity, mb.stock_quantity, mb.stock_alert_threshold, mb.calendar_id, c.name AS calendar_name
+                FROM medicine_boxes mb
+                JOIN calendars c ON mb.calendar_id = c.id
+                WHERE c.id = %s AND c.owner_uid = %s
+                """, (calendar_id, uid))
+                boxes = cursor.fetchall()
+                t_1 = time.time()
+                if boxes is None:
+                    return success_response(
+                        message=SUCCESS_MEDICINE_BOXES_FETCHED,
+                        code="MEDICINE_BOXES_FETCHED",
+                        uid=uid,
+                        origin="GET_MEDICINE_BOXES",
+                        data={"boxes": []},
+                        log_extra={"time": t_1 - t_0, "calendar_id": calendar_id, "boxes_count": 0}
+                    )
+                t_2 = time.time()
+
+        return success_response(
+            message=SUCCESS_MEDICINE_BOXES_FETCHED,
+            code="MEDICINE_BOXES_FETCHED",
+            uid=uid,
+            origin="GET_MEDICINE_BOXES",
+            data={"boxes": boxes},
+            log_extra={"time": t_2 - t_0, "calendar_id": calendar_id, "boxes_count": len(boxes)}
+        )
+
+    except Exception as e:
+        return error_response(
+            message=ERROR_MEDICINE_BOXES_FETCH,
+            code="GET_MEDICINE_BOXES_ERROR",
+            status_code=500,
+            uid=uid,
+            origin="GET_MEDICINE_BOXES",
+            error=str(e),
+            log_extra={"calendar_id": calendar_id}
+        )
+
+
+# Route pour modifier une boite de médicaments
+@api.route("/calendars/<calendar_id>/boxes/<box_id>", methods=["PUT"])
+def handle_update_box(calendar_id, box_id):
+    try:
+        t_0 = time.time()
+        user = verify_firebase_token()
+        uid = user["uid"]
+        data = request.get_json()
+        name = data.get("name")
+        box_capacity = data.get("box_capacity")
+        stock_alert_threshold = data.get("stock_alert_threshold")
+        stock_quantity = data.get("stock_quantity")
+
+        if not calendar_id or not box_id:
+            return error_response(
+                message=ERROR_MEDICINE_BOX_UPDATE,
+                code="MISSING_REQUIRED_FIELDS",
+                status_code=400,
+                uid=uid,
+                origin="UPDATE_MEDICINE_BOX",
+                log_extra={"calendar_id": calendar_id, "box_id": box_id}
+            )
+
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("""
+                    UPDATE medicine_boxes 
+                    SET name = %s, box_capacity = %s, stock_alert_threshold = %s, stock_quantity = %s 
+                    WHERE id = %s AND calendar_id = %s
+                """, (name, box_capacity, stock_alert_threshold, stock_quantity, box_id, calendar_id))
+                conn.commit()
+                t_1 = time.time()
+                return success_response(
+                    message=SUCCESS_MEDICINE_BOX_UPDATED,
+                    code="MEDICINE_BOX_UPDATED",
+                    uid=uid,
+                    origin="UPDATE_MEDICINE_BOX",
+                    log_extra={"time": t_1 - t_0, "calendar_id": calendar_id, "box_id": box_id}
+                )
+
+    except Exception as e:
+        return error_response(
+            message=ERROR_MEDICINE_BOX_UPDATE,
+            code="UPDATE_MEDICINE_BOX_ERROR",
+            status_code=500,
+            uid=uid,
+            origin="UPDATE_MEDICINE_BOX",
+            error=str(e),
+            log_extra={"calendar_id": calendar_id, "box_id": box_id}
+        )
+
+# Route pour créer une boite de médicaments
+@api.route("/calendars/<calendar_id>/boxes", methods=["POST"])
+def handle_create_box(calendar_id):
+    try:
+        t_0 = time.time()
+        user = verify_firebase_token()
+        uid = user["uid"]
+
+        data = request.get_json()
+        name = data.get("name")
+        box_capacity = data.get("box_capacity", 0)
+        stock_alert_threshold = data.get("stock_alert_threshold", 0)
+        stock_quantity = data.get("stock_quantity", 0)
+
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("""
+                    INSERT INTO medicine_boxes (calendar_id, name, box_capacity, stock_alert_threshold, stock_quantity) 
+                    VALUES (%s, %s, %s, %s, %s)
+                    RETURNING id
+                """, (calendar_id, name, box_capacity, stock_alert_threshold, stock_quantity))
+                t_1 = time.time()
+                box = cursor.fetchone()
+                box_id = box.get("id")
+                conn.commit()
+
+        return success_response(
+            message=SUCCESS_MEDICINE_BOX_CREATED,
+            code="MEDICINE_BOX_CREATED",
+            uid=uid,
+            origin="CREATE_MEDICINE_BOX",
+            data={"box_id": box_id},
+            log_extra={"time": t_1 - t_0, "calendar_id": calendar_id}
+        )
+
+    except Exception as e:
+        return error_response(
+            message=ERROR_MEDICINE_BOX_CREATE,
+            code="CREATE_MEDICINE_BOX_ERROR",
+            status_code=500,
+            uid=uid,
+            origin="CREATE_MEDICINE_BOX",
+            error=str(e),
+            log_extra={"calendar_id": calendar_id}
+        )

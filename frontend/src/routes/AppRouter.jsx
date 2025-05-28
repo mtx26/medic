@@ -18,7 +18,7 @@ import CalendarList from '../pages/CalendarList';
 import SharedList from '../pages/SharedList';
 
 import MedicinesList from '../pages/MedicinesList';
-
+import BoxesView from '../pages/BoxesView';
 import NotFound from '../pages/NotFound';
 
 function PrivateRoute({ element }) {
@@ -77,7 +77,7 @@ function AppRoutes({ sharedProps }) {
           />
         } />
 
-        <Route path="/shared-calendar" element={
+        <Route path="/shared-calendars" element={
           <PrivateRoute 
             element={
               <RouteWithLoader
@@ -88,15 +88,25 @@ function AppRoutes({ sharedProps }) {
           />
         } />
 
+        <Route path="/calendar/:calendarId/boxes" element={
+          <PrivateRoute 
+            element={
+              <RouteWithLoader
+                element={<BoxesView {...sharedProps} />}
+                isLoading={sharedProps.loadingStates.isInitialLoading}
+              />
+            }
+          />
+        } />
         <Route path="/calendar/:calendarId/medicines" element={
-            <PrivateRoute 
-              element={
-                <RouteWithLoader
-                  element={<MedicinesView {...sharedProps} />}
-                  isLoading={sharedProps.loadingStates.isInitialLoading}
-                />
-              }
-            />
+          <PrivateRoute 
+            element={
+              <RouteWithLoader
+                element={<MedicinesView {...sharedProps} />}
+                isLoading={sharedProps.loadingStates.isInitialLoading}
+              />
+            }
+          />
         } />
         <Route path="/calendar/:calendarId" element={
           <PrivateRoute 
@@ -118,7 +128,16 @@ function AppRoutes({ sharedProps }) {
             }
           />
         } />
-        
+        <Route path="/shared-user-calendar/:calendarId/boxes" element={
+          <PrivateRoute 
+            element={
+              <RouteWithLoader
+                element={<BoxesView {...sharedProps} />}
+                isLoading={sharedProps.loadingStates.isInitialLoading}
+              />
+            }
+          />
+        } />
         <Route path="/shared-user-calendar/:calendarId/medicines" element={
             <PrivateRoute 
               element={

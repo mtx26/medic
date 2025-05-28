@@ -3,7 +3,7 @@ Disallow: /account
 Disallow: /notifications
 Disallow: /calendars
 Disallow: /calendar
-Disallow: /shared-calendar
+Disallow: /shared-calendars
 Disallow: /shared-user-calendar
 Disallow: /shared-token-calendar
 

@@ -15,9 +15,7 @@ import { formatToLocalISODate } from './utils/dateUtils';
 import { v4 as uuidv4 } from 'uuid';
 import RealtimeManager from './components/RealtimeManager';
 
-
 const API_URL = import.meta.env.VITE_API_URL;
-const FCM_SERVER_KEY = import.meta.env.VITE_FCM_SERVER_KEY;
 
 function App() {
   const [tokensList, setTokensList] = useState([]);
@@ -407,6 +405,57 @@ function App() {
     return {success: true, message: "Médicament ajouté avec succès", code: "MED_ADD_SUCCESS", medicinesData: newMedicinesData, id: id };
   }, []);
 
+  // Fonction pour modifier la boîte d'un calendrier personnel
+  const updatePersonalBox = useCallback(async (calendarId, boxId, box) => {
+    try {
+      const token = await auth.currentUser.getIdToken();
+      const res = await fetch(`${API_URL}/api/calendars/${calendarId}/boxes/${boxId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(box),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      return {success: true, message: data.message, code: data.code};
+    } catch (err) {
+      log.error(err.message || "Erreur lors de la modification de la boîte", err, {
+        origin: "BOX_UPDATE_ERROR",
+        "uid": auth.currentUser.uid,
+        "calendarId": calendarId,
+      });
+      return {success: false, error: err.message, code: err.code};
+    }
+  }, []);
+
+  // Fonction pour créer une boîte de médicaments
+  const createPersonalBox = useCallback(async (calendarId, name, boxCapacity = 0, stockAlertThreshold = 10, stockQuantity = 0) => {
+    try {
+      const token = await auth.currentUser.getIdToken();
+      const res = await fetch(`${API_URL}/api/calendars/${calendarId}/boxes`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ name: name, box_capacity: boxCapacity, stock_alert_threshold: stockAlertThreshold, stock_quantity: stockQuantity }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      return {success: true, boxId: data.box_id, message: data.message, code: data.code};
+    } catch (err) {
+      log.error(err.message || "Erreur lors de la création de la boîte", err, {
+        origin: "BOX_CREATE_ERROR",
+        "uid": auth.currentUser.uid,
+        "calendarId": calendarId,
+      });
+      return {success: false, error: err.message, code: err.code};
+    }
+  }, []);
+  
+  
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -999,6 +1048,57 @@ function App() {
       return {success: false, error: err.message, code: err.code, medicinesData: [], originalMedicinesData: []};
     }
   }, []);
+  
+  // Fonction pour mettre à jour une boite de médicaments d'un calendrier partagé
+  const updateSharedUserBox = useCallback(async (calendarId, boxId, box) => {
+    try {
+      const token = await auth.currentUser.getIdToken();
+      const res = await fetch(`${API_URL}/api/shared/users/calendars/${calendarId}/boxes/${boxId}`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(box),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      return {success: true, message: data.message, code: data.code};
+    } catch (err) {
+      log.error(err.message || "Échec de mise à jour de la boite de médicaments partagée", err, {
+        origin: "SHARED_BOX_UPDATE_ERROR",
+        calendarId,
+        boxId,
+      });
+      return {success: false, error: err.message, code: err.code};
+    }
+  }, []);
+
+  // Fonction pour créer une boite de médicaments
+  const createSharedUserBox = useCallback(async (calendarId, name, boxCapacity = 0, stockAlertThreshold = 10, stockQuantity = 0) => {
+    try {
+      const token = await auth.currentUser.getIdToken();
+      const res = await fetch(`${API_URL}/api/shared/users/calendars/${calendarId}/boxes`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name: name, box_capacity: boxCapacity, stock_alert_threshold: stockAlertThreshold, stock_quantity: stockQuantity }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      return {success: true, boxId: data.box_id, message: data.message, code: data.code};
+    } catch (err) {
+      log.error(err.message || "Échec de création de la boite de médicaments", err, {
+        origin: "SHARED_BOX_CREATE_ERROR",
+        "uid": auth.currentUser.uid,
+        "calendarId": calendarId,
+      });
+      return {success: false, error: err.message, code: err.code};
+    }
+  }, []);
+  
 
   const sharedProps = {
     personalCalendars: {
@@ -1012,6 +1112,8 @@ function App() {
       deletePersonalCalendarMedicines,
       calendarsData,
       setCalendarsData,
+      updatePersonalBox,
+      createPersonalBox,
     },
   
     sharedUserCalendars: {
@@ -1028,6 +1130,8 @@ function App() {
       addMedicine,
       sharedCalendarsData,
       setSharedCalendarsData,
+      updateSharedUserBox,
+      createSharedUserBox,
     },
   
     tokenCalendars: {
@@ -1050,6 +1154,7 @@ function App() {
     loadingStates: {
       isInitialLoading,
     },
+
   };
   
 
@@ -1066,6 +1171,7 @@ function App() {
 
     // SHARED CALENDARS
     setSharedCalendarsData([]);
+
   };
 
   useEffect(() => {
@@ -1139,7 +1245,7 @@ function App() {
     <Router>
       <div className="d-flex flex-column min-vh-100">
         <Navbar sharedProps={sharedProps}/>
-        <main className="flex-grow-1 d-flex flex-column">
+        <main className="flex-grow-1 d-flex flex-column pb-5 pb-md-0">
           {userInfo && (
             <RealtimeManager
               setCalendarsData={setCalendarsData}
@@ -1150,7 +1256,7 @@ function App() {
             />
           )}
 
-          <div className="container mt-4">
+          <div className="container mt-4 pb-5 pb-md-0">
             <AppRoutes sharedProps={sharedProps} />
           </div>
 

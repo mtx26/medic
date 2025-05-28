@@ -234,8 +234,8 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
   }
 
   return (
-    <div className="container mt-4">
-      <h2 className="mb-4">Gestion des calendriers partagés</h2>
+    <div className="container mt-2">
+      <h2 className="mb-4 fs-bold">Gestion des calendriers partagés</h2>
       {Object.entries(groupedShared).map(([calendarId, data]) => (
         <div key={calendarId} className="card mb-4">
           <div className="card-body">

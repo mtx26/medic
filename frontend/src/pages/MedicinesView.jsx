@@ -1,5 +1,5 @@
 // MedicamentsPage.jsx
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import AlertSystem from '../components/AlertSystem';
 import { useRealtimeMedicinesSwitcher } from '../hooks/useRealtimeMedicinesSwitcher';
@@ -301,6 +301,17 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
           <span> Liste des médicaments</span>
         </h4>
         <div className="d-flex flex-column flex-md-row gap-2 mb-3 align-items-stretch align-items-md-center">
+
+          {/*test bouton boxe */}
+          {/* <button 
+            onClick={() => navigate(`/${basePath}/${calendarId}/boxes`)}
+            className="btn btn-primary btn-sm w-100 w-md-auto"
+            title="Voir les boites"
+          >
+            <i className="bi bi-box"></i>
+            <span> Voir les boites</span>
+          </button> */}
+
 
           {/* Ajouter */}
           <button 

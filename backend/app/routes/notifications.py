@@ -6,13 +6,7 @@ from app.db.connection import get_connection
 from flask import request
 import time
 from app.auth.fcm import send_fcm_notification
-from app.utils.messages import (
-    SUCCESS_NOTIFICATIONS_FETCHED,
-    SUCCESS_NOTIFICATION_READ,
-    ERROR_NOTIFICATIONS_FETCH,
-    ERROR_NOTIFICATION_READ,
-    WARNING_NOTIFICATION_NOT_FOUND
-)
+from app.utils.messages import *
 
 DEFAULT_PHOTO = "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/icons/person-circle.svg"
 
@@ -166,8 +160,8 @@ def register_token():
 
     try:
         with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute("""
+            with conn.cursor() as cursor:
+                cursor.execute("""
                     INSERT INTO fcm_tokens (uid, token)
                     VALUES (%s, %s)
                     ON CONFLICT (uid)
@@ -209,9 +203,9 @@ def send_notification():
 
     try:
         with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute("SELECT token FROM fcm_tokens WHERE uid = %s", (uid,))
-                result = cur.fetchone()
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT token FROM fcm_tokens WHERE uid = %s", (uid,))
+                result = cursor.fetchone()
                 if not result:
                     return error_response(
                         message="Aucun token FCM trouvé pour cet utilisateur", 
@@ -221,7 +215,7 @@ def send_notification():
                         origin="FCM_SEND"
                     )
                 token = result.get("token")
-                status_code, result_data = send_fcm_notification(token=token, title=title, body=body)
+                status_code, result_data = send_fcm_notification(token=token, title=title, body=body, link=None)
 
 
         if status_code == 200:

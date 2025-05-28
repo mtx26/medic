@@ -6,6 +6,8 @@ export const getCalendarSourceMap = (personalCalendars, sharedUserCalendars, tok
       addMedicine: personalCalendars.addMedicine,
       deleteMedicines: personalCalendars.deletePersonalCalendarMedicines,
       updateMedicines: personalCalendars.updatePersonalCalendarMedicines,
+      updateBox: personalCalendars.updatePersonalBox,
+      createBox: personalCalendars.createPersonalBox,
     },
     sharedUser: {
       fetchSchedule: sharedUserCalendars.fetchSharedUserCalendarSchedule,
@@ -14,6 +16,8 @@ export const getCalendarSourceMap = (personalCalendars, sharedUserCalendars, tok
       addMedicine: sharedUserCalendars.addMedicine,
       deleteMedicines: sharedUserCalendars.deleteSharedUserCalendarMedicines,
       updateMedicines: sharedUserCalendars.updateSharedUserCalendarMedicines,
+      updateBox: sharedUserCalendars.updateSharedUserBox,
+      createBox: sharedUserCalendars.createSharedUserBox,
     },
     token: {
       fetchSchedule: tokenCalendars.fetchTokenCalendarSchedule,
@@ -22,6 +26,9 @@ export const getCalendarSourceMap = (personalCalendars, sharedUserCalendars, tok
       addMedicine: null,
       deleteMedicines: null,
       updateMedicines: null,
+      // TODO: add updateBox for tokenCalendars
+      updateBox: null,
+      createBox: null,
     }
   });
   

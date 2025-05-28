@@ -9,22 +9,7 @@ from app.services.user import fetch_user
 from app.utils.response import success_response, error_response, warning_response
 from app.db.connection import get_connection
 import json
-from app.utils.messages import (
-    SUCCESS_SHARED_CALENDARS_FETCHED,
-    SUCCESS_SHARED_CALENDAR_FETCHED,
-    SUCCESS_SHARED_CALENDAR_DELETED,
-    SUCCESS_SHARED_USER_DELETED,
-    SUCCESS_SHARED_USERS_FETCHED,
-    WARNING_SHARED_CALENDAR_NOT_FOUND,
-    WARNING_SHARED_USER_NOT_FOUND,
-    WARNING_UNAUTHORIZED_ACCESS,
-    WARNING_CANNOT_REMOVE_SELF,
-    ERROR_SHARED_CALENDAR_FETCH,
-    ERROR_SHARED_CALENDAR_DELETE,
-    ERROR_SHARED_USER_DELETE,
-    ERROR_SHARED_USERS_FETCH,
-    ERROR_SHARED_CALENDARS_FETCH
-)
+from app.utils.messages import *
 
 SELECT_SHARED_CALENDAR = "SELECT * FROM calendars WHERE id = %s"
 
@@ -319,6 +304,7 @@ def handle_delete_user_shared_calendar(calendar_id):
                 notify_and_record(
                     uid=owner_uid,
                     title="📬 Calendrier partagé supprimé",
+                    link=None,
                     body="Un utilisateur a supprimé le calendrier partagé.",
                     notif_type="calendar_shared_deleted_by_receiver",
                     sender_uid=receiver_uid,
@@ -401,6 +387,7 @@ def handle_delete_user_shared_user(calendar_id, receiver_uid):
                 notify_and_record(
                     uid=receiver_uid,
                     title="📬 Calendrier partagé supprimé",
+                    link=None,
                     body="Le calendrier partagé a été supprimé par le propriétaire.",
                     notif_type="calendar_shared_deleted_by_owner",
                     sender_uid=owner_uid,
@@ -515,6 +502,172 @@ def handle_shared_users(calendar_id):
             status_code=500, 
             uid=owner_uid, 
             origin="SHARED_USERS_LOAD",
+            error=str(e),
+            log_extra={"calendar_id": calendar_id}
+        )
+
+
+# Route pour récupérer les boites de médicaments d'un calendrier partagé
+@api.route("/shared/users/calendars/<calendar_id>/boxes", methods=["GET"])
+def handle_shared_boxes(calendar_id):
+    try:
+        t_0 = time.time()
+        user = verify_firebase_token()
+        uid = user["uid"]
+
+        if not verify_calendar_share(calendar_id, uid):
+            return warning_response(
+                message=WARNING_UNAUTHORIZED_ACCESS,
+                code="SHARED_BOXES_LOAD_ERROR",
+                status_code=403,
+                uid=uid,
+                origin="SHARED_BOXES_LOAD"
+            )
+
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("""
+                SELECT mb.id, mb.name, mb.box_capacity, mb.stock_quantity, mb.stock_alert_threshold, mb.calendar_id, c.name AS calendar_name
+                FROM medicine_boxes mb
+                JOIN calendars c ON mb.calendar_id = c.id
+                WHERE c.id = %s
+                """, (calendar_id,))
+                boxes = cursor.fetchall()
+                t_1 = time.time()
+                if not boxes:
+                    return success_response(
+                        message=SUCCESS_SHARED_BOXES_FETCHED,
+                        code="SHARED_BOXES_LOAD_SUCCESS",
+                        uid=uid,
+                        origin="SHARED_BOXES_LOAD",
+                        data={"boxes": []},
+                        log_extra={"calendar_id": calendar_id, "time": t_1 - t_0}
+                    )
+
+                t_2 = time.time()
+
+        return success_response(
+            message=SUCCESS_SHARED_BOXES_FETCHED,
+            code="SHARED_BOXES_LOAD_SUCCESS",
+            uid=uid,
+            origin="SHARED_BOXES_LOAD",
+            data={"boxes": boxes},
+            log_extra={"calendar_id": calendar_id, "time": t_2 - t_0}
+        )
+
+    except Exception as e:
+        return error_response(
+            message=ERROR_SHARED_BOXES_FETCH,
+            code="SHARED_BOXES_ERROR",
+            status_code=500,
+            uid=uid,
+            origin="SHARED_BOXES_LOAD",
+            error=str(e),
+            log_extra={"calendar_id": calendar_id}
+        )
+
+# Route pour modifier une boite de médicaments d'un calendrier partagé
+@api.route("/shared/users/calendars/<calendar_id>/boxes/<box_id>", methods=["PUT"])
+def handle_update_shared_box(calendar_id, box_id):
+    try:
+        t_0 = time.time()
+        user = verify_firebase_token()
+        uid = user["uid"]
+        data = request.get_json()
+        name = data.get("name")
+        box_capacity = data.get("box_capacity")
+        stock_alert_threshold = data.get("stock_alert_threshold")
+        stock_quantity = data.get("stock_quantity")
+
+
+        if not verify_calendar_share(calendar_id, uid):
+            return warning_response(
+                message=WARNING_UNAUTHORIZED_ACCESS,
+                code="SHARED_BOXES_UPDATE_ERROR",
+                status_code=403,
+                uid=uid,
+                origin="SHARED_BOXES_UPDATE"
+            )
+
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("""
+                    UPDATE medicine_boxes 
+                    SET name = %s, box_capacity = %s, stock_alert_threshold = %s, stock_quantity = %s 
+                    WHERE id = %s AND calendar_id = %s
+                """, (name, box_capacity, stock_alert_threshold, stock_quantity, box_id, calendar_id))
+                conn.commit()
+                t_1 = time.time()
+
+        return success_response(
+            message=SUCCESS_SHARED_BOX_UPDATED,
+            code="SHARED_BOXES_UPDATE_SUCCESS",
+            uid=uid,
+            origin="SHARED_BOXES_UPDATE",
+            log_extra={"calendar_id": calendar_id, "box_id": box_id, "time": t_1 - t_0}
+        )
+
+    except Exception as e:
+        return error_response(
+            message=ERROR_SHARED_BOX_UPDATE,
+            code="SHARED_BOXES_UPDATE_ERROR",
+            status_code=500,
+            uid=uid,
+            origin="SHARED_BOXES_UPDATE",
+            error=str(e),
+            log_extra={"calendar_id": calendar_id, "box_id": box_id}
+        )
+
+# Route pour créer une boite de médicaments d'un calendrier partagé
+@api.route("/shared/users/calendars/<calendar_id>/boxes", methods=["POST"])
+def handle_create_shared_box(calendar_id):
+    try:
+        t_0 = time.time()
+        user = verify_firebase_token()
+        uid = user["uid"]
+        data = request.get_json()
+        name = data.get("name")
+        box_capacity = data.get("box_capacity", 0)
+        stock_alert_threshold = data.get("stock_alert_threshold", 0)
+        stock_quantity = data.get("stock_quantity", 0)
+
+        if not verify_calendar_share(calendar_id, uid):
+            return warning_response(
+                message=WARNING_UNAUTHORIZED_ACCESS,
+                code="SHARED_BOXES_CREATE_ERROR",
+                status_code=403,
+                uid=uid,
+                origin="SHARED_BOXES_CREATE"
+            )
+
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("""
+                    INSERT INTO medicine_boxes (name, box_capacity, stock_alert_threshold, stock_quantity, calendar_id)
+                    VALUES (%s, %s, %s, %s, %s)
+                    RETURNING id
+                """, (name, box_capacity, stock_alert_threshold, stock_quantity, calendar_id))
+                t_1 = time.time()
+                box = cursor.fetchone()
+                box_id = box.get("id")
+                conn.commit()
+
+        return success_response(
+            message=SUCCESS_SHARED_BOX_CREATED,
+            code="SHARED_BOXES_CREATE_SUCCESS",
+            uid=uid,
+            origin="SHARED_BOXES_CREATE",
+            data={"box_id": box_id},
+            log_extra={"calendar_id": calendar_id, "time": t_1 - t_0}
+        )
+
+    except Exception as e:
+        return error_response(
+            message=ERROR_SHARED_BOX_CREATE,
+            code="SHARED_BOXES_CREATE_ERROR",
+            status_code=500,
+            uid=uid,
+            origin="SHARED_BOXES_CREATE",
             error=str(e),
             log_extra={"calendar_id": calendar_id}
         )

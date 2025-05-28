@@ -5,6 +5,7 @@ from app.config.config import Config
 from app.routes import register_routes
 from app.auth.firebase import init_firebase
 from flask_cors import CORS
+from app.cron import start_cron
 
 def create_app():
     app = Flask(__name__)
@@ -16,5 +17,6 @@ def create_app():
     # 🔧 Enregistrement des routes et services
     register_routes(app)
     init_firebase()
+    start_cron()
 
     return app

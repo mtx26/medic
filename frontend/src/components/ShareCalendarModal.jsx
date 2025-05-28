@@ -31,7 +31,7 @@ const LinkShareOptions = ({
             type="button"
             className="btn btn-outline-warning"
             onClick={() => {
-              navigate('/shared-calendar');
+              navigate('/shared-calendars');
               refObj?.current?.close();
             }}
             title="Gérer le lien"
