@@ -6,17 +6,7 @@ from app.db.connection import get_connection
 from app.services.calendar_service import verify_calendar_share
 from app.services.medicines import update_medicines
 import time
-from app.utils.messages import (
-    SUCCESS_SHARED_MEDICINES_FETCHED,
-    SUCCESS_SHARED_MEDICINES_UPDATED,
-    WARNING_SHARED_CALENDAR_NOT_FOUND,
-    WARNING_UNAUTHORIZED_ACCESS,
-    ERROR_SHARED_MEDICINES_UPDATE,
-    ERROR_SHARED_MEDICINES_FETCH,
-    SUCCESS_MEDICINES_DELETED,
-    ERROR_SHARED_MEDICINES_DELETE,
-    WARNING_INVALID_MEDICINE_FORMAT,
-)
+from app.utils.messages import *
 
 SELECT_SHARED_MEDICINES = "SELECT * FROM medicines WHERE calendar_id = %s"
 

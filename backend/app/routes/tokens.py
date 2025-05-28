@@ -7,39 +7,7 @@ import time
 from flask import request
 from app.db.connection import get_connection
 from app.services.calendar_service import generate_schedule, generate_table, verify_calendar, verify_token_owner, verify_token
-from app.utils.messages import (
-    SUCCESS_TOKENS_FETCHED,
-    SUCCESS_TOKEN_CREATED,
-    SUCCESS_TOKEN_REVOKED,
-    SUCCESS_TOKEN_REACTIVATED,
-    SUCCESS_TOKEN_EXPIRATION_UPDATED,
-    SUCCESS_TOKEN_PERMISSIONS_UPDATED,
-    SUCCESS_TOKEN_METADATA_FETCHED,
-    SUCCESS_TOKEN_DELETED,
-    SUCCESS_CALENDAR_GENERATED,
-    SUCCESS_MEDICINES_FETCHED,
-    WARNING_TOKEN_NOT_FOUND,
-    WARNING_TOKEN_INVALID,
-    WARNING_TOKEN_EXPIRED,
-    WARNING_TOKEN_REVOKED,
-    WARNING_TOKEN_NOT_AUTHORIZED,
-    WARNING_TOKEN_NO_READ_PERMISSION,
-    WARNING_CALENDAR_NOT_FOUND,
-    WARNING_LINK_NOT_FOUND,
-    WARNING_NO_MEDICINES_FOUND,
-    WARNING_ACCESS_DENIED,
-    ERROR_TOKENS_FETCH,
-    ERROR_TOKEN_CREATE,
-    ERROR_TOKEN_REVOKE,
-    ERROR_TOKEN_EXPIRATION_UPDATE,
-    ERROR_TOKEN_PERMISSIONS_UPDATE,
-    ERROR_TOKEN_GENERATE,
-    ERROR_TOKEN_METADATA_FETCH,
-    ERROR_TOKEN_DELETE,
-    ERROR_MEDICINES_FETCH,
-    WARNING_TOKEN_ALREADY_SHARED,
-    ERROR_TOKEN_GENERATE,
-)
+from app.utils.messages import *
 
 # Route pour récupérer tous les tokens et les informations associées
 @api.route("/tokens", methods=["GET"])

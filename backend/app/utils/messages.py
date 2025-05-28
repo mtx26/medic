@@ -31,6 +31,8 @@ SUCCESS_TOKEN_REACTIVATED = "Token réactivé avec succès."
 SUCCESS_TOKEN_REVOKED = "Token révoqué avec succès."
 SUCCESS_TOKENS_FETCHED = "Tokens récupérés avec succès."
 SUCCESS_USER_INFO_FETCHED = "Informations de l'utilisateur récupérées avec succès."
+SUCCESS_MEDICINE_BOX_CREATED = "Boîte de médicaments créée avec succès."
+SUCCESS_MEDICINE_BOXES_FETCHED = "Boîtes de médicaments récupérées avec succès."
 
 # ⚠️ MESSAGES D’AVERTISSEMENT
 
@@ -101,4 +103,6 @@ ERROR_TOKEN_REVOKE = "Erreur lors de la révocation du token."
 ERROR_TOKEN_VERIFY = "Erreur lors de la vérification du token."
 ERROR_TOKENS_FETCH = "Erreur lors de la récupération des tokens."
 ERROR_USER_NOT_FOUND = "Erreur lors de la récupération des informations de l'utilisateur."
+ERROR_MEDICINE_BOX_CREATE = "Erreur lors de la création de la boîte de médicaments."
+ERROR_MEDICINE_BOXES_FETCH = "Erreur lors de la récupération des boîtes de médicaments."
 

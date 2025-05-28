@@ -7,17 +7,8 @@ from app.db.connection import get_connection
 from app.services.calendar_service import verify_calendar
 from app.services.medicines import update_medicines
 from app.utils.response import success_response, error_response, warning_response
-from app.utils.messages import (
-    SUCCESS_MEDICINES_FETCHED,
-    SUCCESS_MEDICINES_UPDATED,
-    ERROR_MEDICINES_FETCH,
-    ERROR_MEDICINES_UPDATE,
-    WARNING_INVALID_MEDICINE_FORMAT,
-    WARNING_CALENDAR_NOT_FOUND,
-    SUCCESS_MEDICINES_DELETED,
-    ERROR_MEDICINES_DELETE,
-)
-
+from app.utils.messages import *
+    
 MEDICINES_SELECT = "SELECT * FROM medicines WHERE calendar_id = %s"
 
 # Obtenir les médicaments d’un calendrier

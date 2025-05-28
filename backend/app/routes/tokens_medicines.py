@@ -6,15 +6,7 @@ import time
 from app.db.connection import get_connection
 from app.services.calendar_service import verify_token
 from app.utils.response import success_response, error_response, warning_response
-from app.utils.messages import (
-    WARNING_TOKEN_INVALID,
-    WARNING_TOKEN_EXPIRED,
-    WARNING_TOKEN_REVOKED,
-    WARNING_TOKEN_NO_READ_PERMISSION,
-    WARNING_CALENDAR_NOT_FOUND,
-    SUCCESS_MEDICINES_FETCHED,
-    ERROR_MEDICINES_FETCH,
-)
+from app.utils.messages import *
 
 # Route pour obtenir les médicaments d’un token public
 @api.route("/tokens/<token>/medicines", methods=["GET"])

@@ -9,22 +9,7 @@ from app.services.user import fetch_user
 from app.utils.response import success_response, error_response, warning_response
 from app.db.connection import get_connection
 import json
-from app.utils.messages import (
-    SUCCESS_SHARED_CALENDARS_FETCHED,
-    SUCCESS_SHARED_CALENDAR_FETCHED,
-    SUCCESS_SHARED_CALENDAR_DELETED,
-    SUCCESS_SHARED_USER_DELETED,
-    SUCCESS_SHARED_USERS_FETCHED,
-    WARNING_SHARED_CALENDAR_NOT_FOUND,
-    WARNING_SHARED_USER_NOT_FOUND,
-    WARNING_UNAUTHORIZED_ACCESS,
-    WARNING_CANNOT_REMOVE_SELF,
-    ERROR_SHARED_CALENDAR_FETCH,
-    ERROR_SHARED_CALENDAR_DELETE,
-    ERROR_SHARED_USER_DELETE,
-    ERROR_SHARED_USERS_FETCH,
-    ERROR_SHARED_CALENDARS_FETCH
-)
+from app.utils.messages import *
 
 SELECT_SHARED_CALENDAR = "SELECT * FROM calendars WHERE id = %s"
 

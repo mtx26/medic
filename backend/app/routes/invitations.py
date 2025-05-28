@@ -11,20 +11,7 @@ from . import api
 from urllib.parse import urljoin
 from app.config.config import Config
 import json
-from app.utils.messages import (
-    SUCCESS_INVITATION_SENT,
-    SUCCESS_INVITATION_ACCEPTED,
-    SUCCESS_INVITATION_REJECTED,
-    ERROR_INVITATION_SEND,
-    ERROR_INVITATION_ACCEPT,
-    ERROR_INVITATION_REJECT,
-    WARNING_CALENDAR_NOT_FOUND,
-    WARNING_USER_NOT_FOUND,
-    WARNING_NOTIFICATION_NOT_FOUND,
-    WARNING_INVALID_NOTIFICATION,
-    WARNING_SELF_INVITATION,
-    WARNING_ALREADY_INVITED
-)
+from app.utils.messages import *
 
 
 # Route pour envoyer une invitation à un utilisateur pour un partage de calendrier
