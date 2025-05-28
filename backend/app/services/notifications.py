@@ -2,6 +2,7 @@
 import json
 from app.auth.fcm import send_fcm_notification
 from app.db.connection import get_connection
+from app.utils.logger import log_backend
 
 def notify_and_record(uid, title, link, body, notif_type, sender_uid, calendar_id=None):
     try:
@@ -37,4 +38,4 @@ def notify_and_record(uid, title, link, body, notif_type, sender_uid, calendar_i
                 conn.commit()
 
     except Exception as e:
-        print("Erreur notify_and_record :", e)
+        log_backend.error(f"Erreur notify_and_record : {e}", {"origin": "NOTIFICATIONS", "code": "NOTIFICATION_ERROR", "error": str(e)})

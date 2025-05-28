@@ -4,7 +4,8 @@ from app.services.notifications import notify_and_record
 from app.utils.logger import log_backend
 from app.config.config import Config
 from urllib.parse import urljoin
-
+from datetime import datetime
+from app.services.calendar_service import is_medication_due
 
 # Vérifie les stocks faibles et envoie des notifications
 def check_low_stock_and_notify():
@@ -34,7 +35,6 @@ def check_low_stock_and_notify():
             title = "Stock faible"
             body = f"Le médicament '{name}' est presque épuisé ({qty} restants)."
             link = urljoin(Config.FRONTEND_URL, f"/medication/{id}")
-            print(link)
             try:
                 notify_and_record(
                     uid=owner_uid,
@@ -54,4 +54,33 @@ def check_low_stock_and_notify():
 
     except Exception as e:
         log_backend.error(f"Erreur lors de la vérification des stocks: {e}", {"origin": "CRON", "code": "STOCK_CHECK_ERROR", "error": str(e)})
+
+# diminuer le stock de tous les médicaments
+def decrease_stock():
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+
+                cur.execute("SELECT * FROM medicine_boxes WHERE stock_quantity > 0")
+                results = cur.fetchall()
+
+                for result in results:
+                    id = result.get("id")
+                    name = result.get("name")
+                    qty = result.get("stock_quantity")
+                    calendar_id = result.get("calendar_id")
+                    cur.execute("SELECT * FROM medicines WHERE box_id = %s", (id,))
+                    result = cur.fetchall()
+                    for r in result:
+                        if is_medication_due(r, datetime.now().date()):
+                            tablet_count = r.get("tablet_count")
+                            new_qty = qty - tablet_count
+                            cur.execute("UPDATE medicine_boxes SET stock_quantity = %s WHERE id = %s", (new_qty, id))
+
+            conn.commit()
+
+        log_backend.info("✅ Fin de la diminution des stocks", {"origin": "CRON", "code": "STOCK_DECREASE_SUCCESS"})
+
+    except Exception as e:
+        log_backend.error(f"Erreur lors de la diminution des stocks: {e}", {"origin": "CRON", "code": "STOCK_DECREASE_ERROR", "error": str(e)})
 

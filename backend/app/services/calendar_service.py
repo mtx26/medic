@@ -123,21 +123,26 @@ def verify_token_owner(token : str, uid : str) -> bool:
 
 
 def is_medication_due(med, current_date):
-    start_raw = med.get("start_date", "")
-
-    # 🛠️ Accept both date and string formats
-    if isinstance(start_raw, date):
-        start = start_raw
-    else:
-        start = current_date  # fallback si aucune date valide
-
-    delta_days = (current_date - start).days
+    try:
+        start_date = med.get("start_date", "")
+        if isinstance(start_date, date):
+            start_date = start_date
+        else:
+            start_date = current_date
 
 
-    if delta_days < 0:
+        delta_days = (current_date - start_date).days
+
+        if delta_days < 0:
+            return False
+
+        return delta_days % med["interval_days"] == 0
+    except Exception as e:
+        logger.error(f"Erreur lors de la vérification de la date de prise du médicament: {e}", {
+            "origin": "MEDICATION_DUE_ERROR",
+            "error": str(e)
+        })
         return False
-
-    return delta_days % med["interval_days"] == 0
 
 
 def generate_schedule(start_date, medications):
