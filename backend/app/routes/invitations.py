@@ -8,6 +8,8 @@ from app.services.notifications import notify_and_record
 from firebase_admin import auth
 import time
 from . import api
+from urllib.parse import urljoin
+from app.config.config import Config
 import json
 from app.utils.messages import (
     SUCCESS_INVITATION_SENT,
@@ -85,15 +87,18 @@ def handle_send_invitation(calendar_id):
                         origin="INVITATION_SEND",
                         log_extra={"calendar_id": calendar_id}
                     )
-        
+                
+                link = urljoin(Config.FRONTEND_URL, "/shared-calendars")
+
                 # Créer une notif pour l'utilisateur receveur
                 notify_and_record(
                     uid=receiver_uid,
                     title="📬 Nouvelle invitation à un calendrier",
+                    link=link,
                     body="Tu as été invité à rejoindre un calendrier partagé.",
                     notif_type="calendar_invitation",
                     sender_uid=owner_uid,
-                    calendar_id=calendar_id
+                    calendar_id=calendar_id,
                 )
 
 
@@ -168,7 +173,7 @@ def handle_accept_invitation(notification_id):
                 # Dire que l'utilisateur receveur a accepté l'invitation
                 cursor.execute(
                     """
-                    UPDATE shared_calendars SET accepted = TRUE WHERE receiver_uid = %s AND calendar_id = %s
+                    UPDATE shared_calendars SET accepted = TRUE, accepted_at = NOW() WHERE receiver_uid = %s AND calendar_id = %s
                     """,
                     (receiver_uid, calendar_id)
                 )

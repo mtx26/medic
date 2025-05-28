@@ -28,3 +28,6 @@ class Config:
     # Autres options
     LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
     SYSTEM_UID = os.getenv("SYSTEM_UID")
+
+    # Frontend URL
+    FRONTEND_URL = os.getenv("FRONTEND_URL")

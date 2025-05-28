@@ -7,6 +7,7 @@ import datetime
 
 def run_scheduler():
     schedule.every(1).hour.do(check_low_stock_and_notify)
+    # schedule.every(10).seconds.do(check_low_stock_and_notify)
 
     print("⏳ [CRON] Test : cron toutes les 1 heure initialisé")
 
