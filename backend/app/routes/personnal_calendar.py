@@ -282,7 +282,7 @@ def handle_medicine_boxes(calendar_id):
         with get_connection() as conn:
             with conn.cursor() as cur:
                 cur.execute("""
-                SELECT mb.id, mb.name, mb.stock_quantity, mb.stock_alert_threshold, mb.calendar_id, c.name AS calendar_name
+                SELECT mb.id, mb.name, mb.box_capacity, mb.stock_quantity, mb.stock_alert_threshold, mb.calendar_id, c.name AS calendar_name
                 FROM medicine_boxes mb
                 JOIN calendars c ON mb.calendar_id = c.id
                 WHERE c.id = %s AND c.owner_uid = %s
@@ -320,6 +320,53 @@ def handle_medicine_boxes(calendar_id):
             log_extra={"calendar_id": calendar_id}
         )
 
+
+# Route pour modifier une boite de médicaments
+@api.route("/calendars/<calendar_id>/boxes/<box_id>", methods=["PUT"])
+def handle_update_medicine_box(calendar_id, box_id):
+    try:
+        t_0 = time.time()
+        user = verify_firebase_token()
+        uid = user["uid"]
+        data = request.get_json()
+        name = data.get("name")
+        box_capacity = data.get("box_capacity")
+        stock_alert_threshold = data.get("stock_alert_threshold")
+        stock_quantity = data.get("stock_quantity")
+
+        if not calendar_id or not box_id:
+            return error_response(
+                message=ERROR_MEDICINE_BOX_UPDATE,
+                code="MISSING_REQUIRED_FIELDS",
+                status_code=400,
+                uid=uid,
+                origin="UPDATE_MEDICINE_BOX",
+                log_extra={"calendar_id": calendar_id, "box_id": box_id}
+            )
+
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("UPDATE medicine_boxes SET name = %s, box_capacity = %s, stock_alert_threshold = %s, stock_quantity = %s WHERE id = %s AND calendar_id = %s", (name, box_capacity, stock_alert_threshold, stock_quantity, box_id, calendar_id))
+                conn.commit()
+                t_1 = time.time()
+                return success_response(
+                    message=SUCCESS_MEDICINE_BOX_UPDATED,
+                    code="MEDICINE_BOX_UPDATED",
+                    uid=uid,
+                    origin="UPDATE_MEDICINE_BOX",
+                    log_extra={"time": t_1 - t_0, "calendar_id": calendar_id, "box_id": box_id}
+                )
+
+    except Exception as e:
+        return error_response(
+            message=ERROR_MEDICINE_BOX_UPDATE,
+            code="UPDATE_MEDICINE_BOX_ERROR",
+            status_code=500,
+            uid=uid,
+            origin="UPDATE_MEDICINE_BOX",
+            error=str(e),
+            log_extra={"calendar_id": calendar_id, "box_id": box_id}
+        )
 
 # Route pour créer une boite de médicaments
 @api.route("/calendars/<calendar_id>/boxes", methods=["POST"])

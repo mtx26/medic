@@ -405,6 +405,31 @@ function App() {
     return {success: true, message: "Médicament ajouté avec succès", code: "MED_ADD_SUCCESS", medicinesData: newMedicinesData, id: id };
   }, []);
 
+  // Fonction pour modifier la boîte d'un calendrier personnel
+  const updatePersonalBox = useCallback(async (calendarId, boxId, box) => {
+    try {
+      const token = await auth.currentUser.getIdToken();
+      const res = await fetch(`${API_URL}/api/calendars/${calendarId}/boxes/${boxId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(box),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      return {success: true, message: data.message, code: data.code};
+    } catch (err) {
+      log.error(err.message || "Erreur lors de la modification de la boîte", err, {
+        origin: "BOX_UPDATE_ERROR",
+        "uid": auth.currentUser.uid,
+        "calendarId": calendarId,
+      });
+      return {success: false, error: err.message, code: err.code};
+    }
+  }, []);
+  
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1011,6 +1036,7 @@ function App() {
       deletePersonalCalendarMedicines,
       calendarsData,
       setCalendarsData,
+      updatePersonalBox,
     },
   
     sharedUserCalendars: {
@@ -1027,6 +1053,7 @@ function App() {
       addMedicine,
       sharedCalendarsData,
       setSharedCalendarsData,
+      // TODO: add updateBox for sharedUserCalendars
     },
   
     tokenCalendars: {

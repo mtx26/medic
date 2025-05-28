@@ -33,6 +33,8 @@ SUCCESS_TOKENS_FETCHED = "Tokens récupérés avec succès."
 SUCCESS_USER_INFO_FETCHED = "Informations de l'utilisateur récupérées avec succès."
 SUCCESS_MEDICINE_BOX_CREATED = "Boîte de médicaments créée avec succès."
 SUCCESS_MEDICINE_BOXES_FETCHED = "Boîtes de médicaments récupérées avec succès."
+SUCCESS_MEDICINE_BOX_UPDATED = "Boîte de médicaments mise à jour avec succès."
+
 
 # ⚠️ MESSAGES D’AVERTISSEMENT
 
@@ -105,4 +107,4 @@ ERROR_TOKENS_FETCH = "Erreur lors de la récupération des tokens."
 ERROR_USER_NOT_FOUND = "Erreur lors de la récupération des informations de l'utilisateur."
 ERROR_MEDICINE_BOX_CREATE = "Erreur lors de la création de la boîte de médicaments."
 ERROR_MEDICINE_BOXES_FETCH = "Erreur lors de la récupération des boîtes de médicaments."
-
+ERROR_MEDICINE_BOX_UPDATE = "Erreur lors de la mise à jour de la boîte de médicaments."

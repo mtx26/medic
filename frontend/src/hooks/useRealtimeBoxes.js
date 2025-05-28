@@ -7,7 +7,7 @@ import { log } from "../utils/logger";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-const fetchPersonalBoxes = async (user, calendarId, setBoxes, setOriginalBoxes, setLoadingBoxes) => {
+const fetchPersonalBoxes = async (user, calendarId, setBoxes, setLoadingBoxes) => {
   try {
     const token = await user.getIdToken();
     const res = await fetch(`${API_URL}/api/calendars/${calendarId}/boxes`, {
@@ -21,7 +21,6 @@ const fetchPersonalBoxes = async (user, calendarId, setBoxes, setOriginalBoxes, 
 
     const sorted = data.boxes.sort((a, b) => a.name.localeCompare(b.name));
     setBoxes(sorted);
-    setOriginalBoxes(JSON.parse(JSON.stringify(sorted)));
     setLoadingBoxes(true);
 
     analyticsPromise.then((analytics) => {
@@ -48,7 +47,7 @@ const fetchPersonalBoxes = async (user, calendarId, setBoxes, setOriginalBoxes, 
   }
 };
 
-export const useRealtimePersonalBoxes = (calendarId, setBoxes, setOriginalBoxes, setLoadingBoxes) => {
+export const useRealtimePersonalBoxes = (calendarId, setBoxes, setLoadingBoxes) => {
   const { userInfo } = useContext(UserContext);
   const channelRef = useRef(null);
 
@@ -64,7 +63,7 @@ export const useRealtimePersonalBoxes = (calendarId, setBoxes, setOriginalBoxes,
       return;
     }
 
-    fetchPersonalBoxes(user, calendarId, setBoxes, setOriginalBoxes, setLoadingBoxes);
+    fetchPersonalBoxes(user, calendarId, setBoxes, setLoadingBoxes);
 
     const channel = supabase
       .channel(`personal-meds-${calendarId}`)
@@ -77,7 +76,7 @@ export const useRealtimePersonalBoxes = (calendarId, setBoxes, setOriginalBoxes,
           filter: `calendar_id=eq.${calendarId}`,
         },
         () => {
-          fetchPersonalBoxes(user, calendarId, setBoxes, setOriginalBoxes, setLoadingBoxes);
+          fetchPersonalBoxes(user, calendarId, setBoxes, setLoadingBoxes);
         }
       )
       .subscribe();

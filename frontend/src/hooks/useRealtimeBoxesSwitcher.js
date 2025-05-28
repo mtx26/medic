@@ -5,7 +5,6 @@ export const useRealtimeBoxesSwitcher = (
   calendarType,
   calendarId,
   setBoxes,
-  setOriginalBoxes,
   setLoadingBoxes
 ) => {
   // Appels inconditionnels
@@ -14,7 +13,6 @@ export const useRealtimeBoxesSwitcher = (
   useRealtimePersonalBoxes(
     isPersonal ? calendarId : null,
     setBoxes,
-    setOriginalBoxes,
     setLoadingBoxes
   );
 }
