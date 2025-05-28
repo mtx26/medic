@@ -121,11 +121,27 @@ export const useRealtimePersonalBoxes = (calendarId, setBoxes, setLoadingBoxes) 
       )
       .subscribe();
 
-    channelRef.current = channel;
+    const deleteChannel = supabase
+      .channel(`delete-personal-meds-${calendarId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "DELETE",
+          schema: "public",
+          table: "medicine_boxes",
+        },
+        () => {
+          fetchPersonalBoxes(user, calendarId, setBoxes, setLoadingBoxes);
+        }   
+      )
+      .subscribe();
+
+    channelRef.current = { channel, deleteChannel };
 
     return () => {
       if (channelRef.current) {
-        channelRef.current.unsubscribe();
+        channelRef.current.channel.unsubscribe();
+        channelRef.current.deleteChannel.unsubscribe();
         channelRef.current = null;
       }
     };
@@ -165,12 +181,28 @@ export const useRealtimeSharedBoxes = (calendarId, setBoxes, setLoadingBoxes) =>
         }
       )
       .subscribe();
+    
+    const deleteChannel = supabase
+      .channel(`delete-shared-meds-${calendarId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "DELETE",
+          schema: "public",
+          table: "medicine_boxes",
+        },
+        () => {
+          fetchSharedBoxes(user, calendarId, setBoxes, setLoadingBoxes);
+        }
+      )
+      .subscribe();
 
-    channelRef.current = channel;
+    channelRef.current = { channel, deleteChannel };
 
     return () => {
       if (channelRef.current) {
-        channelRef.current.unsubscribe();
+        channelRef.current.channel.unsubscribe();
+        channelRef.current.deleteChannel.unsubscribe();
         channelRef.current = null;
       }
     };

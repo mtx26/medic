@@ -36,6 +36,7 @@ SUCCESS_MEDICINE_BOXES_FETCHED = "Boîtes de médicaments récupérées avec suc
 SUCCESS_MEDICINE_BOX_UPDATED = "Boîte de médicaments mise à jour avec succès."
 SUCCESS_SHARED_BOX_UPDATED = "Boîte de médicaments partagée mise à jour avec succès."
 SUCCESS_SHARED_BOXES_FETCHED = "Boîtes de médicaments partagées récupérées avec succès."
+SUCCESS_SHARED_BOX_CREATED = "Boîte de médicaments partagée créée avec succès."
 
 # ⚠️ MESSAGES D’AVERTISSEMENT
 
@@ -111,3 +112,4 @@ ERROR_MEDICINE_BOXES_FETCH = "Erreur lors de la récupération des boîtes de m�
 ERROR_MEDICINE_BOX_UPDATE = "Erreur lors de la mise à jour de la boîte de médicaments."
 ERROR_SHARED_BOX_UPDATE = "Erreur lors de la mise à jour de la boîte de médicaments partagée."
 ERROR_SHARED_BOX_FETCH = "Erreur lors de la récupération des boîtes de médicaments partagées."
+ERROR_SHARED_BOX_CREATE = "Erreur lors de la création de la boîte de médicaments partagée."

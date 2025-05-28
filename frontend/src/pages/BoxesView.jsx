@@ -42,12 +42,12 @@ function BoxesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const box = {
-      name: modifyBoxName[selectedModifyBox.id],
-      box_capacity: modifyBoxCapacity[selectedModifyBox.id],
-      stock_alert_threshold: modifyBoxStockAlertThreshold[selectedModifyBox.id],
-      stock_quantity: modifyBoxStockQuantity[selectedModifyBox.id]
+      name: modifyBoxName[selectedModifyBox],
+      box_capacity: modifyBoxCapacity[selectedModifyBox],
+      stock_alert_threshold: modifyBoxStockAlertThreshold[selectedModifyBox],
+      stock_quantity: modifyBoxStockQuantity[selectedModifyBox]
     }
-    const res = await calendarSource.updateBox(calendarId, selectedModifyBox.id, box);
+    const res = await calendarSource.updateBox(calendarId, selectedModifyBox, box);
     if (res.success) {
       setAlertMessage("✅ " + res.message);
       setAlertType('success');
@@ -55,7 +55,7 @@ function BoxesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
       setAlertMessage("❌ " + res.error);
       setAlertType('danger');
     }
-    setAlertBoxId(selectedModifyBox.id);
+    setAlertBoxId(selectedModifyBox);
     setSelectedModifyBox(null);
   };
 
@@ -74,7 +74,13 @@ function BoxesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
       setAlertMessage("❌ " + res.error);
       setAlertType('danger');
     }
-    setAlertBoxId(boxId);
+  }
+
+  const addBox = async () => {
+    const res = await calendarSource.createBox(calendarId, 'Nouvelle boîte');
+    if (res.success) {
+      setSelectedModifyBox(res.boxId);
+    }
   }
 
   useEffect(() => {
@@ -91,7 +97,7 @@ function BoxesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
   if (loadingBoxes === undefined) {
     return (
       <div className="d-flex justify-content-center align-items-center" style={{ height: '60vh' }}>
-        <div className="spinner-border text-primary">
+        <div className="spinner-border text-primary" role="status">
           <span className="visually-hidden">Chargement des médicaments...</span>
         </div>
       </div>
@@ -110,12 +116,19 @@ function BoxesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
     <div className="container align-items-center d-flex flex-column gap-3">
       <div className="p-1 w-100" style={{ maxWidth: '800px' }}>
         <h4 className="mb-3 fw-bold">Boîtes de médicaments</h4>
-
+        <AlertSystem
+          type={alertType}
+          message={alertMessage}
+          onClose={() => {
+            setAlertMessage('');
+            setAlertType('');
+          }}
+        />
         <div className="row">
           {boxes.map((box) => (
 
             <div className="col-12 col-md-6 mb-3" key={box.id}>
-              {selectedModifyBox && selectedModifyBox.id === box.id ? (
+              {selectedModifyBox && selectedModifyBox === box.id ? (
                 <form onSubmit={handleSubmit}>
                   <BoxCard 
                     box={box} 
@@ -125,12 +138,6 @@ function BoxesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
                     setModifyBoxCapacity={setModifyBoxCapacity}
                     setModifyBoxStockAlertThreshold={setModifyBoxStockAlertThreshold}
                     setModifyBoxStockQuantity={setModifyBoxStockQuantity}
-                    alertBoxId={alertBoxId}
-                    setAlertBoxId={setAlertBoxId}
-                    alertType={alertType}
-                    setAlertType={setAlertType}
-                    alertMessage={alertMessage}
-                    setAlertMessage={setAlertMessage}
                     restockBox={restockBox}
                   />
                 </form>
@@ -143,17 +150,24 @@ function BoxesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
                   setModifyBoxCapacity={setModifyBoxCapacity}
                   setModifyBoxStockAlertThreshold={setModifyBoxStockAlertThreshold}
                   setModifyBoxStockQuantity={setModifyBoxStockQuantity}
-                  alertBoxId={alertBoxId}
-                  setAlertBoxId={setAlertBoxId}
-                  alertType={alertType}
-                  setAlertType={setAlertType}
-                  alertMessage={alertMessage}
-                  setAlertMessage={setAlertMessage}
                   restockBox={restockBox}
                 />
               )}
             </div>
           ))}
+          <div 
+            className="col-12 col-md-6 mb-3"
+            onClick={() => {
+              addBox();
+            }}
+            style={{ cursor: 'pointer' }}
+          >
+            <div className="card h-100 shadow-sm border border-success">
+              <div className="card-body d-flex flex-column justify-content-center align-items-center">
+                <i className="bi bi-plus-circle text-success fs-1"></i>
+              </div>
+            </div>
+          </div>
         </div>
 
         {boxes.length === 0 && (
@@ -174,46 +188,30 @@ function BoxCard({
   setModifyBoxCapacity, 
   setModifyBoxStockAlertThreshold, 
   setModifyBoxStockQuantity,
-  setAlertBoxId,
-  setAlertType,
-  setAlertMessage,
-  alertBoxId,
-  alertType,
-  alertMessage,
   restockBox
 }) {
   return (
-    <div className={`card h-100 shadow-sm border ${
-      box.stock_quantity <= 0
+    <div className={`card h-100 shadow-sm border ${ box.box_capacity === 0
+      ? ''
+      : box.stock_quantity <= 0
         ? 'border-danger'
         : box.stock_quantity <= box.stock_alert_threshold
         ? 'border-warning'
         : '' }`}>
-      {alertBoxId === box.id && (
-        <AlertSystem
-          type={alertType}
-          message={alertMessage}
-          onClose={() => {
-            setAlertMessage('');
-            setAlertBoxId(null);
-            setAlertType('');
-          }}
-        />
-      )}
       <div className="card-body position-relative">
         <div className="position-absolute top-0 end-0 m-2">
           {!selectedModifyBox && (
             <button 
               type="button"
               className="btn btn-secondary btn-sm rounded-circle"
-              onClick={() => setSelectedModifyBox(box)}>
+              onClick={() => setSelectedModifyBox(box.id)}>
               <i className="bi bi-pencil"></i>
             </button>
           )}
         </div>
 
         <h5 className="card-title fs-semibold mb-1">
-          {selectedModifyBox && selectedModifyBox.id === box.id ? (
+          {selectedModifyBox && selectedModifyBox === box.id ? (
             <input
               type="text"
               className="form-control form-control-sm"
@@ -231,7 +229,7 @@ function BoxCard({
         <div className="d-flex mb-2 gap-2">
           <div className="w-50">
             <small className="text-muted">Capacité de la boîte</small><br />
-            {selectedModifyBox && selectedModifyBox.id === box.id ? (
+            {selectedModifyBox && selectedModifyBox === box.id ? (
               <input
                 type="number"
                 className="form-control form-control-sm w-75"
@@ -247,7 +245,7 @@ function BoxCard({
           </div>
           <div className="w-50">
             <small className="text-muted">Seuil d’alerte</small><br />
-            {selectedModifyBox && selectedModifyBox.id === box.id ? (
+            {selectedModifyBox && selectedModifyBox === box.id ? (
               <input
                 type="number"
                 className="form-control form-control-sm w-75"
@@ -265,7 +263,7 @@ function BoxCard({
         <div className="d-flex mb-2 gap-2 align-items-center">
           <div className="w-50">
           <small className="text-muted">Quantité restante</small><br />
-            {selectedModifyBox && selectedModifyBox.id === box.id ? (
+            {selectedModifyBox && selectedModifyBox === box.id ? (
               <input
                 type="number"
                 className="form-control form-control-sm w-75"
@@ -295,18 +293,18 @@ function BoxCard({
 
         {!selectedModifyBox && (
           <>
-            {box.stock_quantity > 0 && box.stock_quantity > box.stock_alert_threshold && (
+            {box.stock_quantity > 0 && box.stock_quantity > box.stock_alert_threshold && box.box_capacity !== 0 && (
               <span className="badge bg-success"><i className="bi bi-check-circle"></i> Stock élevé</span>
             )}
-            {box.stock_quantity > 0 && box.stock_quantity <= box.stock_alert_threshold && (
+            {box.stock_quantity > 0 && box.stock_quantity <= box.stock_alert_threshold && box.box_capacity !== 0 && (
               <span className="badge bg-warning"><i className="bi bi-exclamation-triangle"></i> Stock bas</span>
             )}
-            {box.stock_quantity <= 0 && (
+            {box.stock_quantity <= 0 && box.box_capacity !== 0 && (
               <span className="badge bg-danger"><i className="bi bi-exclamation-triangle"></i> Stock épuisé</span>
             )}
           </>
         )}
-        {selectedModifyBox && selectedModifyBox.id === box.id && (
+        {selectedModifyBox && selectedModifyBox === box.id && (
           <div className="d-flex gap-2">
             <button 
               type="submit"

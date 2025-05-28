@@ -377,32 +377,33 @@ def handle_update_box(calendar_id, box_id):
 def handle_create_box(calendar_id):
     try:
         t_0 = time.time()
-        uid = verify_firebase_token()
+        user = verify_firebase_token()
+        uid = user["uid"]
 
         data = request.get_json()
-        calendar_id = data.get("calendar_id")
         name = data.get("name")
-        stock_quantity = data.get("stock_quantity")
-
-        if not calendar_id or not name or not stock_quantity:
-            return error_response(
-                message=ERROR_MEDICINE_BOX_CREATE,
-                code="MISSING_REQUIRED_FIELDS",
-                status_code=400,
-                uid=uid,
-                origin="CREATE_MEDICINE_BOX",
-            )
+        box_capacity = data.get("box_capacity", 0)
+        stock_alert_threshold = data.get("stock_alert_threshold", 0)
+        stock_quantity = data.get("stock_quantity", 0)
 
         with get_connection() as conn:
             with conn.cursor() as cursor:
-                cursor.execute("INSERT INTO medicine_boxes (calendar_id, name, stock_quantity) VALUES (%s, %s, %s)", (calendar_id, name, stock_quantity))
-                conn.commit()
+                cursor.execute("""
+                    INSERT INTO medicine_boxes (calendar_id, name, box_capacity, stock_alert_threshold, stock_quantity) 
+                    VALUES (%s, %s, %s, %s, %s)
+                    RETURNING id
+                """, (calendar_id, name, box_capacity, stock_alert_threshold, stock_quantity))
                 t_1 = time.time()
+                box = cursor.fetchone()
+                box_id = box.get("id")
+                conn.commit()
+
         return success_response(
             message=SUCCESS_MEDICINE_BOX_CREATED,
             code="MEDICINE_BOX_CREATED",
             uid=uid,
             origin="CREATE_MEDICINE_BOX",
+            data={"box_id": box_id},
             log_extra={"time": t_1 - t_0, "calendar_id": calendar_id}
         )
 

@@ -572,12 +572,10 @@ def handle_update_shared_box(calendar_id, box_id):
         user = verify_firebase_token()
         uid = user["uid"]
         data = request.get_json()
-        print(data)
         name = data.get("name")
         box_capacity = data.get("box_capacity")
         stock_alert_threshold = data.get("stock_alert_threshold")
         stock_quantity = data.get("stock_quantity")
-        print(name, box_capacity, stock_alert_threshold, stock_quantity)
 
 
         if not verify_calendar_share(calendar_id, uid):
@@ -618,3 +616,57 @@ def handle_update_shared_box(calendar_id, box_id):
             log_extra={"calendar_id": calendar_id, "box_id": box_id}
         )
 
+# Route pour créer une boite de médicaments d'un calendrier partagé
+@api.route("/shared/users/calendars/<calendar_id>/boxes", methods=["POST"])
+def handle_create_shared_box(calendar_id):
+    try:
+        t_0 = time.time()
+        user = verify_firebase_token()
+        uid = user["uid"]
+        data = request.get_json()
+        name = data.get("name")
+        box_capacity = data.get("box_capacity", 0)
+        stock_alert_threshold = data.get("stock_alert_threshold", 0)
+        stock_quantity = data.get("stock_quantity", 0)
+        print(name, box_capacity, stock_alert_threshold, stock_quantity)
+
+        if not verify_calendar_share(calendar_id, uid):
+            return warning_response(
+                message=WARNING_UNAUTHORIZED_ACCESS,
+                code="SHARED_BOXES_CREATE_ERROR",
+                status_code=403,
+                uid=uid,
+                origin="SHARED_BOXES_CREATE"
+            )
+
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("""
+                    INSERT INTO medicine_boxes (name, box_capacity, stock_alert_threshold, stock_quantity, calendar_id)
+                    VALUES (%s, %s, %s, %s, %s)
+                    RETURNING id
+                """, (name, box_capacity, stock_alert_threshold, stock_quantity, calendar_id))
+                t_1 = time.time()
+                box = cursor.fetchone()
+                box_id = box.get("id")
+                conn.commit()
+
+        return success_response(
+            message=SUCCESS_SHARED_BOX_CREATED,
+            code="SHARED_BOXES_CREATE_SUCCESS",
+            uid=uid,
+            origin="SHARED_BOXES_CREATE",
+            data={"box_id": box_id},
+            log_extra={"calendar_id": calendar_id, "time": t_1 - t_0}
+        )
+
+    except Exception as e:
+        return error_response(
+            message=ERROR_SHARED_BOX_CREATE,
+            code="SHARED_BOXES_CREATE_ERROR",
+            status_code=500,
+            uid=uid,
+            origin="SHARED_BOXES_CREATE",
+            error=str(e),
+            log_extra={"calendar_id": calendar_id}
+        )
