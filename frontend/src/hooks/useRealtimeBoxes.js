@@ -7,15 +7,22 @@ import { log } from "../utils/logger";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-const fetchPersonalBoxes = async (user, calendarId, setBoxes, setLoadingBoxes) => {
+const fetchBoxes = async ({ user, calendarId, setBoxes, setLoadingBoxes, sourceType }) => {
   try {
     const token = await user.getIdToken();
-    const res = await fetch(`${API_URL}/api/calendars/${calendarId}/boxes`, {
+
+    const endpoint =
+      sourceType === "personal"
+        ? `${API_URL}/api/calendars/${calendarId}/boxes`
+        : `${API_URL}/api/shared/users/calendars/${calendarId}/boxes`;
+
+    const res = await fetch(endpoint, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
+
     const data = await res.json();
     if (!res.ok) throw new Error(data.error);
 
@@ -23,9 +30,19 @@ const fetchPersonalBoxes = async (user, calendarId, setBoxes, setLoadingBoxes) =
     setBoxes(sorted);
     setLoadingBoxes(true);
 
+    const eventName =
+      sourceType === "personal"
+        ? "fetch_personal_calendar_medicine_boxes"
+        : "fetch_shared_calendar_medicine_boxes";
+
+    const logOrigin =
+      sourceType === "personal"
+        ? "REALTIME_PERSONAL_CALENDAR_MEDICINE_BOXES_SUCCESS"
+        : "REALTIME_SHARED_CALENDAR_MEDICINE_BOXES_SUCCESS";
+
     analyticsPromise.then((analytics) => {
       if (analytics) {
-        logEvent(analytics, "fetch_personal_calendar_medicine_boxes", {
+        logEvent(analytics, eventName, {
           uid: user.uid,
           count: data.boxes.length,
           calendarId,
@@ -34,178 +51,92 @@ const fetchPersonalBoxes = async (user, calendarId, setBoxes, setLoadingBoxes) =
     });
 
     log.info(data.message, {
-      origin: "REALTIME_PERSONAL_CALENDAR_MEDICINE_BOXES_SUCCESS",
+      origin: logOrigin,
       uid: user.uid,
       count: data.boxes.length,
       calendarId,
     });
   } catch (err) {
-    log.error(err.message || "Erreur de récupération des boîtes de médicaments", err, {
-      origin: "PERSONAL_CALENDAR_MEDICINE_BOXES_FETCH_ERROR",
-      calendarId,
-    });
+    const errorOrigin =
+      sourceType === "personal"
+        ? "PERSONAL_CALENDAR_MEDICINE_BOXES_FETCH_ERROR"
+        : "SHARED_CALENDAR_MEDICINE_BOXES_FETCH_ERROR";
+
+    log.error(
+      err.message || "Erreur de récupération des boîtes de médicaments",
+      err,
+      {
+        origin: errorOrigin,
+        calendarId,
+      }
+    );
   }
 };
 
-const fetchSharedBoxes = async (user, calendarId, setBoxes, setLoadingBoxes) => {
-  try {
-    const token = await user.getIdToken();
-    const res = await fetch(`${API_URL}/api/shared/users/calendars/${calendarId}/boxes`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error);
+const useRealtimeBoxes = (sourceType, calendarId, setBoxes, setLoadingBoxes) => {
+  const { userInfo } = useContext(UserContext);
+  const channelRef = useRef(null);
 
-    const sorted = data.boxes.sort((a, b) => a.name.localeCompare(b.name));
-    setBoxes(sorted);
-    setLoadingBoxes(true);
+  useEffect(() => {
+    if (!userInfo || !calendarId) {
+      setLoadingBoxes(undefined);
+      return;
+    }
 
-    analyticsPromise.then((analytics) => {
-      if (analytics) {
-        logEvent(analytics, "fetch_shared_calendar_medicine_boxes", {
-          uid: user.uid,
-          count: data.boxes.length,
-          calendarId,
-        });
+    const user = auth.currentUser;
+    if (!user) {
+      setLoadingBoxes(undefined);
+      return;
+    }
+
+    fetchBoxes({ user, calendarId, setBoxes, setLoadingBoxes, sourceType });
+
+    const baseChannel = sourceType === "personal" ? "personal-meds" : "shared-meds";
+    const deleteChannel = sourceType === "personal" ? "delete-personal-meds" : "delete-shared-meds";
+
+    const channel = supabase
+      .channel(`${baseChannel}-${calendarId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "medicine_boxes",
+          filter: `calendar_id=eq.${calendarId}`,
+        },
+        () => fetchBoxes({ user, calendarId, setBoxes, setLoadingBoxes, sourceType })
+      )
+      .subscribe();
+
+    const deletion = supabase
+      .channel(`${deleteChannel}-${calendarId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "DELETE",
+          schema: "public",
+          table: "medicine_boxes",
+        },
+        () => fetchBoxes({ user, calendarId, setBoxes, setLoadingBoxes, sourceType })
+      )
+      .subscribe();
+
+    channelRef.current = { channel, deletion };
+
+    return () => {
+      if (channelRef.current) {
+        channelRef.current.channel.unsubscribe();
+        channelRef.current.deletion.unsubscribe();
+        channelRef.current = null;
       }
-    });
-
-    log.info(data.message, {
-      origin: "REALTIME_SHARED_CALENDAR_MEDICINE_BOXES_SUCCESS",
-      uid: user.uid,
-      count: data.boxes.length,
-      calendarId,
-    });
-  } catch (err) {
-    log.error(err.message || "Erreur de récupération des boîtes de médicaments partagées", err, {
-      origin: "SHARED_CALENDAR_MEDICINE_BOXES_FETCH_ERROR",
-      calendarId,
-    });
-  }
+    };
+  }, [userInfo, calendarId, sourceType]);
 };
 
 export const useRealtimePersonalBoxes = (calendarId, setBoxes, setLoadingBoxes) => {
-  const { userInfo } = useContext(UserContext);
-  const channelRef = useRef(null);
-
-  useEffect(() => {
-    if (!userInfo || !calendarId) {
-      setLoadingBoxes(undefined);
-      return;
-    }
-
-    const user = auth.currentUser;
-    if (!user) {
-      setLoadingBoxes(undefined);
-      return;
-    }
-
-    fetchPersonalBoxes(user, calendarId, setBoxes, setLoadingBoxes);
-
-    const channel = supabase
-      .channel(`personal-meds-${calendarId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "medicine_boxes",
-          filter: `calendar_id=eq.${calendarId}`,
-        },
-        () => {
-          fetchPersonalBoxes(user, calendarId, setBoxes, setLoadingBoxes);
-        }
-      )
-      .subscribe();
-
-    const deleteChannel = supabase
-      .channel(`delete-personal-meds-${calendarId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "DELETE",
-          schema: "public",
-          table: "medicine_boxes",
-        },
-        () => {
-          fetchPersonalBoxes(user, calendarId, setBoxes, setLoadingBoxes);
-        }   
-      )
-      .subscribe();
-
-    channelRef.current = { channel, deleteChannel };
-
-    return () => {
-      if (channelRef.current) {
-        channelRef.current.channel.unsubscribe();
-        channelRef.current.deleteChannel.unsubscribe();
-        channelRef.current = null;
-      }
-    };
-  }, [userInfo, calendarId]);
+  useRealtimeBoxes("personal", calendarId, setBoxes, setLoadingBoxes);
 };
 
 export const useRealtimeSharedBoxes = (calendarId, setBoxes, setLoadingBoxes) => {
-  const { userInfo } = useContext(UserContext);
-  const channelRef = useRef(null);
-
-  useEffect(() => {
-    if (!userInfo || !calendarId) {
-      setLoadingBoxes(undefined);
-      return;
-    }
-
-    const user = auth.currentUser;
-    if (!user) {
-      setLoadingBoxes(undefined);
-      return;
-    }
-
-    fetchSharedBoxes(user, calendarId, setBoxes, setLoadingBoxes);
-
-    const channel = supabase
-      .channel(`shared-meds-${calendarId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "medicine_boxes",
-          filter: `calendar_id=eq.${calendarId}`,
-        },
-        () => {
-          fetchSharedBoxes(user, calendarId, setBoxes, setLoadingBoxes);
-        }
-      )
-      .subscribe();
-    
-    const deleteChannel = supabase
-      .channel(`delete-shared-meds-${calendarId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "DELETE",
-          schema: "public",
-          table: "medicine_boxes",
-        },
-        () => {
-          fetchSharedBoxes(user, calendarId, setBoxes, setLoadingBoxes);
-        }
-      )
-      .subscribe();
-
-    channelRef.current = { channel, deleteChannel };
-
-    return () => {
-      if (channelRef.current) {
-        channelRef.current.channel.unsubscribe();
-        channelRef.current.deleteChannel.unsubscribe();
-        channelRef.current = null;
-      }
-    };
-  }, [userInfo, calendarId]);
+  useRealtimeBoxes("shared", calendarId, setBoxes, setLoadingBoxes);
 };
-
