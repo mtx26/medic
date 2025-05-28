@@ -177,6 +177,7 @@ def handle_accept_invitation(notification_id):
                 notify_and_record(
                     uid=sender_uid,
                     title="✅ Invitation acceptée",
+                    link=None,
                     body="Ton invitation a été acceptée.",
                     notif_type="calendar_invitation_accepted",
                     sender_uid=receiver_uid,
@@ -252,6 +253,7 @@ def handle_reject_invitation(notification_id):
                 notify_and_record(
                     uid=owner_uid,
                     title="❌ Invitation refusée",
+                    link=None,
                     body="Ton invitation a été refusée.",
                     notif_type="calendar_invitation_rejected",
                     sender_uid=receiver_uid,

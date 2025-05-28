@@ -304,6 +304,7 @@ def handle_delete_user_shared_calendar(calendar_id):
                 notify_and_record(
                     uid=owner_uid,
                     title="📬 Calendrier partagé supprimé",
+                    link=None,
                     body="Un utilisateur a supprimé le calendrier partagé.",
                     notif_type="calendar_shared_deleted_by_receiver",
                     sender_uid=receiver_uid,
@@ -386,6 +387,7 @@ def handle_delete_user_shared_user(calendar_id, receiver_uid):
                 notify_and_record(
                     uid=receiver_uid,
                     title="📬 Calendrier partagé supprimé",
+                    link=None,
                     body="Le calendrier partagé a été supprimé par le propriétaire.",
                     notif_type="calendar_shared_deleted_by_owner",
                     sender_uid=owner_uid,
