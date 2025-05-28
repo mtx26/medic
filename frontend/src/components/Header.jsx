@@ -36,7 +36,7 @@ function Navbar({ sharedProps }) {
     if (calendarType === "shared" && sharedProps.sharedUserCalendars.calendarsData) {
       setCalendarName(sharedProps.sharedUserCalendars.calendarsData.find(calendar => calendar.id === calendarUrl.split("/")[2]).name);
     }
-  }, [sharedProps.personalCalendars.calendarsData, sharedProps.sharedUserCalendars.calendarsData, sharedProps.tokenCalendars.calendarsData]);
+  }, [sharedProps.personalCalendars.calendarsData, sharedProps.sharedUserCalendars.calendarsData]);
 
 
   const { notificationsData, readNotification } = sharedProps.notifications;
@@ -58,13 +58,13 @@ function Navbar({ sharedProps }) {
                 className="flex-grow-1 d-none d-lg-flex justify-content-center"
                 onClick={() => navigate(`${calendarUrl}/${calendarId}`)}
               >
-                <h4 className="m-0 fw-bold">{calendarName}</h4>
+                <h4 className="m-0">Calendrier : <span className="fw-bold">{calendarName}</span></h4>
               </div>
               <div 
                 className="d-flex align-items-center d-lg-none"
                 onClick={() => navigate(`${calendarUrl}/${calendarId}`)}
               >
-                <h4 className="me-2 fw-bold">{calendarName}</h4>
+                <h4 className="me-2"><span className="fw-bold">{calendarName}</span></h4>
               </div>
             </>
           )}

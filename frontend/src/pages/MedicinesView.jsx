@@ -303,14 +303,14 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
         <div className="d-flex flex-column flex-md-row gap-2 mb-3 align-items-stretch align-items-md-center">
 
           {/*test bouton boxe */}
-          <button 
+          {/* <button 
             onClick={() => navigate(`/${basePath}/${calendarId}/boxes`)}
             className="btn btn-primary btn-sm w-100 w-md-auto"
             title="Voir les boites"
           >
             <i className="bi bi-box"></i>
             <span> Voir les boites</span>
-          </button>
+          </button> */}
 
 
           {/* Ajouter */}
