@@ -1,5 +1,5 @@
-import React, { useContext } from "react";
-import { Link } from "react-router-dom";
+import React, { useContext, useEffect, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { UserContext } from "../contexts/UserContext";
 import { handleLogout } from "../services/authService";
 import { useNavigate } from "react-router-dom";
@@ -11,6 +11,33 @@ import PropTypes from 'prop-types';
 function Navbar({ sharedProps }) {
   const { userInfo } = useContext(UserContext);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const [calendarName, setCalendarName] = useState(null);
+  const [calendarType, setCalendarType] = useState(null);
+  const [calendarUrl, setCalendarUrl] = useState(null);
+
+  useEffect(() => {
+    if (location.pathname.startsWith("/calendar/")) {
+      setCalendarType("personal");
+      setCalendarUrl(location.pathname);
+    }
+    if (location.pathname.startsWith("/shared-user-calendar/")) {
+      setCalendarType("shared");
+      setCalendarUrl(location.pathname);
+    }
+  }, [location.pathname]);
+  
+
+  useEffect(() => {
+    if (calendarType === "personal" && sharedProps.personalCalendars.calendarsData) {
+      setCalendarName(sharedProps.personalCalendars.calendarsData.find(calendar => calendar.id === calendarUrl.split("/")[2]).name);
+    }
+    if (calendarType === "shared" && sharedProps.sharedUserCalendars.calendarsData) {
+      setCalendarName(sharedProps.sharedUserCalendars.calendarsData.find(calendar => calendar.id === calendarUrl.split("/")[2]).name);
+    }
+  }, [sharedProps.personalCalendars.calendarsData, sharedProps.sharedUserCalendars.calendarsData, sharedProps.tokenCalendars.calendarsData]);
+
 
   const { notificationsData, readNotification } = sharedProps.notifications;
   const { acceptInvitation, rejectInvitation } = sharedProps.sharedUserCalendars;
@@ -20,12 +47,28 @@ function Navbar({ sharedProps }) {
     <>
       {/* NAVBAR PC */}
       <nav className="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm py-2 sticky-top">
-        <div className="container-fluid">
+        <div className="container-fluid d-flex align-items-center justify-content-between">
           <Link to="/" className="navbar-brand fw-bold text-primary fs-4">
             <i className="bi bi-capsule"></i> MediTime
           </Link>
 
-          <div className="collapse navbar-collapse justify-content-end">
+          {calendarName && (
+            <>
+              <div 
+                className="flex-grow-1 d-none d-lg-flex justify-content-center"
+                onClick={() => navigate(`${calendarUrl}/${calendarId}`)}
+              >
+                <h4 className="m-0 fw-bold">{calendarName}</h4>
+              </div>
+              <div 
+                className="d-flex align-items-center d-lg-none"
+                onClick={() => navigate(`${calendarUrl}/${calendarId}`)}
+              >
+                <h4 className="me-2 fw-bold">{calendarName}</h4>
+              </div>
+            </>
+          )}
+          <div className="d-none d-lg-flex align-items-cente">
             <ul className="navbar-nav align-items-center gap-2">
               <li className="nav-item">
                 <Link to="/calendars" className="nav-link">

@@ -628,7 +628,6 @@ def handle_create_shared_box(calendar_id):
         box_capacity = data.get("box_capacity", 0)
         stock_alert_threshold = data.get("stock_alert_threshold", 0)
         stock_quantity = data.get("stock_quantity", 0)
-        print(name, box_capacity, stock_alert_threshold, stock_quantity)
 
         if not verify_calendar_share(calendar_id, uid):
             return warning_response(

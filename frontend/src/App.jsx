@@ -1154,6 +1154,7 @@ function App() {
     loadingStates: {
       isInitialLoading,
     },
+
   };
   
 
@@ -1170,6 +1171,7 @@ function App() {
 
     // SHARED CALENDARS
     setSharedCalendarsData([]);
+
   };
 
   useEffect(() => {

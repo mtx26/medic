@@ -294,8 +294,7 @@ def handle_generate_token_schedule(token):
                         origin="TOKEN_GENERATE_SCHEDULE", 
                         log_extra={"token": token}
                     )
-
-                calendar_name = calendar.get("calendar_name")
+                calendar_name = calendar.get("name")
 
                 cursor.execute("SELECT * FROM medicines WHERE calendar_id = %s", (calendar_id,))
                 medicines = cursor.fetchall()
