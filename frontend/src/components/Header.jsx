@@ -17,12 +17,35 @@ function Navbar({ sharedProps }) {
   const [calendarId, setCalendarId] = useState(null);
   const [basePath, setBasePath] = useState(null);
 
+  const locationAvailable = {
+    calendar: location.pathname.startsWith("/calendar/"),
+    sharedUserCalendar: location.pathname.startsWith("/shared-user-calendar/"),
+    tokenCalendar: location.pathname.startsWith("/shared-token-calendar/"),
+  }
+
+  const pathParts = location.pathname.split("/").filter(Boolean);
+
+  const locationAvailableForReturnToCalendarList = {
+    calendar: pathParts.length === 2 && pathParts[0] === "calendar",
+    sharedUserCalendar: pathParts.length === 2 && pathParts[0] === "shared-user-calendar",
+  };
+
+  const locationAvailableForReturnToCalendar = {
+    calendar: pathParts.length === 3 && pathParts[0] === "calendar" && (pathParts[2] === "medicines" || pathParts[2] === "boxes"), 
+    sharedUserCalendar: pathParts.length === 3 && pathParts[0] === "shared-user-calendar" && (pathParts[2] === "medicines" || pathParts[2] === "boxes"),
+  };
+
+  
   useEffect(() => {
-    if (location.pathname.startsWith("/calendar/") && sharedProps.personalCalendars.calendarsData) {
+    console.log(locationAvailableForReturnToCalendar);
+  }, [locationAvailableForReturnToCalendar]);
+
+  useEffect(() => {
+    if (locationAvailable.calendar && sharedProps.personalCalendars.calendarsData) {
       setBasePath('calendar');
       setCalendarName(sharedProps.personalCalendars.calendarsData.find(calendar => calendar.id === location.pathname.split("/")[2]).name);
       setCalendarId(sharedProps.personalCalendars.calendarsData.find(calendar => calendar.id === location.pathname.split("/")[2]).id);
-    } else if (location.pathname.startsWith("/shared-user-calendar/") && sharedProps.sharedUserCalendars.calendarsData) {
+    } else if (locationAvailable.sharedUserCalendar && sharedProps.sharedUserCalendars.calendarsData) {
       setBasePath('shared-user-calendar');
       setCalendarName(sharedProps.sharedUserCalendars.calendarsData.find(calendar => calendar.id === location.pathname.split("/")[2]).name);
       setCalendarId(sharedProps.sharedUserCalendars.calendarsData.find(calendar => calendar.id === location.pathname.split("/")[2]).id);
@@ -42,9 +65,19 @@ function Navbar({ sharedProps }) {
       {/* NAVBAR PC */}
       <nav className="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm py-2 sticky-top">
         <div className="container-fluid d-flex align-items-center justify-content-between">
-          <Link to="/" className="navbar-brand fw-bold text-primary fs-4">
-            <i className="bi bi-capsule"></i> MediTime
-          </Link>
+          {locationAvailableForReturnToCalendarList.calendar || locationAvailableForReturnToCalendarList.sharedUserCalendar ? (
+            <Link to="/calendars" className="navbar-brand fs-4">
+              <i className="bi bi-arrow-left"></i> Retour
+            </Link>
+          ) : locationAvailableForReturnToCalendar.calendar || locationAvailableForReturnToCalendar.sharedUserCalendar ? (
+            <Link to={`/${basePath}/${calendarId}`} className="navbar-brand fs-4">
+              <i className="bi bi-arrow-left"></i> Retour
+            </Link>
+          ) : (
+            <Link to="/" className="navbar-brand fw-bold text-primary fs-4">
+              <i className="bi bi-capsule"></i> MediTime
+            </Link>
+          )}
 
           {calendarName && basePath && calendarId && (
             <>
@@ -71,6 +104,7 @@ function Navbar({ sharedProps }) {
               </a>
             </>
           )}
+
           <div className="d-none d-lg-flex align-items-cente">
             <ul className="navbar-nav align-items-center gap-2">
               <li className="nav-item">
@@ -134,7 +168,6 @@ function Navbar({ sharedProps }) {
                   </li>
                 </ul>
               </li>
-
 
               {/* Dropdown utilisateur */}
               <li className="nav-item dropdown">
