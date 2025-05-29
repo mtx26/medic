@@ -6,7 +6,27 @@ from app.db.connection import get_connection
 from app.services.calendar_service import generate_schedule, generate_table
 import time
 from app.utils.response import success_response, error_response, warning_response
-from app.utils.messages import *
+from app.utils.messages import (
+    SUCCESS_CALENDARS_FETCHED,
+    ERROR_CALENDARS_FETCH,
+    SUCCESS_CALENDAR_CREATED,
+    ERROR_CALENDAR_CREATE,
+    ERROR_CALENDAR_NAME_MISSING,
+    SUCCESS_CALENDAR_DELETED,
+    ERROR_CALENDAR_DELETE,
+    WARNING_CALENDAR_INVALID_ID,
+    WARNING_CALENDAR_NOT_FOUND,
+    SUCCESS_CALENDAR_RENAMED,
+    ERROR_CALENDAR_RENAME,
+    SUCCESS_CALENDAR_GENERATED,
+    ERROR_CALENDAR_GENERATE,
+    SUCCESS_MEDICINE_BOXES_FETCHED,
+    ERROR_MEDICINE_BOXES_FETCH,
+    SUCCESS_MEDICINE_BOX_UPDATED,
+    ERROR_MEDICINE_BOX_UPDATE,
+    SUCCESS_MEDICINE_BOX_CREATED,
+    ERROR_MEDICINE_BOX_CREATE,
+)
 
 # Route pour récupérer les calendriers de l'utilisateur
 @api.route("/calendars", methods=["GET"])

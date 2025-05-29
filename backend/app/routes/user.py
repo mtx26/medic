@@ -2,9 +2,13 @@ from . import api
 from flask import request
 from app.utils.validators import verify_firebase_token
 from app.utils.response import success_response, error_response
-from app.utils.messages import *
 from app.services.user import fetch_user, update_existing_user, insert_new_user
 import time
+from app.utils.messages import (
+    SUCCESS_USER_INFO_FETCHED,
+    ERROR_USER_NOT_FOUND,
+)
+
 
 @api.route("/user/sync", methods=["POST"])
 def handle_user_sync():

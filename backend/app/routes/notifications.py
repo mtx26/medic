@@ -6,7 +6,21 @@ from app.db.connection import get_connection
 from flask import request
 import time
 from app.auth.fcm import send_fcm_notification
-from app.utils.messages import *
+from app.utils.messages import (
+    # Notifications
+    SUCCESS_NOTIFICATIONS_FETCHED,
+    ERROR_NOTIFICATIONS_FETCH,
+    WARNING_NOTIFICATION_NOT_FOUND,
+    SUCCESS_NOTIFICATION_READ,
+    ERROR_NOTIFICATION_READ,
+    SUCCESS_NOTIFICATION_SENT,
+
+    # FCM
+    ERROR_FCM_REGISTER,
+    SUCCESS_FCM_REGISTERED,
+    ERROR_FCM_SEND,
+)
+
 
 DEFAULT_PHOTO = "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/icons/person-circle.svg"
 
@@ -156,7 +170,12 @@ def register_token():
     uid = data.get("uid")
 
     if not token or not uid:
-        return error_response("Token ou UID manquant", code="MISSING_DATA")
+        return error_response(
+            message=ERROR_FCM_REGISTER, 
+            code="MISSING_DATA",
+            status_code=400,
+            origin="FCM_REGISTER"
+        )
 
     try:
         with get_connection() as conn:
@@ -170,7 +189,7 @@ def register_token():
                 conn.commit()
 
         return success_response(
-            message="Token FCM enregistré", 
+            message=SUCCESS_FCM_REGISTERED, 
             code="FCM_REGISTERED",
             uid=uid,
             origin="FCM_REGISTER",
@@ -179,7 +198,7 @@ def register_token():
 
     except Exception as e:
         return error_response(
-            message="Erreur d’enregistrement du token", 
+            message=ERROR_FCM_REGISTER, 
             code="FCM_REGISTER_ERROR",
             status_code=500,
             origin="FCM_REGISTER",
@@ -195,7 +214,7 @@ def send_notification():
 
     if not uid or not title or not body:
         return error_response(
-            message="Champs manquants", 
+            message=ERROR_FCM_SEND, 
             code="MISSING_DATA", 
             status_code=400, 
             origin="FCM_SEND"
@@ -208,7 +227,7 @@ def send_notification():
                 result = cursor.fetchone()
                 if not result:
                     return error_response(
-                        message="Aucun token FCM trouvé pour cet utilisateur", 
+                        message=ERROR_FCM_SEND, 
                         code="NO_TOKEN", 
                         status_code=404, 
                         uid=uid, 
@@ -220,7 +239,7 @@ def send_notification():
 
         if status_code == 200:
             return success_response(
-                message="Notification envoyée", 
+                message=SUCCESS_NOTIFICATION_SENT, 
                 code="NOTIFICATION_SENT", 
                 uid=uid, 
                 origin="FCM_SEND",
@@ -228,7 +247,7 @@ def send_notification():
             )
         else:
             return error_response(
-                message="Erreur FCM v1", 
+                message=ERROR_FCM_SEND, 
                 code="FCM_V1_ERROR", 
                 status_code=status_code, 
                 uid=uid, 
@@ -238,7 +257,7 @@ def send_notification():
 
     except Exception as e:
         return error_response(
-            message="Erreur lors de l’envoi", 
+            message=ERROR_FCM_SEND, 
             code="SEND_ERROR", 
             status_code=500, 
             uid=uid, 
