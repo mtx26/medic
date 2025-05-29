@@ -21,7 +21,7 @@ function AlertSystem({ type = "info", message, onClose, onConfirm = null, durati
 
   if (!message) return null;
 
-  const bootstrapType = type === "confirm-danger" ? "danger" : type === "confirm-safe" ? "success" : type;
+  const bootstrapType = type === "confirm-danger" ? "danger" : (type === "confirm-safe" ? "success" : type);
 
   return (
     <div className={`alert-wrapper ${visible ? 'show' : ''}`}>

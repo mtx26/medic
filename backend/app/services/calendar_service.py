@@ -119,12 +119,12 @@ def is_medication_due(med, current_date):
     try:
         start_date = med.get("start_date", "")
         if isinstance(start_date, date):
-            start_date = start_date
+            sd = start_date
         else:
-            start_date = current_date
+            sd = current_date
 
 
-        delta_days = (current_date - start_date).days
+        delta_days = (current_date - sd).days
 
         if delta_days < 0:
             return False
