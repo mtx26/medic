@@ -25,7 +25,7 @@ def check_low_stock_and_notify():
         results = cursor.fetchall()
 
         for result in results:
-            id = result.get("id")
+            id_box = result.get("id")
             calendar_id = result.get("calendar_id")
             name = result.get("name")
             qty = result.get("stock_quantity")
@@ -36,7 +36,7 @@ def check_low_stock_and_notify():
             body = f"Le médicament '{name}' est presque épuisé ({qty} restants)."
             
             # TODO: ajouter le lien pour ouvrir la boîte de médicament dans l'application
-            link = urljoin(Config.FRONTEND_URL, f"/medication/{id}")
+            link = urljoin(Config.FRONTEND_URL, f"/medication/{id_box}")
             try:
                 notify_and_record(
                     uid=owner_uid,
@@ -47,7 +47,7 @@ def check_low_stock_and_notify():
                     sender_uid=Config.SYSTEM_UID,
                     calendar_id=calendar_id
                 )
-                log_backend.info(f"✅ Notification de stock faible envoyée à {owner_uid} pour le médicament {id}", {"origin": "CRON", "code": "STOCK_CHECK_SUCCESS"})
+                log_backend.info(f"✅ Notification de stock faible envoyée à {owner_uid} pour le médicament {id_box}", {"origin": "CRON", "code": "STOCK_CHECK_SUCCESS"})
             except Exception as e:
                 log_backend.error(f"Erreur lors de l'envoi de la notification de stock faible à {owner_uid}: {e}", {"origin": "CRON", "code": "STOCK_CHECK_ERROR", "error": str(e)})
 
@@ -67,17 +67,17 @@ def decrease_stock():
                 results = cursor.fetchall()
 
                 for result in results:
-                    id = result.get("id")
+                    id_box = result.get("id")
                     name = result.get("name")
                     qty = result.get("stock_quantity")
                     calendar_id = result.get("calendar_id")
-                    cursor.execute("SELECT * FROM medicines WHERE box_id = %s", (id,))
+                    cursor.execute("SELECT * FROM medicines WHERE box_id = %s", (id_box,))
                     result = cursor.fetchall()
                     for r in result:
                         if is_medication_due(r, datetime.now().date()):
                             tablet_count = r.get("tablet_count")
                             new_qty = qty - tablet_count
-                            cursor.execute("UPDATE medicine_boxes SET stock_quantity = %s WHERE id = %s", (new_qty, id))
+                            cursor.execute("UPDATE medicine_boxes SET stock_quantity = %s WHERE id = %s", (new_qty, id_box))
 
             conn.commit()
 
