@@ -26,7 +26,7 @@ export default function HoveredUserProfile({ user, trigger, containerRef = null 
   return (
     <Popover.Root open={open} onOpenChange={setOpen}>
       <Popover.Trigger asChild>
-        <button
+        <span
           type="button"
           tabIndex={0}
           onClick={handleClick}
@@ -44,7 +44,7 @@ export default function HoveredUserProfile({ user, trigger, containerRef = null 
           >
             {trigger} <i className="bi bi-info-circle" style={{ fontSize: "0.9em", color: "#6c757d" }}></i>
           </span>
-        </button>
+        </span>
       </Popover.Trigger>
 
       <Popover.Portal container={containerRef?.current}>
@@ -81,7 +81,11 @@ export default function HoveredUserProfile({ user, trigger, containerRef = null 
 }
 
 HoveredUserProfile.propTypes = {
-  user: PropTypes.object.isRequired,
+  user: PropTypes.shape({
+    photo_url: PropTypes.string.isRequired,
+    display_name: PropTypes.string.isRequired,
+    email: PropTypes.string.isRequired,
+  }).isRequired,
   trigger: PropTypes.node.isRequired,
   containerRef: PropTypes.object,
 };
