@@ -7,6 +7,8 @@ from app.services.calendar_service import verify_calendar_share
 from app.services.medicines import update_medicines
 import time
 
+ERROR_CALENDAR_NOT_FOUND = "calendrier non trouvé"
+
 
 SELECT_SHARED_MEDICINES = "SELECT * FROM medicines WHERE calendar_id = %s"
 
@@ -77,7 +79,7 @@ def handle_update_shared_user_calendar_medicines(calendar_id):
 
         if not verify_calendar_share(calendar_id, receiver_uid):
             return warning_response(
-                message="aucun calendrier trouvé", 
+                message=ERROR_CALENDAR_NOT_FOUND, 
                 code="SHARED_USER_CALENDAR_MEDICINES_UPDATE_ERROR", 
                 status_code=404, 
                 uid=receiver_uid, 
@@ -118,7 +120,7 @@ def handle_delete_shared_user_calendar_medicines(calendar_id):
 
         if not verify_calendar_share(calendar_id, receiver_uid):
             return warning_response(
-                message="aucun calendrier trouvé",
+                message=ERROR_CALENDAR_NOT_FOUND,
                 code="SHARED_USER_CALENDAR_MEDICINES_DELETE_ERROR",
                 status_code=404,
                 uid=receiver_uid,

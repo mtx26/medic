@@ -7,6 +7,8 @@ from app.services.calendar_service import generate_schedule, generate_table
 import time
 from app.utils.response import success_response, error_response, warning_response
 
+ERROR_CALENDAR_NOT_FOUND = "calendrier non trouvé"
+
 # Route pour récupérer les calendriers de l'utilisateur
 @api.route("/calendars", methods=["GET"])
 def handle_calendars():
@@ -21,7 +23,7 @@ def handle_calendars():
 
                 if calendars is None:
                     return warning_response(
-                        message="aucun calendrier trouvé", 
+                        message=ERROR_CALENDAR_NOT_FOUND, 
                         code="CALENDAR_FETCH_ERROR", 
                         status_code=404, 
                         uid=uid, 
@@ -120,7 +122,7 @@ def handle_delete_calendar():
                 t_1 = time.time()
                 if calendar is None:
                     return warning_response(
-                        message="calendrier non trouvé", 
+                        message=ERROR_CALENDAR_NOT_FOUND, 
                         code="CALENDAR_DELETE_ERROR", 
                         status_code=404, 
                         uid=uid, 
@@ -168,7 +170,7 @@ def handle_rename_calendar():
 
                 if result is None:
                     return warning_response(
-                        message="calendrier non trouvé", 
+                        message=ERROR_CALENDAR_NOT_FOUND, 
                         code="CALENDAR_RENAME_ERROR", 
                         status_code=404, 
                         uid=uid, 
@@ -222,7 +224,7 @@ def handle_calendar_schedule(calendar_id):
                 calendar = cursor.fetchone()
                 if calendar is None:
                     return warning_response(
-                        message="calendrier non trouvé", 
+                        message=ERROR_CALENDAR_NOT_FOUND, 
                         code="CALENDAR_GENERATE_ERROR", 
                         status_code=404, 
                         uid=owner_uid, 

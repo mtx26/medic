@@ -8,6 +8,8 @@ from app.services.calendar_service import verify_calendar
 from app.services.medicines import update_medicines
 from app.utils.response import success_response, error_response, warning_response
 
+ERROR_UNAUTHORIZED_ACCESS = "accès refusé"
+
     
 MEDICINES_SELECT = "SELECT * FROM medicines WHERE calendar_id = %s"
 
@@ -21,8 +23,8 @@ def handle_get_medicines(calendar_id):
 
         if not verify_calendar(calendar_id, uid):
             return warning_response(
-                message="aucun calendrier trouvé",
-                code="CALENDAR_NOT_FOUND",
+                message=ERROR_UNAUTHORIZED_ACCESS,
+                code="UNAUTHORIZED_ACCESS",
                 status_code=404,
                 uid=uid,
                 origin="MED_FETCH",
@@ -75,8 +77,8 @@ def handle_update_medicines(calendar_id):
 
         if not verify_calendar(calendar_id, uid):
             return warning_response(
-                message="aucun calendrier trouvé",
-                code="CALENDAR_NOT_FOUND",
+                message=ERROR_UNAUTHORIZED_ACCESS,
+                code="UNAUTHORIZED_ACCESS",
                 status_code=404,
                 uid=uid,
                 origin="MED_UPDATE",
@@ -115,8 +117,8 @@ def handle_delete_medicines(calendar_id):
 
         if not verify_calendar(calendar_id, uid):
             return warning_response(
-                message="aucun calendrier trouvé",
-                code="CALENDAR_NOT_FOUND",
+                message=ERROR_UNAUTHORIZED_ACCESS,
+                code="UNAUTHORIZED_ACCESS",
                 status_code=404,
                 uid=uid,
                 origin="MED_DELETE",

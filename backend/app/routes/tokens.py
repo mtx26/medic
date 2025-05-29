@@ -8,6 +8,7 @@ from flask import request
 from app.db.connection import get_connection
 from app.services.calendar_service import generate_schedule, generate_table, verify_calendar, verify_token_owner, verify_token
 
+ERROR_UNAUTHORIZED_ACCESS = "accès refusé"
 
 # Route pour récupérer tous les tokens et les informations associées
 @api.route("/tokens", methods=["GET"])
@@ -120,7 +121,7 @@ def handle_update_revoke_token(token):
 
         if not verify_token_owner(token, owner_uid):
             return warning_response(
-                message="accès refusé", 
+                message=ERROR_UNAUTHORIZED_ACCESS, 
                 code="TOKEN_NOT_AUTHORIZED", 
                 status_code=403, 
                 uid=owner_uid, 
@@ -176,7 +177,7 @@ def handle_update_token_expiration(token):
 
         if not verify_token_owner(token, owner_uid):
             return warning_response(
-                message="accès refusé", 
+                message=ERROR_UNAUTHORIZED_ACCESS, 
                 code="TOKEN_NOT_AUTHORIZED", 
                 status_code=403, 
                 uid=owner_uid, 
@@ -222,7 +223,7 @@ def handle_update_token_permissions(token):
 
         if not verify_token_owner(token, owner_uid):
             return warning_response(
-                message="accès refusé", 
+                message=ERROR_UNAUTHORIZED_ACCESS, 
                 code="TOKEN_NOT_AUTHORIZED", 
                 status_code=403, 
                 uid=owner_uid, 
@@ -400,7 +401,7 @@ def handle_delete_token(token):
 
         if not verify_token_owner(token, owner_uid):
             return warning_response(
-                message="accès refusé", 
+                message=ERROR_UNAUTHORIZED_ACCESS, 
                 code="TOKEN_NOT_AUTHORIZED", 
                 status_code=403, 
                 uid=owner_uid, 
