@@ -27,7 +27,8 @@ export default function HoveredUserProfile({ user, trigger, containerRef = null 
     <Popover.Root open={open} onOpenChange={setOpen}>
       <Popover.Trigger asChild>
         <span
-          type="button"
+          role="button"
+          aria-label="Afficher le profil de l'utilisateur"
           tabIndex={0}
           onClick={handleClick}
           onPointerEnter={handleMouseEnter}
