@@ -2,13 +2,6 @@ from datetime import datetime, timedelta, date, timezone
 import calendar
 from app.utils.logger import log_backend as logger
 from app.db.connection import get_connection
-from app.utils.messages import (
-    WARNING_UNAUTHORIZED_ACCESS,
-    ERROR_SHARED_VERIFICATION,
-    ERROR_CALENDAR_VERIFY,
-    ERROR_TOKEN_VERIFY,
-    ERROR_TOKEN_OWNER_VERIFY,
-)
 
 def verify_calendar_share(calendar_id : str, receiver_uid : str) -> bool:
     try:
@@ -22,7 +15,7 @@ def verify_calendar_share(calendar_id : str, receiver_uid : str) -> bool:
                 cursor.execute("SELECT * FROM shared_calendars WHERE calendar_id = %s AND receiver_uid = %s", (calendar_id, receiver_uid,))
                 shared_calendar = cursor.fetchone()
                 if not shared_calendar:
-                    logger.warning(WARNING_UNAUTHORIZED_ACCESS, {
+                    logger.warning("accès refusé", {
                         "origin": "SHARED_VERIFY",
                         "uid": receiver_uid,
                         "calendar_id": calendar_id,
@@ -32,7 +25,7 @@ def verify_calendar_share(calendar_id : str, receiver_uid : str) -> bool:
                 return True
 
     except Exception as e:
-        logger.error(ERROR_SHARED_VERIFICATION, {
+        logger.error("erreur lors de la vérification de l'accès au calendrier partagé", {
             "origin": "SHARED_VERIFY_ERROR",
             "uid": receiver_uid,
             "calendar_id": calendar_id, 
@@ -52,7 +45,7 @@ def verify_calendar(calendar_id : str, uid : str) -> bool:
                 return True
 
     except Exception as e:
-        logger.error(ERROR_CALENDAR_VERIFY, {
+        logger.error("erreur lors de la vérification de l'accès au calendrier", {
             "origin": "CALENDAR_VERIFY_ERROR",
             "uid": uid,
             "calendar_id": calendar_id,
@@ -92,7 +85,7 @@ def verify_token(token : str) -> bool:
                 return calendar_id
 
     except Exception as e:
-        logger.error(ERROR_TOKEN_VERIFY, {
+        logger.error("erreur lors de la vérification du token", {
             "origin": "TOKEN_VERIFY_ERROR",
             "token": token,
             "error": str(e)
@@ -114,7 +107,7 @@ def verify_token_owner(token : str, uid : str) -> bool:
                 return True
 
     except Exception as e:
-        logger.error(ERROR_TOKEN_OWNER_VERIFY, {
+        logger.error("erreur lors de la vérification de la propriété du token", {
             "origin": "TOKEN_OWNER_VERIFY_ERROR",
             "token": token,
             "error": str(e)
@@ -138,7 +131,7 @@ def is_medication_due(med, current_date):
 
         return delta_days % med["interval_days"] == 0
     except Exception as e:
-        logger.error(f"Erreur lors de la vérification de la date de prise du médicament: {e}", {
+        logger.error(f"erreur lors de la vérification de la date de prise du médicament: {e}", {
             "origin": "MEDICATION_DUE_ERROR",
             "error": str(e)
         })
