@@ -26,13 +26,20 @@ export default function HoveredUserProfile({ user, trigger, containerRef = null 
   return (
     <Popover.Root open={open} onOpenChange={setOpen}>
       <Popover.Trigger asChild>
-        <span
-          role="button"
-          aria-label="Afficher le profil de l'utilisateur"
-          tabIndex={0}
+        <button
+          type="button"
           onClick={handleClick}
           onPointerEnter={handleMouseEnter}
           onPointerLeave={handleMouseLeave}
+          className="bg-transparent border-0 p-0 m-0 d-inline-flex align-items-center gap-1 text-start"
+          aria-label="Afficher le profil de l'utilisateur"
+          style={{
+            textDecoration: open ? "underline" : "none",
+            color: open ? "#0d6efd" : "inherit",
+            cursor: "pointer",
+            font: "inherit",
+            lineHeight: "inherit",
+          }}
         >
           <span 
             style={{
@@ -45,7 +52,7 @@ export default function HoveredUserProfile({ user, trigger, containerRef = null 
           >
             {trigger} <i className="bi bi-info-circle" style={{ fontSize: "0.9em", color: "#6c757d" }}></i>
           </span>
-        </span>
+        </button>
       </Popover.Trigger>
 
       <Popover.Portal container={containerRef?.current}>
