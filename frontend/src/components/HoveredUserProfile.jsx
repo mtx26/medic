@@ -26,34 +26,25 @@ export default function HoveredUserProfile({ user, trigger, containerRef = null 
   return (
     <Popover.Root open={open} onOpenChange={setOpen}>
       <Popover.Trigger asChild>
-      <span
-        role="button"
-        tabIndex={0}
-        onClick={handleClick}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            handleClick();
-          }
-        }}
-        onPointerEnter={handleMouseEnter}
-        onPointerLeave={handleMouseLeave}
-        aria-pressed={open}
-        aria-label="Afficher les infos de l'utilisateur"
-        style={{ cursor: 'pointer' }}
-      >
-        <span 
-          style={{
-            cursor: "pointer",
-            textDecoration: open ? "underline" : "none",
-            color: open ? "#0d6efd" : "inherit",
-            transition: "color 0.2s, text-decoration 0.2s"
-          }}
-          className="d-flex align-items-center gap-1"
+        <a
+          role="button"
+          tabIndex={0}
+          onClick={handleClick}
+          onPointerEnter={handleMouseEnter}
+          onPointerLeave={handleMouseLeave}
         >
-          {trigger} <i className="bi bi-info-circle" style={{ fontSize: "0.9em", color: "#6c757d" }}></i>
-        </span>
-      </span>
+          <span 
+            style={{
+              cursor: "pointer",
+              textDecoration: open ? "underline" : "none",
+              color: open ? "#0d6efd" : "inherit",
+              transition: "color 0.2s, text-decoration 0.2s"
+            }}
+            className="d-flex align-items-center gap-1"
+          >
+            {trigger} <i className="bi bi-info-circle" style={{ fontSize: "0.9em", color: "#6c757d" }}></i>
+          </span>
+        </a>
       </Popover.Trigger>
 
       <Popover.Portal container={containerRef?.current}>
