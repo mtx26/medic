@@ -155,11 +155,10 @@ function BoxesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
               )}
             </div>
           ))}
-          <div 
-            className="col-12 col-md-6 mb-3"
-            onClick={() => {
-              addBox();
-            }}
+          <button
+            type="button"
+            onClick={() => addBox()}
+            className="col-12 col-md-6 mb-3 btn p-0 border-0 bg-transparent text-start"
             style={{ cursor: 'pointer' }}
           >
             <div className="card h-100 shadow-sm border border-success">
@@ -167,7 +166,7 @@ function BoxesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
                 <i className="bi bi-plus-circle text-success fs-1"></i>
               </div>
             </div>
-          </div>
+          </button>
         </div>
 
         {boxes.length === 0 && (

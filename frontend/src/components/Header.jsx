@@ -14,30 +14,24 @@ function Navbar({ sharedProps }) {
   const location = useLocation();
 
   const [calendarName, setCalendarName] = useState(null);
-  const [calendarType, setCalendarType] = useState(null);
-  const [calendarUrl, setCalendarUrl] = useState(null);
+  const [calendarId, setCalendarId] = useState(null);
+  const [basePath, setBasePath] = useState(null);
 
   useEffect(() => {
-    if (location.pathname.startsWith("/calendar/")) {
-      setCalendarType("personal");
-      setCalendarUrl(location.pathname);
+    if (location.pathname.startsWith("/calendar/") && sharedProps.personalCalendars.calendarsData) {
+      setBasePath('calendar');
+      setCalendarName(sharedProps.personalCalendars.calendarsData.find(calendar => calendar.id === location.pathname.split("/")[2]).name);
+      setCalendarId(sharedProps.personalCalendars.calendarsData.find(calendar => calendar.id === location.pathname.split("/")[2]).id);
+    } else if (location.pathname.startsWith("/shared-user-calendar/") && sharedProps.sharedUserCalendars.calendarsData) {
+      setBasePath('shared-user-calendar');
+      setCalendarName(sharedProps.sharedUserCalendars.calendarsData.find(calendar => calendar.id === location.pathname.split("/")[2]).name);
+      setCalendarId(sharedProps.sharedUserCalendars.calendarsData.find(calendar => calendar.id === location.pathname.split("/")[2]).id);
+    } else {
+      setCalendarName(null);
+      setCalendarId(null);
+      setBasePath(null);
     }
-    if (location.pathname.startsWith("/shared-user-calendar/")) {
-      setCalendarType("shared");
-      setCalendarUrl(location.pathname);
-    }
-  }, [location.pathname]);
-  
-
-  useEffect(() => {
-    if (calendarType === "personal" && sharedProps.personalCalendars.calendarsData) {
-      setCalendarName(sharedProps.personalCalendars.calendarsData.find(calendar => calendar.id === calendarUrl.split("/")[2]).name);
-    }
-    if (calendarType === "shared" && sharedProps.sharedUserCalendars.calendarsData) {
-      setCalendarName(sharedProps.sharedUserCalendars.calendarsData.find(calendar => calendar.id === calendarUrl.split("/")[2]).name);
-    }
-  }, [sharedProps.personalCalendars.calendarsData, sharedProps.sharedUserCalendars.calendarsData]);
-
+  }, [location.pathname, sharedProps.personalCalendars.calendarsData, sharedProps.sharedUserCalendars.calendarsData]);
 
   const { notificationsData, readNotification } = sharedProps.notifications;
   const { acceptInvitation, rejectInvitation } = sharedProps.sharedUserCalendars;
@@ -52,13 +46,13 @@ function Navbar({ sharedProps }) {
             <i className="bi bi-capsule"></i> MediTime
           </Link>
 
-          {calendarName && (
+          {calendarName && basePath && calendarId && (
             <>
               <a
-                href={`${calendarUrl}/${calendarId}`}
+                href={`/${basePath}/${calendarId}`}
                 onClick={(e) => {
                   e.preventDefault();
-                  navigate(`${calendarUrl}/${calendarId}`);
+                  navigate(`/${basePath}/${calendarId}`);
                 }}
                 className="flex-grow-1 d-none d-lg-flex justify-content-center text-decoration-none text-dark"
               >
@@ -66,10 +60,10 @@ function Navbar({ sharedProps }) {
               </a>
 
               <a
-                href={`${calendarUrl}/${calendarId}`}
+                href={`/${basePath}/${calendarId}`}
                 onClick={(e) => {
                   e.preventDefault();
-                  navigate(`${calendarUrl}/${calendarId}`);
+                  navigate(`/${basePath}/${calendarId}`);
                 }}
                 className="d-flex align-items-center d-lg-none text-decoration-none text-dark"
               >

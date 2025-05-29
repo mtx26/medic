@@ -251,13 +251,6 @@ function App() {
   // Fonction pour obtenir le calendrier lier au calendarId
   const fetchPersonalCalendarSchedule = useCallback(async (calendarId, startDate = null) => {
     try {
-      if (!calendarId) {
-        log.warn("Nom de calendrier non fourni, calendrier non chargé.", {
-          origin: "CALENDAR_NAME_NOT_PROVIDED",
-          "uid": auth.currentUser.uid,
-        });
-        return { success: false, error: "Nom de calendrier non fourni, calendrier non chargé.", code: "CALENDAR_NAME_NOT_PROVIDED" };
-      }
       if (!startDate) {
         startDate = formatToLocalISODate(new Date());
       }
