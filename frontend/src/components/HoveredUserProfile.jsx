@@ -26,8 +26,8 @@ export default function HoveredUserProfile({ user, trigger, containerRef = null 
   return (
     <Popover.Root open={open} onOpenChange={setOpen}>
       <Popover.Trigger asChild>
-        <a
-          role="button"
+        <button
+          type="button"
           tabIndex={0}
           onClick={handleClick}
           onPointerEnter={handleMouseEnter}
@@ -44,7 +44,7 @@ export default function HoveredUserProfile({ user, trigger, containerRef = null 
           >
             {trigger} <i className="bi bi-info-circle" style={{ fontSize: "0.9em", color: "#6c757d" }}></i>
           </span>
-        </a>
+        </button>
       </Popover.Trigger>
 
       <Popover.Portal container={containerRef?.current}>
