@@ -111,172 +111,14 @@ function Navbar({ sharedProps }) {
                     <li className="dropdown-item text-muted fs-6">Chargement des notifications...</li>
                   )}
                   {notificationsData !== null && notificationsData.filter(notif => !notif.read).slice(0, 5).map((notif) => (
-                    <div key={notif.notification_id}>
-                      {notif.notification_type === "calendar_invitation" && (
-                        <li
-                          key={notif.notification_id}
-                          className="dropdown-item py-2 fs-6 bg-light border-start border-4 border-primary p-2 rounded"
-                        >
-                          <button
-                            onClick={() => readNotification(notif.notification_id)}
-                            className="btn btn-link text-start text-dark p-0 m-0 w-100"
-                            title="Marquer comme lu"
-                          >
-                            <div className="d-flex flex-column">
-                              <p className="mb-0">
-                                <i className="bi bi-person-plus-fill me-2 text-primary"></i>
-                                <HoveredUserProfile
-                                  user={{
-                                    photo_url: notif.sender_photo_url,
-                                    display_name: notif.sender_name,
-                                    email: notif.sender_email
-                                  }}
-                                  trigger={<strong>{notif.sender_name}</strong>}
-                                />
-                                {" "}vous invite à rejoindre son calendrier <strong>{notif.calendar_name}</strong>
-                              </p>
-
-                              <div className="d-flex gap-2">
-                                <button 
-                                  className="btn btn-sm btn-outline-primary" 
-                                  onClick={async () => {
-                                    await acceptInvitation(notif.notification_id)
-                                    navigate(`/shared-user-calendar/${notif.calendar_id}`)
-                                  }}
-                                >
-                                  Accepter
-                                </button>
-                                <button 
-                                  className="btn btn-sm btn-outline-danger" 
-                                  onClick={() => rejectInvitation(notif.notification_id)}
-                                >
-                                  Rejeter
-                                </button>
-                              </div>
-                              <small 
-                                className="text-muted"
-                              >
-                                {new Date(notif.timestamp).toLocaleString('fr-FR', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                              </small>
-                            </div>
-                          </button>
-                        </li>
-                      )}
-                      {notif.notification_type === "calendar_invitation_accepted" && (
-                        <li
-                          key={notif.notification_id}
-                          className="dropdown-item py-2 fs-6 bg-light border-start border-4 border-primary p-2 rounded"
-                        >
-                          <button
-                            onClick={() => readNotification(notif.notification_id)}
-                            className="btn btn-link text-start text-dark p-0 m-0 w-100"
-                            title="Marquer comme lu"
-                          >
-                            <p className="mb-0">
-                              <i className="bi bi-check-circle-fill me-2 text-success"></i>
-                              <HoveredUserProfile
-                                user={{
-                                  photo_url: notif.sender_photo_url,
-                                  display_name: notif.sender_name,
-                                  email: notif.sender_email
-                                }}
-                                trigger={<strong>{notif.sender_name}</strong>}
-                              />
-                              {" "}a accepté votre invitation pour rejoindre le calendrier <strong>{notif.calendar_name}</strong>
-                            </p>
-                            <small 
-                              className="text-muted"
-                            >
-                              {new Date(notif.timestamp).toLocaleString('fr-FR', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                            </small>
-                          </button>
-                        </li>
-                      )}
-                      {notif.notification_type === "calendar_invitation_rejected" && (
-                        <li
-                          key={notif.notification_id}
-                          className="dropdown-item py-2 fs-6 bg-light border-start border-4 border-primary p-2 rounded"
-                        >
-                          <button
-                            onClick={() => readNotification(notif.notification_id)}
-                            className="btn btn-link text-start text-dark p-0 m-0 w-100"
-                            title="Marquer comme lu"
-                          >
-                            <p className="mb-0">
-                              <i className="bi bi-x-circle-fill me-2 text-danger"></i>
-                              <HoveredUserProfile
-                                user={{
-                                  photo_url: notif.sender_photo_url,
-                                  display_name: notif.sender_name,
-                                  email: notif.sender_email
-                                }}
-                                trigger={<strong>{notif.sender_name}</strong>}
-                              />
-                              {" "}a rejeté votre invitation pour rejoindre le calendrier <strong>{notif.calendar_name}</strong>
-                            </p>
-                            <small 
-                              className="text-muted"
-                            >
-                              {new Date(notif.timestamp).toLocaleString('fr-FR', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                            </small>
-                          </button>
-                        </li>
-                      )}
-                      {notif.notification_type === "calendar_shared_deleted_by_owner" && (
-                        <li
-                          key={notif.notification_id}
-                          className="dropdown-item py-2 fs-6 bg-light border-start border-4 border-primary p-2 rounded"
-                        >
-                          <button
-                            onClick={() => readNotification(notif.notification_id)}
-                            className="btn btn-link text-start text-dark p-0 m-0 w-100"
-                            title="Marquer comme lu"
-                          >
-                            <p className="mb-0">
-                              <i className="bi bi-trash-fill me-2 text-danger"></i>
-                              <HoveredUserProfile
-                                user={{
-                                  photo_url: notif.sender_photo_url,
-                                  display_name: notif.sender_name,
-                                  email: notif.sender_email
-                                }}
-                                trigger={<strong>{notif.sender_name}</strong>}
-                              />
-                              {" "}a arrêté de partager le calendrier <strong>{notif.calendar_name}</strong> avec vous
-                            </p>
-                            <small 
-                              className="text-muted"
-                            >
-                              {new Date(notif.timestamp).toLocaleString('fr-FR', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                            </small>
-                          </button>
-                        </li>
-                      )}
-                      {notif.notification_type === "calendar_shared_deleted_by_receiver" && (
-                        <li 
-                          key={notif.notification_id} 
-                          className="dropdown-item py-2 fs-6 bg-light border-start border-4 border-primary p-2 rounded"
-                        >
-                          <p className="mb-0">
-                            <i className="bi bi-trash-fill me-2 text-danger"></i>
-                            <HoveredUserProfile
-                              user={{
-                                photo_url: notif.sender_photo_url,
-                                display_name: notif.sender_name,
-                                email: notif.sender_email
-                              }}
-                              trigger={<strong>{notif.sender_name}</strong>}
-                            />
-                            {" "}a retiré le calendrier <strong>{notif.calendar_name}</strong> que vous lui aviez partagé.
-                          </p>
-                          <small 
-                            className="text-muted"
-                          >
-                            {new Date(notif.timestamp).toLocaleString('fr-FR', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                          </small>
-                        </li>
-                      )}
-                    </div>
+                    <NotificationLine
+                      key={notif.notification_id}
+                      notif={notif}
+                      onRead={readNotification}
+                      onAccept={acceptInvitation}
+                      onReject={rejectInvitation}
+                      navigate={navigate}
+                    />
                   ))}
                   {notificationsData !== null && notificationsData.filter(notif => !notif.read).length === 0 && (
                     <li className="dropdown-item text-muted fs-6">Aucune nouvelle notification</li>
@@ -382,6 +224,110 @@ function Navbar({ sharedProps }) {
     </>
   );
 }
+
+function NotificationLine({ notif, onRead, onAccept, onReject, navigate }) {
+  const isUnread = !notif.read;
+  const timestamp = new Date(notif.timestamp).toLocaleString("fr-FR", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  const user = (
+    <HoveredUserProfile
+      user={{
+        photo_url: notif.sender_photo_url,
+        display_name: notif.sender_name,
+        email: notif.sender_email,
+      }}
+      trigger={<strong>{notif.sender_name}</strong>}
+    />
+  );
+
+  const iconStyle = { verticalAlign: "middle" };
+
+  let icon = null;
+  let message = null;
+  let actions = null;
+
+  switch (notif.notification_type) {
+    case "calendar_invitation":
+      icon = <i className="bi bi-person-plus-fill text-primary me-2" style={iconStyle}></i>;
+      if (!notif.accepted) {
+        message = <>{user} vous invite à rejoindre le calendrier <strong>{notif.calendar_name}</strong></>;
+        actions = (
+          <div className="mt-2">
+            <button
+              className="btn btn-sm btn-outline-success me-2"
+              onClick={async (e) => {
+                e.stopPropagation();
+                await onAccept(notif.notification_id);
+                navigate(`/shared-user-calendar/${notif.calendar_id}`);
+              }}
+            >
+              <i className="bi bi-check-circle-fill me-2 text-success"></i> Accepter
+            </button>
+            <button
+              className="btn btn-sm btn-outline-danger"
+              onClick={(e) => {
+                e.stopPropagation();
+                onReject(notif.notification_id);
+              }}
+            >
+              <i className="bi bi-x-circle-fill me-2 text-danger"></i> Rejeter
+            </button>
+          </div>
+        );
+      } else {
+        message = <>Vous avez rejoint le calendrier <strong>{notif.calendar_name}</strong> de {user}</>;
+      }
+      break;
+
+    case "calendar_invitation_accepted":
+      icon = <i className="bi bi-check-circle-fill text-success me-2" style={iconStyle}></i>;
+      message = <>{user} a accepté votre invitation pour rejoindre le calendrier <strong>{notif.calendar_name}</strong></>;
+      break;
+
+    case "calendar_invitation_rejected":
+      icon = <i className="bi bi-x-circle-fill text-danger me-2" style={iconStyle}></i>;
+      message = <>{user} a refusé votre invitation pour rejoindre le calendrier <strong>{notif.calendar_name}</strong></>;
+      break;
+
+    case "calendar_shared_deleted_by_owner":
+      icon = <i className="bi bi-trash-fill text-danger me-2" style={iconStyle}></i>;
+      message = <>{user} a arrêté de partager le calendrier <strong>{notif.calendar_name}</strong> avec vous</>;
+      break;
+
+    case "calendar_shared_deleted_by_receiver":
+      icon = <i className="bi bi-trash-fill text-danger me-2" style={iconStyle}></i>;
+      message = <>{user} a retiré le calendrier <strong>{notif.calendar_name}</strong></>;
+      break;
+
+    default:
+      return null;
+  }
+
+  return (
+    <li
+      className={`list-group-item list-group-item-action border-0 border-start border-4 ${
+        isUnread ? "bg-unread border-primary p-2 rounded" : "bg-light text-muted"
+      }`}
+      onClick={() => isUnread && onRead(notif.notification_id)}
+      style={isUnread ? { cursor: "pointer" } : {}}
+      title={isUnread ? "Marquer comme lue" : ""}
+    >
+      <p className="mb-0">
+        {icon}
+        {message}
+      </p>
+      {actions}
+      <small className="text-muted d-block mt-2">{timestamp}</small>
+    </li>
+  );
+}
+
 
 export default Navbar;
 
