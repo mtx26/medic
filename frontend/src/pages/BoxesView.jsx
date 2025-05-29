@@ -203,6 +203,8 @@ function BoxCard({
   restockBox,
   deleteBox
 }) {
+  const editable = selectedModifyBox === box.id;
+
   return (
     <div className={`card h-100 shadow-sm border ${ box.box_capacity === 0
       ? ''
@@ -240,56 +242,26 @@ function BoxCard({
         </h5>
 
         <div className="d-flex mb-2 gap-2">
-          <div className="w-50">
-            <small className="text-muted">Capacité de la boîte</small><br />
-            {selectedModifyBox && selectedModifyBox === box.id ? (
-              <input
-                type="number"
-                className="form-control form-control-sm w-75"
-                defaultValue={box.box_capacity}
-                onChange={(e) => {
-                  setModifyBoxCapacity((prev) => ({ ...prev, [box.id]: e.target.value }));
-                }}
-                required
-              />
-            ) : (
-              <strong>{box.box_capacity}</strong>
-            )}
-          </div>
-          <div className="w-50">
-            <small className="text-muted">Seuil d’alerte</small><br />
-            {selectedModifyBox && selectedModifyBox === box.id ? (
-              <input
-                type="number"
-                className="form-control form-control-sm w-75"
-                defaultValue={box.stock_alert_threshold}
-                onChange={(e) => {
-                  setModifyBoxStockAlertThreshold((prev) => ({ ...prev, [box.id]: e.target.value }));
-                }}
-                required
-              />
-            ) : (
-              <strong>{box.stock_alert_threshold}</strong>
-            )}
-          </div>
+          <BoxField 
+            label="Capacité de la boîte" 
+            value={box.box_capacity} 
+            editable={editable} 
+            onChange={(e) => setModifyBoxCapacity((prev) => ({ ...prev, [box.id]: e.target.value }))} 
+          />
+          <BoxField 
+            label="Seuil d’alerte" 
+            value={box.stock_alert_threshold} 
+            editable={editable} 
+            onChange={(e) => setModifyBoxStockAlertThreshold((prev) => ({ ...prev, [box.id]: e.target.value }))} 
+          />
         </div>
         <div className="d-flex mb-2 gap-2 align-items-center">
-          <div className="w-50">
-          <small className="text-muted">Quantité restante</small><br />
-            {selectedModifyBox && selectedModifyBox === box.id ? (
-              <input
-                type="number"
-                className="form-control form-control-sm w-75"
-                defaultValue={box.stock_quantity}
-                onChange={(e) => {
-                  setModifyBoxStockQuantity((prev) => ({ ...prev, [box.id]: e.target.value }));
-                }}
-                required
-              />
-            ) : (
-              <strong>{box.stock_quantity}</strong>
-            )}
-          </div>
+          <BoxField 
+            label="Quantité restante" 
+            value={box.stock_quantity} 
+            editable={editable} 
+            onChange={(e) => setModifyBoxStockQuantity((prev) => ({ ...prev, [box.id]: e.target.value }))} 
+          />
           {(!selectedModifyBox || selectedModifyBox !== box.id) && (
             <div className="w-50">
               <button 
@@ -305,17 +277,7 @@ function BoxCard({
         </div>
 
         {(!selectedModifyBox || selectedModifyBox !== box.id) && (
-          <>
-            {box.stock_quantity > 0 && box.stock_quantity > box.stock_alert_threshold && box.box_capacity !== 0 && (
-              <span className="badge bg-success"><i className="bi bi-check-circle"></i> Stock élevé</span>
-            )}
-            {box.stock_quantity > 0 && box.stock_quantity <= box.stock_alert_threshold && box.box_capacity !== 0 && (
-              <span className="badge bg-warning"><i className="bi bi-exclamation-triangle"></i> Stock bas</span>
-            )}
-            {box.stock_quantity <= 0 && box.box_capacity !== 0 && (
-              <span className="badge bg-danger"><i className="bi bi-exclamation-triangle"></i> Stock épuisé</span>
-            )}
-          </>
+          <StockBadge box={box} />
         )}
         {selectedModifyBox && selectedModifyBox === box.id && (
           <div className="d-flex gap-2">
@@ -353,5 +315,40 @@ function BoxCard({
     </div>
   );
 }
+
+function BoxField({ label, value, editable, onChange }) {
+  return (
+    <div className="w-50">
+      <small className="text-muted">{label}</small><br />
+      {editable ? (
+        <input
+          type="number"
+          className="form-control form-control-sm w-75"
+          defaultValue={value}
+          onChange={onChange}
+          required
+        />
+      ) : (
+        <strong>{value}</strong>
+      )}
+    </div>
+  );
+}
+
+function StockBadge({ box }) {
+  if (box.box_capacity === 0) return null;
+
+  if (box.stock_quantity <= 0) {
+    return <span className="badge bg-danger"><i className="bi bi-exclamation-triangle" /> Stock épuisé</span>;
+  }
+
+  if (box.stock_quantity <= box.stock_alert_threshold) {
+    return <span className="badge bg-warning"><i className="bi bi-exclamation-triangle" /> Stock bas</span>;
+  }
+
+  return <span className="badge bg-success"><i className="bi bi-check-circle" /> Stock élevé</span>;
+}
+
+
 
 export default BoxesView;
