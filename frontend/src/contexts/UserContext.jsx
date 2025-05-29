@@ -61,9 +61,14 @@ export const UserProvider = ({ children }) => {
 
   useEffect(() => {
     const current = auth.currentUser;
-    if (current) {
-      reloadUser();
-    }
+  
+    const handleInitialReload = async () => {
+      if (current) {
+        await reloadUser();
+      }
+    };
+  
+    handleInitialReload();
   
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) await reloadUser();
@@ -74,7 +79,7 @@ export const UserProvider = ({ children }) => {
     });
   
     return () => unsubscribe();
-  }, []);  
+  }, []);
 
   return (
     <UserContext.Provider value={{ userInfo }}>

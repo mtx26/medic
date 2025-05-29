@@ -111,20 +111,21 @@ function Auth() {
           >
             {activeTab === "register" && (
               <div className="mb-3">
-                <label className="form-label">Nom complet</label>
+                <label htmlFor="name" className="form-label">Nom complet</label>
                 <input
                   type="text"
                   className="form-control"
                   id="name"
                   required
                   value={name}
+                  autoComplete="name"
                   onChange={(e) => setName(e.target.value)}
                 />
               </div>
             )}
 
             <div className="mb-3">
-              <label className="form-label">Adresse e-mail</label>
+              <label htmlFor="email" className="form-label">Adresse e-mail</label>
               <input
                 type="email"
                 className="form-control"
@@ -137,7 +138,7 @@ function Auth() {
             </div>
 
             <div className="mb-3 position-relative">
-              <label className="form-label">Mot de passe</label>
+              <label htmlFor="password" className="form-label">Mot de passe</label>
               <input
                 type={passwordVisible ? "text" : "password"}
                 className="form-control"
@@ -149,8 +150,17 @@ function Auth() {
               />
               <i
                 className={`bi bi-${passwordVisible ? "eye-slash" : "eye"} position-absolute`}
+                role="button"
+                tabIndex="0"
+                aria-label={passwordVisible ? "Masquer le mot de passe" : "Afficher le mot de passe"}
                 style={{ top: "38px", right: "15px", cursor: "pointer", color: "#6c757d" }}
                 onClick={() => setPasswordVisible(!passwordVisible)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setPasswordVisible(!passwordVisible);
+                  }
+                }}
               ></i>
             </div>
 

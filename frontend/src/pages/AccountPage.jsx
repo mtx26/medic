@@ -105,9 +105,19 @@ const AccountPage = () => {
             />
             <i
               className={`bi bi-${oldPasswordVisible ? "eye-slash" : "eye"} position-absolute`}
+              role="button"
+              tabIndex="0"
+              aria-label={oldPasswordVisible ? "Masquer le mot de passe" : "Afficher le mot de passe"}
               style={{ top: "38px", right: "15px", cursor: "pointer", color: "#6c757d" }}
               onClick={() => setOldPasswordVisible(!oldPasswordVisible)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setOldPasswordVisible(!oldPasswordVisible);
+                }
+              }}
             ></i>
+
           </div>
 
           {/* Nouveau mot de passe */}
@@ -126,8 +136,17 @@ const AccountPage = () => {
             />
             <i
               className={`bi bi-${newPasswordVisible ? "eye-slash" : "eye"} position-absolute`}
+              role="button"
+              tabIndex="0"
+              aria-label={newPasswordVisible ? "Masquer le mot de passe" : "Afficher le mot de passe"}
               style={{ top: "38px", right: "15px", cursor: "pointer", color: "#6c757d" }}
               onClick={() => setNewPasswordVisible(!newPasswordVisible)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setNewPasswordVisible(!newPasswordVisible);
+                }
+              }}
             ></i>
           </div>
 
