@@ -30,8 +30,17 @@ export default function HoveredUserProfile({ user, trigger, containerRef = null 
         role="button"
         tabIndex={0}
         onClick={handleClick}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleClick();
+          }
+        }}
         onPointerEnter={handleMouseEnter}
         onPointerLeave={handleMouseLeave}
+        aria-pressed={open}
+        aria-label="Afficher les infos de l'utilisateur"
+        style={{ cursor: 'pointer' }}
       >
         <span 
           style={{
