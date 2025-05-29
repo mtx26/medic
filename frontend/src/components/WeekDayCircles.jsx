@@ -13,15 +13,15 @@ export default function WeekDayCircles({ selectedDate, onSelectDate }) {
         const isToday = day === today;
 
         const baseClass = `
-          rounded-circle border mx-1 position-relative
-          ${isToday
-            ? (isSelected
-                ? 'bg-warning text-white border-primary border-3'
-                : 'bg-warning text-white border-warning border-3')
+        rounded-circle border mx-1 position-relative
+        ${
+          isToday
+            ? `bg-success text-white border-3 border-${isSelected ? 'primary' : 'success'}`
             : (isSelected
                 ? 'bg-primary text-white border-primary border-3'
-                : 'bg-light text-dark')}
-        `;
+                : 'bg-light text-dark')
+        }
+      `;
 
         return (
           <div
