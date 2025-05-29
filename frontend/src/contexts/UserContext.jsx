@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect } from "react";
+import { createContext, useState, useEffect, useCallback } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "../services/firebase";
 import { log } from "../utils/logger";
@@ -13,19 +13,19 @@ export const UserProvider = ({ children }) => {
     JSON.parse(localStorage.getItem("userInfo")) || null
   );
 
-  const reloadUser = async (name, photoURL) => {
+  const reloadUser = useCallback(async (name, photoURL) => {
     const user = auth.currentUser;
     if (!user) return;
 
     try {
       const token = await user.getIdToken();
-
       const body = {
         uid: user.uid,
         display_name: name || user.displayName || null,
         email: user.email,
         photo_url: photoURL || user.photoURL || null,
       };
+
       const res = await fetch(`${API_URL}/api/user/sync`, {
         method: "POST",
         headers: {
@@ -34,6 +34,7 @@ export const UserProvider = ({ children }) => {
         },
         body: JSON.stringify(body),
       });
+
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Erreur API Supabase");
 
@@ -50,36 +51,38 @@ export const UserProvider = ({ children }) => {
       setUserInfo(info);
       localStorage.setItem("userInfo", JSON.stringify(info));
     } catch (error) {
-      log.error("[UserContext] Erreur lors du chargement API :", {
+      log.error("[UserContext] Erreur lors du chargement API", {
         error,
         origin: "USER_CONTEXT_RELOAD_USER_ERROR",
       });
     }
-  };
+  }, []);
 
-  globalReloadUser = reloadUser;
+  useEffect(() => {
+    globalReloadUser = reloadUser;
+  }, [reloadUser]);
 
   useEffect(() => {
     const current = auth.currentUser;
-  
-    const handleInitialReload = async () => {
-      if (current) {
+    if (current) {
+      (async () => {
         await reloadUser();
-      }
-    };
-  
-    handleInitialReload();
-  
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) await reloadUser();
-      else {
+      })();
+    }
+
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        (async () => {
+          await reloadUser();
+        })();
+      } else {
         setUserInfo(null);
         localStorage.removeItem("userInfo");
       }
     });
-  
+
     return () => unsubscribe();
-  }, []);
+  }, [reloadUser]);
 
   return (
     <UserContext.Provider value={{ userInfo }}>

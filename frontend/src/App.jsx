@@ -62,13 +62,13 @@ function App() {
         if (analytics) {
           logEvent(analytics, 'add_calendar', {
             calendarName: calendarName,
-            uid: auth.currentUser.uid,
+            uid: userInfo.uid,
           });
         }
       });
       log.info(data.message, {
         origin: "CALENDAR_CREATE_SUCCESS",
-        "uid": auth.currentUser.uid,
+        "uid": userInfo.uid,
         "calendarName": calendarName,
       });
       return { success: true, message: data.message, code: data.code };
@@ -76,7 +76,7 @@ function App() {
 
       log.error(err.message || "Erreur lors de la création du calendrier", err, {
         origin: "CALENDAR_CREATE_ERROR",
-        "uid": auth.currentUser.uid,
+        "uid": userInfo.uid,
         "calendarName": calendarName,
       });
       return { success: false, error: err.message, code: err.code };
@@ -101,20 +101,20 @@ function App() {
         if (analytics) {
           logEvent(analytics, 'delete_calendar', {
             calendarId: calendarId,
-            uid: auth.currentUser.uid,
+            uid: userInfo.uid,
           });
         }
       });
       log.info(data.message, {
         origin: "CALENDAR_DELETE_SUCCESS",
-        "uid": auth.currentUser.uid,
+        "uid": userInfo.uid,
         "calendarId": calendarId,
       });
       return { success: true, message: data.message, code: data.code };
     } catch (err) {
       log.error(err.message || "Erreur lors de la suppression du calendrier", err, {
         origin: "CALENDAR_DELETE_ERROR",
-        "uid": auth.currentUser.uid,
+        "uid": userInfo.uid,
         "calendarId": calendarId,
       });
       return { success: false, error: err.message, code: err.code };
@@ -141,14 +141,14 @@ function App() {
         if (analytics) {
           logEvent(analytics, 'rename_calendar', {
             calendarId: calendarId,
-            uid: auth.currentUser.uid,
+            uid: userInfo.uid,
             newCalendarName: newCalendarName,
           });
         }
       });
       log.info(data.message, {
         origin: "CALENDAR_RENAME_SUCCESS",
-        "uid": auth.currentUser.uid,
+        "uid": userInfo.uid,
         "calendarId": calendarId,
         "newCalendarName": newCalendarName,
       });
@@ -156,7 +156,7 @@ function App() {
     } catch (err) {
       log.error(err.message || "Erreur lors du renommage du calendrier", err, {
         origin: "CALENDAR_RENAME_ERROR",
-        "uid": auth.currentUser.uid,
+        "uid": userInfo.uid,
         "calendarId": calendarId,
         "newCalendarName": newCalendarName,
       });
@@ -182,14 +182,14 @@ function App() {
         if (analytics) {
           logEvent(analytics, 'fetch_personal_calendar_medicine_count', {
             calendarId: calendarId,
-            uid: auth.currentUser.uid,
+            uid: userInfo.uid,
             count: data.count,
           });
         }
       });
       log.info(data.message, {
         origin: "MED_COUNT_SUCCESS",
-        "uid": auth.currentUser.uid,
+        "uid": userInfo.uid,
         "calendarId": calendarId,
         "count": data.count,
       });
@@ -197,7 +197,7 @@ function App() {
     } catch (err) {
       log.error(err.message || "Erreur lors de la récupération du nombre de médicaments", err, {
         origin: "MED_COUNT_ERROR",
-        "uid": auth.currentUser.uid,
+        "uid": userInfo.uid,
         "calendarId": calendarId,
       });
       return { success: false, error: err.message, code: err.code };
@@ -220,14 +220,14 @@ function App() {
         if (analytics) {
           logEvent(analytics, 'fetch_shared_user_calendar_medicine_count', {
             calendarId: calendarId,
-            uid: auth.currentUser.uid,
+            uid: userInfo.uid,
             count: data.count,
           });
         }
       });
       log.info(data.message, {
         origin: "MED_SHARED_COUNT_SUCCESS",
-        "uid": auth.currentUser.uid,
+        "uid": userInfo.uid,
         "calendarId": calendarId,
         "ownerUid": ownerUid,
         "count": data.count,
@@ -236,7 +236,7 @@ function App() {
     } catch (err) {
       log.error(err.message || "Erreur lors de la récupération du nombre de médicaments partagé", err, {
         origin: "MED_SHARED_COUNT_ERROR",
-        "uid": auth.currentUser.uid,
+        "uid": userInfo.uid,
         "calendarId": calendarId,
         "ownerUid": ownerUid,
       });
@@ -268,7 +268,7 @@ function App() {
         if (analytics) {
           logEvent(analytics, 'fetch_personal_calendar_schedule', {
             calendarId: calendarId,
-            uid: auth.currentUser.uid,
+            uid: userInfo.uid,
             count: data.count,
           });
         }
@@ -276,7 +276,7 @@ function App() {
 
       log.info(data.message, {
         origin: "CALENDAR_FETCH_SUCCESS",
-        "uid": auth.currentUser.uid,
+        "uid": userInfo?.uid,
         "eventCount": data.schedule?.length,
         "calendarId": calendarId,
       });
@@ -284,7 +284,7 @@ function App() {
     } catch (err) {
       log.error(err.message || "Erreur lors de la récupération du calendrier", err, {
         origin: "CALENDAR_FETCH_ERROR",
-        "uid": auth.currentUser.uid,
+        "uid": userInfo?.uid,
         "calendarId": calendarId,
         "startDate": startDate,
       });
@@ -313,7 +313,7 @@ function App() {
         if (analytics) {
           logEvent(analytics, 'update_personal_calendar_medicines', {
             calendarId: calendarId,
-            uid: auth.currentUser.uid,
+            uid: userInfo.uid,
             changes: changes,
           });
         }
@@ -323,7 +323,7 @@ function App() {
     
       log.info(data.message, {
         origin: "MED_UPDATE_SUCCESS",
-        "uid": auth.currentUser.uid,
+        "uid": userInfo.uid,
         "count": changes?.length,
         "calendarId": calendarId,
       });
@@ -331,7 +331,7 @@ function App() {
     } catch (err) {
       log.error(err.message || "Erreur lors de la modification des médicaments", err, {
         origin: "MED_UPDATE_ERROR",
-        "uid": auth.currentUser.uid,
+        "uid": userInfo.uid,
         "calendarId": calendarId,
       });
       return { success: false, error: err.message, code: err.code };
@@ -357,7 +357,7 @@ function App() {
         if (analytics) {
           logEvent(analytics, 'delete_personal_calendar_medicines', {
             calendarId: calendarId,
-            uid: auth.currentUser.uid,
+            uid: userInfo.uid,
             checked: checked,
           });
         }
@@ -366,7 +366,7 @@ function App() {
       const medicinesSortedByName = data.medicines ? data.medicines.sort((a, b) => a.name.localeCompare(b.name)) : [];
       log.info(data.message, {
         origin: "MED_DELETE_SUCCESS",
-        "uid": auth.currentUser.uid,
+        "uid": userInfo.uid,
         "calendarId": calendarId,
         "count": checked.length,
       });
@@ -374,7 +374,7 @@ function App() {
     } catch (err) {
       log.error(err.message || "Erreur lors de la suppression des médicaments", err, {
         origin: "MED_DELETE_ERROR",
-        "uid": auth.currentUser.uid,
+        "uid": userInfo.uid,
         "calendarId": calendarId,
       });
       return {success: false, error: err.message, code: err.code};
@@ -412,11 +412,24 @@ function App() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
+      analyticsPromise.then((analytics) => {
+        if (analytics) {
+          logEvent(analytics, 'update_personal_box', {
+            calendarId: calendarId,
+            uid: userInfo.uid,
+          });
+        }
+      });
+      log.info(data.message, {
+        origin: "BOX_UPDATE_SUCCESS",
+        "uid": userInfo.uid,
+        "calendarId": calendarId,
+      });
       return {success: true, message: data.message, code: data.code};
     } catch (err) {
       log.error(err.message || "Erreur lors de la modification de la boîte", err, {
         origin: "BOX_UPDATE_ERROR",
-        "uid": auth.currentUser.uid,
+        "uid": userInfo.uid,
         "calendarId": calendarId,
       });
       return {success: false, error: err.message, code: err.code};
@@ -437,11 +450,24 @@ function App() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
+      analyticsPromise.then((analytics) => {
+        if (analytics) {
+          logEvent(analytics, 'create_personal_box', {
+            calendarId: calendarId,
+            uid: userInfo.uid,
+          });
+        }
+      });
+      log.info(data.message, {
+        origin: "BOX_CREATE_SUCCESS",
+        "uid": userInfo.uid,
+        "calendarId": calendarId,
+      });
       return {success: true, boxId: data.box_id, message: data.message, code: data.code};
     } catch (err) {
       log.error(err.message || "Erreur lors de la création de la boîte", err, {
         origin: "BOX_CREATE_ERROR",
-        "uid": auth.currentUser.uid,
+        "uid": userInfo.uid,
         "calendarId": calendarId,
       });
       return {success: false, error: err.message, code: err.code};
@@ -461,11 +487,24 @@ function App() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
+      analyticsPromise.then((analytics) => {
+        if (analytics) {
+          logEvent(analytics, 'delete_personal_box', {
+            calendarId: calendarId,
+            uid: userInfo.uid,
+          });
+        }
+      });
+      log.info(data.message, {
+        origin: "BOX_DELETE_SUCCESS",
+        "uid": userInfo.uid,
+        "calendarId": calendarId,
+      });
       return {success: true, message: data.message, code: data.code};
     } catch (err) {
       log.error(err.message || "Erreur lors de la suppression de la boîte", err, {
         origin: "BOX_DELETE_ERROR",
-        "uid": auth.currentUser.uid,
+        "uid": userInfo.uid,
         "calendarId": calendarId,
       });
       return {success: false, error: err.message, code: err.code};
@@ -492,7 +531,6 @@ function App() {
         if (analytics) {
           logEvent(analytics, 'fetch_token_calendar_schedule', {
             token: token,
-            uid: auth.currentUser.uid,
             count: data.schedule?.length,
           });
         }
@@ -530,7 +568,6 @@ function App() {
         if (analytics) {
           logEvent(analytics, 'create_token', {
             calendarId: calendarId,
-            uid: auth.currentUser.uid,
             token: data.token,
           });
         }
@@ -566,18 +603,20 @@ function App() {
         if (analytics) {
           logEvent(analytics, 'delete_token', {
             token: token,
-            uid: auth.currentUser.uid,
+            uid: userInfo.uid,
           });
         }
       });
       log.info(data.message, {
         origin: "SHARED_CALENDAR_DELETE_SUCCESS",
+        "uid": userInfo.uid,
         "token": token,
       });
       return {success: true, message: data.message, code: data.code};
     } catch (err) {
       log.error(err.message || "Échec de suppression du lien de partage", err, {
         origin: "SHARED_CALENDAR_DELETE_ERROR",
+        "uid": userInfo.uid,
         "token": token,
       });
       return {success: false, error: err.message, code: err.code};
@@ -600,19 +639,21 @@ function App() {
         if (analytics) {
           logEvent(analytics, 'update_revoke_token', {
             token: token,
-            uid: auth.currentUser.uid,
+            uid: userInfo.uid,
           });
         }
       });
       log.info(data.message, {
         origin: "TOKEN_REVOKE_SUCCESS",
         "token": token,
+        "uid": userInfo.uid,
       });
       return {success: true, message: data.message, code: data.code};
     } catch (err) {
       log.error(err.message || "Échec de révoquer le token", err, {
         origin: "TOKEN_REVOKE_ERROR",
         "token": token,
+        "uid": userInfo.uid,
       });
       return {success: false, error: err.message, code: err.code};
     }
@@ -635,7 +676,7 @@ function App() {
         if (analytics) {
           logEvent(analytics, 'update_token_expiration', {
             token: token,
-            uid: auth.currentUser.uid,
+            uid: userInfo.uid,
             expiresAt: expiresAt,
           });
         }
@@ -644,12 +685,14 @@ function App() {
         origin: "TOKEN_EXPIRATION_UPDATE_SUCCESS",
         "token": token,
         "expiresAt": expiresAt,
+        "uid": userInfo.uid,
       });
       return {success: true, message: data.message, code: data.code};
     } catch (err) {
       log.error(err.message || "Échec de mise à jour de l'expiration du token", err, {
         origin: "TOKEN_EXPIRATION_UPDATE_ERROR",
         "token": token,
+        "uid": userInfo.uid,
       });
       return {success: false, error: err.message, code: err.code};
     }
@@ -672,7 +715,7 @@ function App() {
         if (analytics) {
           logEvent(analytics, 'update_token_permissions', {
             token: token,
-            uid: auth.currentUser.uid,
+            uid: userInfo.uid,
             permissions: permissions,
           });
         }
@@ -681,12 +724,14 @@ function App() {
         origin: "TOKEN_PERMISSIONS_UPDATE_SUCCESS",
         "token": token,
         "permissions": permissions,
+        "uid": userInfo.uid,
       });
       return {success: true, message: data.message, code: data.code};
     } catch (err) {
       log.error(err.message || "Erreur lors de la mise à jour des permissions du token", err, {
         origin: "TOKEN_PERMISSIONS_UPDATE_ERROR",
         "token": token,
+        "uid": userInfo.uid,
       });
       return {success: false, error: err.message, code: err.code};
     }
@@ -713,7 +758,7 @@ function App() {
         if (analytics) {
           logEvent(analytics, 'send_invitation', {
             email: email,
-            uid: auth.currentUser.uid,
+            uid: userInfo.uid,
             calendarId: calendarId,
           });
         }
@@ -722,6 +767,7 @@ function App() {
         origin: "INVITATION_SEND_SUCCESS",
         email,
         calendarId,
+        "uid": userInfo.uid,
       });
       return {success: true, message: data.message, code: data.code};
     } catch (err) {
@@ -729,6 +775,7 @@ function App() {
         origin: "INVITATION_SEND_ERROR",
         email,
         calendarId,
+        "uid": userInfo.uid,
       });
       return {success: false, error: err.message, code: err.code};
     }
@@ -750,19 +797,21 @@ function App() {
         if (analytics) {
           logEvent(analytics, 'accept_invitation', {
             notificationId: notificationId,
-            uid: auth.currentUser.uid,
+            uid: userInfo.uid,
           });
         }
       });
       log.info(data.message, {
         origin: "INVITATION_ACCEPT_SUCCESS",
         notificationId,
+        "uid": userInfo.uid,
       });
       return {success: true, message: data.message, code: data.code};
     } catch (err) {
       log.error(err.message || "Échec d'acceptation de l'invitation", err, {
         origin: "INVITATION_ACCEPT_ERROR",
         notificationId,
+        "uid": userInfo.uid,
       });
       return {success: false, error: err.message, code: err.code};
     }
@@ -784,19 +833,21 @@ function App() {
         if (analytics) {
           logEvent(analytics, 'reject_invitation', {
             notificationId: notificationId,
-            uid: auth.currentUser.uid,
+            uid: userInfo.uid,
           });
         }
       });
       log.info(data.message, {
         origin: "INVITATION_REJECT_SUCCESS",
         notificationId,
+        "uid": userInfo.uid,
       });
       return {success: true, message: data.message, code: data.code};
     } catch (err) {
       log.error(err.message || "Échec de rejet de l'invitation", err, {
         origin: "INVITATION_REJECT_ERROR",
         notificationId,
+        "uid": userInfo.uid,
       });
       return {success: false, error: err.message, code: err.code};
     }
@@ -818,19 +869,21 @@ function App() {
         if (analytics) {
           logEvent(analytics, 'read_notification', {
             notificationId: notificationId,
-            uid: auth.currentUser.uid,
+            uid: userInfo.uid,
           });
         }
       });
       log.info(data.message, {
         origin: "NOTIFICATION_READ_SUCCESS",
         notificationId,
+        "uid": userInfo.uid,
       });
       return {success: true, message: data.message, code: data.code};
     } catch (err) {
       log.error(err.message || "Échec de marquer la notification comme lue", err, {
         origin: "NOTIFICATION_READ_ERROR",
         notificationId,
+        "uid": userInfo.uid,
       });
       return {success: false, error: err.message, code: err.code};
     }
@@ -855,19 +908,21 @@ function App() {
         if (analytics) {
           logEvent(analytics, 'delete_shared_calendar', {
             calendarId: calendarId,
-            uid: auth.currentUser.uid,
+            uid: userInfo.uid,
           });
         }
       });
       log.info(data.message, {
         origin: "SHARED_CALENDAR_DELETE_SUCCESS",
         calendarId,
+        "uid": userInfo.uid,
       });
       return {success: true, message: data.message, code: data.code};
     } catch (err) {
       log.error(err.message || "Échec de suppression du calendrier partagé", err, {
         origin: "SHARED_CALENDAR_DELETE_ERROR",
         calendarId,
+        "uid": userInfo.uid,
       });
       return {success: false, error: err.message, code: err.code};
     }
@@ -898,12 +953,14 @@ function App() {
         origin: "SHARED_USERS_FETCH_SUCCESS",
         count: data?.users?.length,
         calendarId,
+        "uid": userInfo.uid,
       });
       return {success: true, message: data.message, code: data.code, users: data.users};
     } catch (err) {
       log.error(err.message || "Échec de récupération des utilisateurs partagés", err, {
         origin: "SHARED_USERS_FETCH_ERROR",
         calendarId,
+        "uid": userInfo.uid,
       });
       return {success: false, error: err.message, code: err.code};
     }
@@ -925,7 +982,7 @@ function App() {
         if (analytics) {
           logEvent(analytics, 'delete_shared_user', {
             calendarId: calendarId,
-            uid: auth.currentUser.uid,
+            uid: userInfo.uid,
             userId: userId,
           });
         }
@@ -934,6 +991,7 @@ function App() {
         origin: "SHARED_USER_DELETE_SUCCESS",
         calendarId,
         userId,
+        "uid": userInfo.uid,
       });
       return {success: true, message: data.message, code: data.code};
     } catch (err) {
@@ -941,6 +999,7 @@ function App() {
         origin: "SHARED_USER_DELETE_ERROR",
         calendarId,
         userId,
+        "uid": userInfo.uid,
       });
       return {success: false, error: err.message, code: err.code};
     }
@@ -965,7 +1024,7 @@ function App() {
         if (analytics) {
           logEvent(analytics, 'fetch_shared_user_calendar_schedule', {
             calendarId: calendarId,
-            uid: auth.currentUser.uid,
+            uid: userInfo.uid,
             count: data.schedule?.length,
           });
         }
@@ -974,6 +1033,7 @@ function App() {
         origin: "SHARED_USER_CALENDAR_FETCH_SUCCESS",
         calendarId,
         startDate,
+        "uid": userInfo.uid,
       });
       return {success: true, message: data.message, code: data.code, schedule: data.schedule, calendarName: data.calendar_name, table: data.table};
     } catch (err) {
@@ -981,6 +1041,7 @@ function App() {
         origin: "SHARED_USER_CALENDAR_FETCH_ERROR",
         calendarId,
         startDate,
+        "uid": userInfo.uid,
       });
       return {success: false, error: err.message, code: err.code, schedule: [], calendarName: "", table: {}};
     }
@@ -1006,7 +1067,7 @@ function App() {
         if (analytics) {
           logEvent(analytics, 'update_shared_user_calendar_medicines', {
             calendarId: calendarId,
-            uid: auth.currentUser.uid,
+            uid: userInfo.uid,
             medicinesData: medicinesSortedByName,
           });
         }
@@ -1014,12 +1075,14 @@ function App() {
       log.info(data.message, {
         origin: "SHARED_USER_CALENDAR_MEDICINES_UPDATE_SUCCESS",
         calendarId,
+        "uid": userInfo.uid,
       });
       return {success: true, message: data.message, code: data.code, medicinesData: medicinesSortedByName, originalMedicinesData: JSON.parse(JSON.stringify(medicinesSortedByName))};
     } catch (err) {
       log.error(err.message || "Échec de mise à jour des médicaments du calendrier partagé par un utilisateur", err, {
         origin: "SHARED_USER_CALENDAR_MEDICINES_UPDATE_ERROR",
         calendarId,
+        "uid": userInfo.uid,
       });
       return {success: false, error: err.message, code: err.code};
     }
@@ -1045,7 +1108,7 @@ function App() {
         if (analytics) {
           logEvent(analytics, 'delete_shared_user_calendar_medicines', {
             calendarId: calendarId,
-            uid: auth.currentUser.uid,
+            uid: userInfo.uid,
             medicinesData: medicinesSortedByName,
           });
         }
@@ -1053,12 +1116,14 @@ function App() {
       log.info(data.message, {
         origin: "SHARED_USER_CALENDAR_MEDICINES_DELETE_SUCCESS",
         calendarId,
+        "uid": userInfo.uid,
       });
       return {success: true, message: data.message, code: data.code, medicinesData: medicinesSortedByName, originalMedicinesData: JSON.parse(JSON.stringify(medicinesSortedByName))};
     } catch (err) {
       log.error(err.message || "Échec de suppression des médicaments du calendrier partagé par un utilisateur", err, {
         origin: "SHARED_USER_CALENDAR_MEDICINES_DELETE_ERROR",
         calendarId,
+        "uid": userInfo.uid,
       });
       return {success: false, error: err.message, code: err.code, medicinesData: [], originalMedicinesData: []};
     }
@@ -1078,12 +1143,26 @@ function App() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
+      analyticsPromise.then((analytics) => {
+        if (analytics) {
+          logEvent(analytics, 'update_shared_user_box', {
+            calendarId: calendarId,
+            uid: userInfo.uid,
+          });
+        }
+      });
+      log.info(data.message, {
+        origin: "SHARED_BOX_UPDATE_SUCCESS",
+        calendarId,
+        "uid": userInfo.uid,
+      });
       return {success: true, message: data.message, code: data.code};
     } catch (err) {
       log.error(err.message || "Échec de mise à jour de la boite de médicaments partagée", err, {
         origin: "SHARED_BOX_UPDATE_ERROR",
         calendarId,
         boxId,
+        "uid": userInfo.uid,
       });
       return {success: false, error: err.message, code: err.code};
     }
@@ -1103,11 +1182,24 @@ function App() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
+      analyticsPromise.then((analytics) => {
+        if (analytics) {
+          logEvent(analytics, 'create_shared_user_box', {
+            calendarId: calendarId,
+            uid: userInfo.uid,
+          });
+        }
+      });
+      log.info(data.message, {
+        origin: "SHARED_BOX_CREATE_SUCCESS",
+        calendarId,
+        "uid": userInfo.uid,
+      });
       return {success: true, boxId: data.box_id, message: data.message, code: data.code};
     } catch (err) {
       log.error(err.message || "Échec de création de la boite de médicaments", err, {
         origin: "SHARED_BOX_CREATE_ERROR",
-        "uid": auth.currentUser.uid,
+        "uid": userInfo.uid,
         "calendarId": calendarId,
       });
       return {success: false, error: err.message, code: err.code};
@@ -1126,6 +1218,19 @@ function App() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
+      analyticsPromise.then((analytics) => {
+        if (analytics) {
+          logEvent(analytics, 'delete_shared_user_box', {
+            calendarId: calendarId,
+            uid: userInfo.uid,
+          });
+        }
+      });
+      log.info(data.message, {
+        origin: "SHARED_BOX_DELETE_SUCCESS",
+        calendarId,
+        "uid": userInfo.uid,
+      });
       return {success: true, message: data.message, code: data.code};
     } catch (err) {
       log.error(err.message || "Erreur lors de la suppression de la boîte", err, {

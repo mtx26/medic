@@ -17,6 +17,7 @@ import 'bootstrap/dist/css/bootstrap.css';
 import DateModal from '../components/DateModal';
 import WeekCalendarSelector from '../components/WeekCalendarSelector';
 import WeeklyEventContent from '../components/WeeklyEventContent';
+import { auth } from '../services/firebase';
 
 
 function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
@@ -135,29 +136,35 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
   
   // Fonction pour charger le calendrier lorsque l'utilisateur est connecté
   useEffect(() => {
-    if (!userInfo || !calendarId) return;
+    if (!calendarId) return;
+    if (calendarType === 'personal' || calendarType === 'sharedUser') {
+      if (!userInfo) {
+        setLoading(undefined);
+        return;
+      }
+      if (!auth?.currentUser) {
+        setLoading(undefined);
+        return;
+      }
+    }
     const load = async () => {
-      if (calendarType === 'token' || userInfo) {
-        const rep = await calendarSource.fetchSchedule(calendarId);
-        if (rep.success) {
-          if (!isEqual(rep.schedule, calendarEvents)) {
-            setCalendarEvents(rep.schedule);
-          }
-          if (!isEqual(rep.table, calendarTable)) {
-            setCalendarTable(rep.table);
-          }
-          if (!isEqual(rep.calendarName, calendarName)) {
-            setCalendarName(rep.calendarName);
-          }
+      const rep = await calendarSource.fetchSchedule(calendarId);
+      if (rep.success) {
+        if (!isEqual(rep.schedule, calendarEvents)) {
+          setCalendarEvents(rep.schedule);
+        }
+        if (!isEqual(rep.table, calendarTable)) {
+          setCalendarTable(rep.table);
+        }
+        if (!isEqual(rep.calendarName, calendarName)) {
+          setCalendarName(rep.calendarName);
         }
         setLoading(!rep.success);
-      } else {
-        setLoading(true);
       }
     };
 
     load();
-  }, [userInfo, calendarId, calendarType, calendarSource.fetchSchedule]);
+  }, [calendarId, calendarSource.fetchSchedule, userInfo, auth?.currentUser]);
 
 
   // 📍 Filtrage des événements pour un jour spécifique
