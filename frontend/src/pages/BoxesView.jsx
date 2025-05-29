@@ -12,7 +12,6 @@ function BoxesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
   const [loadingBoxes, setLoadingBoxes] = useState(undefined);
   const [alertMessage, setAlertMessage] = useState('');
   const [alertType, setAlertType] = useState('');
-  const [alertBoxId, setAlertBoxId] = useState(null);
   const [selectedModifyBox, setSelectedModifyBox] = useState(null);
   const [modifyBoxName, setModifyBoxName] = useState({});
   const [modifyBoxCapacity, setModifyBoxCapacity] = useState({});
@@ -55,7 +54,6 @@ function BoxesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
       setAlertMessage("❌ " + res.error);
       setAlertType('danger');
     }
-    setAlertBoxId(selectedModifyBox);
     setSelectedModifyBox(null);
   };
 
@@ -80,6 +78,17 @@ function BoxesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
     const res = await calendarSource.createBox(calendarId, 'Nouvelle boîte');
     if (res.success) {
       setSelectedModifyBox(res.boxId);
+    }
+  }
+
+  const deleteBox = async (boxId) => {
+    const res = await calendarSource.deleteBox(calendarId, boxId);
+    if (res.success) {
+      setAlertMessage("✅ " + res.message);
+      setAlertType('success');
+    } else {
+      setAlertMessage("❌ " + res.error);
+      setAlertType('danger');
     }
   }
 
@@ -124,7 +133,7 @@ function BoxesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
             setAlertType('');
           }}
         />
-        <div className="row">
+        <div className="row row-cols-1 row-cols-md-2 g-4">
           {boxes.map((box) => (
 
             <div className="col-12 col-md-6 mb-3" key={box.id}>
@@ -139,6 +148,7 @@ function BoxesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
                     setModifyBoxStockAlertThreshold={setModifyBoxStockAlertThreshold}
                     setModifyBoxStockQuantity={setModifyBoxStockQuantity}
                     restockBox={restockBox}
+                    deleteBox={deleteBox}
                   />
                 </form>
               ) : (
@@ -151,22 +161,25 @@ function BoxesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
                   setModifyBoxStockAlertThreshold={setModifyBoxStockAlertThreshold}
                   setModifyBoxStockQuantity={setModifyBoxStockQuantity}
                   restockBox={restockBox}
+                  deleteBox={deleteBox}
                 />
               )}
             </div>
           ))}
-          <button
-            type="button"
-            onClick={() => addBox()}
-            className="col-12 col-md-6 mb-3 btn p-0 border-0 bg-transparent text-start"
-            style={{ cursor: 'pointer' }}
-          >
-            <div className="card h-100 shadow-sm border border-success">
-              <div className="card-body d-flex flex-column justify-content-center align-items-center">
-                <i className="bi bi-plus-circle text-success fs-1"></i>
+          <div className="col-12 col-md-6 mb-3">
+            <button
+              type="button"
+              onClick={() => addBox()}
+              className="btn p-0 border-0 bg-transparent text-start h-100 w-100"
+              style={{ cursor: 'pointer' }}
+            >
+              <div className="card h-100 shadow-sm border border-success">
+                <div className="card-body d-flex flex-column justify-content-center align-items-center">
+                  <i className="bi bi-plus-circle text-success fs-1"></i>
+                </div>
               </div>
-            </div>
-          </button>
+            </button>
+          </div>
         </div>
 
         {boxes.length === 0 && (
@@ -187,7 +200,8 @@ function BoxCard({
   setModifyBoxCapacity, 
   setModifyBoxStockAlertThreshold, 
   setModifyBoxStockQuantity,
-  restockBox
+  restockBox,
+  deleteBox
 }) {
   return (
     <div className={`card h-100 shadow-sm border ${ box.box_capacity === 0
@@ -199,7 +213,7 @@ function BoxCard({
         : '' }`}>
       <div className="card-body position-relative">
         <div className="position-absolute top-0 end-0 m-2">
-          {!selectedModifyBox && (
+          {(!selectedModifyBox || selectedModifyBox !== box.id) && (
             <button 
               type="button"
               className="btn btn-secondary btn-sm rounded-circle"
@@ -276,7 +290,7 @@ function BoxCard({
               <strong>{box.stock_quantity}</strong>
             )}
           </div>
-          {!selectedModifyBox && (
+          {(!selectedModifyBox || selectedModifyBox !== box.id) && (
             <div className="w-50">
               <button 
                 className="btn btn-outline-success"
@@ -290,7 +304,7 @@ function BoxCard({
           )}
         </div>
 
-        {!selectedModifyBox && (
+        {(!selectedModifyBox || selectedModifyBox !== box.id) && (
           <>
             {box.stock_quantity > 0 && box.stock_quantity > box.stock_alert_threshold && box.box_capacity !== 0 && (
               <span className="badge bg-success"><i className="bi bi-check-circle"></i> Stock élevé</span>
@@ -322,6 +336,15 @@ function BoxCard({
                 setModifyBoxStockQuantity(0);
               }}>
               <i className="bi bi-x"></i> Annuler
+            </button>
+            <button 
+              type="button"
+              className="btn btn-danger btn-sm"
+              onClick={() => {
+                deleteBox(box.id);
+              }}
+            >
+              <i className="bi bi-trash"></i> Supprimer
             </button>
           </div>
         )}

@@ -418,3 +418,35 @@ def handle_create_box(calendar_id):
             error=str(e),
             log_extra={"calendar_id": calendar_id}
         )
+
+# Route pour supprimer une boite de médicaments
+@api.route("/calendars/<calendar_id>/boxes/<box_id>", methods=["DELETE"])
+def handle_delete_box(calendar_id, box_id):
+    try:
+        t_0 = time.time()
+        user = verify_firebase_token()
+        uid = user["uid"]
+
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("DELETE FROM medicine_boxes WHERE id = %s AND calendar_id = %s", (box_id, calendar_id))
+                conn.commit()
+        t_1 = time.time()
+        return success_response(
+            message="boite de médicaments supprimée",
+            code="MEDICINE_BOX_DELETED",
+            uid=uid,
+            origin="DELETE_MEDICINE_BOX",
+            log_extra={"time": t_1 - t_0, "calendar_id": calendar_id, "box_id": box_id}
+        )
+
+    except Exception as e:
+        return error_response(
+            message="erreur lors de la suppression de la boite de médicaments",
+            code="DELETE_MEDICINE_BOX_ERROR",
+            status_code=500,
+            uid=uid,
+            origin="DELETE_MEDICINE_BOX",
+            error=str(e),
+            log_extra={"calendar_id": calendar_id, "box_id": box_id}
+        )

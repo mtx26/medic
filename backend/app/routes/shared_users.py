@@ -674,3 +674,46 @@ def handle_create_shared_box(calendar_id):
             error=str(e),
             log_extra={"calendar_id": calendar_id}
         )
+
+# Route pour supprimer une boite de médicaments d'un calendrier partagé
+@api.route("/shared/users/calendars/<calendar_id>/boxes/<box_id>", methods=["DELETE"])
+def handle_delete_shared_box(calendar_id, box_id):
+    try:
+        t_0 = time.time()
+        user = verify_firebase_token()
+        uid = user["uid"]
+
+        if not verify_calendar_share(calendar_id, uid):
+            return warning_response(
+                message=ERROR_UNAUTHORIZED_ACCESS,
+                code="SHARED_BOXES_DELETE_ERROR",
+                status_code=403,
+                uid=uid,
+                origin="SHARED_BOXES_DELETE"
+            )
+
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("DELETE FROM medicine_boxes WHERE id = %s AND calendar_id = %s", (box_id, calendar_id))
+                conn.commit()
+                t_1 = time.time()
+
+        return success_response(
+            message="boite de médicaments supprimée",
+            code="SHARED_BOXES_DELETE_SUCCESS",
+            uid=uid,
+            origin="SHARED_BOXES_DELETE",
+            log_extra={"calendar_id": calendar_id, "box_id": box_id, "time": t_1 - t_0}
+        )
+
+    except Exception as e:
+        return error_response(
+            message="erreur lors de la suppression de la boite de médicaments",
+            code="SHARED_BOXES_DELETE_ERROR",
+            status_code=500,
+            uid=uid,
+            origin="SHARED_BOXES_DELETE",
+            error=str(e),
+            log_extra={"calendar_id": calendar_id, "box_id": box_id}
+        )
+    

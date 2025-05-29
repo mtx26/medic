@@ -448,7 +448,29 @@ function App() {
     }
   }, []);
   
-  
+  // Fonction pour supprimer une boîte
+  const deletePersonalBox = useCallback(async (calendarId, boxId) => {
+    try {
+      const token = await auth.currentUser.getIdToken();
+      const res = await fetch(`${API_URL}/api/calendars/${calendarId}/boxes/${boxId}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      return {success: true, message: data.message, code: data.code};
+    } catch (err) {
+      log.error(err.message || "Erreur lors de la suppression de la boîte", err, {
+        origin: "BOX_DELETE_ERROR",
+        "uid": auth.currentUser.uid,
+        "calendarId": calendarId,
+      });
+      return {success: false, error: err.message, code: err.code};
+    }
+  }, []);
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1091,7 +1113,30 @@ function App() {
       return {success: false, error: err.message, code: err.code};
     }
   }, []);
-  
+
+  // Fonction pour supprimer une boîte
+  const deleteSharedUserBox = useCallback(async (calendarId, boxId) => {
+    try {
+      const token = await auth.currentUser.getIdToken();
+      const res = await fetch(`${API_URL}/api/shared/users/calendars/${calendarId}/boxes/${boxId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      return {success: true, message: data.message, code: data.code};
+    } catch (err) {
+      log.error(err.message || "Erreur lors de la suppression de la boîte", err, {
+        origin: "SHARED_BOX_DELETE_ERROR",
+        "uid": auth.currentUser.uid,
+        "calendarId": calendarId,
+      });
+      return {success: false, error: err.message, code: err.code};
+    }
+  }, []);
+
 
   const sharedProps = {
     personalCalendars: {
@@ -1107,6 +1152,7 @@ function App() {
       setCalendarsData,
       updatePersonalBox,
       createPersonalBox,
+      deletePersonalBox,
     },
   
     sharedUserCalendars: {
@@ -1125,6 +1171,7 @@ function App() {
       setSharedCalendarsData,
       updateSharedUserBox,
       createSharedUserBox,
+      deleteSharedUserBox,
     },
   
     tokenCalendars: {
