@@ -6,27 +6,6 @@ from app.db.connection import get_connection
 from app.services.calendar_service import generate_schedule, generate_table
 import time
 from app.utils.response import success_response, error_response, warning_response
-from app.utils.messages import (
-    SUCCESS_CALENDARS_FETCHED,
-    ERROR_CALENDARS_FETCH,
-    SUCCESS_CALENDAR_CREATED,
-    ERROR_CALENDAR_CREATE,
-    ERROR_CALENDAR_NAME_MISSING,
-    SUCCESS_CALENDAR_DELETED,
-    ERROR_CALENDAR_DELETE,
-    WARNING_CALENDAR_INVALID_ID,
-    WARNING_CALENDAR_NOT_FOUND,
-    SUCCESS_CALENDAR_RENAMED,
-    ERROR_CALENDAR_RENAME,
-    SUCCESS_CALENDAR_GENERATED,
-    ERROR_CALENDAR_GENERATE,
-    SUCCESS_MEDICINE_BOXES_FETCHED,
-    ERROR_MEDICINE_BOXES_FETCH,
-    SUCCESS_MEDICINE_BOX_UPDATED,
-    ERROR_MEDICINE_BOX_UPDATE,
-    SUCCESS_MEDICINE_BOX_CREATED,
-    ERROR_MEDICINE_BOX_CREATE,
-)
 
 # Route pour récupérer les calendriers de l'utilisateur
 @api.route("/calendars", methods=["GET"])
@@ -42,7 +21,7 @@ def handle_calendars():
 
                 if calendars is None:
                     return warning_response(
-                        message=WARNING_CALENDAR_NOT_FOUND, 
+                        message="aucun calendrier trouvé", 
                         code="CALENDAR_FETCH_ERROR", 
                         status_code=404, 
                         uid=uid, 
@@ -54,7 +33,7 @@ def handle_calendars():
                     calendar["medicines_count"] = medicines_count.get("count", 0)
         t_1 = time.time()
         return success_response(
-            message=SUCCESS_CALENDARS_FETCHED, 
+            message="calendriers récupérés", 
             code="CALENDAR_FETCH_SUCCESS", 
             uid=uid, 
             origin="CALENDAR_FETCH", 
@@ -63,7 +42,7 @@ def handle_calendars():
         )
     except Exception as e:
         return error_response(
-            message=ERROR_CALENDARS_FETCH, 
+            message="erreur lors de la récupération des calendriers", 
             code="CALENDAR_FETCH_ERROR", 
             status_code=500, 
             uid=uid, 
@@ -83,7 +62,7 @@ def handle_create_calendar():
 
         if not calendar_name:
             return warning_response(
-                message=ERROR_CALENDAR_NAME_MISSING, 
+                message="nom de calendrier manquant", 
                 code="CALENDAR_CREATE_ERROR", 
                 status_code=400, 
                 uid=uid, 
@@ -97,7 +76,7 @@ def handle_create_calendar():
                 conn.commit()
         t_1 = time.time()
         return success_response(
-            message=SUCCESS_CALENDAR_CREATED, 
+            message="calendrier créé", 
             code="CALENDAR_CREATE", 
             uid=uid, 
             origin="CALENDAR_CREATE", 
@@ -106,7 +85,7 @@ def handle_create_calendar():
 
     except Exception as e:
         return error_response(
-            message=ERROR_CALENDAR_CREATE, 
+            message="erreur lors de la création du calendrier", 
             code="CALENDAR_CREATE_ERROR", 
             status_code=500, 
             uid=uid, 
@@ -126,7 +105,7 @@ def handle_delete_calendar():
 
         if not calendar_id:
             return warning_response(
-                message=WARNING_CALENDAR_INVALID_ID, 
+                message="identifiant de calendrier invalide", 
                 code="CALENDAR_DELETE_ERROR", 
                 status_code=400, 
                 uid=uid, 
@@ -141,7 +120,7 @@ def handle_delete_calendar():
                 t_1 = time.time()
                 if calendar is None:
                     return warning_response(
-                        message=WARNING_CALENDAR_NOT_FOUND, 
+                        message="calendrier non trouvé", 
                         code="CALENDAR_DELETE_ERROR", 
                         status_code=404, 
                         uid=uid, 
@@ -153,7 +132,7 @@ def handle_delete_calendar():
                 conn.commit()
         t_2 = time.time()
         return success_response(
-            message=SUCCESS_CALENDAR_DELETED, 
+            message="calendrier supprimé", 
             code="CALENDAR_DELETE_SUCCESS", 
             uid=uid, 
             origin="CALENDAR_DELETE", 
@@ -162,7 +141,7 @@ def handle_delete_calendar():
 
     except Exception as e:
         return error_response(
-            message=ERROR_CALENDAR_DELETE, 
+            message="erreur lors de la suppression du calendrier", 
             code="CALENDAR_DELETE_ERROR", 
             status_code=500, 
             uid=uid, 
@@ -189,7 +168,7 @@ def handle_rename_calendar():
 
                 if result is None:
                     return warning_response(
-                        message=WARNING_CALENDAR_NOT_FOUND, 
+                        message="calendrier non trouvé", 
                         code="CALENDAR_RENAME_ERROR", 
                         status_code=404, 
                         uid=uid, 
@@ -206,7 +185,7 @@ def handle_rename_calendar():
                     conn.commit()
         t_1 = time.time()
         return success_response(
-            message=SUCCESS_CALENDAR_RENAMED, 
+            message="calendrier renommé", 
             code="CALENDAR_RENAME_SUCCESS", 
             uid=uid, 
             origin="CALENDAR_RENAME", 
@@ -215,7 +194,7 @@ def handle_rename_calendar():
 
     except Exception as e:
         return error_response(
-            message=ERROR_CALENDAR_RENAME, 
+            message="erreur lors de la renommation du calendrier", 
             code="CALENDAR_RENAME_ERROR", 
             status_code=500, 
             uid=uid, 
@@ -243,7 +222,7 @@ def handle_calendar_schedule(calendar_id):
                 calendar = cursor.fetchone()
                 if calendar is None:
                     return warning_response(
-                        message=WARNING_CALENDAR_NOT_FOUND, 
+                        message="calendrier non trouvé", 
                         code="CALENDAR_GENERATE_ERROR", 
                         status_code=404, 
                         uid=owner_uid, 
@@ -258,7 +237,7 @@ def handle_calendar_schedule(calendar_id):
                 t_1 = time.time()
                 if medicines is None:
                     return success_response(
-                        message=SUCCESS_CALENDAR_GENERATED, 
+                        message="calendrier généré", 
                         code="CALENDAR_GENERATE_SUCCESS", 
                         uid=owner_uid, 
                         origin="CALENDAR_GENERATE", 
@@ -272,7 +251,7 @@ def handle_calendar_schedule(calendar_id):
         t_4 = time.time()
 
         return success_response(
-            message=SUCCESS_CALENDAR_GENERATED, 
+            message="calendrier généré", 
             code="CALENDAR_GENERATE_SUCCESS", 
             uid=owner_uid, 
             origin="CALENDAR_GENERATE", 
@@ -282,7 +261,7 @@ def handle_calendar_schedule(calendar_id):
 
     except Exception as e:
         return error_response(
-            message=ERROR_CALENDAR_GENERATE, 
+            message="erreur lors de la génération du calendrier", 
             code="CALENDAR_GENERATE_ERROR", 
             status_code=500, 
             uid=owner_uid, 
@@ -311,7 +290,7 @@ def handle_boxes(calendar_id):
                 t_1 = time.time()
                 if boxes is None:
                     return success_response(
-                        message=SUCCESS_MEDICINE_BOXES_FETCHED,
+                        message="boites de médicaments récupérées",
                         code="MEDICINE_BOXES_FETCHED",
                         uid=uid,
                         origin="GET_MEDICINE_BOXES",
@@ -321,7 +300,7 @@ def handle_boxes(calendar_id):
                 t_2 = time.time()
 
         return success_response(
-            message=SUCCESS_MEDICINE_BOXES_FETCHED,
+            message="boites de médicaments récupérées",
             code="MEDICINE_BOXES_FETCHED",
             uid=uid,
             origin="GET_MEDICINE_BOXES",
@@ -331,7 +310,7 @@ def handle_boxes(calendar_id):
 
     except Exception as e:
         return error_response(
-            message=ERROR_MEDICINE_BOXES_FETCH,
+            message="erreur lors de la récupération des boites de médicaments",
             code="GET_MEDICINE_BOXES_ERROR",
             status_code=500,
             uid=uid,
@@ -356,7 +335,7 @@ def handle_update_box(calendar_id, box_id):
 
         if not calendar_id or not box_id:
             return error_response(
-                message=ERROR_MEDICINE_BOX_UPDATE,
+                message="champs requis manquants",
                 code="MISSING_REQUIRED_FIELDS",
                 status_code=400,
                 uid=uid,
@@ -374,7 +353,7 @@ def handle_update_box(calendar_id, box_id):
                 conn.commit()
                 t_1 = time.time()
                 return success_response(
-                    message=SUCCESS_MEDICINE_BOX_UPDATED,
+                    message="boite de médicaments modifiée",
                     code="MEDICINE_BOX_UPDATED",
                     uid=uid,
                     origin="UPDATE_MEDICINE_BOX",
@@ -383,7 +362,7 @@ def handle_update_box(calendar_id, box_id):
 
     except Exception as e:
         return error_response(
-            message=ERROR_MEDICINE_BOX_UPDATE,
+            message="erreur lors de la modification de la boite de médicaments",
             code="UPDATE_MEDICINE_BOX_ERROR",
             status_code=500,
             uid=uid,
@@ -419,7 +398,7 @@ def handle_create_box(calendar_id):
                 conn.commit()
 
         return success_response(
-            message=SUCCESS_MEDICINE_BOX_CREATED,
+            message="boite de médicaments créée",
             code="MEDICINE_BOX_CREATED",
             uid=uid,
             origin="CREATE_MEDICINE_BOX",
@@ -429,7 +408,7 @@ def handle_create_box(calendar_id):
 
     except Exception as e:
         return error_response(
-            message=ERROR_MEDICINE_BOX_CREATE,
+            message="erreur lors de la création de la boite de médicaments",
             code="CREATE_MEDICINE_BOX_ERROR",
             status_code=500,
             uid=uid,

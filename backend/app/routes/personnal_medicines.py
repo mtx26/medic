@@ -7,16 +7,6 @@ from app.db.connection import get_connection
 from app.services.calendar_service import verify_calendar
 from app.services.medicines import update_medicines
 from app.utils.response import success_response, error_response, warning_response
-from app.utils.messages import (
-    SUCCESS_MEDICINES_FETCHED,
-    ERROR_MEDICINES_FETCH,
-    SUCCESS_MEDICINES_UPDATED,
-    ERROR_MEDICINES_UPDATE,
-    SUCCESS_MEDICINES_DELETED,
-    ERROR_MEDICINES_DELETE,
-    WARNING_CALENDAR_NOT_FOUND,
-    WARNING_INVALID_MEDICINE_FORMAT,
-)
 
     
 MEDICINES_SELECT = "SELECT * FROM medicines WHERE calendar_id = %s"
@@ -31,7 +21,7 @@ def handle_get_medicines(calendar_id):
 
         if not verify_calendar(calendar_id, uid):
             return warning_response(
-                message=WARNING_CALENDAR_NOT_FOUND,
+                message="aucun calendrier trouvé",
                 code="CALENDAR_NOT_FOUND",
                 status_code=404,
                 uid=uid,
@@ -46,7 +36,7 @@ def handle_get_medicines(calendar_id):
                 t_1 = time.time()
                 if not medicines:
                     return success_response(
-                        message=SUCCESS_MEDICINES_FETCHED, 
+                        message="médicaments récupérés", 
                         code="MED_FETCH_SUCCESS", 
                         uid=uid, 
                         origin="MED_FETCH",
@@ -55,7 +45,7 @@ def handle_get_medicines(calendar_id):
                     )
 
         return success_response(
-            message=SUCCESS_MEDICINES_FETCHED, 
+            message="médicaments récupérés", 
             code="MED_FETCH_SUCCESS", 
             uid=uid, 
             origin="MED_FETCH",
@@ -65,7 +55,7 @@ def handle_get_medicines(calendar_id):
 
     except Exception as e:
         return error_response(
-            message=ERROR_MEDICINES_FETCH, 
+            message="erreur lors de la récupération des médicaments", 
             code="MED_FETCH_ERROR", 
             status_code=500, 
             uid=uid, 
@@ -85,7 +75,7 @@ def handle_update_medicines(calendar_id):
 
         if not verify_calendar(calendar_id, uid):
             return warning_response(
-                message=WARNING_CALENDAR_NOT_FOUND,
+                message="aucun calendrier trouvé",
                 code="CALENDAR_NOT_FOUND",
                 status_code=404,
                 uid=uid,
@@ -96,7 +86,7 @@ def handle_update_medicines(calendar_id):
         medicines = update_medicines(calendar_id, changes)
         t_1 = time.time()
         return success_response(
-            message=SUCCESS_MEDICINES_UPDATED,
+            message="médicaments modifiés",
             code="MED_UPDATE_SUCCESS",
             uid=uid,
             origin="MED_UPDATE",
@@ -106,7 +96,7 @@ def handle_update_medicines(calendar_id):
 
     except Exception as e:
         return error_response(
-            message=ERROR_MEDICINES_UPDATE, 
+            message="erreur lors de la modification des médicaments", 
             code="MED_UPDATE_ERROR", 
             status_code=500, 
             uid=uid, 
@@ -125,7 +115,7 @@ def handle_delete_medicines(calendar_id):
 
         if not verify_calendar(calendar_id, uid):
             return warning_response(
-                message=WARNING_CALENDAR_NOT_FOUND,
+                message="aucun calendrier trouvé",
                 code="CALENDAR_NOT_FOUND",
                 status_code=404,
                 uid=uid,
@@ -154,7 +144,7 @@ def handle_delete_medicines(calendar_id):
                 t_1 = time.time()
                 if not medicines:
                     return success_response(
-                        message=SUCCESS_MEDICINES_DELETED,
+                        message="médicaments supprimés",
                         code="MED_DELETE_SUCCESS",
                         uid=uid,
                         origin="MED_DELETE",
@@ -163,7 +153,7 @@ def handle_delete_medicines(calendar_id):
                     )
 
                 return success_response(
-                    message=SUCCESS_MEDICINES_DELETED,
+                    message="médicaments supprimés",
                     code="MED_DELETE_SUCCESS",
                     uid=uid,
                     origin="MED_DELETE",
@@ -173,7 +163,7 @@ def handle_delete_medicines(calendar_id):
 
     except Exception as e:
         return error_response(
-            message=ERROR_MEDICINES_DELETE,
+            message="erreur lors de la suppression des médicaments",
             code="MED_DELETE_ERROR",
             status_code=500,
             uid=uid,

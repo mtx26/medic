@@ -11,26 +11,6 @@ from . import api
 from urllib.parse import urljoin
 from app.config.config import Config
 import json
-from app.utils.messages import (
-    # Warnings
-    WARNING_ACCESS_DENIED,
-    WARNING_CALENDAR_NOT_FOUND,
-    WARNING_SELF_INVITATION,
-    WARNING_USER_NOT_FOUND,
-    WARNING_ALREADY_INVITED,
-    WARNING_NOTIFICATION_NOT_FOUND,
-    WARNING_INVALID_NOTIFICATION,
-
-    # Success
-    SUCCESS_INVITATION_SENT,
-    SUCCESS_INVITATION_ACCEPTED,
-    SUCCESS_INVITATION_REJECTED,
-
-    # Errors
-    ERROR_INVITATION_SEND,
-    ERROR_INVITATION_ACCEPT,
-    ERROR_INVITATION_REJECT,
-)
 
 
 
@@ -48,7 +28,7 @@ def handle_send_invitation(calendar_id):
 
         if not verify_calendar(calendar_id, owner_uid):
             return warning_response(
-                message=WARNING_CALENDAR_NOT_FOUND, 
+                message="calendrier non trouvé", 
                 code="CALENDAR_NOT_FOUND", 
                 status_code=404, 
                 uid=owner_uid, 
@@ -61,7 +41,7 @@ def handle_send_invitation(calendar_id):
                 # Verif si soit même
                 if owner_uid == receiver_uid:
                     return warning_response(
-                        message=WARNING_SELF_INVITATION, 
+                        message="invitation à soi-même", 
                         code="SELF_INVITATION_ERROR", 
                         status_code=400, 
                         uid=owner_uid, 
@@ -74,7 +54,7 @@ def handle_send_invitation(calendar_id):
 
                 if not user:
                     return warning_response(
-                        message=WARNING_USER_NOT_FOUND, 
+                        message="utilisateur non trouvé", 
                         code="USER_NOT_FOUND", 
                         status_code=404, 
                         uid=owner_uid, 
@@ -87,7 +67,7 @@ def handle_send_invitation(calendar_id):
                 shared_calendar = cursor.fetchone()
                 if shared_calendar:
                     return warning_response(
-                        message=WARNING_ALREADY_INVITED,
+                        message="utilisateur déjà invité",
                         code="ALREADY_INVITED",
                         status_code=400,
                         uid=owner_uid,
@@ -122,7 +102,7 @@ def handle_send_invitation(calendar_id):
                 t_1 = time.time()
 
         return success_response(
-            message=SUCCESS_INVITATION_SENT, 
+            message="invitation envoyée", 
             code="INVITATION_SEND_SUCCESS", 
             uid=owner_uid, 
             origin="INVITATION_SEND",
@@ -131,7 +111,7 @@ def handle_send_invitation(calendar_id):
 
     except Exception as e:
         return error_response(
-            message=ERROR_INVITATION_SEND, 
+            message="erreur lors de l'envoi de l'invitation", 
             code="INVITATION_SEND_ERROR", 
             status_code=500, 
             uid=owner_uid, 
@@ -155,7 +135,7 @@ def handle_accept_invitation(notification_id):
                 notification = cursor.fetchone()
                 if notification is None:
                     return warning_response(
-                        message=WARNING_NOTIFICATION_NOT_FOUND, 
+                        message="notification non trouvée", 
                         code="NOTIFICATION_NOT_FOUND", 
                         status_code=404, 
                         uid=receiver_uid, 
@@ -166,7 +146,7 @@ def handle_accept_invitation(notification_id):
                 # Vérifier si la notification est une invitation
                 if notification.get("type") != "calendar_invitation":
                     return warning_response(
-                        message=WARNING_INVALID_NOTIFICATION, 
+                        message="notification invalide", 
                         code="INVALID_NOTIFICATION", 
                         status_code=400, 
                         uid=receiver_uid, 
@@ -207,7 +187,7 @@ def handle_accept_invitation(notification_id):
                 t_1 = time.time()
 
         return success_response(
-            message=SUCCESS_INVITATION_ACCEPTED, 
+            message="invitation acceptée", 
             code="INVITATION_ACCEPT_SUCCESS", 
             uid=receiver_uid, 
             origin="INVITATION_ACCEPT",
@@ -216,7 +196,7 @@ def handle_accept_invitation(notification_id):
 
     except Exception as e:
         return error_response(
-            message=ERROR_INVITATION_ACCEPT, 
+            message="erreur lors de l'acceptation de l'invitation", 
             code="INVITATION_ACCEPT_ERROR", 
             status_code=500, 
             uid=receiver_uid, 
@@ -240,7 +220,7 @@ def handle_reject_invitation(notification_id):
                 notification = cursor.fetchone()
                 if not notification:
                     return warning_response(
-                        message=WARNING_NOTIFICATION_NOT_FOUND, 
+                        message="notification non trouvée", 
                         code="NOTIFICATION_NOT_FOUND", 
                         status_code=404, 
                         uid=receiver_uid, 
@@ -251,7 +231,7 @@ def handle_reject_invitation(notification_id):
                 # Vérifier si la notification est une invitation
                 if notification.get("type") != "calendar_invitation":
                     return warning_response(
-                        message=WARNING_INVALID_NOTIFICATION, 
+                        message="notification invalide", 
                         code="INVALID_NOTIFICATION", 
                         status_code=400, 
                         uid=receiver_uid, 
@@ -292,7 +272,7 @@ def handle_reject_invitation(notification_id):
                 t_1 = time.time()
 
         return success_response(
-            message=SUCCESS_INVITATION_REJECTED, 
+            message="invitation rejetée", 
             code="INVITATION_REJECT_SUCCESS", 
             uid=receiver_uid, 
             origin="INVITATION_REJECT",
@@ -301,7 +281,7 @@ def handle_reject_invitation(notification_id):
 
     except Exception as e:
         return error_response(
-            message=ERROR_INVITATION_REJECT, 
+            message="erreur lors du rejet de l'invitation", 
             code="INVITATION_REJECT_ERROR", 
             status_code=500, 
             uid=receiver_uid, 

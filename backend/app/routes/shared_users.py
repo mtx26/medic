@@ -9,35 +9,6 @@ from app.services.user import fetch_user
 from app.utils.response import success_response, error_response, warning_response
 from app.db.connection import get_connection
 import json
-from app.utils.messages import (
-    # Calendriers partagés
-    SUCCESS_SHARED_CALENDARS_FETCHED,
-    ERROR_SHARED_CALENDARS_FETCH,
-    SUCCESS_SHARED_CALENDAR_FETCHED,
-    ERROR_SHARED_CALENDAR_FETCH,
-    SUCCESS_SHARED_CALENDAR_DELETED,
-    ERROR_SHARED_CALENDAR_DELETE,
-    
-    # Utilisateurs partagés
-    SUCCESS_SHARED_USER_DELETED,
-    ERROR_SHARED_USER_DELETE,
-    SUCCESS_SHARED_USERS_FETCHED,
-    ERROR_SHARED_USERS_FETCH,
-    WARNING_SHARED_USER_NOT_FOUND,
-    WARNING_CANNOT_REMOVE_SELF,
-
-    # Médicaments partagés
-    WARNING_SHARED_CALENDAR_NOT_FOUND,
-    WARNING_UNAUTHORIZED_ACCESS,
-
-    # Boîtes partagées
-    SUCCESS_SHARED_BOXES_FETCHED,
-    ERROR_SHARED_BOXES_FETCH,
-    SUCCESS_SHARED_BOX_UPDATED,
-    ERROR_SHARED_BOX_UPDATE,
-    SUCCESS_SHARED_BOX_CREATED,
-    ERROR_SHARED_BOX_CREATE,
-)
 
 
 SELECT_SHARED_CALENDAR = "SELECT * FROM calendars WHERE id = %s"
@@ -58,7 +29,7 @@ def handle_shared_calendars():
 
                 if not shared_users:
                     return success_response(
-                        message=SUCCESS_SHARED_CALENDARS_FETCHED,
+                        message="calendriers partagés récupérés",
                         code="SHARED_CALENDARS_LOAD_EMPTY",
                         uid=uid,
                         origin="SHARED_CALENDARS_LOAD",
@@ -77,7 +48,7 @@ def handle_shared_calendars():
                     calendar = cursor.fetchone()
                     if not calendar:
                         return warning_response(
-                            message=WARNING_SHARED_CALENDAR_NOT_FOUND,
+                            message="aucun calendrier trouvé",
                             code="SHARED_CALENDARS_LOAD_ERROR",
                             status_code=404,
                             uid=uid,
@@ -97,7 +68,7 @@ def handle_shared_calendars():
                     owner = fetch_user(owner_uid)
                     if owner is None:
                         return warning_response(
-                            message=WARNING_SHARED_USER_NOT_FOUND,
+                            message="utilisateur partagé non trouvé",
                             code="SHARED_CALENDARS_LOAD_ERROR",
                             status_code=404,
                             uid=uid,
@@ -128,7 +99,7 @@ def handle_shared_calendars():
                 t_2 = time.time()
 
                 return success_response(
-                    message=SUCCESS_SHARED_CALENDARS_FETCHED, 
+                    message="calendriers partagés récupérés", 
                     code="SHARED_CALENDARS_LOAD_SUCCESS", 
                     uid=uid, 
                     origin="SHARED_CALENDARS_LOAD",
@@ -138,7 +109,7 @@ def handle_shared_calendars():
 
     except Exception as e:
         return error_response(
-            message=ERROR_SHARED_CALENDARS_FETCH, 
+            message="erreur lors de la récupération des calendriers partagés", 
             code="SHARED_CALENDARS_ERROR", 
             status_code=500, 
             uid=uid, 
@@ -156,7 +127,7 @@ def handle_user_shared_calendar(calendar_id):
 
         if not verify_calendar_share(calendar_id, receiver_uid):
             return warning_response(
-                message=WARNING_UNAUTHORIZED_ACCESS,
+                message="accès refusé",
                 code="SHARED_CALENDARS_LOAD_ERROR",
                 status_code=403,
                 uid=receiver_uid,
@@ -170,7 +141,7 @@ def handle_user_shared_calendar(calendar_id):
                 calendar = cursor.fetchone()
                 if not calendar:
                     return warning_response(
-                        message=WARNING_SHARED_CALENDAR_NOT_FOUND,
+                        message="aucun calendrier trouvé",
                         code="SHARED_CALENDARS_LOAD_ERROR",
                         status_code=404,
                         uid=receiver_uid,
@@ -185,7 +156,7 @@ def handle_user_shared_calendar(calendar_id):
                 shared_user = cursor.fetchone()
                 if not shared_user:
                     return warning_response(
-                        message=WARNING_SHARED_CALENDAR_NOT_FOUND,
+                        message="aucun calendrier trouvé",
                         code="SHARED_CALENDARS_LOAD_ERROR",
                         status_code=404,
                         uid=receiver_uid,
@@ -196,7 +167,7 @@ def handle_user_shared_calendar(calendar_id):
                 t_2 = time.time()
 
         return success_response(
-            message=SUCCESS_SHARED_CALENDAR_FETCHED,
+            message="calendrier partagé récupéré",
             code="SHARED_CALENDARS_LOAD_SUCCESS",
             uid=receiver_uid,
             origin="SHARED_CALENDARS_LOAD",
@@ -206,7 +177,7 @@ def handle_user_shared_calendar(calendar_id):
 
     except Exception as e:
         return error_response(
-            message=ERROR_SHARED_CALENDAR_FETCH,
+            message="erreur lors de la récupération du calendrier partagé",
             code="SHARED_CALENDARS_ERROR",
             status_code=500,
             uid=receiver_uid,
@@ -225,7 +196,7 @@ def handle_user_shared_calendar_schedule(calendar_id):
 
         if not verify_calendar_share(calendar_id, uid):
             return warning_response(
-                message=WARNING_UNAUTHORIZED_ACCESS,
+                message="accès refusé",
                 code="SHARED_CALENDARS_LOAD_ERROR",
                 status_code=403,
                 uid=uid,
@@ -245,7 +216,7 @@ def handle_user_shared_calendar_schedule(calendar_id):
                 calendar = cursor.fetchone()
                 if not calendar:
                     return warning_response(
-                        message=WARNING_SHARED_CALENDAR_NOT_FOUND,
+                        message="aucun calendrier trouvé",
                         code="SHARED_CALENDARS_LOAD_ERROR",
                         status_code=404,
                         uid=uid,
@@ -259,7 +230,7 @@ def handle_user_shared_calendar_schedule(calendar_id):
                 t_1 = time.time()
                 if not medicines:
                     return success_response(
-                        message=SUCCESS_SHARED_CALENDAR_FETCHED, 
+                        message="calendrier partagé récupéré", 
                         code="SHARED_CALENDARS_LOAD_SUCCESS", 
                         uid=uid, 
                         origin="SHARED_CALENDARS_LOAD",
@@ -274,7 +245,7 @@ def handle_user_shared_calendar_schedule(calendar_id):
                 t_4 = time.time()
             
         return success_response(
-            message=SUCCESS_SHARED_CALENDAR_FETCHED, 
+            message="calendrier partagé récupéré", 
             code="SHARED_CALENDARS_LOAD_SUCCESS", 
             uid=uid, 
             origin="SHARED_CALENDARS_LOAD",
@@ -284,7 +255,7 @@ def handle_user_shared_calendar_schedule(calendar_id):
 
     except Exception as e:
         return error_response(
-            message=ERROR_SHARED_CALENDAR_FETCH,
+            message="erreur lors de la récupération du calendrier partagé",
             code="SHARED_CALENDARS_ERROR", 
             status_code=500, 
             uid=uid, 
@@ -304,7 +275,7 @@ def handle_delete_user_shared_calendar(calendar_id):
 
         if not verify_calendar_share(calendar_id, receiver_uid):
             return warning_response(
-                message=WARNING_UNAUTHORIZED_ACCESS, 
+                message="accès refusé", 
                 code="SHARED_CALENDARS_DELETE_ERROR", 
                 status_code=403, 
                 uid=receiver_uid, 
@@ -319,7 +290,7 @@ def handle_delete_user_shared_calendar(calendar_id):
                 calendar = cursor.fetchone()
                 if not calendar:
                     return warning_response(
-                        message=WARNING_SHARED_CALENDAR_NOT_FOUND,
+                        message="aucun calendrier trouvé",
                         code="SHARED_CALENDARS_DELETE_ERROR",
                         status_code=404,
                         uid=receiver_uid,
@@ -342,7 +313,7 @@ def handle_delete_user_shared_calendar(calendar_id):
                 t_1 = time.time()
 
         return success_response(
-            message=SUCCESS_SHARED_CALENDAR_DELETED, 
+            message="calendrier partagé supprimé", 
             code="SHARED_CALENDARS_DELETE_SUCCESS", 
             uid=receiver_uid, 
             origin="SHARED_CALENDARS_DELETE",
@@ -351,7 +322,7 @@ def handle_delete_user_shared_calendar(calendar_id):
 
     except Exception as e:
         return error_response(
-            message=ERROR_SHARED_CALENDAR_DELETE,
+            message="erreur lors de la suppression du calendrier partagé",
             code="SHARED_CALENDARS_DELETE_ERROR", 
             status_code=500, 
             uid=receiver_uid, 
@@ -371,7 +342,7 @@ def handle_delete_user_shared_user(calendar_id, receiver_uid):
 
         if owner_uid == receiver_uid:
             return warning_response(
-                message=WARNING_CANNOT_REMOVE_SELF, 
+                message="impossible de supprimer soi-même", 
                 code="SHARED_USERS_DELETE_ERROR", 
                 status_code=400, 
                 uid=owner_uid, 
@@ -381,7 +352,7 @@ def handle_delete_user_shared_user(calendar_id, receiver_uid):
 
         if not verify_calendar_share(calendar_id, receiver_uid):
             return warning_response(
-                message=WARNING_UNAUTHORIZED_ACCESS,
+                message="accès refusé",
                 code="SHARED_USERS_DELETE_ERROR",
                 status_code=403,
                 uid=owner_uid,
@@ -396,7 +367,7 @@ def handle_delete_user_shared_user(calendar_id, receiver_uid):
                 row = cursor.rowcount
                 if row == 0:
                     return warning_response(
-                        message=WARNING_SHARED_CALENDAR_NOT_FOUND,
+                        message="aucun calendrier trouvé",
                         code="SHARED_USERS_DELETE_ERROR",
                         status_code=404,
                         uid=owner_uid,
@@ -425,7 +396,7 @@ def handle_delete_user_shared_user(calendar_id, receiver_uid):
                 t_1 = time.time()
 
         return success_response(
-            message=SUCCESS_SHARED_USER_DELETED, 
+            message="utilisateur partagé supprimé", 
             code="SHARED_USERS_DELETE_SUCCESS", 
             uid=receiver_uid, 
             origin="SHARED_USERS_DELETE",
@@ -434,7 +405,7 @@ def handle_delete_user_shared_user(calendar_id, receiver_uid):
 
     except Exception as e:
         return error_response(
-            message=ERROR_SHARED_USER_DELETE,
+            message="erreur lors de la suppression de l'utilisateur partagé",
             code="SHARED_USERS_DELETE_ERROR", 
             status_code=500, 
             uid=receiver_uid, 
@@ -458,7 +429,7 @@ def handle_shared_users(calendar_id):
                 calendar = cursor.fetchone()
                 if not calendar:
                     return warning_response(
-                        message=WARNING_SHARED_CALENDAR_NOT_FOUND,
+                        message="aucun calendrier trouvé",
                         code="SHARED_USERS_LOAD_ERROR",
                         status_code=404,
                         uid=owner_uid,
@@ -470,7 +441,7 @@ def handle_shared_users(calendar_id):
                 t_1 = time.time()
                 if not shared_users:
                     return success_response(
-                        message=SUCCESS_SHARED_USERS_FETCHED,
+                        message="utilisateurs partagés récupérés",
                         code="SHARED_USERS_LOAD_SUCCESS",
                         uid=owner_uid,
                         origin="SHARED_USERS_LOAD",
@@ -488,7 +459,7 @@ def handle_shared_users(calendar_id):
                     receiver = fetch_user(receiver_uid)
                     if not receiver:
                         return warning_response(
-                            message=WARNING_SHARED_USER_NOT_FOUND,
+                            message="utilisateur partagé non trouvé",
                             code="SHARED_USERS_LOAD_ERROR",
                             status_code=404,
                             uid=owner_uid,
@@ -516,7 +487,7 @@ def handle_shared_users(calendar_id):
                 t_2 = time.time()
 
         return success_response(
-            message=SUCCESS_SHARED_USERS_FETCHED, 
+            message="utilisateurs partagés récupérés", 
             code="SHARED_USERS_LOAD_SUCCESS", 
             uid=owner_uid, 
             origin="SHARED_USERS_LOAD",
@@ -526,7 +497,7 @@ def handle_shared_users(calendar_id):
 
     except Exception as e:
         return error_response(
-            message=ERROR_SHARED_USERS_FETCH,
+            message="erreur lors de la récupération des utilisateurs partagés",
             code="SHARED_USERS_ERROR", 
             status_code=500, 
             uid=owner_uid, 
@@ -546,7 +517,7 @@ def handle_shared_boxes(calendar_id):
 
         if not verify_calendar_share(calendar_id, uid):
             return warning_response(
-                message=WARNING_UNAUTHORIZED_ACCESS,
+                message="accès refusé",
                 code="SHARED_BOXES_LOAD_ERROR",
                 status_code=403,
                 uid=uid,
@@ -565,7 +536,7 @@ def handle_shared_boxes(calendar_id):
                 t_1 = time.time()
                 if not boxes:
                     return success_response(
-                        message=SUCCESS_SHARED_BOXES_FETCHED,
+                        message="boites de médicaments récupérées",
                         code="SHARED_BOXES_LOAD_SUCCESS",
                         uid=uid,
                         origin="SHARED_BOXES_LOAD",
@@ -576,7 +547,7 @@ def handle_shared_boxes(calendar_id):
                 t_2 = time.time()
 
         return success_response(
-            message=SUCCESS_SHARED_BOXES_FETCHED,
+            message="boites de médicaments récupérées",
             code="SHARED_BOXES_LOAD_SUCCESS",
             uid=uid,
             origin="SHARED_BOXES_LOAD",
@@ -586,7 +557,7 @@ def handle_shared_boxes(calendar_id):
 
     except Exception as e:
         return error_response(
-            message=ERROR_SHARED_BOXES_FETCH,
+            message="erreur lors de la récupération des boites de médicaments",
             code="SHARED_BOXES_ERROR",
             status_code=500,
             uid=uid,
@@ -611,7 +582,7 @@ def handle_update_shared_box(calendar_id, box_id):
 
         if not verify_calendar_share(calendar_id, uid):
             return warning_response(
-                message=WARNING_UNAUTHORIZED_ACCESS,
+                message="accès refusé",
                 code="SHARED_BOXES_UPDATE_ERROR",
                 status_code=403,
                 uid=uid,
@@ -629,7 +600,7 @@ def handle_update_shared_box(calendar_id, box_id):
                 t_1 = time.time()
 
         return success_response(
-            message=SUCCESS_SHARED_BOX_UPDATED,
+            message="boite de médicaments mise à jour",
             code="SHARED_BOXES_UPDATE_SUCCESS",
             uid=uid,
             origin="SHARED_BOXES_UPDATE",
@@ -638,7 +609,7 @@ def handle_update_shared_box(calendar_id, box_id):
 
     except Exception as e:
         return error_response(
-            message=ERROR_SHARED_BOX_UPDATE,
+            message="erreur lors de la mise à jour de la boite de médicaments",
             code="SHARED_BOXES_UPDATE_ERROR",
             status_code=500,
             uid=uid,
@@ -662,7 +633,7 @@ def handle_create_shared_box(calendar_id):
 
         if not verify_calendar_share(calendar_id, uid):
             return warning_response(
-                message=WARNING_UNAUTHORIZED_ACCESS,
+                message="accès refusé",
                 code="SHARED_BOXES_CREATE_ERROR",
                 status_code=403,
                 uid=uid,
@@ -682,7 +653,7 @@ def handle_create_shared_box(calendar_id):
                 conn.commit()
 
         return success_response(
-            message=SUCCESS_SHARED_BOX_CREATED,
+            message="boite de médicaments créée",
             code="SHARED_BOXES_CREATE_SUCCESS",
             uid=uid,
             origin="SHARED_BOXES_CREATE",
@@ -692,7 +663,7 @@ def handle_create_shared_box(calendar_id):
 
     except Exception as e:
         return error_response(
-            message=ERROR_SHARED_BOX_CREATE,
+            message="erreur lors de la création de la boite de médicaments",
             code="SHARED_BOXES_CREATE_ERROR",
             status_code=500,
             uid=uid,

@@ -6,20 +6,6 @@ from app.db.connection import get_connection
 from flask import request
 import time
 from app.auth.fcm import send_fcm_notification
-from app.utils.messages import (
-    # Notifications
-    SUCCESS_NOTIFICATIONS_FETCHED,
-    ERROR_NOTIFICATIONS_FETCH,
-    WARNING_NOTIFICATION_NOT_FOUND,
-    SUCCESS_NOTIFICATION_READ,
-    ERROR_NOTIFICATION_READ,
-    SUCCESS_NOTIFICATION_SENT,
-
-    # FCM
-    ERROR_FCM_REGISTER,
-    SUCCESS_FCM_REGISTERED,
-    ERROR_FCM_SEND,
-)
 
 
 DEFAULT_PHOTO = "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/icons/person-circle.svg"
@@ -55,7 +41,7 @@ def handle_notifications():
 
                 if notifications_data is None:
                     return success_response(
-                        message=SUCCESS_NOTIFICATIONS_FETCHED,
+                        message="aucune notification trouvée",
                         code="NOTIFICATIONS_FETCH_SUCCESS",
                         uid=uid,
                         origin="NOTIFICATIONS_FETCH",
@@ -100,7 +86,7 @@ def handle_notifications():
                 t_2 = time.time()
 
         return success_response(
-            message=SUCCESS_NOTIFICATIONS_FETCHED,
+            message="notifications récupérées",
             code="NOTIFICATIONS_FETCH_SUCCESS",
             uid=uid,
             origin="NOTIFICATIONS_FETCH",
@@ -110,7 +96,7 @@ def handle_notifications():
 
     except Exception as e:
         return error_response(
-            message=ERROR_NOTIFICATIONS_FETCH,
+            message="erreur lors de la récupération des notifications",
             code="NOTIFICATIONS_FETCH_ERROR",
             status_code=500,
             uid=uid,
@@ -132,7 +118,7 @@ def handle_read_notification(notification_id):
                 notif = cursor.fetchone()
                 if not notif:
                     return warning_response(
-                        message=WARNING_NOTIFICATION_NOT_FOUND, 
+                        message="notification non trouvée", 
                         code="NOTIFICATION_READ_ERROR", 
                         status_code=404, 
                         uid=uid, 
@@ -145,7 +131,7 @@ def handle_read_notification(notification_id):
                 t_1 = time.time()
 
         return success_response(
-            message=SUCCESS_NOTIFICATION_READ, 
+            message="notification marquée comme lue", 
             code="NOTIFICATION_READ_SUCCESS", 
             uid=uid, 
             origin="NOTIFICATION_READ",
@@ -154,7 +140,7 @@ def handle_read_notification(notification_id):
 
     except Exception as e:
         return error_response(
-            message=ERROR_NOTIFICATION_READ, 
+            message="erreur lors de la marque de la notification comme lue", 
             code="NOTIFICATION_READ_ERROR", 
             status_code=500, 
             uid=uid, 
@@ -171,7 +157,7 @@ def register_token():
 
     if not token or not uid:
         return error_response(
-            message=ERROR_FCM_REGISTER, 
+            message="données manquantes", 
             code="MISSING_DATA",
             status_code=400,
             origin="FCM_REGISTER"
@@ -189,7 +175,7 @@ def register_token():
                 conn.commit()
 
         return success_response(
-            message=SUCCESS_FCM_REGISTERED, 
+            message="token enregistré", 
             code="FCM_REGISTERED",
             uid=uid,
             origin="FCM_REGISTER",
@@ -198,7 +184,7 @@ def register_token():
 
     except Exception as e:
         return error_response(
-            message=ERROR_FCM_REGISTER, 
+            message="erreur lors de l'enregistrement du token", 
             code="FCM_REGISTER_ERROR",
             status_code=500,
             origin="FCM_REGISTER",
@@ -214,7 +200,7 @@ def send_notification():
 
     if not uid or not title or not body:
         return error_response(
-            message=ERROR_FCM_SEND, 
+            message="données manquantes", 
             code="MISSING_DATA", 
             status_code=400, 
             origin="FCM_SEND"
@@ -227,7 +213,7 @@ def send_notification():
                 result = cursor.fetchone()
                 if not result:
                     return error_response(
-                        message=ERROR_FCM_SEND, 
+                        message="aucun token trouvé", 
                         code="NO_TOKEN", 
                         status_code=404, 
                         uid=uid, 
@@ -239,7 +225,7 @@ def send_notification():
 
         if status_code == 200:
             return success_response(
-                message=SUCCESS_NOTIFICATION_SENT, 
+                message="notification envoyée", 
                 code="NOTIFICATION_SENT", 
                 uid=uid, 
                 origin="FCM_SEND",
@@ -247,7 +233,7 @@ def send_notification():
             )
         else:
             return error_response(
-                message=ERROR_FCM_SEND, 
+                message="erreur lors de l'envoi de la notification", 
                 code="FCM_V1_ERROR", 
                 status_code=status_code, 
                 uid=uid, 
@@ -257,7 +243,7 @@ def send_notification():
 
     except Exception as e:
         return error_response(
-            message=ERROR_FCM_SEND, 
+            message="erreur lors de l'envoi de la notification", 
             code="SEND_ERROR", 
             status_code=500, 
             uid=uid, 

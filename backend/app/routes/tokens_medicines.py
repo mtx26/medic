@@ -6,11 +6,6 @@ import time
 from app.db.connection import get_connection
 from app.services.calendar_service import verify_token
 from app.utils.response import success_response, error_response, warning_response
-from app.utils.messages import (
-    WARNING_TOKEN_INVALID,
-    SUCCESS_MEDICINES_FETCHED,
-    ERROR_MEDICINES_FETCH,
-)
 
 
 # Route pour obtenir les médicaments d’un token public
@@ -21,7 +16,7 @@ def handle_token_medicines(token):
         calendar_id = verify_token(token)
         if not calendar_id:
             return warning_response(
-                message=WARNING_TOKEN_INVALID,
+                message="token invalide",
                 code="TOKEN_INVALID",
                 status_code=404,
                 uid="unknown",
@@ -37,7 +32,7 @@ def handle_token_medicines(token):
                 t_1 = time.time()
 
         return success_response(
-            message=SUCCESS_MEDICINES_FETCHED,
+            message="médicaments récupérés",
             code="MEDICINES_SHARED_LOADED",
             origin="TOKEN_MEDICINES_LOAD",
             data={"medicines": medicines},
@@ -46,7 +41,7 @@ def handle_token_medicines(token):
 
     except Exception as e:
         return error_response(
-            message=ERROR_MEDICINES_FETCH,
+            message="erreur lors de la récupération des médicaments",
             code="MEDICINES_SHARED_ERROR",
             status_code=500,
             error=str(e),

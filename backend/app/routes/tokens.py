@@ -7,49 +7,6 @@ import time
 from flask import request
 from app.db.connection import get_connection
 from app.services.calendar_service import generate_schedule, generate_table, verify_calendar, verify_token_owner, verify_token
-from app.utils.messages import (
-    # Général
-    SUCCESS_CALENDAR_GENERATED,
-    ERROR_TOKEN_GENERATE,
-    WARNING_CALENDAR_NOT_FOUND,
-
-    # Médicaments
-    SUCCESS_MEDICINES_FETCHED,
-    ERROR_MEDICINES_FETCH,
-
-    # Liste des tokens
-    SUCCESS_TOKENS_FETCHED,
-    ERROR_TOKENS_FETCH,
-
-    # Création de token
-    SUCCESS_TOKEN_CREATED,
-    ERROR_TOKEN_CREATE,
-    WARNING_TOKEN_ALREADY_SHARED,
-
-    # Révocation
-    SUCCESS_TOKEN_REVOKED,
-    SUCCESS_TOKEN_REACTIVATED,
-    ERROR_TOKEN_REVOKE,
-    WARNING_TOKEN_NOT_AUTHORIZED,
-
-    # Expiration
-    SUCCESS_TOKEN_EXPIRATION_UPDATED,
-    ERROR_TOKEN_EXPIRATION_UPDATE,
-
-    # Permissions
-    SUCCESS_TOKEN_PERMISSIONS_UPDATED,
-    ERROR_TOKEN_PERMISSIONS_UPDATE,
-
-    # Métadonnées
-    SUCCESS_TOKEN_METADATA_FETCHED,
-    ERROR_TOKEN_METADATA_FETCH,
-    WARNING_TOKEN_NOT_FOUND,
-    WARNING_TOKEN_INVALID,
-
-    # Suppression
-    SUCCESS_TOKEN_DELETED,
-    ERROR_TOKEN_DELETE,
-)
 
 
 # Route pour récupérer tous les tokens et les informations associées
@@ -68,7 +25,7 @@ def handle_tokens():
                     t_1 = time.time()
 
             return success_response(
-                message=SUCCESS_TOKENS_FETCHED, 
+                message="tokens récupérés", 
                 code="TOKENS_FETCH", 
                 uid=uid, 
                 origin="TOKENS_FETCH", 
@@ -78,7 +35,7 @@ def handle_tokens():
         
     except Exception as e:
         return error_response(
-            message=ERROR_TOKENS_FETCH,
+            message="erreur lors de la récupération des tokens",
             code="TOKENS_ERROR", 
             status_code=500, 
             uid=uid, 
@@ -116,7 +73,7 @@ def handle_create_token(calendar_id):
                 token = cursor.fetchone()
                 if token:
                     return warning_response(
-                        message=WARNING_TOKEN_ALREADY_SHARED, 
+                        message="token déjà partagé", 
                         code="TOKEN_ALREADY_SHARED", 
                         status_code=400, 
                         uid=owner_uid, 
@@ -134,7 +91,7 @@ def handle_create_token(calendar_id):
                 t_1 = time.time()
 
                 return success_response(
-                    message=SUCCESS_TOKEN_CREATED, 
+                    message="token créé", 
                     code="TOKEN_CREATED", 
                     uid=owner_uid, 
                     origin="TOKEN_CREATE",
@@ -143,7 +100,7 @@ def handle_create_token(calendar_id):
 
     except Exception as e:
         return error_response(
-            message=ERROR_TOKEN_CREATE,
+            message="erreur lors de la création du token",
             code="TOKEN_CREATE_ERROR", 
             status_code=500, 
             uid=owner_uid, 
@@ -163,7 +120,7 @@ def handle_update_revoke_token(token):
 
         if not verify_token_owner(token, owner_uid):
             return warning_response(
-                message=WARNING_TOKEN_NOT_AUTHORIZED, 
+                message="accès refusé", 
                 code="TOKEN_NOT_AUTHORIZED", 
                 status_code=403, 
                 uid=owner_uid, 
@@ -182,7 +139,7 @@ def handle_update_revoke_token(token):
                 t_1 = time.time()
 
                 return success_response(
-                    message=SUCCESS_TOKEN_REVOKED if revoked else SUCCESS_TOKEN_REACTIVATED, 
+                    message="token révoqué" if revoked else "token réactivé", 
                     code="TOKEN_REVOKE_SUCCESS" if revoked else "TOKEN_REACTIVATED_SUCCESS", 
                     uid=owner_uid, 
                     origin="TOKEN_REVOKE", 
@@ -191,7 +148,7 @@ def handle_update_revoke_token(token):
 
     except Exception as e:
         return error_response(
-            message=ERROR_TOKEN_REVOKE,
+            message="erreur lors de la révocation du token",
             code="TOKEN_REVOKE_ERROR", 
             status_code=500, 
             uid=owner_uid, 
@@ -219,7 +176,7 @@ def handle_update_token_expiration(token):
 
         if not verify_token_owner(token, owner_uid):
             return warning_response(
-                message=WARNING_TOKEN_NOT_AUTHORIZED, 
+                message="accès refusé", 
                 code="TOKEN_NOT_AUTHORIZED", 
                 status_code=403, 
                 uid=owner_uid, 
@@ -234,7 +191,7 @@ def handle_update_token_expiration(token):
                 t_1 = time.time()
 
                 return success_response(
-                    message=SUCCESS_TOKEN_EXPIRATION_UPDATED, 
+                    message="expiration du token mise à jour", 
                     code="TOKEN_EXPIRATION_UPDATED", 
                     uid=owner_uid, 
                     origin="TOKEN_EXPIRATION_UPDATE", 
@@ -243,7 +200,7 @@ def handle_update_token_expiration(token):
 
     except Exception as e:
         return error_response(
-            message=ERROR_TOKEN_EXPIRATION_UPDATE,
+            message="erreur lors de la mise à jour de l'expiration du token",
             code="TOKEN_EXPIRATION_UPDATE_ERROR", 
             status_code=500, 
             uid=owner_uid, 
@@ -265,7 +222,7 @@ def handle_update_token_permissions(token):
 
         if not verify_token_owner(token, owner_uid):
             return warning_response(
-                message=WARNING_TOKEN_NOT_AUTHORIZED, 
+                message="accès refusé", 
                 code="TOKEN_NOT_AUTHORIZED", 
                 status_code=403, 
                 uid=owner_uid, 
@@ -282,7 +239,7 @@ def handle_update_token_permissions(token):
                 t_1 = time.time()
 
                 return success_response(
-                    message=SUCCESS_TOKEN_PERMISSIONS_UPDATED, 
+                    message="permissions du token mises à jour", 
                     code="TOKEN_PERMISSIONS_UPDATED", 
                     uid=owner_uid, 
                     origin="TOKEN_PERMISSIONS_UPDATE", 
@@ -291,7 +248,7 @@ def handle_update_token_permissions(token):
 
     except Exception as e:
         return error_response(
-            message=ERROR_TOKEN_PERMISSIONS_UPDATE,
+            message="erreur lors de la mise à jour des permissions du token",
             code="TOKEN_PERMISSIONS_UPDATE_ERROR", 
             status_code=500, 
             uid=owner_uid, 
@@ -316,7 +273,7 @@ def handle_generate_token_schedule(token):
         calendar_id = verify_token(token)
         if not calendar_id:
             return warning_response(
-                message=WARNING_TOKEN_INVALID, 
+                message="token invalide", 
                 code="TOKEN_INVALID", 
                 status_code=404, 
                 uid="unknown", 
@@ -330,7 +287,7 @@ def handle_generate_token_schedule(token):
                 calendar = cursor.fetchone()
                 if not calendar:
                     return warning_response(
-                        message=WARNING_CALENDAR_NOT_FOUND, 
+                        message="aucun calendrier trouvé", 
                         code="CALENDAR_NOT_FOUND", 
                         status_code=404, 
                         uid="unknown", 
@@ -344,7 +301,7 @@ def handle_generate_token_schedule(token):
                 t_1 = time.time()
                 if not medicines:
                     return success_response(
-                        message=SUCCESS_CALENDAR_GENERATED, 
+                        message="calendrier généré", 
                         code="CALENDAR_GENERATED_SUCCESS", 
                         uid="unknown", 
                         origin="TOKEN_GENERATE_SCHEDULE", 
@@ -359,7 +316,7 @@ def handle_generate_token_schedule(token):
                 t_4 = time.time()
 
                 return success_response(
-                    message=SUCCESS_CALENDAR_GENERATED, 
+                    message="calendrier généré", 
                     code="CALENDAR_GENERATED_SUCCESS", 
                     uid="unknown",
                     origin="TOKEN_GENERATE_SCHEDULE", 
@@ -369,7 +326,7 @@ def handle_generate_token_schedule(token):
 
     except Exception as e:
         return error_response(
-            message=ERROR_TOKEN_GENERATE,
+            message="erreur lors de la génération du calendrier",
             code="CALENDAR_TOKEN_GENERATE_ERROR", 
             status_code=500, 
             uid="unknown", 
@@ -385,7 +342,7 @@ def get_token_metadata(token):
         t_0 = time.time()
         if not verify_token(token):
             return warning_response(
-                message=WARNING_TOKEN_INVALID,
+                message="token invalide",
                 code="TOKEN_INVALID",
                 status_code=404,
                 uid="unknown",
@@ -399,7 +356,7 @@ def get_token_metadata(token):
                 token_data = cursor.fetchone()
                 if not token_data:
                     return warning_response(
-                        message=WARNING_TOKEN_NOT_FOUND, 
+                        message="token non trouvé", 
                         code="TOKEN_NOT_FOUND", 
                         status_code=404, 
                         uid="unknown", 
@@ -413,7 +370,7 @@ def get_token_metadata(token):
                 t_1 = time.time()
 
                 return success_response(
-                    message=SUCCESS_TOKEN_METADATA_FETCHED,
+                    message="métadonnées du token récupérées",
                     code="TOKEN_METADATA_SUCCESS",
                     origin="TOKEN_METADATA_FETCH",
                     uid="unknown",
@@ -423,7 +380,7 @@ def get_token_metadata(token):
 
     except Exception as e:
         return error_response(
-            message=ERROR_TOKEN_METADATA_FETCH,
+            message="erreur lors de la récupération des métadonnées du token",
             code="TOKEN_METADATA_ERROR",
             status_code=500,
             error=str(e),
@@ -443,9 +400,9 @@ def handle_delete_token(token):
 
         if not verify_token_owner(token, owner_uid):
             return warning_response(
-                message=WARNING_TOKEN_NOT_FOUND, 
-                code="TOKEN_NOT_FOUND", 
-                status_code=404, 
+                message="accès refusé", 
+                code="TOKEN_NOT_AUTHORIZED", 
+                status_code=403, 
                 uid=owner_uid, 
                 origin="TOKEN_DELETE", 
                 log_extra={"token": token}
@@ -457,7 +414,7 @@ def handle_delete_token(token):
                 t_1 = time.time()   
 
                 return success_response(
-                    message=SUCCESS_TOKEN_DELETED, 
+                    message="token supprimé", 
                     code="TOKEN_DELETE_SUCCESS", 
                     uid=owner_uid, 
                     origin="TOKEN_DELETE", 
@@ -466,7 +423,7 @@ def handle_delete_token(token):
 
     except Exception as e:
         return error_response(
-            message=ERROR_TOKEN_DELETE,
+            message="erreur lors de la suppression du token",
             code="TOKEN_DELETE_ERROR", 
             status_code=500, 
             uid=owner_uid, 

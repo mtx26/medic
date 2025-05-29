@@ -4,11 +4,6 @@ from app.utils.validators import verify_firebase_token
 from app.utils.response import success_response, error_response
 from app.services.user import fetch_user, update_existing_user, insert_new_user
 import time
-from app.utils.messages import (
-    SUCCESS_USER_INFO_FETCHED,
-    ERROR_USER_NOT_FOUND,
-)
-
 
 @api.route("/user/sync", methods=["POST"])
 def handle_user_sync():
@@ -23,7 +18,7 @@ def handle_user_sync():
             user_data = request.get_json()
         except Exception:
             return error_response(
-                message=ERROR_USER_NOT_FOUND,
+                message="erreur lors de la récupération des données de l'utilisateur",
                 code="USER_SYNC_ERROR",
                 status_code=400,
                 uid=uid,
@@ -33,7 +28,7 @@ def handle_user_sync():
 
         if not user_data:
             return error_response(
-                message=ERROR_USER_NOT_FOUND,
+                message="erreur lors de la récupération des données de l'utilisateur",
                 code="USER_SYNC_ERROR",
                 status_code=400,
                 uid=uid,
@@ -55,7 +50,7 @@ def handle_user_sync():
         t_2 = time.time()
 
         return success_response(
-            message=SUCCESS_USER_INFO_FETCHED,
+            message="données de l'utilisateur mises à jour",
             code="USER_SYNC_SUCCESS",
             uid=uid,
             origin="USER_SYNC",
@@ -64,7 +59,7 @@ def handle_user_sync():
 
     except Exception as e:
         return error_response(
-            message=ERROR_USER_NOT_FOUND,
+            message="erreur lors de la mise à jour des données de l'utilisateur",
             code="USER_SYNC_ERROR",
             status_code=500,
             uid=uid,
