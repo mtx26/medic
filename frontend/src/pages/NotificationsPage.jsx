@@ -5,6 +5,17 @@ import { useNavigate } from "react-router-dom";
 function NotificationsPage({ notifications, sharedUserCalendars }) {
   const navigate = useNavigate();
 
+  if (notifications.notificationsData === null) {
+    return (
+      <div className="d-flex justify-content-center align-items-center" style={{ height: '60vh' }}>
+        <div className="spinner-border text-primary">
+          <span className="visually-hidden">Chargement des notifications...</span>
+        </div>
+      </div>
+    );
+  }
+  
+
   return (
     <div className="container py-4">
       <div className="d-flex justify-content-between align-items-center mb-3">

@@ -40,6 +40,7 @@ const fetchNotifications = async (user, setNotificationsData, setLoadingStates) 
       count: data.notifications?.length,
     });
   } catch (err) {
+    setNotificationsData([]);
     setLoadingStates(prev => ({ ...prev, notifications: false }));
     log.error(err.message || "Échec de récupération des notifications enrichies", err, {
       origin: "NOTIFICATIONS_FETCH_ERROR",

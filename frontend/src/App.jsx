@@ -20,8 +20,8 @@ const API_URL = import.meta.env.VITE_API_URL;
 function App() {
   const [tokensList, setTokensList] = useState([]);
   const [calendarsData, setCalendarsData] = useState(null);
-  const [notificationsData, setNotificationsData] = useState([]);
-  const [sharedCalendarsData, setSharedCalendarsData] = useState([]);
+  const [notificationsData, setNotificationsData] = useState(null);
+  const [sharedCalendarsData, setSharedCalendarsData] = useState(null);
 
   const { userInfo } = useContext(UserContext);
 
@@ -1312,10 +1312,10 @@ function App() {
     setTokensList([]);
 
     // NOTIFICATIONS
-    setNotificationsData([]);
+    setNotificationsData(null);
 
     // SHARED CALENDARS
-    setSharedCalendarsData([]);
+    setSharedCalendarsData(null);
 
   };
 
