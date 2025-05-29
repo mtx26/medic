@@ -286,6 +286,34 @@ const ModalBody = ({
   </div>
 )};
 
+ModalBody.propTypes = {
+  shareMethod: PropTypes.oneOf(['link', 'account']).isRequired,
+  setShareMethod: PropTypes.func.isRequired,
+  existingShareToken: PropTypes.object,
+  calendarName: PropTypes.string.isRequired,
+  expiresAt: PropTypes.string.isRequired,
+  setExpiresAt: PropTypes.func.isRequired,
+  expiration: PropTypes.string.isRequired,
+  setExpiration: PropTypes.func.isRequired,
+  permissions: PropTypes.string.isRequired,
+  setPermissions: PropTypes.func.isRequired,
+  handleCopyLink: PropTypes.func.isRequired,
+  handleInvite: PropTypes.func.isRequired,
+  emailToInvite: PropTypes.string.isRequired,
+  setEmailToInvite: PropTypes.func.isRequired,
+  sharedUsersData: PropTypes.arrayOf(
+    PropTypes.shape({
+      receiver_uid: PropTypes.string.isRequired,
+      receiver_email: PropTypes.string.isRequired,
+      receiver_name: PropTypes.string.isRequired,
+      receiver_photo_url: PropTypes.string,
+      accepted: PropTypes.bool.isRequired,
+      access: PropTypes.string.isRequired,
+    })
+  ).isRequired,
+  refObj: PropTypes.shape({ current: PropTypes.any }),
+};
+
 
 
 const ShareCalendarModal = forwardRef(({
@@ -446,13 +474,18 @@ ShareCalendarModal.propTypes = {
       access: PropTypes.string.isRequired,
     })
   ).isRequired,
-  tokenCalendars: PropTypes.object.isRequired,
-  sharedUserCalendars: PropTypes.object.isRequired,
+  tokenCalendars: PropTypes.shape({
+    createToken: PropTypes.func.isRequired,
+  }).isRequired,
+  sharedUserCalendars: PropTypes.shape({
+    sendInvitation: PropTypes.func.isRequired,
+  }).isRequired,
   setAlertType: PropTypes.func.isRequired,
   setAlertMessage: PropTypes.func.isRequired,
   setSelectedAlert: PropTypes.func,
   alertCategory: PropTypes.string,
 };
+
 
 export default ShareCalendarModal;
 
