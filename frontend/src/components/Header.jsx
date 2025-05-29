@@ -358,19 +358,19 @@ function Navbar({ sharedProps }) {
 
       <nav className="navbar fixed-bottom bg-white shadow-sm py-2 border-top d-lg-none">
         <div className="container-fluid d-flex justify-content-around">
-          <div className="text-center" onClick={() => navigate('/')}>
+          <Link to="/" className="text-center">
             <i className="bi bi-house fs-4"></i>
             <div className="small">Accueil</div>
-          </div>
-          <div className="text-center" onClick={() => navigate('/calendars')}>
+          </Link>
+          <Link to="/calendars" className="text-center">
             <i className="bi bi-calendar-event fs-4"></i>
             <div className="small">Calendrier</div>
-          </div>
-          <div className="text-center" onClick={() => navigate('/shared-calendars')}>
+          </Link>
+          <Link to="/shared-calendars" className="text-center">
             <i className="bi bi-people fs-4"></i>
             <div className="small">Partages</div>
-          </div>
-          <div className="text-center position-relative" onClick={() => navigate('/notifications')}>
+          </Link>
+          <Link to="/notifications" className="text-center position-relative">
             <i className="bi bi-bell fs-4"></i>
             <div className="small">Notifs</div>
             {notificationsData.filter(notif => !notif.read).length > 0 && (
@@ -378,11 +378,11 @@ function Navbar({ sharedProps }) {
                 {notificationsData.filter(notif => !notif.read).length}
               </span>
             )}
-          </div>
-          <div className="text-center" onClick={() => navigate('/account')}>
+          </Link>
+          <Link to="/account" className="text-center">
             <i className="bi bi-person-circle fs-4"></i>
             <div className="small">Comptes</div>
-          </div>
+          </Link>
         </div>
       </nav>
     </>
