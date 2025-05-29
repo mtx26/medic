@@ -127,7 +127,7 @@ def handle_delete_medicines(calendar_id):
 
         if not isinstance(checked, list):
             return warning_response(
-                message=WARNING_INVALID_MEDICINE_FORMAT,
+                message="format de médicament invalide",
                 code="INVALID_MEDICINE_FORMAT",
                 status_code=400,
                 uid=uid,
