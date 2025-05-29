@@ -16,7 +16,13 @@ const DateModal = forwardRef(({ selectedDate, eventsForDay, onNext, onPrev, onSe
 
   return ReactDOM.createPortal(
     <>
-      <div className="modal fade show" style={{ display: 'block' }} tabIndex="-1" role="dialog" aria-modal="true">
+      <div 
+        className="modal fade show" 
+        style={{ display: 'block' }} 
+        tabIndex="-1" 
+        role="dialog" 
+        aria-modal="true"
+      >
         <div className="modal-dialog modal-dialog-centered">
           <div className="modal-content">
             <div className="modal-header">
