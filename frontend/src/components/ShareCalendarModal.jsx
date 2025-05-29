@@ -96,6 +96,8 @@ LinkShareOptions.propTypes = {
   calendarName: PropTypes.string.isRequired,
   expiresAt: PropTypes.string.isRequired,
   setExpiresAt: PropTypes.func.isRequired,
+  expiration: PropTypes.string.isRequired,
+  setExpiration: PropTypes.func.isRequired,
   permissions: PropTypes.string.isRequired,
   setPermissions: PropTypes.func.isRequired,
   handleCopyLink: PropTypes.func.isRequired,
