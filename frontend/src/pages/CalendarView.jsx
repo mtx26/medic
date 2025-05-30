@@ -318,7 +318,7 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
                     <i className="bi bi-clock-fill"></i> {moment_map[moment]}
                   </h5>
                   {calendarTable[moment].map((table, index) => (
-                    <div className="card border border-secondary-subtle mb-2" key={index}>
+                    <div className="card border border-secondary-subtle mb-2 shadow-sm" key={index}>
                       <div className="card-header bg-light fw-semibold text-dark">
                         <i className="bi bi-capsule me-2"></i>{table.title} {table.dose != null ? `${table.dose} mg` : ""}
                       </div>
@@ -351,7 +351,7 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
                     </div>
                   ))}
                   {index < Object.keys(calendarTable).filter((key) => calendarTable[key].length > 0).length - 1 && (
-                    <hr className="mt-4" />
+                    <hr className="mt-4 shadow-sm" />
                   )}
                 </div>
               ))}
