@@ -50,6 +50,8 @@ export default function WeeklyEventContent({
           className="btn btn-outline-secondary btn-sm" 
           onClick={onPrev} 
           disabled={isFirstDay}
+          aria-label="Semaine précédente"
+          title="Semaine précédente"
         >
           <i className="bi bi-arrow-left"></i>
         </button>
@@ -93,6 +95,8 @@ export default function WeeklyEventContent({
           className="btn btn-outline-secondary btn-sm" 
           onClick={onNext} 
           disabled={isLastDay}
+          aria-label="Semaine suivante"
+          title="Semaine suivante"
         >
           <i className="bi bi-arrow-right"></i>
         </button>

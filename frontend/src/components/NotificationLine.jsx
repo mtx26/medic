@@ -35,6 +35,8 @@ export default function NotificationLine({ notif, onRead, onAccept, onReject, na
           actions = (
             <div className="mt-2">
               <button
+                aria-label="Accepter"
+                title="Accepter"
                 className="btn btn-sm btn-outline-success me-2"
                 onClick={async (e) => {
                   e.stopPropagation();
@@ -45,6 +47,8 @@ export default function NotificationLine({ notif, onRead, onAccept, onReject, na
                 <i className="bi bi-check-circle-fill me-2 text-success"></i> Accepter
               </button>
               <button
+                aria-label="Rejeter"
+                title="Rejeter"
                 className="btn btn-sm btn-outline-danger"
                 onClick={(e) => {
                   e.stopPropagation();

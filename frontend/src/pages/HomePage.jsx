@@ -23,15 +23,30 @@ function HomePage() {
           </p>
           <div className="mt-4 d-flex flex-column flex-md-row justify-content-center gap-3">
             {userInfo ? (
-              <button className="btn btn-primary btn-lg px-4" onClick={handleAccess}>
+              <button 
+                className="btn btn-primary btn-lg px-4" 
+                onClick={handleAccess}
+                aria-label="Accéder à l'application"
+                title="Accéder à l'application"
+              >
                 Accéder à l'application
               </button>
             ) : (
               <>
-                <button className="btn btn-primary btn-lg px-4 shadow rounded-3" onClick={handleLogin}>
+                <button 
+                  className="btn btn-primary btn-lg px-4 shadow rounded-3" 
+                  onClick={handleLogin}
+                  aria-label="Se connecter"
+                  title="Se connecter"
+                >
                   Se connecter
                 </button>
-                <button className="btn btn-outline-primary btn-lg px-4 shadow rounded-3" onClick={handleRegister}>
+                <button 
+                  className="btn btn-outline-primary btn-lg px-4 shadow rounded-3" 
+                  onClick={handleRegister}
+                  aria-label="Créer un compte"
+                  title="Créer un compte"
+                >
                   Créer un compte
                 </button>
               </>
@@ -133,7 +148,12 @@ function HomePage() {
           <p className="lead mb-4">
             Créez votre compte gratuitement et simplifiez la gestion médicale de toute la famille.
           </p>
-          <button className="btn btn-light btn-lg px-4" onClick={handleRegister}>
+          <button 
+            className="btn btn-light btn-lg px-4" 
+            onClick={handleRegister}
+            aria-label="Créer un compte"
+            title="Créer un compte"
+          >
             Je crée mon compte
           </button>
         </div>

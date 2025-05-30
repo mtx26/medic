@@ -81,8 +81,9 @@ const AccountPage = () => {
             <input
               type="email"
               id="email"
-              name="username"
-              autoComplete="username"
+              name="email"
+              aria-label="Email"
+              autoComplete="email"
               className="form-control"
               value={userInfo?.email || ''}
               readOnly
@@ -97,6 +98,7 @@ const AccountPage = () => {
               className="form-control"
               id="oldPassword"
               name="current-password"
+              aria-label="Mot de passe actuel"
               autoComplete="current-password"
               required
               value={oldPassword}
@@ -128,6 +130,7 @@ const AccountPage = () => {
               className="form-control"
               id="newPassword"
               name="new-password"
+              aria-label="Nouveau mot de passe"
               autoComplete="new-password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
@@ -153,6 +156,8 @@ const AccountPage = () => {
           <button
             type="submit"
             className="btn btn-outline-primary mt-2"
+            aria-label="Mettre à jour le mot de passe"
+            title="Mettre à jour le mot de passe"
           >
             Mettre à jour le mot de passe
           </button>

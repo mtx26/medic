@@ -33,6 +33,8 @@ const DateModal = forwardRef(({ selectedDate, eventsForDay, onNext, onPrev, onSe
               </h5>
               <button
                 className="btn-close"
+                aria-label="Fermer"
+                title="Fermer"
                 onClick={() => setVisible(false)}
               ></button>
             </div>
@@ -49,6 +51,8 @@ const DateModal = forwardRef(({ selectedDate, eventsForDay, onNext, onPrev, onSe
             <div className="modal-footer">
               <button 
                 className="btn btn-secondary"
+                aria-label="Fermer"
+                title="Fermer"
                 onClick={() => setVisible(false)}
               >
                 Fermer

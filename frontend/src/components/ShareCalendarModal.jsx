@@ -1,7 +1,8 @@
-import { forwardRef, useState, useImperativeHandle, isValidElement } from 'react';
+import { forwardRef, useState, useImperativeHandle } from 'react';
 import { useNavigate } from 'react-router-dom';
 import HoveredUserProfile from './HoveredUserProfile';
 import PropTypes from 'prop-types';
+import Modal from 'bootstrap/js/dist/modal';
 
 const VITE_URL = import.meta.env.VITE_VITE_URL;
 
@@ -26,7 +27,7 @@ const LinkShareOptions = ({
       <>
         <p>Un lien existe déjà pour ce calendrier.</p>
         <div className="input-group">
-          <input type="text" className="form-control" value={link} id={"existingShareTokenLink-"+existingShareToken.id} readOnly />
+          <input type="text" className="form-control" aria-label="Lien du calendrier partagé" value={link} id={"existingShareTokenLink-"+existingShareToken.id} readOnly />
           <button
             type="button"
             className="btn btn-outline-warning"
@@ -34,6 +35,7 @@ const LinkShareOptions = ({
               navigate('/shared-calendars');
               refObj?.current?.close();
             }}
+            aria-label="Gérer le lien"
             title="Gérer le lien"
           >
             <i className="bi bi-gear"></i>
@@ -42,6 +44,7 @@ const LinkShareOptions = ({
             type="button"
             className="btn btn-outline-primary"
             onClick={() => handleCopyLink(link)}
+            aria-label="Copier le lien"
             title="Copier le lien"
           >
             <i className="bi bi-clipboard"></i>
@@ -70,6 +73,7 @@ const LinkShareOptions = ({
         <input
           type="date"
           className={`form-control`}
+          aria-label="Date d'expiration du lien"
           id={"newTokenExpiration-"+new Date().getTime()}
           value={expiresAt}
           onChange={(e) => setExpiresAt(e.target.value)}
@@ -152,6 +156,7 @@ const AccountShareOptions = ({
           type="email"
           autoComplete="email"
           className={`form-control`}
+          aria-label="Email du destinataire"
           placeholder="Email du destinataire"
           value={emailToInvite}
           onChange={(e) => setEmailToInvite(e.target.value)}
@@ -161,6 +166,8 @@ const AccountShareOptions = ({
         <button
           className="btn btn-outline-primary"
           type="submit"
+          aria-label="Envoyer l'invitation"
+          title="Envoyer l'invitation"
         > 
           <i className="bi bi-person-plus-fill"></i>
         </button>
@@ -215,6 +222,8 @@ const ModalBody = ({
         type="button"
         className="btn-close" 
         onClick={() => refObj?.current?.close()}
+        aria-label="Fermer"
+        title="Fermer"
       ></button>
     </div>
 
@@ -225,6 +234,8 @@ const ModalBody = ({
             type="button"
             className={`btn ${shareMethod === 'link' ? 'btn-primary' : 'btn-outline-primary'}`}
             onClick={() => setShareMethod('link')}
+            aria-label="Lien"
+            title="Lien"
           >
             <i className="bi bi-link"></i> Lien
           </button>
@@ -232,6 +243,8 @@ const ModalBody = ({
             type="button"
             className={`btn ${shareMethod === 'account' ? 'btn-primary' : 'btn-outline-primary'}`}
             onClick={() => setShareMethod('account')}
+            aria-label="Compte"
+            title="Compte"
           >
             <i className="bi bi-person-plus-fill"></i> Compte
           </button>
@@ -271,6 +284,8 @@ const ModalBody = ({
         type="button"
         className="btn btn-outline-secondary" 
         onClick={() => refObj?.current?.close()}
+        aria-label="Fermer"
+        title="Fermer"
       >
         Fermer
       </button>
@@ -278,8 +293,10 @@ const ModalBody = ({
         <button 
           className="btn btn-outline-primary" 
           type="submit"
+          aria-label="Partager"
+          title="Partager"
         >
-          Partager
+          <i className="bi bi-share"></i> Partager
         </button>
       )}
     </div>
@@ -347,7 +364,7 @@ const ShareCalendarModal = forwardRef(({
 
   // Fermer le modal
   const handleHidden = (modalEl) => {
-    const modal = window.bootstrap.Modal.getInstance(modalEl);
+    const modal = Modal.getInstance(modalEl);
     if (modal) modal.dispose();
 
     modalEl.removeEventListener('hidden.bs.modal', () => handleHidden(modalEl));
@@ -360,7 +377,7 @@ const ShareCalendarModal = forwardRef(({
   useImperativeHandle(ref, () => ({
     open: () => {
       setTimeout(() => {
-        const modal = new window.bootstrap.Modal(document.getElementById('shareModal'), { focus: false });
+        const modal = new Modal(document.getElementById('shareModal'), { focus: false });
         modal.show();
       }, 0);
     },
@@ -369,7 +386,7 @@ const ShareCalendarModal = forwardRef(({
       if (!modalEl) return;
 
       modalEl.addEventListener('hidden.bs.modal', () => handleHidden(modalEl));
-      const modal = window.bootstrap.Modal.getInstance(modalEl);
+      const modal = Modal.getInstance(modalEl);
       if (modal) modal.hide();
 
       document.activeElement?.blur();

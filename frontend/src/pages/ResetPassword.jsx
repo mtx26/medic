@@ -44,13 +44,20 @@ function ResetPassword() {
                 type="email"
                 className={`form-control ${!formValid ? 'is-invalid' : ''}`}
                 id="emailInput"
+                aria-label="Email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
 
-            <button className="btn btn-outline-primary w-100" type="submit" disabled={!formValid}>
+            <button 
+              className="btn btn-outline-primary w-100" 
+              type="submit" 
+              disabled={!formValid}
+              aria-label="Envoyer le lien"
+              title="Envoyer le lien"
+            >
               <i className="bi bi-envelope-paper"></i>
               <span> Envoyer le lien</span>
             </button>

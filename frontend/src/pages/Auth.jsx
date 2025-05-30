@@ -43,6 +43,8 @@ function Auth() {
               <button
                 className={` shadow-sm nav-link ${activeTab === "login" ? "active" : ""}`}
                 onClick={() => switchTab("login")}
+                aria-label="Connexion"
+                title="Connexion"
               >
                 <i className="bi bi-box-arrow-in-right"></i>
                 <span> Connexion</span>
@@ -52,6 +54,8 @@ function Auth() {
               <button
                 className={` shadow-sm nav-link ${activeTab === "register" ? "active" : ""}`}
                 onClick={() => switchTab("register")}
+                aria-label="Inscription"
+                title="Inscription"
               >
                 <i className="bi bi-person-plus"></i>
                 <span> Inscription</span>
@@ -65,6 +69,8 @@ function Auth() {
             <button 
               className="btn btn-outline-danger rounded-pill px-3 py-2 shadow-sm" 
               onClick={GoogleHandleLogin}
+              aria-label="Connexion avec Google"
+              title="Connexion avec Google"
             >
               <i className="bi bi-google"></i>
             </button>
@@ -116,6 +122,7 @@ function Auth() {
                   type="text"
                   className="form-control"
                   id="name"
+                  aria-label="Nom complet"
                   required
                   value={name}
                   autoComplete="name"
@@ -130,6 +137,7 @@ function Auth() {
                 type="email"
                 className="form-control"
                 id="email"
+                aria-label="Adresse e-mail"
                 required
                 value={email}
                 autoComplete="email"
@@ -143,6 +151,7 @@ function Auth() {
                 type={passwordVisible ? "text" : "password"}
                 className="form-control"
                 id="password"
+                aria-label="Mot de passe"
                 required
                 value={password}
                 autoComplete="current-password"
@@ -175,14 +184,19 @@ function Auth() {
                 className="form-check mb-3 text-left"
                 style={{ cursor: "pointer" }}
               >
-                <input className="form-check-input" style={{ cursor: "pointer" }} type="checkbox" required id="terms" name="terms"/>
+                <input className="form-check-input" style={{ cursor: "pointer" }} type="checkbox" required id="terms" name="terms" aria-label="Accepter les conditions générales"/>
                 <label className="form-check-label" style={{ cursor: "pointer" }} htmlFor="terms">
                   J’accepte les <Link to="/terms" className="text-decoration-none">conditions générales</Link>
                 </label>
               </div>
             )}
 
-            <button type="submit" className="btn btn-outline-primary w-100 shadow-sm">
+            <button 
+              type="submit" 
+              className="btn btn-outline-primary w-100 shadow-sm"
+              aria-label={activeTab === "login" ? "Connexion" : "Inscription"}
+              title={activeTab === "login" ? "Connexion" : "Inscription"}
+            >
               {activeTab === "login" ? "Connexion" : "Inscription"}
             </button>
           </form>

@@ -290,6 +290,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
           <button
             className="btn btn-outline-primary"
             onClick={() => navigate(`/${basePath}/${calendarId}`)}
+            aria-label="Retour au calendrier"
             title="Retour au calendrier"
           >
             <i className="bi bi-calendar-date"></i>
@@ -306,6 +307,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
           {/* <button 
             onClick={() => navigate(`/${basePath}/${calendarId}/boxes`)}
             className="btn btn-primary btn-sm w-100 w-md-auto"
+            aria-label="Voir les boites"
             title="Voir les boites"
           >
             <i className="bi bi-box"></i>
@@ -320,6 +322,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
               if (rep.success) setMedicinesData(rep.medicinesData);
             }}
             className="btn btn-primary btn-sm w-100 w-md-auto"
+            aria-label="Ajouter un médicament"
             title="Ajouter un médicament"
           >
             <i className="bi bi-plus-lg me-1"></i> Ajouter
@@ -330,6 +333,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
             onClick={onDeleteClick}
             className="btn btn-danger btn-sm w-100 w-md-auto"
             disabled={checked.length === 0}
+            aria-label="Supprimer les médicaments sélectionnés"
             title="Supprimer les médicaments sélectionnés"
           >
             <i className="bi bi-trash3 me-1"></i> Supprimer
@@ -340,6 +344,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
             onClick={onSaveClick}
             className="btn btn-success btn-sm w-100 w-md-auto"
             disabled={!allMedsValid || !hasChanges}
+            aria-label="Enregistrer les modifications"
             title="Enregistrer les modifications"
           >
             <i className="bi bi-pencil me-1"></i> Enregistrer
@@ -369,6 +374,8 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
                   className="form-check-input"
                   type="checkbox"
                   id="check-all"
+                  title="Tout sélectionner"
+                  aria-label="Tout sélectionner"
                   checked={checked.length === medicinesData.length}
                   onChange={() => {
                     if (checked.length === medicinesData.length) {
@@ -377,7 +384,6 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
                       setChecked(medicinesData.map(med => med.id));
                     }
                   }}
-                  title="Tout sélectionner"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                       if (checked.length === medicinesData.length) {
@@ -415,6 +421,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
                                 }}
                                 id={`check-${item.ids}`}
                                 title="Sélectionner le médicament"
+                                aria-label={`Sélectionner le groupe de médicaments ${item.name}`}
                                 onKeyDown={(e) => {
                                   if (e.key === 'Enter') {
                                     for (const id of item.ids) {
@@ -431,6 +438,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
                           <button
                             className="btn btn-success btn-sm"
                             title="Ajouter un médicament"
+                            aria-label={`Ajouter un médicament au groupe ${item.name}`}
                             onClick={() => {
                               const rep = calendarSource.addMedicine(medicinesData, item.name);
                               if (rep.success) {
@@ -461,6 +469,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
                             onChange={() => toggleSelection(item.data.id)}
                             id={`check-${item.data.id}`}
                             title="Sélectionner le médicament"
+                            aria-label={`Sélectionner le médicament ${item.data.name || ''}`}
                             onKeyDown={(e) => {
                               if (e.key === 'Enter') {
                                 toggleSelection(item.data.id);
@@ -476,6 +485,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
                               type="text"
                               className={`form-control form-control-sm ${!validity.name ? 'is-invalid' : ''} ${isFieldChanged(item.data.id, 'name') ? 'field-changed' : ''}`}
                               id={`name-${item.data.id}`}
+                              aria-label="Nom du médicament"
                               placeholder="Nom"
                               value={item.data?.name || ''}
                               onChange={(e) => handleMedChange(item.data.id, 'name', e.target.value)}
@@ -493,6 +503,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
                               min="0"
                               className={`form-control form-control-sm ${isFieldChanged(item.data.id, 'dose') ? 'field-changed' : ''}`}
                               id={`dose-${item.data.id}`}
+                              aria-label="Dose en mg"
                               placeholder="Dose"
                               value={item.data?.dose || ''}
                               onChange={(e) => handleMedChange(item.data.id, 'dose', e.target.value)}
@@ -510,6 +521,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
                               min="0"
                               className={`form-control form-control-sm ${!validity.tablet_count ? 'is-invalid' : ''} ${isFieldChanged(item.data.id, 'tablet_count') ? 'field-changed' : ''}`}
                               id={`comps-${item.data.id}`}
+                              aria-label="Nombre de comprimés"
                               placeholder="Comprimés"
                               value={item.data?.tablet_count || ''}
                               onChange={(e) => handleMedChange(item.data.id, 'tablet_count', e.target.value)}
@@ -525,6 +537,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
                             <select
                               className={`form-select form-select-sm ${isFieldChanged(item.data.id, 'time_of_day') ? 'field-changed' : ''}`}
                               id={`moment-${item.data.id}`}
+                              aria-label="Moment"
                               value={item.data?.time_of_day || ''}
                               onChange={(e) => handleMedChange(item.data.id, 'time_of_day', e.target.value)}
                             >
@@ -546,6 +559,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
                               min="0"
                               className={`form-control form-control-sm ${!validity.interval_days ? 'is-invalid' : ''} ${isFieldChanged(item.data.id, 'interval_days') ? 'field-changed' : ''}`}
                               id={`interval-${item.data.id}`}
+                              aria-label="Intervalle en jours"
                               placeholder="Intervalle"
                               value={item.data?.interval_days || ''}
                               onChange={(e) => handleMedChange(item.data.id, 'interval_days', e.target.value)}
@@ -562,6 +576,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
                               type="date"
                               className={`form-control form-control-sm ${!validity.start_date ? 'is-invalid' : ''} ${isFieldChanged(item.data.id, 'start_date') ? 'field-changed' : ''}`}
                               id={`start-${item.data.id}`}
+                              aria-label="Date de début"
                               placeholder="Date de début"
                               value={item.data?.start_date ? formatToLocalISODate(item.data?.start_date) : ''}
                               onChange={(e) => {

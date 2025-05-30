@@ -277,12 +277,15 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                             id={"tokenLink"+token.id}
                             type="text"
                             className="form-control"
+                            aria-label="Lien du calendrier partagé"
+                            title="Lien du calendrier partagé"
                             value={`${VITE_URL}/shared-token-calendar/${token.id}`}
                             readOnly
                           />
                           <button
                             className="btn btn-outline-primary"
                             onClick={() => handleCopyLink(token)}
+                            aria-label="Copier le lien"
                             title="Copier le lien"
                           >
                             <i className="bi bi-clipboard"></i>
@@ -315,12 +318,13 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                             id={"tokenDate"+token.id}
                             type="date"
                             className="form-control"
+                            aria-label="Date d'expiration"
+                            title="Date d'expiration"
                             style={{ minWidth: "120px" }}
                             value={formatToLocalISODate(token.expires_at)}
                             onChange={(e) => {
                               handleUpdateTokenExpiration(token.id, formatToLocalISODate(e.target.value));
                             }}
-                            title="Choisir une date d'expiration"
                             min={formatToLocalISODate(today)}
                           />
                         )}
@@ -331,6 +335,7 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                         <select
                           id={"tokenPermissions"+token.id}
                           className="form-select"
+                          aria-label="Permissions"
                           value={token.permissions}
                           onChange={(e) => {
                             handleUpdateTokenPermissions(token.id, e.target.value);
@@ -347,6 +352,7 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                         <button
                           className={`btn ${token.revoked ? 'btn-outline-danger' : 'btn-outline-success'}`}
                           onClick={() => handleToggleToken(token.id)}
+                          aria-label={token.revoked ? "Réactiver" : "Désactiver"}
                           title={token.revoked ? "Réactiver" : "Désactiver"}
                         >
                           <i className={`bi ${token.revoked ? 'bi-toggle-off' : 'bi-toggle-on'}`}></i>
@@ -354,6 +360,7 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                         <button
                           className="btn btn-outline-danger"
                           onClick={() => deleteTokenConfirmAction(token.id)}
+                          aria-label="Supprimer"
                           title="Supprimer"
                         >
                           <i className="bi bi-trash"></i>
@@ -402,6 +409,7 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                               id={"newTokenLink"+calendarId}
                               type="text"
                               className="form-control text-muted bg-light"
+                              aria-label="Nouveau lien de partage"
                               value="Nouveau lien de partage"
                               disabled
                               style={{ fontStyle: 'italic', fontWeight: 500 }}
@@ -415,6 +423,7 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                             id={`newTokenExpiration${calendarId}`}
                             className={`form-select`}
                             value={expirationType[calendarId] || 'never'}
+                            aria-label="Expiration"
                             title="Expiration"
                             onChange={(e) => {
                               const val = e.target.value;
@@ -438,6 +447,7 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                               required
                               style={{ minWidth: "120px" }}
                               title="Expiration"
+                              aria-label="Expiration"
                               value={expiresAt[calendarId] || ''}
                               onChange={(e) => {
                                 setExpiresAt(prev => ({
@@ -457,6 +467,7 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                             id={"newTokenPermissions"+calendarId}
                             className="form-select"
                             value={permissions[calendarId]}
+                            aria-label="Permissions"
                             title="Permissions"
                             onChange={(e) => {
                               setPermissions(prev => ({ ...prev, [calendarId]: e.target.value }));
@@ -471,6 +482,7 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                         <div className={`d-flex gap-2 justify-content-end col-md-2`}>
                           <button 
                             className="btn btn-success"
+                            aria-label="Ajouter"
                             title="Ajouter"
                             type="submit"
                           >
@@ -561,6 +573,7 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                         <button
                           className="btn btn-outline-danger"
                           onClick={() => deleteUserConfirmAction(calendarId, user)}
+                          aria-label="Supprimer l'accès"
                           title="Supprimer l'accès"
                         >
                           <i className="bi bi-trash"></i>
@@ -604,6 +617,7 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                             type="email"
                             className={`form-control`}
                             placeholder="Email du destinataire"
+                            aria-label="Email du destinataire"
                             onChange={(e) => setEmailsToInvite(prev => ({ ...prev, [calendarId]: e.target.value }))}
                             value={emailsToInvite[calendarId] ?? ""}
                             required
@@ -615,6 +629,7 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
                           />
                           <button
                             className={`btn btn-primary`}
+                            aria-label="Envoyer une invitation"
                             title="Envoyer une invitation"
                             type="submit"
                           >

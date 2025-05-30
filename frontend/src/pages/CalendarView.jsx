@@ -241,6 +241,8 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
               <button
                 className="btn btn-outline-secondary"
                 onClick={() => navigate(`/${basePath}/${calendarId}/medicines`)}
+                aria-label="Médicaments"
+                title="Médicaments"
               >
                 <i className="bi bi-capsule"></i>
                 <span> Médicaments</span>
@@ -251,6 +253,7 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
                 <button
                   className="btn btn-outline-warning"
                   title="Partager"
+                  aria-label="Partager"
                   onClick={handleShareCalendarClick}
                 >
                   <i className="bi bi-box-arrow-up"></i> Partager

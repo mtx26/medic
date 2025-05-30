@@ -151,6 +151,8 @@ function Navbar({ sharedProps }) {
               {/* Notifs */}
               <li className="nav-item dropdown position-relative" ref={notifRef}>
                 <button
+                  aria-label="Notifications"
+                  title="Notifications"
                   className="nav-link bg-transparent border-0 position-relative"
                   onClick={() => setShowNotifDropdown(!showNotifDropdown)}
                 >
@@ -183,7 +185,12 @@ function Navbar({ sharedProps }) {
                     )}
                     <li><hr className="dropdown-divider" /></li>
                     <li className="text-center">
-                      <button className="btn btn-sm btn-outline-primary w-100" onClick={() => navigate("/notifications")}>
+                      <button 
+                        className="btn btn-sm btn-outline-primary w-100" 
+                        aria-label="Ouvrir les notifications" 
+                        title="Ouvrir les notifications" 
+                        onClick={() => navigate("/notifications")}
+                      >
                         <i className="bi bi-bell"></i> Ouvrir les notifications
                       </button>
                     </li>
@@ -193,7 +200,12 @@ function Navbar({ sharedProps }) {
 
               {/* Profil */}
               <li className="nav-item dropdown position-relative" ref={userRef}>
-                <button className="nav-link d-flex align-items-center border-0 bg-transparent" onClick={() => setShowUserDropdown(!showUserDropdown)}>
+                <button 
+                  className="nav-link d-flex align-items-center border-0 bg-transparent" 
+                  aria-label="Profil" 
+                  title="Profil" 
+                  onClick={() => setShowUserDropdown(!showUserDropdown)}
+                >
                   {userInfo ? (
                     <>
                       <img
@@ -224,7 +236,16 @@ function Navbar({ sharedProps }) {
                         <li><Link className="dropdown-item" to="/profile"><i className="bi bi-person fs-5 me-2"></i> Mon profil</Link></li>
                         <li><Link className="dropdown-item" to="/account"><i className="bi bi-gear fs-5 me-2"></i> Paramètres</Link></li>
                         <li><hr className="dropdown-divider" /></li>
-                        <li><button className="dropdown-item" onClick={handleLogout}><i className="bi bi-unlock fs-5 me-2"></i> Déconnexion</button></li>
+                        <li>
+                          <button 
+                            className="dropdown-item" 
+                            aria-label="Déconnexion" 
+                            title="Déconnexion" 
+                            onClick={handleLogout}
+                          >
+                            <i className="bi bi-unlock fs-5 me-2"></i> Déconnexion
+                          </button>
+                        </li>
                       </>
                     ) : (
                       <>

@@ -44,6 +44,8 @@ function AlertSystem({ type = "info", message, onClose, onConfirm = null, durati
             <div className="d-flex flex-row flex-wrap gap-2 justify-content-center justify-content-sm-end">
               <button
                 className={`btn btn-sm btn-${bootstrapType}`}
+                aria-label="Oui"
+                title="Oui"
                 onClick={() => {
                   onConfirm?.();
                   setVisible(false);
@@ -54,6 +56,8 @@ function AlertSystem({ type = "info", message, onClose, onConfirm = null, durati
               </button>
               <button
                 className="btn btn-sm btn-outline-secondary"
+                aria-label="Annuler"
+                title="Annuler"
                 onClick={() => {
                   setVisible(false);
                   setTimeout(onClose, 400);
@@ -65,6 +69,8 @@ function AlertSystem({ type = "info", message, onClose, onConfirm = null, durati
           ) : (
             <button
               className="btn-close"
+              aria-label="Fermer"
+              title="Fermer"
               onClick={() => {
                 setVisible(false);
                 setTimeout(onClose, 400);

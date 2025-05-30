@@ -172,6 +172,8 @@ function BoxesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
               onClick={() => addBox()}
               className="btn p-0 border-0 bg-transparent text-start h-100 w-100"
               style={{ cursor: 'pointer' }}
+              aria-label="Ajouter une boîte"
+              title="Ajouter une boîte"
             >
               <div className="card h-100 shadow-sm border border-success">
                 <div className="card-body d-flex flex-column justify-content-center align-items-center">
@@ -219,7 +221,10 @@ function BoxCard({
             <button 
               type="button"
               className="btn btn-secondary btn-sm rounded-circle"
-              onClick={() => setSelectedModifyBox(box.id)}>
+              onClick={() => setSelectedModifyBox(box.id)}
+              aria-label="Modifier le nom de la boîte"
+              title="Modifier le nom de la boîte"
+            >
               <i className="bi bi-pencil"></i>
             </button>
           )}
@@ -229,6 +234,7 @@ function BoxCard({
           {selectedModifyBox && selectedModifyBox === box.id ? (
             <input
               type="text"
+              aria-label="Nom de la boîte"
               className="form-control form-control-sm"
               defaultValue={box.name}
               onChange={(e) => {
@@ -269,6 +275,8 @@ function BoxCard({
                 onClick={() => {
                   restockBox(box.id);
                 }}
+                aria-label="Réstockage"
+                title="Réstockage"
               >
                 <i className="bi bi-plus-circle"></i> Réstockage
               </button>
@@ -284,6 +292,8 @@ function BoxCard({
             <button 
               type="submit"
               className="btn btn-success btn-sm"
+              aria-label="Enregistrer"
+              title="Enregistrer"
             >
               <i className="bi bi-save"></i> Enregistrer
             </button>
@@ -296,7 +306,10 @@ function BoxCard({
                 setModifyBoxCapacity(0);
                 setModifyBoxStockAlertThreshold(0);
                 setModifyBoxStockQuantity(0);
-              }}>
+              }}
+              aria-label="Annuler"
+              title="Annuler"
+            >
               <i className="bi bi-x"></i> Annuler
             </button>
             <button 
@@ -305,6 +318,8 @@ function BoxCard({
               onClick={() => {
                 deleteBox(box.id);
               }}
+              aria-label="Supprimer"
+              title="Supprimer"
             >
               <i className="bi bi-trash"></i> Supprimer
             </button>
@@ -323,6 +338,7 @@ function BoxField({ label, value, editable, onChange }) {
       {editable ? (
         <input
           type="number"
+          aria-label={label}
           className="form-control form-control-sm w-75"
           defaultValue={value}
           onChange={onChange}

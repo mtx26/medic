@@ -179,6 +179,7 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
       <div className="input-group mb-2 shadow-sm">
         <input
           id="newCalendarName"
+          aria-label="Nom du calendrier"
           type="text"
           className="form-control"
           placeholder="Nom du calendrier"
@@ -189,6 +190,7 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
         <button
           type="submit"
           className="btn btn-primary"
+          aria-label="Ajouter un calendrier"
           title="Ajouter un calendrier"
         >
         <i className="bi bi-plus-lg"></i>
@@ -253,6 +255,7 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
               }}>
                 <input
                   id={"renameCalendarName"+calendarData.id}
+                  aria-label="Nouveau nom"
                   type="text"
                   className="form-control form-control"
                   placeholder="Nouveau nom"
@@ -264,6 +267,7 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
                   className="btn btn-warning"
                   title="Renommer"
                   type="submit"
+                  aria-label="Renommer"
                 >
                 <i className="bi bi-pencil"></i>
                 </button>
@@ -274,6 +278,7 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
                 <button
                   className="btn btn-outline-success"
                   title="Ouvrir"
+                  aria-label="Ouvrir"
                   onClick={() => navigate('/calendar/' + calendarData.id)} // Navigation vers le calendrier
                 >
                   Ouvrir
@@ -282,6 +287,7 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
                 <button
                   className="btn btn-outline-warning"
                   title="Partager"
+                  aria-label="Partager"
                   onClick={() => handleShareCalendarClick(calendarData)}
                 >
                   <i className="bi bi-box-arrow-up"></i>
@@ -291,6 +297,7 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
                 <button
                   className="btn btn-outline-danger"
                   title="Supprimer"
+                  aria-label="Supprimer"
                   onClick={() => handleDeleteCalendarClick(calendarData.id)}
                 >
                   <i className="bi bi-trash3"></i>
@@ -385,6 +392,7 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
               <button
                 className="btn btn-outline-success"
                 title="Ouvrir"
+                aria-label="Ouvrir"
                 onClick={() => navigate('/shared-user-calendar/' + calendarData.id)}
               >
                 Ouvrir
@@ -392,6 +400,7 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
               <button
                 className="btn btn-outline-danger"
                 title="Supprimer"
+                aria-label="Supprimer"
                 onClick={() => handleDeleteSharedCalendarClick(calendarData.id)}
               >
                 <i className="bi bi-trash3"></i>

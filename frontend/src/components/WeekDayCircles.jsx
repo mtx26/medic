@@ -29,6 +29,7 @@ export default function WeekDayCircles({ selectedDate, onSelectDate }) {
             className={baseClass}
             role="button"
             tabIndex={0}
+            aria-label={`Aller au ${new Date(day).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}`}
             onClick={() => onSelectDate(formatToLocalISODate(day))}
             onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') {

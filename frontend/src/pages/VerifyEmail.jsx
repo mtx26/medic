@@ -92,7 +92,12 @@ function VerifyEmail() {
           />
 
           <form onSubmit={handleSendVerification}>
-            <button type="submit" className="btn btn-outline-primary w-100 mt-3">
+            <button 
+              type="submit" 
+              className="btn btn-outline-primary w-100 mt-3"
+              aria-label="Renvoyer le lien de vérification"
+              title="Renvoyer le lien de vérification"
+            >
               <i className="bi bi-envelope-paper"></i>
               <span> Renvoyer le lien de vérification</span>
             </button>
