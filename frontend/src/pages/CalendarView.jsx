@@ -165,10 +165,11 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
   }, [calendarId, calendarSource.fetchSchedule, userInfo, auth?.currentUser]);
 
 
-  // 📍 Filtrage des événements pour un jour spécifique
+  // 📍 Filtrage des événements pour un jour spécifique et tri par ordre alphabétique
   useEffect(() => {
     if (!selectedDate || !calendarEvents.length) return;
-    const filtered = calendarEvents.filter((event) => event.start.startsWith(selectedDate));
+    const sortedEvents = calendarEvents.sort((a, b) => a.title.localeCompare(b.title));
+    const filtered = sortedEvents.filter((event) => event.start.startsWith(selectedDate));
     setEventsForDay(filtered);
   }, [selectedDate, calendarEvents]);
 
@@ -218,10 +219,7 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
       />
     )}
 
-    <h3 className="mb-5 fw-bold">
-      <i className="bi bi-calendar-week"></i> Calendrier
-    </h3>
-    <div className="container">
+    <div className="container mt-2">
       <div className="row justify-content-center">
 
         <div className="col-12 col-lg-4 mb-4">
@@ -237,16 +235,9 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
             />
 
             {/* Boutons de navigation et partage */}
-            <div className="d-flex flex-wrap  align-items-left gap-2 mb-3">
+            <div className="d-flex flex-wrap gap-2 mb-3">
 
               {/* Boutons de navigation */}
-              <button
-                className="btn btn-outline-secondary"
-                onClick={() => navigate(`/calendars`)}
-              >
-                <i className="bi bi-calendar-date"></i>
-                <span> Calendriers</span>
-              </button>
               <button
                 className="btn btn-outline-secondary"
                 onClick={() => navigate(`/${basePath}/${calendarId}/medicines`)}
@@ -262,7 +253,7 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
                   title="Partager"
                   onClick={handleShareCalendarClick}
                 >
-                  <i className="bi bi-box-arrow-up"></i>
+                  <i className="bi bi-box-arrow-up"></i> Partager
                 </button>
               )}
 
@@ -288,7 +279,7 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
           <div className="col-12 col-lg-8 mb-4">
             <div className="mb-2">
               <h4 className="mb-3 fw-bold">
-                <i className="bi bi-table"></i> Tableau hebdomadaire
+                <i className="bi bi-table"></i> Tableau hebdomadaire :
               </h4>
               {/*trier matin, midi, soir et supprimer les moments non présents*/}
               {Object.keys(calendarTable).sort((a, b) => {
