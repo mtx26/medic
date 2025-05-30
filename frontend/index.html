@@ -7,8 +7,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#000000" />
     <meta name="description" content="Application MediTime — gestion de prise de médicaments" />
+    <!--Android-->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="application-name" content="MediTime" />
+    <meta name="theme-color" content="#000000" />
+
+
+    <!-- ✅ Apple -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="MediTime" />
+
+    <!-- ✅ Open Graph -->
     <meta property="og:title" content="MediTime — Prise de médicaments simplifiée" />
     <meta property="og:description" content="Planifiez vos traitements, recevez des rappels et partagez vos calendriers médicaux avec vos proches." />
     <meta property="og:image" content="https://meditime-app.com/icons/logo.png" />
@@ -20,6 +30,9 @@
     <link rel="manifest" href="/manifest.json" />
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
     <link rel="icon" href="/icons/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-16.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32.png" />
+    <link rel="icon" type="image/png" sizes="48x48" href="/icons/icon-48.png" />
     <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
     <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512.png" />
 
@@ -58,7 +71,19 @@
         "@type": "Organization",
         "name": "MediTime",
         "url": "https://meditime-app.com",
-        "logo": "https://meditime-app.com/icons/logo.png"
+        "logo": "https://meditime-app.com/icons/logo.png",
+        "founder": {
+          "@type": "Person",
+          "name": "Mtx_26"
+        },
+        "sameAs": [
+          "https://github.com/mtx26"
+        ],
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "email": "mtx_26@outlook.be",
+          "contactType": "technical support"
+        }
       }
     </script>
 
