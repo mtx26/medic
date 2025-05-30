@@ -236,124 +236,137 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
       />
     )}
 
-    {Object.keys(calendarTable).filter((key) => calendarTable[key].length > 0).length > 0 ? (
-      <>
-        <div className="container">
-          <div className="row justify-content-center">
+    <h3 className="mb-5 fw-bold">
+      <i className="bi bi-calendar-week"></i> Calendrier
+    </h3>
+    <div className="container">
+      <div className="row justify-content-center">
 
-            <div className="col-12 col-lg-4 mb-4">
-              <div className="mb-3">
+        <div className="col-12 col-lg-4 mb-4">
+          <div className="mb-3">
 
-                {/* Alert system */}
-                <AlertSystem
-                  type={alertType}
-                  message={alertMessage}
-                  onClose={() => {
-                    setAlertMessage("");
-                  }}
-                />
+            {/* Alert system */}
+            <AlertSystem
+              type={alertType}
+              message={alertMessage}
+              onClose={() => {
+                setAlertMessage("");
+              }}
+            />
 
-                {/* Boutons de navigation et partage */}
-                <div className="d-flex flex-wrap  align-items-left gap-2 mb-3">
+            {/* Boutons de navigation et partage */}
+            <div className="d-flex flex-wrap  align-items-left gap-2 mb-3">
 
-                  {/* Boutons de navigation */}
-                  <button
-                    className="btn btn-outline-secondary"
-                    onClick={() => navigate(`/calendars`)}
-                  >
-                    <i className="bi bi-calendar-date"></i>
-                    <span> Calendriers</span>
-                  </button>
-                  <button
-                    className="btn btn-outline-secondary"
-                    onClick={() => navigate(`/${basePath}/${calendarId}/medicines`)}
-                  >
-                    <i className="bi bi-capsule"></i>
-                    <span> Médicaments</span>
-                  </button>
+              {/* Boutons de navigation */}
+              <button
+                className="btn btn-outline-secondary"
+                onClick={() => navigate(`/calendars`)}
+              >
+                <i className="bi bi-calendar-date"></i>
+                <span> Calendriers</span>
+              </button>
+              <button
+                className="btn btn-outline-secondary"
+                onClick={() => navigate(`/${basePath}/${calendarId}/medicines`)}
+              >
+                <i className="bi bi-capsule"></i>
+                <span> Médicaments</span>
+              </button>
 
-                  {/* Bouton pour partager le calendrier */}
-                  {calendarType === 'personal' && (
-                    <button
-                      className="btn btn-outline-warning"
-                      title="Partager"
-                      onClick={handleShareCalendarClick}
-                    >
-                      <i className="bi bi-box-arrow-up"></i>
-                    </button>
-                  )}
+              {/* Bouton pour partager le calendrier */}
+              {calendarType === 'personal' && (
+                <button
+                  className="btn btn-outline-warning"
+                  title="Partager"
+                  onClick={handleShareCalendarClick}
+                >
+                  <i className="bi bi-box-arrow-up"></i>
+                </button>
+              )}
 
-                </div>
-              </div>
-
-              {/* Bouton pour naviguer vers la semaine suivante ou precedente */}
-              <div className="mb-4">
-                <h4 className="mb-4"><i className="bi bi-calendar-week"></i> Semaine de référence</h4>
-                <WeekCalendarSelector
-                  selectedDate={startDate}
-                  onWeekSelect={onWeekSelect}
-                />
-              </div>
-              
-            </div>
-
-            {/* Tableau hebdomadaire */}
-            <div className="col-12 col-lg-8 mb-4">
-              <div className="mb-2">
-                <h4 className="mb-4"><i className="bi bi-table"></i> Tableau hebdomadaire</h4>
-                {/*trier matin, midi, soir et supprimer les moments non présents*/}
-                {Object.keys(calendarTable).sort((a, b) => {
-                  const order = ['morning', 'noon', 'evening'];
-                  return order.indexOf(a) - order.indexOf(b);
-                }).filter((moment) => calendarTable[moment].length > 0).map((moment, index) => (
-                  <div key={moment}>
-                    {calendarTable[moment].map((table, index) => (
-                      <div className="card border border-secondary-subtle mb-2" key={index}>
-                        <div className="card-header bg-light fw-semibold text-dark">
-                          <i className="bi bi-capsule me-2"></i>{table.title} {table.dose != null ? `${table.dose} mg` : ""}
-                        </div>
-                        <div className="card-body p-0">
-                          <div className="table-responsive">
-                            <table className="table table-sm table-bordered text-center align-middle mb-0 table-striped">
-                              <thead className="table-light">
-                                <tr>
-                                  {days.map((day) => (
-                                    <th key={day}>{days_map[day]}</th>
-                                  ))}
-                                </tr>
-                              </thead>
-                              <tbody>
-                                <tr>
-                                  {days.map((day) => (
-                                    <td key={day}>
-                                      {table.cells[day] && (
-                                        <span className="text-muted small px-2 py-1 rounded d-inline-block">
-                                          {table.cells[day]}
-                                        </span>
-                                      )}
-                                    </td>
-                                  ))}
-                                </tr>
-                              </tbody>
-                            </table>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                    {index < Object.keys(calendarTable).filter((key) => calendarTable[key].length > 0).length - 1 && (
-                      <hr className="mt-4" />
-                    )}
-                  </div>
-                ))}
-              </div>
             </div>
           </div>
+
+          {/* Bouton pour naviguer vers la semaine suivante ou precedente */}
+          {Object.keys(calendarTable).filter((key) => calendarTable[key].length > 0).length > 0 && (
+            <div className="mb-2">
+              <h4 className="mb-3 fw-bold">
+                <i className="bi bi-calendar-date"></i> Semaine de référence
+              </h4>
+              <WeekCalendarSelector
+                selectedDate={startDate}
+                onWeekSelect={onWeekSelect}
+              />
+            </div>
+          )}
         </div>
 
-      
+        {/* Tableau hebdomadaire */}
+        {Object.keys(calendarTable).filter((key) => calendarTable[key].length > 0).length > 0 && (
+          <div className="col-12 col-lg-8 mb-4">
+            <div className="mb-2">
+              <h4 className="mb-3 fw-bold">
+                <i className="bi bi-table"></i> Tableau hebdomadaire
+              </h4>
+              {/*trier matin, midi, soir et supprimer les moments non présents*/}
+              {Object.keys(calendarTable).sort((a, b) => {
+                const order = ['morning', 'noon', 'evening'];
+                return order.indexOf(a) - order.indexOf(b);
+              }).filter((moment) => calendarTable[moment].length > 0).map((moment, index) => (
+                <div key={moment}>
+                  <h5 className="mb-3 fw-semibold">
+                    <i className="bi bi-clock-fill"></i> {moment_map[moment]}
+                  </h5>
+                  {calendarTable[moment].map((table, index) => (
+                    <div className="card border border-secondary-subtle mb-2" key={index}>
+                      <div className="card-header bg-light fw-semibold text-dark">
+                        <i className="bi bi-capsule me-2"></i>{table.title} {table.dose != null ? `${table.dose} mg` : ""}
+                      </div>
+                      <div className="card-body p-0">
+                        <div className="table-responsive">
+                          <table className="table table-sm table-bordered text-center align-middle mb-0 table-striped">
+                            <thead className="table-light">
+                              <tr>
+                                {days.map((day) => (
+                                  <th key={day}>{days_map[day]}</th>
+                                ))}
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr>
+                                {days.map((day) => (
+                                  <td key={day}>
+                                    {table.cells[day] && (
+                                      <span className="text-muted small px-2 py-1 rounded d-inline-block">
+                                        {table.cells[day]}
+                                      </span>
+                                    )}
+                                  </td>
+                                ))}
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {index < Object.keys(calendarTable).filter((key) => calendarTable[key].length > 0).length - 1 && (
+                    <hr className="mt-4" />
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+    {Object.keys(calendarTable).filter((key) => calendarTable[key].length > 0).length > 0 ? (
+      <>
         {/* Calendrier mensuel */}
         <div className='container d-none d-md-block'>
-          <h4 className="mb-4"><i className="bi bi-calendar-week"></i> Calendrier mensuel</h4>
+          <h4 className="mb-3 fw-bold">
+            <i className="bi bi-calendar-week"></i> Calendrier par semaine
+          </h4>
           <div className="alert alert-info mt-4 mb-4" role="alert">
             <i className="bi bi-pin-angle-fill"></i>
             <span> Cliquez sur un jour du calendrier pour voir les médicaments associés dans une fenêtre.</span>
@@ -405,8 +418,8 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
         {/* Calendrier - Vue mobile uniquement */}
         <div className='d-block d-md-none'>
 
-          <h4 className="mb-4">
-            <i className="bi bi-calendar-week"></i> Calendrier mensuel
+          <h4 className="mb-3 fw-bold">
+            <i className="bi bi-calendar-week"></i> Calendrier journalier
           </h4>
 
           <div className="card shadow-sm">

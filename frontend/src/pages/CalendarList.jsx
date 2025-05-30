@@ -153,7 +153,9 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
 
 
   <div className="w-100" style={{ maxWidth: '800px' }}>
-    <h4 className="mb-3 fw-bold">Mes calendriers</h4>
+    <h4 className="mb-3 fw-bold">
+      <i className="bi bi-calendar-week"></i> Mes calendriers
+    </h4>
     {selectedAlert === "header" && (
       <AlertSystem
         type={alertType}
@@ -307,7 +309,9 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
 
 
   <div className="p-1 w-100" style={{ maxWidth: '800px' }}>
-    <h4 className="mb-3 fw-bold">Calendriers partagés</h4>
+    <h4 className="mb-3 fw-bold">
+      <i className="bi bi-people"></i> Calendriers partagés
+    </h4>
 
     {/* 🔔 Alertes et confirmations */}
     {selectedAlert === "sharedCalendar" && (
