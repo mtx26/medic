@@ -17,7 +17,12 @@ export default function NotificationLine({ notif, onRead, onAccept, onReject, na
           display_name: notif.sender_name,
           email: notif.sender_email,
         }}
-        trigger={<strong>{notif.sender_name}</strong>}
+        trigger={<strong
+          onClick={(e) => e.stopPropagation()}
+          onMouseDown={(e) => e.stopPropagation()}
+        >
+          {notif.sender_name}
+        </strong>}
       />
     );
   
@@ -89,16 +94,24 @@ export default function NotificationLine({ notif, onRead, onAccept, onReject, na
         className={`list-group-item list-group-item-action border-0 border-start border-4 ${
           isUnread ? "bg-unread border-primary p-2 rounded" : "bg-light text-muted"
         }`}
-        onClick={() => isUnread && onRead(notif.notification_id)}
-        style={isUnread ? { cursor: "pointer" } : {}}
-        title={isUnread ? "Marquer comme lue" : ""}
       >
-        <p className="mb-0">
-          {icon}
-          {message}
-        </p>
-        {actions}
-        <small className="text-muted d-block mt-2">{timestamp}</small>
+        <div 
+          onClick={() => isUnread && onRead(notif.notification_id)}
+          style={{ cursor: isUnread ? "pointer" : "default" }}
+          tabIndex={0}  
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              isUnread && onRead(notif.notification_id);
+            }
+          }}
+        >
+          <p className="mb-0">
+            {icon}
+            {message}
+          </p>
+          {actions}
+          <small className="text-muted d-block mt-2">{timestamp}</small>
+        </div>
       </li>
     );
   }
