@@ -1,13 +1,11 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { UserContext } from "../contexts/UserContext";
 import { handleLogout } from "../services/authService";
 import { useNavigate } from "react-router-dom";
 import HoveredUserProfile from "./HoveredUserProfile";
 import NotificationLine from "./NotificationLine";
-import 'bootstrap';
 import PropTypes from 'prop-types';
-
 
 function Navbar({ sharedProps }) {
   const { userInfo } = useContext(UserContext);
@@ -16,12 +14,16 @@ function Navbar({ sharedProps }) {
 
   const [calendarInfo, setCalendarInfo] = useState(null);
   const [basePath, setBasePath] = useState(null);
+  const [showNotifDropdown, setShowNotifDropdown] = useState(false);
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const notifRef = useRef();
+  const userRef = useRef();
 
   const locationList = {
     calendar: location.pathname.startsWith("/calendar/"),
     sharedUserCalendar: location.pathname.startsWith("/shared-user-calendar/"),
     tokenCalendar: location.pathname.startsWith("/shared-token-calendar/"),
-  }
+  };
 
   const pathParts = location.pathname.split("/").filter(Boolean);
 
@@ -31,7 +33,7 @@ function Navbar({ sharedProps }) {
   };
 
   const locationAvailableForReturnToCalendar = {
-    calendar: pathParts.length === 3 && pathParts[0] === "calendar" && (pathParts[2] === "medicines" || pathParts[2] === "boxes"), 
+    calendar: pathParts.length === 3 && pathParts[0] === "calendar" && (pathParts[2] === "medicines" || pathParts[2] === "boxes"),
     sharedUserCalendar: pathParts.length === 3 && pathParts[0] === "shared-user-calendar" && (pathParts[2] === "medicines" || pathParts[2] === "boxes"),
   };
 
@@ -50,20 +52,32 @@ function Navbar({ sharedProps }) {
     }
   }, [location.pathname, sharedProps.personalCalendars.calendarsData, sharedProps.sharedUserCalendars.sharedCalendarsData]);
 
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (notifRef.current && !notifRef.current.contains(e.target)) {
+        setShowNotifDropdown(false);
+      }
+      if (userRef.current && !userRef.current.contains(e.target)) {
+        setShowUserDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   const { notificationsData, readNotification } = sharedProps.notifications;
   const { acceptInvitation, rejectInvitation } = sharedProps.sharedUserCalendars;
 
-
   return (
     <>
-      {/* NAVBAR PC */}
       <nav className="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm py-2 sticky-top">
         <div className="container-fluid d-flex align-items-center justify-content-between">
-          {locationAvailableForReturnToCalendarList.calendar || locationAvailableForReturnToCalendarList.sharedUserCalendar ? (
+          {/* Logo / Retour */}
+          {!calendarInfo && (locationAvailableForReturnToCalendarList.calendar || locationAvailableForReturnToCalendarList.sharedUserCalendar) ? (
             <Link to="/calendars" className="navbar-brand fs-4">
               <i className="bi bi-arrow-left"></i> Retour
             </Link>
-          ) : locationAvailableForReturnToCalendar.calendar || locationAvailableForReturnToCalendar.sharedUserCalendar ? (
+          ) : calendarInfo && (locationAvailableForReturnToCalendar.calendar || locationAvailableForReturnToCalendar.sharedUserCalendar) ? (
             <Link to={`/${basePath}/${calendarInfo.id}`} className="navbar-brand fs-4">
               <i className="bi bi-arrow-left"></i> Retour
             </Link>
@@ -73,6 +87,7 @@ function Navbar({ sharedProps }) {
             </Link>
           )}
 
+          {/* Titre calendrier + badge */}
           {calendarInfo && basePath && calendarInfo.id && (
             <>
               <a
@@ -84,35 +99,21 @@ function Navbar({ sharedProps }) {
                 className="d-none d-lg-flex justify-content-center text-decoration-none text-dark"
               >
                 <div className="d-flex flex-column align-items-start w-auto">
-                  {/* Titre du calendrier */}
                   <h4 className="m-0">
                     <span className="text-muted">Calendrier : </span>
                     <span className="fw-bold">{calendarInfo.name}</span>
                   </h4>
-
-                  {/* Badge : Calendrier partagé */}
                   {locationList.sharedUserCalendar && (
                     <div className="badge bg-info mt-2">
-                      Calendrier partagé par{" "}
-                      {calendarInfo ? (
-                        <HoveredUserProfile 
-                          user={{
-                            email: calendarInfo.owner_email,
-                            display_name: calendarInfo.owner_name,
-                            photo_url: calendarInfo.owner_photo_url
-                          }}
-                          trigger={
-                            <span>{calendarInfo.owner_name}</span>
-                          }
-                        />
-                      ) : (
-                        "un utilisateur"
-                      )}
+                      Calendrier partagé par <HoveredUserProfile user={{
+                        email: calendarInfo.owner_email,
+                        display_name: calendarInfo.owner_name,
+                        photo_url: calendarInfo.owner_photo_url
+                      }} trigger={<span>{calendarInfo.owner_name}</span>} />
                     </div>
                   )}
                 </div>
               </a>
-
               <a
                 href={`/${basePath}/${calendarInfo.id}`}
                 onClick={(e) => {
@@ -121,26 +122,13 @@ function Navbar({ sharedProps }) {
                 }}
                 className="d-flex align-items-center d-lg-none text-decoration-none text-dark"
               >
-                <h4 className="me-2"><span className="fw-bold">{calendarInfo.name}</span></h4>
+                <h4 className="me-2 fw-bold">{calendarInfo.name}</h4>
               </a>
             </>
           )}
-          {basePath && locationList.tokenCalendar && (
-            <>
-              <div className="d-none d-lg-flex align-items-cente">
-                <div className="badge bg-info mt-2 align-self-center">
-                  <i className="bi bi-link-45deg"> Lien public</i>
-                </div>
-              </div>
-              <div className="d-flex d-lg-none align-items-center">
-                <div className="badge bg-info mt-2 align-self-center">
-                  <i className="bi bi-link-45deg"> Lien public</i>
-                </div>
-              </div>
-            </>
-          )}
 
-          <div className="d-none d-lg-flex align-items-cente">
+          {/* Liens navigation + notifs + profil */}
+          <div className="d-none d-lg-flex align-items-center">
             <ul className="navbar-nav align-items-center gap-2">
               <li className="nav-item">
                 <Link to="/calendars" className="nav-link">
@@ -159,60 +147,53 @@ function Navbar({ sharedProps }) {
                   </Link>
                 </li>
               )}
-              <li className="nav-item">
+
+              {/* Notifs */}
+              <li className="nav-item dropdown position-relative" ref={notifRef}>
                 <button
-                  className="nav-link position-relative bg-transparent border-0"
-                  id="notifDropdown"
-                  data-bs-toggle="dropdown"
-                  aria-expanded="false"
-                  title="Notifications"
+                  className="nav-link bg-transparent border-0 position-relative"
+                  onClick={() => setShowNotifDropdown(!showNotifDropdown)}
                 >
                   <i className="bi bi-bell fs-5"></i>
-                  {notificationsData !== null && notificationsData.filter(notif => !notif.read).length > 0 && (
+                  {notificationsData && notificationsData.filter(notif => !notif.read).length > 0 && (
                     <span className="position-absolute top-10 start-90 translate-middle badge rounded-pill bg-danger fs-7">
                       {notificationsData.filter(notif => !notif.read).length}
                     </span>
                   )}
                 </button>
-
-                <ul className="dropdown-menu dropdown-menu-end p-2" aria-labelledby="notifDropdown" style={{ minWidth: "320px", maxHeight: "400px", overflowY: "auto" }}>
-                  {notificationsData === null && (
-                    <li className="dropdown-item text-muted fs-6">Chargement des notifications...</li>
-                  )}
-                  {notificationsData !== null && notificationsData.filter(notif => !notif.read).slice(0, 5).map((notif) => (
-                    <NotificationLine
-                      key={notif.notification_id}
-                      notif={notif}
-                      onRead={readNotification}
-                      onAccept={acceptInvitation}
-                      onReject={rejectInvitation}
-                      navigate={navigate}
-                    />
-                  ))}
-                  {notificationsData !== null && notificationsData.filter(notif => !notif.read).length === 0 && (
-                    <li className="dropdown-item text-muted fs-6">Aucune nouvelle notification</li>
-                  )}
-                  <li><hr className="dropdown-divider" /></li>
-                  <li className="text-center">
-                    <button
-                      className="btn btn-sm btn-outline-primary w-100"
-                      onClick={() => navigate("/notifications")}
-                    >
-                      <i className="bi bi-bell"></i> Ouvrir les notifications
-                    </button>
-                  </li>
-                </ul>
+                {showNotifDropdown && (
+                  <ul 
+                    className="dropdown-menu dropdown-menu-end p-2 show" 
+                    style={{ minWidth: "500px", maxHeight: "450px", overflowY: "auto", right: "0", left: "auto" }}
+                  >
+                    {notificationsData === null ? (
+                      <li className="dropdown-item text-muted fs-6">Chargement des notifications...</li>
+                    ) : notificationsData.filter(notif => !notif.read).slice(0, 5).map((notif) => (
+                      <NotificationLine
+                        key={notif.notification_id}
+                        notif={notif}
+                        onRead={readNotification}
+                        onAccept={acceptInvitation}
+                        onReject={rejectInvitation}
+                        navigate={navigate}
+                      />
+                    ))}
+                    {notificationsData && notificationsData.filter(notif => !notif.read).length === 0 && (
+                      <li className="dropdown-item text-muted fs-6">Aucune nouvelle notification</li>
+                    )}
+                    <li><hr className="dropdown-divider" /></li>
+                    <li className="text-center">
+                      <button className="btn btn-sm btn-outline-primary w-100" onClick={() => navigate("/notifications")}>
+                        <i className="bi bi-bell"></i> Ouvrir les notifications
+                      </button>
+                    </li>
+                  </ul>
+                )}
               </li>
 
-              {/* Dropdown utilisateur */}
-              <li className="nav-item dropdown">
-                <button
-                  className="nav-link dropdown-toggle d-flex align-items-center border-0 bg-transparent"
-                  id="userDropdown"
-                  data-bs-toggle="dropdown"
-                  aria-expanded="false"
-                  title="Mon profil"
-                >
+              {/* Profil */}
+              <li className="nav-item dropdown position-relative" ref={userRef}>
+                <button className="nav-link d-flex align-items-center border-0 bg-transparent" onClick={() => setShowUserDropdown(!showUserDropdown)}>
                   {userInfo ? (
                     <>
                       <img
@@ -224,6 +205,7 @@ function Navbar({ sharedProps }) {
                         referrerPolicy="no-referrer"
                       />
                       <span className="text-muted">{userInfo.displayName || "Utilisateur"}</span>
+                      <i className="bi bi-caret-down-fill ms-2"></i>
                     </>
                   ) : (
                     <>
@@ -232,61 +214,29 @@ function Navbar({ sharedProps }) {
                     </>
                   )}
                 </button>
-                <ul className="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                  {userInfo ? (
-                    <>
-                      <li><Link className="dropdown-item" to="/profile"><i className="bi bi-person fs-5 me-2"></i> Mon profil</Link></li>
-                      <li><Link className="dropdown-item" to="/account"><i className="bi bi-gear fs-5 me-2"></i> Paramètres</Link></li>
-                      <li><hr className="dropdown-divider" /></li>
-                      <li>
-                        <button 
-                          className="dropdown-item" 
-                          onClick={handleLogout}
-                        >
-                          <i className="bi bi-unlock fs-5 me-2"></i> Déconnexion
-                        </button>
-                      </li>
-                    </>
-                  ) : (
-                    <>
-                      <li><Link className="dropdown-item" to="/login"><i className="bi bi-box-arrow-in-right fs-5 me-2"></i> Connexion</Link></li>
-                      <li><Link className="dropdown-item" to="/register"><i className="bi bi-person-plus fs-5 me-2"></i> Inscription</Link></li>
-                    </>
-                  )}
-                </ul>
+                {showUserDropdown && (
+                  <ul 
+                    className="dropdown-menu dropdown-menu-end p-2 show" 
+                    style={{ maxHeight: "400px", overflowY: "auto", right: "0", left: "auto" }}
+                  >
+                    {userInfo ? (
+                      <>
+                        <li><Link className="dropdown-item" to="/profile"><i className="bi bi-person fs-5 me-2"></i> Mon profil</Link></li>
+                        <li><Link className="dropdown-item" to="/account"><i className="bi bi-gear fs-5 me-2"></i> Paramètres</Link></li>
+                        <li><hr className="dropdown-divider" /></li>
+                        <li><button className="dropdown-item" onClick={handleLogout}><i className="bi bi-unlock fs-5 me-2"></i> Déconnexion</button></li>
+                      </>
+                    ) : (
+                      <>
+                        <li><Link className="dropdown-item" to="/login"><i className="bi bi-box-arrow-in-right fs-5 me-2"></i> Connexion</Link></li>
+                        <li><Link className="dropdown-item" to="/register"><i className="bi bi-person-plus fs-5 me-2"></i> Inscription</Link></li>
+                      </>
+                    )}
+                  </ul>
+                )}
               </li>
             </ul>
           </div>
-        </div>
-      </nav>
-
-      <nav className="navbar fixed-bottom bg-white shadow-sm py-2 border-top d-lg-none">
-        <div className="container-fluid d-flex justify-content-around">
-          <Link to="/" className="text-center text-dark text-decoration-none link-hover">
-            <i className="bi bi-house fs-4"></i>
-            <div className="small">Accueil</div>
-          </Link>
-          <Link to="/calendars" className="text-center text-dark text-decoration-none link-hover">
-            <i className="bi bi-calendar-event fs-4"></i>
-            <div className="small">Calendrier</div>
-          </Link>
-          <Link to="/shared-calendars" className="text-center text-dark text-decoration-none link-hover">
-            <i className="bi bi-people fs-4"></i>
-            <div className="small">Partages</div>
-          </Link>
-          <Link to="/notifications" className="text-center text-dark text-decoration-none link-hover position-relative">
-            <i className="bi bi-bell fs-4"></i>
-            <div className="small">Notifs</div>
-            {notificationsData !== null && notificationsData.filter(notif => !notif.read).length > 0 && (
-              <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger fs-7">
-                {notificationsData.filter(notif => !notif.read).length}
-              </span>
-            )}
-          </Link>
-          <Link to="/account" className="text-center text-dark text-decoration-none link-hover">
-            <i className="bi bi-person-circle fs-4"></i>
-            <div className="small">Comptes</div>
-          </Link>
         </div>
       </nav>
     </>
@@ -298,4 +248,3 @@ export default Navbar;
 Navbar.propTypes = {
   sharedProps: PropTypes.object.isRequired,
 };
-
