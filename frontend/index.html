@@ -17,16 +17,33 @@
       content="Application MediTime — gestion de prise de médicaments"
     />
 
-    <!-- Bootstrap CSS -->
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-    <!-- Bootstrap Icons -->
+    <!-- Bootstrap CSS (preload non bloquant) -->
     <link 
-      rel="stylesheet" 
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
-    />
+      rel="preload" 
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" 
+      as="style" 
+      onload="this.onload=null;this.rel='stylesheet'"
+    >
+    <noscript>
+      <link 
+        rel="stylesheet" 
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      >
+    </noscript>
+    
+    <!-- Bootstrap Icons (preload non bloquant) -->
+    <link 
+      rel="preload" 
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" 
+      as="style" 
+      onload="this.onload=null;this.rel='stylesheet'"
+    >
+    <noscript>
+      <link 
+        rel="stylesheet" 
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+      >
+    </noscript>
 
     <title>MediTime</title>
   </head>
