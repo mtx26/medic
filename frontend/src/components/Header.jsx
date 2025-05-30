@@ -73,11 +73,11 @@ function Navbar({ sharedProps }) {
       <nav className="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm py-2 sticky-top">
         <div className="container-fluid d-flex align-items-center justify-content-between">
           {/* Logo / Retour */}
-          {!calendarInfo && (locationAvailableForReturnToCalendarList.calendar || locationAvailableForReturnToCalendarList.sharedUserCalendar) ? (
+          {locationAvailableForReturnToCalendarList.calendar || locationAvailableForReturnToCalendarList.sharedUserCalendar ? (
             <Link to="/calendars" className="navbar-brand fs-4">
               <i className="bi bi-arrow-left"></i> Retour
             </Link>
-          ) : calendarInfo && (locationAvailableForReturnToCalendar.calendar || locationAvailableForReturnToCalendar.sharedUserCalendar) ? (
+          ) : calendarInfo?.id && basePath && (locationAvailableForReturnToCalendar.calendar || locationAvailableForReturnToCalendar.sharedUserCalendar) ? (
             <Link to={`/${basePath}/${calendarInfo.id}`} className="navbar-brand fs-4">
               <i className="bi bi-arrow-left"></i> Retour
             </Link>
