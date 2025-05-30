@@ -35,7 +35,6 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
   const [calendarEvents, setCalendarEvents] = useState([]); // Événements du calendrier
   const [calendarTable, setCalendarTable] = useState([]); // Événements du calendrier
   const [calendarName, setCalendarName] = useState(''); // Nom du calendrier
-  const [ownerUser, setOwnerUser] = useState(null); // Utilisateur propriétaire du calendrier
   const [alertType, setAlertType] = useState(''); // Type d'alerte
   const [alertMessage, setAlertMessage] = useState(''); // Message d'alerte
   const [existingShareToken, setExistingShareToken] = useState(null); // Token existant
@@ -133,7 +132,7 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
   };
   
   
-  // Fonction pour charger le calendrier lorsque l'utilisateur est connecté
+  // Fonction pour charger le calendrier lorsque l'utilisateur est connecté ou que le calendrier est un token
   useEffect(() => {
     if (!calendarId) return;
     if (calendarType === 'personal' || calendarType === 'sharedUser') {
@@ -182,22 +181,6 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
       color: event.color,
     }));
   }, [calendarEvents]);  
-
-  
-  // 📍 Récupération des informations de l'utilisateur propriétaire du calendrier
-  useEffect(() => {
-    if (!userInfo || !calendarId) return;
-    if (calendarType === 'sharedUser') {
-      if ( calendarSource.calendarsData && calendarSource.calendarsData.find((calendar) => calendar.id === calendarId)) {
-        const owner_user = calendarSource.calendarsData.find((calendar) => calendar.id === calendarId);
-        setOwnerUser({
-          email: owner_user.owner_email,
-          display_name: owner_user.owner_name,
-          photo_url: owner_user.owner_photo_url
-        });
-      }
-    }
-  }, [calendarType, calendarSource.calendarsData, calendarId, userInfo]);
 
 
   if ( loading === undefined && calendarId) {
