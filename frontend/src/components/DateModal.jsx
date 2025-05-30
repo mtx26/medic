@@ -21,6 +21,7 @@ const DateModal = forwardRef(({ selectedDate, eventsForDay, onNext, onPrev, onSe
         className="modal d-block"
         aria-modal="true"
         aria-labelledby="dialogTitle"
+        style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
       >
         <div className="modal-dialog modal-dialog-centered">
           <div className="modal-content">

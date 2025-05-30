@@ -13,11 +13,10 @@ function Navbar({ sharedProps }) {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [calendarName, setCalendarName] = useState(null);
-  const [calendarId, setCalendarId] = useState(null);
+  const [calendarInfo, setCalendarInfo] = useState(null);
   const [basePath, setBasePath] = useState(null);
 
-  const locationAvailable = {
+  const locationList = {
     calendar: location.pathname.startsWith("/calendar/"),
     sharedUserCalendar: location.pathname.startsWith("/shared-user-calendar/"),
     tokenCalendar: location.pathname.startsWith("/shared-token-calendar/"),
@@ -35,26 +34,20 @@ function Navbar({ sharedProps }) {
     sharedUserCalendar: pathParts.length === 3 && pathParts[0] === "shared-user-calendar" && (pathParts[2] === "medicines" || pathParts[2] === "boxes"),
   };
 
-  
   useEffect(() => {
-    console.log(locationAvailableForReturnToCalendar);
-  }, [locationAvailableForReturnToCalendar]);
-
-  useEffect(() => {
-    if (locationAvailable.calendar && sharedProps.personalCalendars.calendarsData) {
+    if (locationList.calendar && sharedProps.personalCalendars.calendarsData) {
       setBasePath('calendar');
-      setCalendarName(sharedProps.personalCalendars.calendarsData.find(calendar => calendar.id === location.pathname.split("/")[2]).name);
-      setCalendarId(sharedProps.personalCalendars.calendarsData.find(calendar => calendar.id === location.pathname.split("/")[2]).id);
-    } else if (locationAvailable.sharedUserCalendar && sharedProps.sharedUserCalendars.calendarsData) {
+      setCalendarInfo(sharedProps.personalCalendars.calendarsData.find(calendar => calendar.id === location.pathname.split("/")[2]));
+    } else if (locationList.sharedUserCalendar && sharedProps.sharedUserCalendars.sharedCalendarsData) {
       setBasePath('shared-user-calendar');
-      setCalendarName(sharedProps.sharedUserCalendars.calendarsData.find(calendar => calendar.id === location.pathname.split("/")[2]).name);
-      setCalendarId(sharedProps.sharedUserCalendars.calendarsData.find(calendar => calendar.id === location.pathname.split("/")[2]).id);
+      setCalendarInfo(sharedProps.sharedUserCalendars.sharedCalendarsData.find(calendar => calendar.id === location.pathname.split("/")[2]));
+    } else if (locationList.tokenCalendar) {
+      setBasePath('shared-token-calendar');
     } else {
-      setCalendarName(null);
-      setCalendarId(null);
+      setCalendarInfo(null);
       setBasePath(null);
     }
-  }, [location.pathname, sharedProps.personalCalendars.calendarsData, sharedProps.sharedUserCalendars.calendarsData]);
+  }, [location.pathname, sharedProps.personalCalendars.calendarsData, sharedProps.sharedUserCalendars.sharedCalendarsData]);
 
   const { notificationsData, readNotification } = sharedProps.notifications;
   const { acceptInvitation, rejectInvitation } = sharedProps.sharedUserCalendars;
@@ -70,7 +63,7 @@ function Navbar({ sharedProps }) {
               <i className="bi bi-arrow-left"></i> Retour
             </Link>
           ) : locationAvailableForReturnToCalendar.calendar || locationAvailableForReturnToCalendar.sharedUserCalendar ? (
-            <Link to={`/${basePath}/${calendarId}`} className="navbar-brand fs-4">
+            <Link to={`/${basePath}/${calendarInfo.id}`} className="navbar-brand fs-4">
               <i className="bi bi-arrow-left"></i> Retour
             </Link>
           ) : (
@@ -79,29 +72,70 @@ function Navbar({ sharedProps }) {
             </Link>
           )}
 
-          {calendarName && basePath && calendarId && (
+          {calendarInfo && basePath && calendarInfo.id && (
             <>
               <a
-                href={`/${basePath}/${calendarId}`}
+                href={`/${basePath}/${calendarInfo.id}`}
                 onClick={(e) => {
                   e.preventDefault();
-                  navigate(`/${basePath}/${calendarId}`);
+                  navigate(`/${basePath}/${calendarInfo.id}`);
                 }}
-                className="flex-grow-1 d-none d-lg-flex justify-content-center text-decoration-none text-dark"
+                className="d-none d-lg-flex justify-content-center text-decoration-none text-dark"
               >
-                <h4 className="m-0">Calendrier : <span className="fw-bold">{calendarName}</span></h4>
+                <div className="d-flex flex-column align-items-start w-auto">
+                  {/* Titre du calendrier */}
+                  <h4 className="m-0">
+                    <span className="text-muted">Calendrier : </span>
+                    <span className="fw-bold">{calendarInfo.name}</span>
+                  </h4>
+
+                  {/* Badge : Calendrier partagé */}
+                  {locationList.sharedUserCalendar && (
+                    <div className="badge bg-info mt-2">
+                      Calendrier partagé par{" "}
+                      {calendarInfo ? (
+                        <HoveredUserProfile 
+                          user={{
+                            email: calendarInfo.owner_email,
+                            display_name: calendarInfo.owner_name,
+                            photo_url: calendarInfo.owner_photo_url
+                          }}
+                          trigger={
+                            <span>{calendarInfo.owner_name}</span>
+                          }
+                        />
+                      ) : (
+                        "un utilisateur"
+                      )}
+                    </div>
+                  )}
+                </div>
               </a>
 
               <a
-                href={`/${basePath}/${calendarId}`}
+                href={`/${basePath}/${calendarInfo.id}`}
                 onClick={(e) => {
                   e.preventDefault();
-                  navigate(`/${basePath}/${calendarId}`);
+                  navigate(`/${basePath}/${calendarInfo.id}`);
                 }}
                 className="d-flex align-items-center d-lg-none text-decoration-none text-dark"
               >
-                <h4 className="me-2"><span className="fw-bold">{calendarName}</span></h4>
+                <h4 className="me-2"><span className="fw-bold">{calendarInfo.name}</span></h4>
               </a>
+            </>
+          )}
+          {basePath && locationList.tokenCalendar && (
+            <>
+              <div className="d-none d-lg-flex align-items-cente">
+                <div className="badge bg-info mt-2 align-self-center">
+                  <i className="bi bi-link-45deg"> Lien public</i>
+                </div>
+              </div>
+              <div className="d-flex d-lg-none align-items-center">
+                <div className="badge bg-info mt-2 align-self-center">
+                  <i className="bi bi-link-45deg"> Lien public</i>
+                </div>
+              </div>
             </>
           )}
 

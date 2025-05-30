@@ -189,7 +189,7 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
   useEffect(() => {
     if (!userInfo || !calendarId) return;
     if (calendarType === 'sharedUser') {
-      if (calendarSource.calendarsData.find((calendar) => calendar.id === calendarId)) {
+      if ( calendarSource.calendarsData && calendarSource.calendarsData.find((calendar) => calendar.id === calendarId)) {
         const owner_user = calendarSource.calendarsData.find((calendar) => calendar.id === calendarId);
         setOwnerUser({
           email: owner_user.owner_email,
@@ -220,201 +220,177 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
   }
 
   return (
-    <div>
-      {calendarType === 'personal' && (
-        // Modal pour partager un calendrier
-        <ShareCalendarModal
-          ref={shareModalRef}
-          calendarId={calendarId}
-          calendarName={calendarName}
-          existingShareToken={existingShareToken}
-          sharedUsersData={sharedUsersData}
-          tokenCalendars={tokenCalendars}
-          sharedUserCalendars={sharedUserCalendars}
-          setAlertType={setAlertType}
-          setAlertMessage={setAlertMessage}
-        />
-      )}
-      
-      <div className="card shadow-sm mb-4">
-        <div className="card-body">
+  <>
+    {calendarType === 'personal' && (
+      // Modal pour partager un calendrier
+      <ShareCalendarModal
+        ref={shareModalRef}
+        calendarId={calendarId}
+        calendarName={calendarName}
+        existingShareToken={existingShareToken}
+        sharedUsersData={sharedUsersData}
+        tokenCalendars={tokenCalendars}
+        sharedUserCalendars={sharedUserCalendars}
+        setAlertType={setAlertType}
+        setAlertMessage={setAlertMessage}
+      />
+    )}
 
-          {/* Titre et alerte */}
-          <div className="mb-3">
-            <h3 className="card-title">{calendarName}</h3>
+    {Object.keys(calendarTable).filter((key) => calendarTable[key].length > 0).length > 0 ? (
+      <>
+        <div className="container">
+          <div className="row justify-content-center">
 
-            <AlertSystem
-              type={alertType}
-              message={alertMessage}
-              onClose={() => {
-                setAlertMessage("");
-              }}
-            />
+            <div className="col-12 col-lg-4 mb-4">
+              <div className="mb-3">
 
-
-            {calendarType === 'sharedUser' && (
-              <div className="badge bg-info mb-3">
-                Calendrier partagé par 
-                {" "}
-
-              {ownerUser ? (
-                <>
-                  <HoveredUserProfile 
-                    user={{
-                      email: ownerUser.email,
-                      display_name: ownerUser.display_name,
-                      photo_url: ownerUser.photo_url
-                    }}
-                    trigger={
-                      <span>
-                        {ownerUser.display_name}
-                      </span>
-                    }
-                  />
-                </>
-              ) : (
-                "un utilisateur"
-              )}
-              </div>
-            )}
-            {calendarType === 'token' && (
-              <div className="badge bg-info mb-3">Accès via lien de partage public</div>
-            )}
-          </div>
-
-          {/* Boutons de navigation et partage */}
-          <div className="d-flex flex-wrap  align-items-left gap-2 mb-3">
-
-            {/* Boutons de navigation */}
-            <button
-              className="btn btn-outline-secondary"
-              onClick={() => navigate(`/calendars`)}
-            >
-              <i className="bi bi-calendar-date"></i>
-              <span> Calendriers</span>
-            </button>
-            <button
-              className="btn btn-outline-secondary"
-              onClick={() => navigate(`/${basePath}/${calendarId}/medicines`)}
-            >
-              <i className="bi bi-capsule"></i>
-              <span> Médicaments</span>
-            </button>
-
-            {/* Bouton pour partager le calendrier */}
-            {calendarType === 'personal' && (
-              <button
-                className="btn btn-outline-warning"
-                title="Partager"
-                onClick={handleShareCalendarClick}
-              >
-                <i className="bi bi-box-arrow-up"></i>
-              </button>
-            )}
-
-          </div>
-        </div>
-      </div>
-
-      {/* Régénérer le calendrier */}
-      {Object.keys(calendarTable).length > 0 && (
-        <WeekCalendarSelector
-          selectedDate={startDate}
-          onWeekSelect={onWeekSelect}
-        />
-      )}
-      {Object.keys(calendarTable).length > 0 ? (
-        <>
-          {/* Tableau hebdomadaire */}
-          <div className="mb-5">
-            <h4 className="mb-4"><i className="bi bi-table"></i> Tableau hebdomadaire</h4>
-            {/*trier matin, midi, soir et supprimer les moments non présents*/}
-            {Object.keys(calendarTable).sort((a, b) => {
-              const order = ['morning', 'noon', 'evening'];
-              return order.indexOf(a) - order.indexOf(b);
-            }).filter((moment) => calendarTable[moment].length > 0).map((moment) => (
-              <div key={moment}>
-                <h5 className="mb-4"> <i className="bi bi-clock-fill"></i> {moment_map[moment]}</h5>
-                {calendarTable[moment].map((table, index) => (
-                  <div className="card border border-secondary-subtle mb-4" key={index}>
-                    <div className="card-header bg-light fw-semibold text-dark">
-                      <i className="bi bi-capsule me-2"></i>{table.title} {table.dose != null ? `${table.dose} mg` : ""}
-                    </div>
-                    <div className="card-body p-0">
-                      <div className="table-responsive">
-                        <table className="table table-sm table-bordered text-center align-middle mb-0 table-striped">
-                          <thead className="table-light">
-                            <tr>
-                              {days.map((day) => (
-                                <th key={day}>{days_map[day]}</th>
-                              ))}
-                            </tr>
-                          </thead>
-                          <tbody>
-                            <tr>
-                              {days.map((day) => (
-                                <td key={day}>
-                                  {table.cells[day] && (
-                                    <span className="text-muted small px-2 py-1 rounded d-inline-block">
-                                      {table.cells[day]}
-                                    </span>
-                                  )}
-                                </td>
-                              ))}
-                            </tr>
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-                <hr className="mt-4" />
-              </div>
-            ))}
-          </div>
-          
-          {/* Calendrier mensuel */}
-          <div className='d-none d-md-block'>
-            <h4 className="mb-4"><i className="bi bi-calendar-week"></i> Calendrier mensuel</h4>
-            <div className="alert alert-info mt-4 mb-4" role="alert">
-              <i className="bi bi-pin-angle-fill"></i>
-              <span> Cliquez sur un jour du calendrier pour voir les médicaments associés dans une fenêtre.</span>
-            </div>
-            <div className="card shadow-sm">
-              <div className="card-body">
-                <FullCalendar
-                  ref={calendarRef}
-                  plugins={[dayGridPlugin, interactionPlugin, bootstrap5Plugin]}
-                  initialView="dayGridWeek"
-                  themeSystem="bootstrap5"
-                  events={memoizedEvents}
-                  headerToolbar={{
-                    left: '',
-                    center: '',
-                    right: ''
+                {/* Alert system */}
+                <AlertSystem
+                  type={alertType}
+                  message={alertMessage}
+                  onClose={() => {
+                    setAlertMessage("");
                   }}
-                  locale={frLocale}
-                  firstDay={1}
-                  dateClick={handleDateClick}
-                  height={400}
+                />
 
-                  // click sur les événements
-                  eventClick={(info) => {
-                    const clickedDate = info.event.startStr.slice(0, 10); // format YYYY-MM-DD
-                    handleDateClick({ dateStr: clickedDate });
-                  }}
-                  buttonText={{
-                    today: 'Aujourd’hui',
-                    month: 'Mois',
-                    week: 'Semaine',
-                    day: 'Jour'
-                  }}   
+                {/* Boutons de navigation et partage */}
+                <div className="d-flex flex-wrap  align-items-left gap-2 mb-3">
+
+                  {/* Boutons de navigation */}
+                  <button
+                    className="btn btn-outline-secondary"
+                    onClick={() => navigate(`/calendars`)}
+                  >
+                    <i className="bi bi-calendar-date"></i>
+                    <span> Calendriers</span>
+                  </button>
+                  <button
+                    className="btn btn-outline-secondary"
+                    onClick={() => navigate(`/${basePath}/${calendarId}/medicines`)}
+                  >
+                    <i className="bi bi-capsule"></i>
+                    <span> Médicaments</span>
+                  </button>
+
+                  {/* Bouton pour partager le calendrier */}
+                  {calendarType === 'personal' && (
+                    <button
+                      className="btn btn-outline-warning"
+                      title="Partager"
+                      onClick={handleShareCalendarClick}
+                    >
+                      <i className="bi bi-box-arrow-up"></i>
+                    </button>
+                  )}
+
+                </div>
+              </div>
+
+              {/* Bouton pour naviguer vers la semaine suivante ou precedente */}
+              <div className="mb-4">
+                <h4 className="mb-4"><i className="bi bi-calendar-week"></i> Semaine de référence</h4>
+                <WeekCalendarSelector
+                  selectedDate={startDate}
+                  onWeekSelect={onWeekSelect}
                 />
               </div>
+              
+            </div>
+
+            {/* Tableau hebdomadaire */}
+            <div className="col-12 col-lg-8 mb-4">
+              <div className="mb-2">
+                <h4 className="mb-4"><i className="bi bi-table"></i> Tableau hebdomadaire</h4>
+                {/*trier matin, midi, soir et supprimer les moments non présents*/}
+                {Object.keys(calendarTable).sort((a, b) => {
+                  const order = ['morning', 'noon', 'evening'];
+                  return order.indexOf(a) - order.indexOf(b);
+                }).filter((moment) => calendarTable[moment].length > 0).map((moment, index) => (
+                  <div key={moment}>
+                    {calendarTable[moment].map((table, index) => (
+                      <div className="card border border-secondary-subtle mb-2" key={index}>
+                        <div className="card-header bg-light fw-semibold text-dark">
+                          <i className="bi bi-capsule me-2"></i>{table.title} {table.dose != null ? `${table.dose} mg` : ""}
+                        </div>
+                        <div className="card-body p-0">
+                          <div className="table-responsive">
+                            <table className="table table-sm table-bordered text-center align-middle mb-0 table-striped">
+                              <thead className="table-light">
+                                <tr>
+                                  {days.map((day) => (
+                                    <th key={day}>{days_map[day]}</th>
+                                  ))}
+                                </tr>
+                              </thead>
+                              <tbody>
+                                <tr>
+                                  {days.map((day) => (
+                                    <td key={day}>
+                                      {table.cells[day] && (
+                                        <span className="text-muted small px-2 py-1 rounded d-inline-block">
+                                          {table.cells[day]}
+                                        </span>
+                                      )}
+                                    </td>
+                                  ))}
+                                </tr>
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    {index < Object.keys(calendarTable).filter((key) => calendarTable[key].length > 0).length - 1 && (
+                      <hr className="mt-4" />
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
+        </div>
 
+      
+        {/* Calendrier mensuel */}
+        <div className='container d-none d-md-block'>
+          <h4 className="mb-4"><i className="bi bi-calendar-week"></i> Calendrier mensuel</h4>
+          <div className="alert alert-info mt-4 mb-4" role="alert">
+            <i className="bi bi-pin-angle-fill"></i>
+            <span> Cliquez sur un jour du calendrier pour voir les médicaments associés dans une fenêtre.</span>
+          </div>
+          <div className="card shadow-sm">
+            <div className="card-body">
+              <FullCalendar
+                ref={calendarRef}
+                plugins={[dayGridPlugin, interactionPlugin, bootstrap5Plugin]}
+                initialView="dayGridWeek"
+                themeSystem="bootstrap5"
+                events={memoizedEvents}
+                headerToolbar={{
+                  left: '',
+                  center: '',
+                  right: ''
+                }}
+                locale={frLocale}
+                firstDay={1}
+                dateClick={handleDateClick}
+                height={400}
 
+                // click sur les événements
+                eventClick={(info) => {
+                  const clickedDate = info.event.startStr.slice(0, 10); // format YYYY-MM-DD
+                  handleDateClick({ dateStr: clickedDate });
+                }}
+                buttonText={{
+                  today: 'Aujourd’hui',
+                  month: 'Mois',
+                  week: 'Semaine',
+                  day: 'Jour'
+                }}   
+              />
+            </div>
+          </div>
+          
           {/* Modal pour afficher les médicaments d'une date */}
           <DateModal
             ref={dateModalRef}
@@ -424,37 +400,36 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
             onPrev={() => navigateDay(-1)}
             onSelectDate={onSelectDate}
           />
+        </div>
 
+        {/* Calendrier - Vue mobile uniquement */}
+        <div className='d-block d-md-none'>
 
-          {/* Calendrier - Vue mobile uniquement */}
-          <div className='d-block d-md-none'>
+          <h4 className="mb-4">
+            <i className="bi bi-calendar-week"></i> Calendrier mensuel
+          </h4>
 
-            <h4 className="mb-4">
-              <i className="bi bi-calendar-week"></i> Calendrier mensuel
-            </h4>
-
-            <div className="card shadow-sm">
-              <div className="card-body">
-                <WeeklyEventContent
-                  ifModal={false}
-                  selectedDate={selectedDate}
-                  eventsForDay={eventsForDay}
-                  onSelectDate={onSelectDate}
-                  onNext={() => navigateDay(1)}
-                  onPrev={() => navigateDay(-1)}
-                />
-              </div>
+          <div className="card shadow-sm">
+            <div className="card-body">
+              <WeeklyEventContent
+                ifModal={false}
+                selectedDate={selectedDate}
+                eventsForDay={eventsForDay}
+                onSelectDate={onSelectDate}
+                onNext={() => navigateDay(1)}
+                onPrev={() => navigateDay(-1)}
+              />
             </div>
           </div>
-        </>
-      ) : (
-        <div className="alert alert-info mt-4 mb-0" role="alert">
-          <i className="bi bi-pin-angle-fill"></i>
-          <span> Aucun médicament prévu pour le moment.</span>
         </div>
-      )}
-
-    </div>
+      </>
+    ) : (
+      <div className="alert alert-info mt-4 mb-0" role="alert">
+        <i className="bi bi-pin-angle-fill"></i>
+        <span> Aucun médicament prévu pour le moment.</span>
+      </div>
+    )}
+  </>
   );
 }
 
