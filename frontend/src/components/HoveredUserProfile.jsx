@@ -28,7 +28,18 @@ export default function HoveredUserProfile({ user, trigger, containerRef = null 
       <Popover.Trigger asChild>
         <button
           type="button"
-          onClick={handleClick}
+          onClick={
+            (e) => {
+              e.stopPropagation();
+              handleClick();
+            }
+          }
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.stopPropagation();
+              handleClick();
+            }
+          }}
           onPointerEnter={handleMouseEnter}
           onPointerLeave={handleMouseLeave}
           className="bg-transparent border-0 p-0 m-0 d-inline-flex align-items-center gap-1 text-start"

@@ -17,12 +17,7 @@ export default function NotificationLine({ notif, onRead, onAccept, onReject, na
           display_name: notif.sender_name,
           email: notif.sender_email,
         }}
-        trigger={<strong
-          onClick={(e) => e.stopPropagation()}
-          onMouseDown={(e) => e.stopPropagation()}
-        >
-          {notif.sender_name}
-        </strong>}
+        trigger={<strong>{notif.sender_name}</strong>}
       />
     );
   
