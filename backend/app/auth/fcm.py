@@ -31,7 +31,7 @@ def send_fcm_notification(token, title, body, link):
             "notification": {
                 "title": title,
                 "body": body,
-                "image": urljoin(Config.FRONTEND_URL, "/favicon.png")
+                "image": urljoin(Config.FRONTEND_URL, "/icons/icon-192.png")
             },
             "webpush": {
                 "fcm_options": {
