@@ -4,7 +4,7 @@ import { UserContext } from "../contexts/UserContext";
 import { handleLogout } from "../services/authService";
 import { useNavigate } from "react-router-dom";
 import HoveredUserProfile from "./HoveredUserProfile";
-import NotificationLine from "../components/NotificationLine";
+import NotificationLine from "./NotificationLine";
 import 'bootstrap';
 import PropTypes from 'prop-types';
 

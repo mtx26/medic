@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import NotificationLine from "../components/notificationLine";
+import NotificationLine from "../components/NotificationLine";
 
 function NotificationsPage({ notifications, sharedUserCalendars }) {
   const navigate = useNavigate();
