@@ -41,7 +41,7 @@ function Auth() {
           <ul className="nav nav-pills nav-justified mb-4">
             <li className="nav-item">
               <button
-                className={`nav-link ${activeTab === "login" ? "active" : ""}`}
+                className={` shadow-sm nav-link ${activeTab === "login" ? "active" : ""}`}
                 onClick={() => switchTab("login")}
               >
                 <i className="bi bi-box-arrow-in-right"></i>
@@ -50,7 +50,7 @@ function Auth() {
             </li>
             <li className="nav-item">
               <button
-                className={`nav-link ${activeTab === "register" ? "active" : ""}`}
+                className={` shadow-sm nav-link ${activeTab === "register" ? "active" : ""}`}
                 onClick={() => switchTab("register")}
               >
                 <i className="bi bi-person-plus"></i>
@@ -63,7 +63,7 @@ function Auth() {
           <div className="text-center mb-3">
             <p>{activeTab === "login" ? "Se connecter avec :" : "S'inscrire avec :"}</p>
             <button 
-              className="btn btn-outline-danger rounded-pill px-3 py-2" 
+              className="btn btn-outline-danger rounded-pill px-3 py-2 shadow-sm" 
               onClick={GoogleHandleLogin}
             >
               <i className="bi bi-google"></i>
@@ -171,15 +171,18 @@ function Auth() {
             )}
 
             {activeTab === "register" && (
-              <div className="form-check mb-3 text-left">
-                <input className="form-check-input" type="checkbox" required id="terms" name="terms"/>
-                <label className="form-check-label" htmlFor="terms">
+              <div 
+                className="form-check mb-3 text-left"
+                style={{ cursor: "pointer" }}
+              >
+                <input className="form-check-input" style={{ cursor: "pointer" }} type="checkbox" required id="terms" name="terms"/>
+                <label className="form-check-label" style={{ cursor: "pointer" }} htmlFor="terms">
                   J’accepte les <Link to="/terms" className="text-decoration-none">conditions générales</Link>
                 </label>
               </div>
             )}
 
-            <button type="submit" className="btn btn-outline-primary w-100">
+            <button type="submit" className="btn btn-outline-primary w-100 shadow-sm">
               {activeTab === "login" ? "Connexion" : "Inscription"}
             </button>
           </form>

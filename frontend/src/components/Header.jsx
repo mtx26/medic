@@ -239,6 +239,36 @@ function Navbar({ sharedProps }) {
           </div>
         </div>
       </nav>
+
+      <nav className="navbar fixed-bottom bg-white shadow-sm py-2 border-top d-lg-none">
+        <div className="container-fluid d-flex justify-content-around">
+          <Link to="/" className="text-center text-dark text-decoration-none link-hover">
+            <i className="bi bi-house fs-4"></i>
+            <div className="small">Accueil</div>
+          </Link>
+          <Link to="/calendars" className="text-center text-dark text-decoration-none link-hover">
+            <i className="bi bi-calendar-event fs-4"></i>
+            <div className="small">Calendrier</div>
+          </Link>
+          <Link to="/shared-calendars" className="text-center text-dark text-decoration-none link-hover">
+            <i className="bi bi-people fs-4"></i>
+            <div className="small">Partages</div>
+          </Link>
+          <Link to="/notifications" className="text-center text-dark text-decoration-none link-hover position-relative">
+            <i className="bi bi-bell fs-4"></i>
+            <div className="small">Notifs</div>
+            {notificationsData !== null && notificationsData.filter(notif => !notif.read).length > 0 && (
+              <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger fs-7">
+                {notificationsData.filter(notif => !notif.read).length}
+              </span>
+            )}
+          </Link>
+          <Link to="/account" className="text-center text-dark text-decoration-none link-hover">
+            <i className="bi bi-person-circle fs-4"></i>
+            <div className="small">Comptes</div>
+          </Link>
+        </div>
+      </nav>
     </>
   );
 }
