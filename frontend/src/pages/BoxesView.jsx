@@ -15,7 +15,7 @@ function BoxesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
   const [alertMessage, setAlertMessage] = useState('');
   const [alertType, setAlertType] = useState('');
   const [selectedModifyBox, setSelectedModifyBox] = useState(null);
-  const [selectedDropBox, setSelectedDropBox] = useState(null);
+  const [selectedDropBox, setSelectedDropBox] = useState({});
   const [modifyBoxName, setModifyBoxName] = useState({});
   const [modifyBoxCapacity, setModifyBoxCapacity] = useState({});
   const [modifyBoxStockAlertThreshold, setModifyBoxStockAlertThreshold] = useState({});
@@ -322,19 +322,19 @@ function BoxCard({
               title="Conditions de prise"
               aria-label="Conditions de prise"
               onClick={() => {
-                if (selectedDropBox === box.id) {
-                  setSelectedDropBox(null);
+                if (selectedDropBox[box.id] === true) {
+                  setSelectedDropBox((prev) => ({ ...prev, [box.id]: false }));
                 } else {
-                  setSelectedDropBox(box.id);
+                  setSelectedDropBox((prev) => ({ ...prev, [box.id]: true }));
                 }
               }}
             >
               <span>Conditions de prise</span>
-              <i className={`bi bi-chevron-${selectedDropBox === box.id ? 'up' : 'down'}`}></i>
+              <i className={`bi bi-chevron-${selectedDropBox[box.id] === true ? 'up' : 'down'}`}></i>
             </button>
           </h5>
 
-          {selectedDropBox === box.id && (
+          {selectedDropBox[box.id] === true && (
             <div className="mt-2">
               {editable ? (
                 <>
@@ -375,7 +375,7 @@ function BoxCard({
                             }))}
                           >
                             <option value="morning">Matin</option>
-                            <option value="afternoon">Après-midi</option>
+                            <option value="noon">Midi</option>
                             <option value="evening">Soir</option>
                           </select>
                           <label htmlFor="interval_days">Intervalle de jours</label>
