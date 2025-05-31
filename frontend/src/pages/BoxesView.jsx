@@ -3,6 +3,8 @@ import { useParams, useLocation } from 'react-router-dom';
 import { useRealtimeBoxesSwitcher } from '../hooks/useRealtimeBoxesSwitcher';
 import AlertSystem from '../components/AlertSystem';
 import { getCalendarSourceMap } from '../utils/calendarSourceMap';
+import { v4 as uuidv4 } from 'uuid';
+
 
 function BoxesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
   const location = useLocation();
@@ -13,10 +15,12 @@ function BoxesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
   const [alertMessage, setAlertMessage] = useState('');
   const [alertType, setAlertType] = useState('');
   const [selectedModifyBox, setSelectedModifyBox] = useState(null);
+  const [selectedDropBox, setSelectedDropBox] = useState(null);
   const [modifyBoxName, setModifyBoxName] = useState({});
   const [modifyBoxCapacity, setModifyBoxCapacity] = useState({});
   const [modifyBoxStockAlertThreshold, setModifyBoxStockAlertThreshold] = useState({});
   const [modifyBoxStockQuantity, setModifyBoxStockQuantity] = useState({});
+  const [boxConditions, setBoxConditions] = useState({});
 
   let calendarType = 'personal';
   let calendarId = params.calendarId;
@@ -46,7 +50,8 @@ function BoxesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
       stock_alert_threshold: modifyBoxStockAlertThreshold[selectedModifyBox],
       stock_quantity: modifyBoxStockQuantity[selectedModifyBox]
     }
-    const res = await calendarSource.updateBox(calendarId, selectedModifyBox, box);
+    const conditions = Object.values(boxConditions[selectedModifyBox]).filter(condition => condition !== undefined);
+    const res = await calendarSource.updateBox(calendarId, selectedModifyBox, box, conditions);
     if (res.success) {
       setAlertMessage("✅ " + res.message);
       setAlertType('success');
@@ -64,7 +69,8 @@ function BoxesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
       stock_alert_threshold: boxes.find(box => box.id === boxId).stock_alert_threshold,
       stock_quantity: boxes.find(box => box.id === boxId).box_capacity
     }
-    const res = await calendarSource.updateBox(calendarId, boxId, box);
+    const conditions = boxes.find(box => box.id === boxId).conditions;
+    const res = await calendarSource.updateBox(calendarId, boxId, box, conditions);
     if (res.success) {
       setAlertMessage("✅ " + res.message);
       setAlertType('success');
@@ -99,6 +105,7 @@ function BoxesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
         setModifyBoxCapacity((prev) => ({ ...prev, [box.id]: box.box_capacity }));
         setModifyBoxStockAlertThreshold((prev) => ({ ...prev, [box.id]: box.stock_alert_threshold }));
         setModifyBoxStockQuantity((prev) => ({ ...prev, [box.id]: box.stock_quantity }));
+        setBoxConditions((prev) => ({ ...prev, [box.id]: box.conditions.reduce((acc, condition) => ({ ...acc, [condition.id]: condition }), {}) }));
       }
     }
   }, [boxes]);
@@ -149,6 +156,10 @@ function BoxesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
                     setModifyBoxStockQuantity={setModifyBoxStockQuantity}
                     restockBox={restockBox}
                     deleteBox={deleteBox}
+                    selectedDropBox={selectedDropBox}
+                    setSelectedDropBox={setSelectedDropBox}
+                    boxConditions={boxConditions}
+                    setBoxConditions={setBoxConditions}
                   />
                 </form>
               ) : (
@@ -162,6 +173,10 @@ function BoxesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
                   setModifyBoxStockQuantity={setModifyBoxStockQuantity}
                   restockBox={restockBox}
                   deleteBox={deleteBox}
+                  selectedDropBox={selectedDropBox}
+                  setSelectedDropBox={setSelectedDropBox}
+                  boxConditions={boxConditions}
+                  setBoxConditions={setBoxConditions}
                 />
               )}
             </div>
@@ -203,9 +218,18 @@ function BoxCard({
   setModifyBoxStockAlertThreshold, 
   setModifyBoxStockQuantity,
   restockBox,
-  deleteBox
+  deleteBox,
+  selectedDropBox,
+  setSelectedDropBox,
+  boxConditions,
+  setBoxConditions
 }) {
   const editable = selectedModifyBox === box.id;
+  const timeOfDayMap = {
+    'morning': 'Matin',
+    'afternoon': 'Après-midi',
+    'evening': 'Soir'
+  }
 
   return (
     <div className={`card h-100 shadow-sm border ${ box.box_capacity === 0
@@ -238,7 +262,7 @@ function BoxCard({
               className="form-control form-control-sm"
               defaultValue={box.name}
               onChange={(e) => {
-                setModifyBoxName((prev) => ({ ...prev, [box.id]: e.target.value }));
+                setModifyBoxName((prev) => ({ ...prev, [box.id]: { ...prev[box.id], name: e.target.value } }));
               }}
               required
             />
@@ -287,43 +311,209 @@ function BoxCard({
         {(!selectedModifyBox || selectedModifyBox !== box.id) && (
           <StockBadge box={box} />
         )}
+
+
+        <div className="mt-4 mb-2">
+          <hr className="border-dark mb-0" />
+          <h5 className="w-100">
+            <button 
+              className="btn w-100 text-start d-flex justify-content-between align-items-center border-0 bg-transparent px-0 pb-0 mb-0"
+              type="button"
+              title="Conditions de prise"
+              aria-label="Conditions de prise"
+              onClick={() => {
+                if (selectedDropBox === box.id) {
+                  setSelectedDropBox(null);
+                } else {
+                  setSelectedDropBox(box.id);
+                }
+              }}
+            >
+              <span>Conditions de prise</span>
+              <i className={`bi bi-chevron-${selectedDropBox === box.id ? 'up' : 'down'}`}></i>
+            </button>
+          </h5>
+
+          {selectedDropBox === box.id && (
+            <div className="mt-2">
+              {editable ? (
+                <>
+                  {Object.values(boxConditions[box.id]).filter(condition => condition !== undefined).length > 0 ? (
+                    Object.values(boxConditions[box.id]).filter(condition => condition !== undefined).map((condition) => (
+                      <div key={condition.id}>
+                        <div className="mb-2 p-3 border rounded bg-light">
+                          <label htmlFor="tablet_count">Nombre de comprimés</label>
+                          <input 
+                            type="number" 
+                            className="form-control form-control-sm" 
+                            defaultValue={condition.tablet_count}
+                            title="Nombre de comprimés"
+                            aria-label="Nombre de comprimés"
+                            min={0}
+                            step={0.25}
+                            onChange={(e) => setBoxConditions((prev) => ({
+                              ...prev, [box.id]: {
+                                ...prev[box.id],
+                                [condition.id]: {
+                                  ...prev[box.id][condition.id],
+                                  tablet_count: e.target.value
+                                }
+                              }
+                            }))}
+                          />
+                          <label htmlFor="time_of_day">Heure de prise</label>
+                          <select 
+                            className="form-control form-control-sm" 
+                            defaultValue={condition.time_of_day}
+                            title="Heure de prise"
+                            aria-label="Heure de prise"
+                            onChange={(e) => setBoxConditions((prev) => ({
+                              ...prev, [box.id]: {
+                                ...prev[box.id],
+                                [condition.id]: { ...prev[box.id][condition.id], time_of_day: e.target.value }
+                              }
+                            }))}
+                          >
+                            <option value="morning">Matin</option>
+                            <option value="afternoon">Après-midi</option>
+                            <option value="evening">Soir</option>
+                          </select>
+                          <label htmlFor="interval_days">Intervalle de jours</label>
+                          <input 
+                            type="number" 
+                            className="form-control form-control-sm" 
+                            defaultValue={condition.interval_days}
+                            title="Intervalle de jours"
+                            aria-label="Intervalle de jours"
+                            min={0}
+                            step={1}
+                            onChange={(e) => setBoxConditions((prev) => ({
+                              ...prev, [box.id]: {
+                                ...prev[box.id],
+                                [condition.id]: { ...prev[box.id][condition.id], interval_days: e.target.value }
+                              }
+                            }))}
+                          />
+                          <label htmlFor="start_date">Date de début</label>
+                          <input 
+                            type="date" 
+                            className="form-control form-control-sm" 
+                            title="Date de début"
+                            aria-label="Date de début"
+                            defaultValue={condition.start_date ? new Date(condition.start_date).toISOString().split('T')[0] : ''} 
+                            onChange={(e) => setBoxConditions((prev) => ({
+                              ...prev, [box.id]: {
+                                ...prev[box.id],
+                                [condition.id]: { ...prev[box.id][condition.id], start_date: e.target.value }
+                              }
+                            }))}
+                          />
+                          <button 
+                            type="button" 
+                            className="btn btn-danger btn-sm mt-2"
+                            onClick={() => setBoxConditions((prev) => ({
+                              ...prev, [box.id]: {
+                                ...prev[box.id],
+                                [condition.id]: undefined
+                              }
+                            }))}
+                            title="Supprimer"
+                            aria-label="Supprimer"
+                          >
+                            <i className="bi bi-trash"></i> Supprimer
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="border rounded bg-light d-flex justify-content-start align-items-center p-2 mb-2">
+                      <p className="text-muted mb-0">Aucune condition de prise</p>
+                    </div>
+                  )}
+
+                  <button 
+                    type="button" 
+                    className="btn btn-outline-dark w-100"
+                    onClick={() => {
+                      const id = uuidv4();
+                      setBoxConditions((prev) => ({ 
+                        ...prev, 
+                        [box.id]: {
+                          ...prev[box.id],  
+                          [id]: { id, tablet_count: 1, interval_days: 1, start_date: null, time_of_day: 'morning' }
+                        }
+                      }));
+                      setSelectedModifyBox(box.id);
+                    }}
+                  >
+                    <i className="bi bi-plus-lg me-2"></i>
+                    Ajouter une condition
+                  </button>
+                </>
+              ) : (
+                Object.values(box.conditions).filter(condition => condition !== undefined).length > 0 ? (
+                  Object.values(box.conditions).filter(condition => condition !== undefined).map((condition) => (
+                    <div className="mb-2 p-3 border rounded bg-light" key={condition.id}>
+                      <strong>
+                        {condition.tablet_count} {condition.tablet_count > 1 ? "comprimés" : "comprimé"}
+                      </strong> tous les <strong>
+                        {condition.interval_days} {condition.interval_days > 1 ? "jours" : "jour"}
+                      </strong> chaque <strong>
+                        {timeOfDayMap[condition.time_of_day]}
+                      </strong><br />
+                      {condition.interval_days > 1 && <small className="text-muted">À partir du {new Date(condition.start_date).toLocaleDateString()}</small>}
+                    </div>
+                  ))
+                ) : (
+                  <div className="border rounded bg-light d-flex justify-content-start align-items-center p-2 mb-2">
+                    <p className="text-muted mb-0">Aucune condition de prise</p>
+                  </div>
+                )
+              )}
+            </div>
+          )}
+        </div>
+
         {selectedModifyBox && selectedModifyBox === box.id && (
-          <div className="d-flex gap-2">
-            <button 
-              type="submit"
-              className="btn btn-success btn-sm"
-              aria-label="Enregistrer"
-              title="Enregistrer"
-            >
-              <i className="bi bi-save"></i> Enregistrer
-            </button>
-            <button 
-              type="button"
-              className="btn btn-secondary btn-sm"
-              onClick={() => {
-                setSelectedModifyBox(null);
-                setModifyBoxName('');
-                setModifyBoxCapacity(0);
-                setModifyBoxStockAlertThreshold(0);
-                setModifyBoxStockQuantity(0);
-              }}
-              aria-label="Annuler"
-              title="Annuler"
-            >
-              <i className="bi bi-x"></i> Annuler
-            </button>
-            <button 
-              type="button"
-              className="btn btn-danger btn-sm"
-              onClick={() => {
-                deleteBox(box.id);
-              }}
-              aria-label="Supprimer"
-              title="Supprimer"
-            >
-              <i className="bi bi-trash"></i> Supprimer
-            </button>
-          </div>
+          <>
+            <hr />
+            <div className="d-flex gap-2">
+              <button 
+                type="submit"
+                className="btn btn-success btn-sm"
+                aria-label="Enregistrer"
+                title="Enregistrer"
+              >
+                <i className="bi bi-save"></i> Enregistrer
+              </button>
+              <button 
+                type="button"
+                className="btn btn-secondary btn-sm"
+                onClick={() => {
+                  setSelectedModifyBox(null);
+                  setModifyBoxName('');
+                  setModifyBoxCapacity(0);
+                  setModifyBoxStockAlertThreshold(0);
+                  setModifyBoxStockQuantity(0);
+                }}
+                aria-label="Annuler"
+                title="Annuler"
+              >
+                <i className="bi bi-x"></i> Annuler
+              </button>
+              <button 
+                type="button"
+                className="btn btn-danger btn-sm"
+                onClick={() => {
+                  deleteBox(box.id);
+                }}
+                aria-label="Supprimer"
+                title="Supprimer"
+              >
+                <i className="bi bi-trash"></i> Supprimer
+              </button>
+            </div>
+          </>
         )}
       </div>
 

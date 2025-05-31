@@ -289,6 +289,10 @@ def handle_boxes(calendar_id):
                 WHERE c.id = %s AND c.owner_uid = %s
                 """, (calendar_id, uid))
                 boxes = cursor.fetchall()
+                for box in boxes:
+                    cursor.execute("SELECT * FROM medicine_box_conditions WHERE box_id = %s", (box.get("id"),))
+                    conditions = cursor.fetchall()
+                    box["conditions"] = conditions
                 t_1 = time.time()
                 if boxes is None:
                     return success_response(
@@ -330,11 +334,14 @@ def handle_update_box(calendar_id, box_id):
         user = verify_firebase_token()
         uid = user["uid"]
         data = request.get_json()
-        name = data.get("name")
-        box_capacity = data.get("box_capacity")
-        stock_alert_threshold = data.get("stock_alert_threshold")
-        stock_quantity = data.get("stock_quantity")
+        box = data.get("box")
+        conditions = data.get("conditions")
+        print(conditions)
 
+        name = box.get("name")
+        box_capacity = box.get("box_capacity")
+        stock_alert_threshold = box.get("stock_alert_threshold")
+        stock_quantity = box.get("stock_quantity")
         if not calendar_id or not box_id:
             return error_response(
                 message="champs requis manquants",
@@ -354,12 +361,20 @@ def handle_update_box(calendar_id, box_id):
                 """, (name, box_capacity, stock_alert_threshold, stock_quantity, box_id, calendar_id))
                 conn.commit()
                 t_1 = time.time()
+                cursor.execute("DELETE FROM medicine_box_conditions WHERE box_id = %s", (box_id,))
+                for condition in conditions:
+                    cursor.execute("""
+                        INSERT INTO medicine_box_conditions 
+                        (id, box_id, tablet_count, interval_days, start_date, time_of_day)
+                        VALUES (%s, %s, %s, %s, %s, %s)
+                    """, (condition.get("id"), box_id, condition.get("tablet_count"), condition.get("interval_days"), condition.get("start_date"), condition.get("time_of_day")))
+                t_2 = time.time()
                 return success_response(
                     message="boite de médicaments modifiée",
                     code="MEDICINE_BOX_UPDATED",
                     uid=uid,
                     origin="UPDATE_MEDICINE_BOX",
-                    log_extra={"time": t_1 - t_0, "calendar_id": calendar_id, "box_id": box_id}
+                    log_extra={"time": t_2 - t_0, "calendar_id": calendar_id, "box_id": box_id}
                 )
 
     except Exception as e:

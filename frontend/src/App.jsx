@@ -399,7 +399,7 @@ function App() {
   }, []);
 
   // Fonction pour modifier la boîte d'un calendrier personnel
-  const updatePersonalBox = useCallback(async (calendarId, boxId, box) => {
+  const updatePersonalBox = useCallback(async (calendarId, boxId, box, conditions) => {
     try {
       const token = await auth.currentUser.getIdToken();
       const res = await fetch(`${API_URL}/api/calendars/${calendarId}/boxes/${boxId}`, {
@@ -408,7 +408,7 @@ function App() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(box),
+        body: JSON.stringify({ box, conditions }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
@@ -1390,7 +1390,7 @@ function App() {
     <Router>
       <div className="d-flex flex-column min-vh-100">
         <Navbar sharedProps={sharedProps}/>
-        <main className="flex-grow-1 d-flex flex-column pb-5 pb-md-0">
+        <main className="flex-grow-1 d-flex flex-column pb-5 pb-lg-0">
           {userInfo && (
             <RealtimeManager
               setCalendarsData={setCalendarsData}
@@ -1401,7 +1401,7 @@ function App() {
             />
           )}
 
-          <div className="container mt-4 pb-5 pb-md-0">
+          <div className="container mt-4 pb-5 pb-lg-0">
             <AppRoutes sharedProps={sharedProps} />
           </div>
 
