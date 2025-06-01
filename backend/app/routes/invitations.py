@@ -34,34 +34,32 @@ def handle_send_invitation(calendar_id):
                 uid=owner_uid, 
                 origin="INVITATION_SEND",
                 log_extra={"calendar_id": calendar_id}
+            )      
+        # Verif si soit même
+        if owner_uid == receiver_uid:
+            return warning_response(
+                message="invitation à soi-même", 
+                code="SELF_INVITATION_ERROR", 
+                status_code=400, 
+                uid=owner_uid, 
+                origin="INVITATION_SEND",
+                log_extra={"calendar_id": calendar_id}
             )
 
+        # Vérifier si l'utilisateur existe 
+        user = fetch_user(receiver_uid)
+
+        if not user:
+            return warning_response(
+                message="utilisateur non trouvé", 
+                code="USER_NOT_FOUND", 
+                status_code=404, 
+                uid=owner_uid, 
+                origin="INVITATION_SEND",
+                log_extra={"calendar_id": calendar_id}
+            )
         with get_connection() as conn:
-            with conn.cursor() as cursor:        
-                # Verif si soit même
-                if owner_uid == receiver_uid:
-                    return warning_response(
-                        message="invitation à soi-même", 
-                        code="SELF_INVITATION_ERROR", 
-                        status_code=400, 
-                        uid=owner_uid, 
-                        origin="INVITATION_SEND",
-                        log_extra={"calendar_id": calendar_id}
-                    )
-
-                # Vérifier si l'utilisateur existe 
-                user = fetch_user(receiver_uid)
-
-                if not user:
-                    return warning_response(
-                        message="utilisateur non trouvé", 
-                        code="USER_NOT_FOUND", 
-                        status_code=404, 
-                        uid=owner_uid, 
-                        origin="INVITATION_SEND",
-                        log_extra={"calendar_id": calendar_id}
-                    )
-
+            with conn.cursor() as cursor:  
                 # Vérifier si l'utilisateur a déjà été invité
                 cursor.execute("SELECT * FROM shared_calendars WHERE receiver_uid = %s AND calendar_id = %s", (receiver_uid, calendar_id))
                 shared_calendar = cursor.fetchone()
