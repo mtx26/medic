@@ -10,16 +10,13 @@ def notify_and_record(uid, title, link, body, notif_type, sender_uid, calendar_i
         with get_connection() as conn:
             with conn.cursor() as cursor:
                 cursor.execute("SELECT token FROM fcm_tokens WHERE uid = %s", (uid,))
-                result = cursor.fetchone()
-                token = result.get("token") if result else None
+                results = cursor.fetchall()
+                tokens = [result.get("token") for result in results] if results else None
 
-        # 2. Envoyer la notif (si token trouvé)
-        if token:
-            send_fcm_notification(token, title, body, link)
+                # 2. Envoyer la notif (si token trouvé)
+                if tokens:
+                    send_fcm_notification(tokens, title, body, link)
 
-        # 3. Enregistrer la notification dans Supabase
-        with get_connection() as conn:
-            with conn.cursor() as cursor:
                 cursor.execute("""
                     INSERT INTO notifications (user_id, type, read, timestamp, sender_uid, content)
                     VALUES (%s, %s, %s, NOW(), %s, %s)
