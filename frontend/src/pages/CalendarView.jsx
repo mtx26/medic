@@ -168,7 +168,14 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
   // 📍 Filtrage des événements pour un jour spécifique et tri par ordre alphabétique
   useEffect(() => {
     if (!selectedDate || !calendarEvents.length) return;
-    const sortedEvents = calendarEvents.sort((a, b) => a.title.localeCompare(b.title));
+    const sortedEvents = calendarEvents.sort((a, b) => {
+      const dateA = new Date(a.start);
+      const dateB = new Date(b.start);
+      if (dateA.getTime() === dateB.getTime()) {
+        return a.title.localeCompare(b.title);
+      }
+      return dateA.getTime() - dateB.getTime();
+    });
     const filtered = sortedEvents.filter((event) => event.start.startsWith(selectedDate));
     setEventsForDay(filtered);
   }, [selectedDate, calendarEvents]);
