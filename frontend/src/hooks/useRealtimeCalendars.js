@@ -41,6 +41,10 @@ const fetchCalendars = async (user, setCalendarsData, setLoadingStates) => {
     });
   } catch (err) {
     setLoadingStates(prev => ({ ...prev, calendars: false }));
+    log.error(err.message || "Échec de récupération des calendriers", {
+      origin: "CALENDARS_FETCH_ERROR",
+      uid: user?.uid,
+    });
   }
 };
 
@@ -75,7 +79,7 @@ const fetchSharedCalendars = async (user, setSharedCalendarsData, setLoadingStat
     });
   } catch (err) {
     setLoadingStates(prev => ({ ...prev, sharedCalendars: false }));
-    log.error(err.message || "Échec de récupération des calendriers partagés", err, {
+    log.error(err.message || "Échec de récupération des calendriers partagés", {
       origin: "SHARED_CALENDARS_FETCH_ERROR",
       uid: user?.uid,
     });
