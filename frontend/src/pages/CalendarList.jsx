@@ -315,7 +315,7 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
   </div>
 
 
-  <div className="p-1 w-100" style={{ maxWidth: '800px' }}>
+  <div className="w-100" style={{ maxWidth: '800px' }}>
     <h4 className="mb-3 fw-bold">
       <i className="bi bi-people"></i> Calendriers partagés
     </h4>
