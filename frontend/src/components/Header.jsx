@@ -18,7 +18,7 @@ function Navbar({ sharedProps }) {
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const notifRef = useRef();
   const userRef = useRef();
-
+  const [tokenId, setTokenId] = useState(null);
   const locationList = {
     calendar: location.pathname.startsWith("/calendar/"),
     sharedUserCalendar: location.pathname.startsWith("/shared-user-calendar/"),
@@ -35,6 +35,7 @@ function Navbar({ sharedProps }) {
   const locationAvailableForReturnToCalendar = {
     calendar: pathParts.length === 3 && pathParts[0] === "calendar" && (pathParts[2] === "medicines" || pathParts[2] === "boxes"),
     sharedUserCalendar: pathParts.length === 3 && pathParts[0] === "shared-user-calendar" && (pathParts[2] === "medicines" || pathParts[2] === "boxes"),
+    tokenCalendar: pathParts.length === 3 && pathParts[0] === "shared-token-calendar",
   };
 
   useEffect(() => {
@@ -46,9 +47,11 @@ function Navbar({ sharedProps }) {
       setCalendarInfo(sharedProps.sharedUserCalendars.sharedCalendarsData.find(calendar => calendar.id === location.pathname.split("/")[2]));
     } else if (locationList.tokenCalendar) {
       setBasePath('shared-token-calendar');
+      setTokenId(location.pathname.split("/")[2]);
     } else {
       setCalendarInfo(null);
       setBasePath(null);
+      setTokenId(null);
     }
   }, [location.pathname, sharedProps.personalCalendars.calendarsData, sharedProps.sharedUserCalendars.sharedCalendarsData]);
 
@@ -81,6 +84,10 @@ function Navbar({ sharedProps }) {
             <Link to={`/${basePath}/${calendarInfo.id}`} className="navbar-brand fs-4">
               <i className="bi bi-arrow-left"></i> Retour
             </Link>
+          ) : locationList.tokenCalendar && tokenId && locationAvailableForReturnToCalendar.tokenCalendar ? (
+            <Link to={`/shared-token-calendar/${tokenId}`} className="navbar-brand fs-4">
+              <i className="bi bi-arrow-left"></i> Retour
+            </Link>
           ) : (
             <Link to="/" className="navbar-brand fw-bold text-primary fs-4">
               <i className="bi bi-capsule"></i> MediTime
@@ -88,16 +95,18 @@ function Navbar({ sharedProps }) {
           )}
 
           {/* Titre calendrier + badge */}
-          {calendarInfo && basePath && calendarInfo.id && (
+          {((calendarInfo && calendarInfo.id) || (locationList.tokenCalendar && tokenId)) && (
             <>
               {/* Titre calendrier pour desktop + badge desktop */}
               <div className="d-none d-lg-flex justify-content-center text-decoration-none text-dark">
                 <div className="d-flex flex-column align-items-start w-auto">
                   <h4 className="m-0">
-                    <Link to={`/${basePath}/${calendarInfo.id}`} className="text-decoration-none text-dark">
-                      <span className="text-muted">Calendrier : </span>
-                      <span className="fw-bold">{calendarInfo.name}</span>
-                    </Link>
+                    {calendarInfo && basePath && calendarInfo.id && (
+                      <Link to={`/${basePath}/${calendarInfo.id}`} className="text-decoration-none text-dark">
+                        <span className="text-muted">Calendrier : </span>
+                        <span className="fw-bold">{calendarInfo.name}</span>
+                      </Link>
+                    )}
                   </h4>
                   {locationList.sharedUserCalendar && (
                     <div className="badge bg-info mt-2">
@@ -108,16 +117,25 @@ function Navbar({ sharedProps }) {
                       }} trigger={<span>{calendarInfo.owner_name}</span>} />
                     </div>
                   )}
+                  {locationList.tokenCalendar && tokenId && (
+                    <Link to={`/shared-token-calendar/${tokenId}`} className="text-decoration-none text-dark">
+                      <div className="badge bg-info mt-2">
+                        Calendrier partagé par un token
+                      </div>
+                    </Link>
+                  )}
                 </div>
               </div>
-              
+
               {/* Titre calendrier pour mobile + badge mobile */}
               <div className="d-flex d-lg-none flex-column align-items-end w-auto text-decoration-none text-dark">
-                <h4 className="m-1 fw-bold">
-                  <Link to={`/${basePath}/${calendarInfo.id}`} className="text-decoration-none text-dark">
-                    {calendarInfo.name}
-                  </Link>
-                </h4>
+                {calendarInfo && basePath && calendarInfo.id && (
+                  <h4 className="m-1 fw-bold">
+                    <Link to={`/${basePath}/${calendarInfo.id}`} className="text-decoration-none text-dark">
+                      {calendarInfo.name}
+                    </Link>
+                  </h4>
+                )}
                 {locationList.sharedUserCalendar && (
                   <div className="badge bg-info d-flex flex-column align-items-end">
                     <HoveredUserProfile user={{
@@ -126,6 +144,13 @@ function Navbar({ sharedProps }) {
                       photo_url: calendarInfo.owner_photo_url
                     }} trigger={<span>{calendarInfo.owner_name}</span>} />
                   </div>
+                )}
+                {locationList.tokenCalendar && tokenId && (
+                  <Link to={`/shared-token-calendar/${tokenId}`} className="text-decoration-none text-dark">
+                    <div className="badge bg-info">
+                      Calendrier partagé par un token
+                    </div>
+                  </Link>
                 )}
               </div>
             </>
