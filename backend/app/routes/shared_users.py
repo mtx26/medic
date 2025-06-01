@@ -8,6 +8,7 @@ import time
 from app.services.user import fetch_user
 from app.utils.response import success_response, error_response, warning_response
 from app.db.connection import get_connection
+from app.services.notifications import notify_and_record
 import json
 
 ERROR_CALENDAR_NOT_FOUND = "calendrier non trouvé"
