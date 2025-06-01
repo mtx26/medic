@@ -169,8 +169,7 @@ def register_token():
                 cursor.execute("""
                     INSERT INTO fcm_tokens (uid, token)
                     VALUES (%s, %s)
-                    ON CONFLICT (uid)
-                    DO UPDATE SET token = EXCLUDED.token;
+                    ON CONFLICT (token) DO NOTHING;
                 """, (uid, token))
                 conn.commit()
 
@@ -210,8 +209,8 @@ def send_notification():
         with get_connection() as conn:
             with conn.cursor() as cursor:
                 cursor.execute("SELECT token FROM fcm_tokens WHERE uid = %s", (uid,))
-                result = cursor.fetchone()
-                if not result:
+                results = cursor.fetchall()
+                if not results:
                     return error_response(
                         message="aucun token trouvé", 
                         code="NO_TOKEN", 
@@ -219,8 +218,8 @@ def send_notification():
                         uid=uid, 
                         origin="FCM_SEND"
                     )
-                token = result.get("token")
-                status_code, result_data = send_fcm_notification(token=token, title=title, body=body, link=None)
+                tokens = [result.get("token") for result in results]
+                status_code, result_data = send_fcm_notification(tokens=tokens, title=title, body=body, link=None)
 
 
         if status_code == 200:
