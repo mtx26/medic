@@ -48,10 +48,10 @@ function BoxesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
       name: modifyBoxName[selectedModifyBox],
       box_capacity: modifyBoxCapacity[selectedModifyBox],
       stock_alert_threshold: modifyBoxStockAlertThreshold[selectedModifyBox],
-      stock_quantity: modifyBoxStockQuantity[selectedModifyBox]
+      stock_quantity: modifyBoxStockQuantity[selectedModifyBox],
+      conditions: Object.values(boxConditions[selectedModifyBox]).filter(condition => condition !== undefined)
     }
-    const conditions = Object.values(boxConditions[selectedModifyBox]).filter(condition => condition !== undefined);
-    const res = await calendarSource.updateBox(calendarId, selectedModifyBox, box, conditions);
+    const res = await calendarSource.updateBox(calendarId, selectedModifyBox, box);
     if (res.success) {
       setAlertMessage("✅ " + res.message);
       setAlertType('success');
@@ -67,10 +67,10 @@ function BoxesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
       name: boxes.find(box => box.id === boxId).name,
       box_capacity: boxes.find(box => box.id === boxId).box_capacity,
       stock_alert_threshold: boxes.find(box => box.id === boxId).stock_alert_threshold,
-      stock_quantity: boxes.find(box => box.id === boxId).box_capacity
+      stock_quantity: boxes.find(box => box.id === boxId).box_capacity,
+      conditions: boxes.find(box => box.id === boxId).conditions
     }
-    const conditions = boxes.find(box => box.id === boxId).conditions;
-    const res = await calendarSource.updateBox(calendarId, boxId, box, conditions);
+    const res = await calendarSource.updateBox(calendarId, boxId, box);
     if (res.success) {
       setAlertMessage("✅ " + res.message);
       setAlertType('success');
@@ -99,14 +99,12 @@ function BoxesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
   }
 
   useEffect(() => {
-    if (Array.isArray(boxes) && boxes.length > 0) {
-      for (const box of boxes) {
-        setModifyBoxName((prev) => ({ ...prev, [box.id]: box.name }));
-        setModifyBoxCapacity((prev) => ({ ...prev, [box.id]: box.box_capacity }));
-        setModifyBoxStockAlertThreshold((prev) => ({ ...prev, [box.id]: box.stock_alert_threshold }));
-        setModifyBoxStockQuantity((prev) => ({ ...prev, [box.id]: box.stock_quantity }));
-        setBoxConditions((prev) => ({ ...prev, [box.id]: box.conditions.reduce((acc, condition) => ({ ...acc, [condition.id]: condition }), {}) }));
-      }
+    if (boxes.length > 0) {
+      setModifyBoxName(boxes.reduce((acc, box) => ({...acc, [box.id]: box.name}), {}))
+      setModifyBoxCapacity(boxes.reduce((acc, box) => ({...acc, [box.id]: box.box_capacity}), {}))
+      setModifyBoxStockAlertThreshold(boxes.reduce((acc, box) => ({...acc, [box.id]: box.stock_alert_threshold}), {}))
+      setModifyBoxStockQuantity(boxes.reduce((acc, box) => ({...acc, [box.id]: box.stock_quantity}), {}))
+      setBoxConditions(boxes.reduce((acc, box) => ({...acc, [box.id]: box.conditions.reduce((acc, condition) => ({...acc, [condition.id]: condition}), {})}), {}))
     }
   }, [boxes]);
 
@@ -149,11 +147,15 @@ function BoxesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
                   <BoxCard 
                     box={box} 
                     selectedModifyBox={selectedModifyBox} 
-                    setSelectedModifyBox={setSelectedModifyBox}
-                    setModifyBoxName={setModifyBoxName}
-                    setModifyBoxCapacity={setModifyBoxCapacity}
-                    setModifyBoxStockAlertThreshold={setModifyBoxStockAlertThreshold}
+                    setSelectedModifyBox={setSelectedModifyBox} 
+                    setModifyBoxName={setModifyBoxName} 
+                    modifyBoxName={modifyBoxName}
+                    setModifyBoxCapacity={setModifyBoxCapacity} 
+                    modifyBoxCapacity={modifyBoxCapacity}
+                    setModifyBoxStockAlertThreshold={setModifyBoxStockAlertThreshold} 
+                    modifyBoxStockAlertThreshold={modifyBoxStockAlertThreshold}
                     setModifyBoxStockQuantity={setModifyBoxStockQuantity}
+                    modifyBoxStockQuantity={modifyBoxStockQuantity}
                     restockBox={restockBox}
                     deleteBox={deleteBox}
                     selectedDropBox={selectedDropBox}
@@ -167,10 +169,14 @@ function BoxesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
                   box={box} 
                   selectedModifyBox={selectedModifyBox} 
                   setSelectedModifyBox={setSelectedModifyBox} 
-                  setModifyBoxName={setModifyBoxName}
-                  setModifyBoxCapacity={setModifyBoxCapacity}
-                  setModifyBoxStockAlertThreshold={setModifyBoxStockAlertThreshold}
+                  setModifyBoxName={setModifyBoxName} 
+                  modifyBoxName={modifyBoxName}
+                  setModifyBoxCapacity={setModifyBoxCapacity} 
+                  modifyBoxCapacity={modifyBoxCapacity}
+                  setModifyBoxStockAlertThreshold={setModifyBoxStockAlertThreshold} 
+                  modifyBoxStockAlertThreshold={modifyBoxStockAlertThreshold}
                   setModifyBoxStockQuantity={setModifyBoxStockQuantity}
+                  modifyBoxStockQuantity={modifyBoxStockQuantity}
                   restockBox={restockBox}
                   deleteBox={deleteBox}
                   selectedDropBox={selectedDropBox}
@@ -214,20 +220,24 @@ function BoxCard({
   selectedModifyBox, 
   setSelectedModifyBox, 
   setModifyBoxName, 
+  modifyBoxName,
   setModifyBoxCapacity, 
+  modifyBoxCapacity,
   setModifyBoxStockAlertThreshold, 
+  modifyBoxStockAlertThreshold,
   setModifyBoxStockQuantity,
+  modifyBoxStockQuantity,
   restockBox,
   deleteBox,
   selectedDropBox,
   setSelectedDropBox,
   boxConditions,
-  setBoxConditions
+  setBoxConditions,
 }) {
   const editable = selectedModifyBox === box.id;
   const timeOfDayMap = {
     'morning': 'Matin',
-    'afternoon': 'Après-midi',
+    'noon': 'Midi',
     'evening': 'Soir'
   }
 
@@ -261,9 +271,7 @@ function BoxCard({
               aria-label="Nom de la boîte"
               className="form-control form-control-sm"
               defaultValue={box.name}
-              onChange={(e) => {
-                setModifyBoxName((prev) => ({ ...prev, [box.id]: { ...prev[box.id], name: e.target.value } }));
-              }}
+              onChange={(e) => setModifyBoxName({...modifyBoxName, [box.id]: e.target.value})}
               required
             />
           ) : (
@@ -276,13 +284,13 @@ function BoxCard({
             label="Capacité de la boîte" 
             value={box.box_capacity} 
             editable={editable} 
-            onChange={(e) => setModifyBoxCapacity((prev) => ({ ...prev, [box.id]: e.target.value }))} 
+            onChange={(e) => setModifyBoxCapacity({...modifyBoxCapacity, [box.id]: e.target.value})} 
           />
           <BoxField 
             label="Seuil d’alerte" 
             value={box.stock_alert_threshold} 
             editable={editable} 
-            onChange={(e) => setModifyBoxStockAlertThreshold((prev) => ({ ...prev, [box.id]: e.target.value }))} 
+            onChange={(e) => setModifyBoxStockAlertThreshold({...modifyBoxStockAlertThreshold, [box.id]: e.target.value})} 
           />
         </div>
         <div className="d-flex mb-2 gap-2 align-items-center">
@@ -290,15 +298,13 @@ function BoxCard({
             label="Quantité restante" 
             value={box.stock_quantity} 
             editable={editable} 
-            onChange={(e) => setModifyBoxStockQuantity((prev) => ({ ...prev, [box.id]: e.target.value }))} 
+            onChange={(e) => setModifyBoxStockQuantity({...modifyBoxStockQuantity, [box.id]: e.target.value})} 
           />
           {(!selectedModifyBox || selectedModifyBox !== box.id) && (
             <div className="w-50">
               <button 
                 className="btn btn-outline-success"
-                onClick={() => {
-                  restockBox(box.id);
-                }}
+                onClick={() => restockBox(box.id)}
                 aria-label="Réstockage"
                 title="Réstockage"
               >
@@ -351,15 +357,7 @@ function BoxCard({
                             aria-label="Nombre de comprimés"
                             min={0}
                             step={0.25}
-                            onChange={(e) => setBoxConditions((prev) => ({
-                              ...prev, [box.id]: {
-                                ...prev[box.id],
-                                [condition.id]: {
-                                  ...prev[box.id][condition.id],
-                                  tablet_count: e.target.value
-                                }
-                              }
-                            }))}
+                            onChange={(e) => setBoxConditions(prev => ({...prev, [box.id]: {...prev[box.id], [condition.id]: {...prev[box.id][condition.id], tablet_count: e.target.value}}}))}
                           />
                           <label htmlFor="time_of_day">Heure de prise</label>
                           <select 
@@ -367,12 +365,7 @@ function BoxCard({
                             defaultValue={condition.time_of_day}
                             title="Heure de prise"
                             aria-label="Heure de prise"
-                            onChange={(e) => setBoxConditions((prev) => ({
-                              ...prev, [box.id]: {
-                                ...prev[box.id],
-                                [condition.id]: { ...prev[box.id][condition.id], time_of_day: e.target.value }
-                              }
-                            }))}
+                            onChange={(e) => setBoxConditions(prev => ({...prev, [box.id]: {...prev[box.id], [condition.id]: {...prev[box.id][condition.id], time_of_day: e.target.value}}}))}
                           >
                             <option value="morning">Matin</option>
                             <option value="noon">Midi</option>
@@ -387,12 +380,7 @@ function BoxCard({
                             aria-label="Intervalle de jours"
                             min={0}
                             step={1}
-                            onChange={(e) => setBoxConditions((prev) => ({
-                              ...prev, [box.id]: {
-                                ...prev[box.id],
-                                [condition.id]: { ...prev[box.id][condition.id], interval_days: e.target.value }
-                              }
-                            }))}
+                            onChange={(e) => setBoxConditions(prev => ({...prev, [box.id]: {...prev[box.id], [condition.id]: {...prev[box.id][condition.id], interval_days: e.target.value}}}))}
                           />
                           <label htmlFor="start_date">Date de début</label>
                           <input 
@@ -401,22 +389,12 @@ function BoxCard({
                             title="Date de début"
                             aria-label="Date de début"
                             defaultValue={condition.start_date ? new Date(condition.start_date).toISOString().split('T')[0] : ''} 
-                            onChange={(e) => setBoxConditions((prev) => ({
-                              ...prev, [box.id]: {
-                                ...prev[box.id],
-                                [condition.id]: { ...prev[box.id][condition.id], start_date: e.target.value }
-                              }
-                            }))}
+                            onChange={(e) => setBoxConditions(prev => ({...prev, [box.id]: {...prev[box.id], [condition.id]: {...prev[box.id][condition.id], start_date: e.target.value}}}))}
                           />
                           <button 
                             type="button" 
                             className="btn btn-danger btn-sm mt-2"
-                            onClick={() => setBoxConditions((prev) => ({
-                              ...prev, [box.id]: {
-                                ...prev[box.id],
-                                [condition.id]: undefined
-                              }
-                            }))}
+                            onClick={() => setBoxConditions(prev => ({...prev, [box.id]: {...prev[box.id], [condition.id]: undefined}}))}
                             title="Supprimer"
                             aria-label="Supprimer"
                           >
@@ -436,13 +414,7 @@ function BoxCard({
                     className="btn btn-outline-dark w-100"
                     onClick={() => {
                       const id = uuidv4();
-                      setBoxConditions((prev) => ({ 
-                        ...prev, 
-                        [box.id]: {
-                          ...prev[box.id],  
-                          [id]: { id, tablet_count: 1, interval_days: 1, start_date: null, time_of_day: 'morning' }
-                        }
-                      }));
+                      setBoxConditions(prev => ({...prev, [box.id]: {...prev[box.id], [id]: { id, tablet_count: 1, interval_days: 1, start_date: null, time_of_day: 'morning' }}}));
                       setSelectedModifyBox(box.id);
                     }}
                   >
@@ -491,10 +463,11 @@ function BoxCard({
                 className="btn btn-secondary btn-sm"
                 onClick={() => {
                   setSelectedModifyBox(null);
-                  setModifyBoxName('');
-                  setModifyBoxCapacity(0);
-                  setModifyBoxStockAlertThreshold(0);
-                  setModifyBoxStockQuantity(0);
+                  setModifyBoxName({...modifyBoxName, [box.id]: box.name});
+                  setModifyBoxCapacity({...modifyBoxCapacity, [box.id]: box.box_capacity});
+                  setModifyBoxStockAlertThreshold({...modifyBoxStockAlertThreshold, [box.id]: box.stock_alert_threshold});
+                  setModifyBoxStockQuantity({...modifyBoxStockQuantity, [box.id]: box.stock_quantity});
+                  setBoxConditions({...boxConditions, [box.id]: box.conditions.reduce((acc, condition) => ({ ...acc, [condition.id]: condition }), {})});
                 }}
                 aria-label="Annuler"
                 title="Annuler"

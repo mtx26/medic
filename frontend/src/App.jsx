@@ -399,7 +399,7 @@ function App() {
   }, []);
 
   // Fonction pour modifier la boîte d'un calendrier personnel
-  const updatePersonalBox = useCallback(async (calendarId, boxId, box, conditions) => {
+  const updatePersonalBox = useCallback(async (calendarId, boxId, box) => {
     try {
       const token = await auth.currentUser.getIdToken();
       const res = await fetch(`${API_URL}/api/calendars/${calendarId}/boxes/${boxId}`, {
@@ -408,7 +408,7 @@ function App() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ box, conditions }),
+        body: JSON.stringify(box),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);

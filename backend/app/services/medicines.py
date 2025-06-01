@@ -78,13 +78,12 @@ def get_boxes(calendar_id):
     return boxes
 
 def update_box(box_id, calendar_id, data):
-    box = data.get("box")
+    name = data.get("name")
+    box_capacity = data.get("box_capacity")
+    stock_alert_threshold = data.get("stock_alert_threshold")
+    stock_quantity = data.get("stock_quantity")
     conditions = data.get("conditions", [])
-
-    name = box.get("name")
-    box_capacity = box.get("box_capacity")
-    stock_alert_threshold = box.get("stock_alert_threshold")
-    stock_quantity = box.get("stock_quantity")
+    
     with get_connection() as conn:
         with conn.cursor() as cursor:
             cursor.execute("""
@@ -93,12 +92,13 @@ def update_box(box_id, calendar_id, data):
                 WHERE id = %s AND calendar_id = %s
             """, (name, box_capacity, stock_alert_threshold, stock_quantity, box_id, calendar_id))
             cursor.execute("DELETE FROM medicine_box_conditions WHERE box_id = %s", (box_id,))
-            for condition in conditions:
-                cursor.execute("""
-                    INSERT INTO medicine_box_conditions 
-                    (id, box_id, tablet_count, interval_days, start_date, time_of_day)
-                    VALUES (%s, %s, %s, %s, %s, %s)
-                """, (condition.get("id"), box_id, condition.get("tablet_count"), condition.get("interval_days"), condition.get("start_date"), condition.get("time_of_day")))
+            if conditions:
+                for condition in conditions:
+                    cursor.execute("""
+                        INSERT INTO medicine_box_conditions 
+                        (id, box_id, tablet_count, interval_days, start_date, time_of_day)
+                        VALUES (%s, %s, %s, %s, %s, %s)
+                    """, (condition.get("id"), box_id, condition.get("tablet_count"), condition.get("interval_days"), condition.get("start_date"), condition.get("time_of_day")))
             conn.commit()
 
 def create_box(calendar_id, data):
