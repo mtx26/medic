@@ -247,7 +247,7 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
               {/* Boutons de navigation */}
               <button
                 className="btn btn-outline-secondary"
-                onClick={() => navigate(`/${basePath}/${calendarId}/medicines`)}
+                onClick={() => navigate(`/${basePath}/${calendarId}/boxes`)}
                 aria-label="Médicaments"
                 title="Médicaments"
               >
@@ -289,7 +289,7 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
           <div className="col-12 col-lg-8 mb-4">
             <div className="mb-2">
               <h4 className="mb-3 fw-bold">
-                <i className="bi bi-table"></i> Tableau hebdomadaire :
+                <i className="bi bi-table"></i> Tableau hebdomadaire
               </h4>
               {/*trier matin, midi, soir et supprimer les moments non présents*/}
               {Object.keys(calendarTable).sort((a, b) => {
@@ -343,6 +343,7 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
         )}
       </div>
     </div>
+    {/* Calendrier par semaine */}
     {Object.keys(calendarTable).filter((key) => calendarTable[key].length > 0).length > 0 ? (
       <>
         {/* Calendrier mensuel */}

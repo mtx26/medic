@@ -84,6 +84,7 @@ function BoxesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
     const res = await calendarSource.createBox(calendarId, 'Nouvelle boîte');
     if (res.success) {
       setSelectedModifyBox(res.boxId);
+      setSelectedDropBox((prev) => ({ ...prev, [res.boxId]: true }));
     }
   }
 
@@ -129,7 +130,9 @@ function BoxesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
   return (
     <div className="container align-items-center d-flex flex-column gap-3">
       <div className="p-1 w-100" style={{ maxWidth: '800px' }}>
-        <h4 className="mb-3 fw-bold">Boîtes de médicaments</h4>
+        <h4 className="mb-3 fw-bold">
+          <i className="bi bi-box-seam"></i> Boîtes de médicaments
+        </h4>
         <AlertSystem
           type={alertType}
           message={alertMessage}
@@ -204,12 +207,6 @@ function BoxesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
             </button>
           </div>
         </div>
-
-        {boxes.length === 0 && (
-          <div className="alert alert-info text-center">
-            Aucune boîte de médicament enregistrée pour ce calendrier.
-          </div>
-        )}
       </div>
     </div>
   );
@@ -344,8 +341,7 @@ function BoxCard({
             <div className="mt-2">
               {editable ? (
                 <>
-                  {Object.values(boxConditions[box.id]).filter(condition => condition !== undefined).length > 0 ? (
-                    Object.values(boxConditions[box.id]).filter(condition => condition !== undefined).map((condition) => (
+                  {Object.values(boxConditions[box.id] || {}).filter(condition => condition !== undefined).map((condition) => (
                       <div key={condition.id}>
                         <div className="mb-2 p-3 border rounded bg-light">
                           <label htmlFor="tablet_count">Nombre de comprimés</label>
@@ -403,11 +399,7 @@ function BoxCard({
                         </div>
                       </div>
                     ))
-                  ) : (
-                    <div className="border rounded bg-light d-flex justify-content-start align-items-center p-2 mb-2">
-                      <p className="text-muted mb-0">Aucune condition de prise</p>
-                    </div>
-                  )}
+                  }
 
                   <button 
                     type="button" 
