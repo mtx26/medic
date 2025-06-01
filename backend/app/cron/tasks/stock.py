@@ -37,19 +37,21 @@ def check_low_stock_and_notify():
             
             # TODO: ajouter le lien pour ouvrir la boîte de médicament dans l'application
             link = urljoin(Config.FRONTEND_URL, f"/medication/{id_box}")
-            try:
-                notify_and_record(
-                    uid=owner_uid,
-                    title=title,
-                    link=link,
-                    body=body,
-                    notif_type="low_stock",
-                    sender_uid=Config.SYSTEM_UID,
-                    calendar_id=calendar_id
-                )
-                log_backend.info(f"✅ Notification de stock faible envoyée à {owner_uid} pour le médicament {id_box}", {"origin": "CRON", "code": "STOCK_CHECK_SUCCESS"})
-            except Exception as e:
-                log_backend.error(f"Erreur lors de l'envoi de la notification de stock faible à {owner_uid}: {e}", {"origin": "CRON", "code": "STOCK_CHECK_ERROR", "error": str(e)})
+
+            if qty <= threshold:
+                try:
+                    notify_and_record(
+                        uid=owner_uid,
+                        title=title,
+                        link=link,
+                        body=body,
+                        notif_type="low_stock",
+                        sender_uid=Config.SYSTEM_UID,
+                        calendar_id=calendar_id
+                    )
+                    log_backend.info(f"✅ Notification de stock faible envoyée à {owner_uid} pour le médicament {id_box}", {"origin": "CRON", "code": "STOCK_CHECK_SUCCESS"})
+                except Exception as e:
+                    log_backend.error(f"Erreur lors de l'envoi de la notification de stock faible à {owner_uid}: {e}", {"origin": "CRON", "code": "STOCK_CHECK_ERROR", "error": str(e)})
 
         conn.close()
         log_backend.info("✅ Fin de la vérification des stocks", {"origin": "CRON", "code": "STOCK_CHECK_SUCCESS"})
@@ -78,7 +80,8 @@ def decrease_stock():
                             cursor.execute("UPDATE medicine_boxes SET stock_quantity = %s WHERE id = %s", (new_qty, id_box))
 
             conn.commit()
-
+            
+        check_low_stock_and_notify()
         log_backend.info("✅ Fin de la diminution des stocks", {"origin": "CRON", "code": "STOCK_DECREASE_SUCCESS"})
 
     except Exception as e:
