@@ -90,18 +90,14 @@ function Navbar({ sharedProps }) {
           {/* Titre calendrier + badge */}
           {calendarInfo && basePath && calendarInfo.id && (
             <>
-              <a
-                href={`/${basePath}/${calendarInfo.id}`}
-                onClick={(e) => {
-                  e.preventDefault();
-                  navigate(`/${basePath}/${calendarInfo.id}`);
-                }}
-                className="d-none d-lg-flex justify-content-center text-decoration-none text-dark"
-              >
+              {/* Titre calendrier pour desktop + badge desktop */}
+              <div className="d-none d-lg-flex justify-content-center text-decoration-none text-dark">
                 <div className="d-flex flex-column align-items-start w-auto">
                   <h4 className="m-0">
-                    <span className="text-muted">Calendrier : </span>
-                    <span className="fw-bold">{calendarInfo.name}</span>
+                    <Link to={`/${basePath}/${calendarInfo.id}`} className="text-decoration-none text-dark">
+                      <span className="text-muted">Calendrier : </span>
+                      <span className="fw-bold">{calendarInfo.name}</span>
+                    </Link>
                   </h4>
                   {locationList.sharedUserCalendar && (
                     <div className="badge bg-info mt-2">
@@ -113,17 +109,25 @@ function Navbar({ sharedProps }) {
                     </div>
                   )}
                 </div>
-              </a>
-              <a
-                href={`/${basePath}/${calendarInfo.id}`}
-                onClick={(e) => {
-                  e.preventDefault();
-                  navigate(`/${basePath}/${calendarInfo.id}`);
-                }}
-                className="d-flex align-items-center d-lg-none text-decoration-none text-dark"
-              >
-                <h4 className="me-2 fw-bold">{calendarInfo.name}</h4>
-              </a>
+              </div>
+              
+              {/* Titre calendrier pour mobile + badge mobile */}
+              <div className="d-flex d-lg-none flex-column align-items-end w-auto text-decoration-none text-dark">
+                <h4 className="m-1 fw-bold">
+                  <Link to={`/${basePath}/${calendarInfo.id}`} className="text-decoration-none text-dark">
+                    {calendarInfo.name}
+                  </Link>
+                </h4>
+                {locationList.sharedUserCalendar && (
+                  <div className="badge bg-info d-flex flex-column align-items-end">
+                    <HoveredUserProfile user={{
+                      email: calendarInfo.owner_email,
+                      display_name: calendarInfo.owner_name,
+                      photo_url: calendarInfo.owner_photo_url
+                    }} trigger={<span>{calendarInfo.owner_name}</span>} />
+                  </div>
+                )}
+              </div>
             </>
           )}
 
