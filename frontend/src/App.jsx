@@ -294,109 +294,7 @@ function App() {
 
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  
-  // Fonction pour modifier un médicament
-  const updatePersonalCalendarMedicines = useCallback(async (calendarId, changes) => {
-    try {
-      const token = await auth.currentUser.getIdToken();
-      const res = await fetch(`${API_URL}/api/calendars/${calendarId}/medicines`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ changes }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-      analyticsPromise.then((analytics) => {
-        if (analytics) {
-          logEvent(analytics, 'update_personal_calendar_medicines', {
-            calendarId: calendarId,
-            uid: userInfo.uid,
-            changes: changes,
-          });
-        }
-      });
-      // trier par ordre alphabétique
-      const medicinesSortedByName = data.medicines ? data.medicines.sort((a, b) => a.name.localeCompare(b.name)) : [];
-    
-      log.info(data.message, {
-        origin: "MED_UPDATE_SUCCESS",
-        "uid": userInfo.uid,
-        "count": changes?.length,
-        "calendarId": calendarId,
-      });
-      return { success: true, message: data.message, code: data.code, medicinesData: medicinesSortedByName, originalMedicinesData: medicinesSortedByName ? JSON.parse(JSON.stringify(medicinesSortedByName)) : [] };
-    } catch (err) {
-      log.error(err.message || "Erreur lors de la modification des médicaments", err, {
-        origin: "MED_UPDATE_ERROR",
-        "uid": userInfo.uid,
-        "calendarId": calendarId,
-      });
-      return { success: false, error: err.message, code: err.code };
-    }
-  }, []);
 
-  // Fonction pour supprimer des médicaments 
-  const deletePersonalCalendarMedicines = useCallback(async (calendarId, checked) => {
-    try {
-      if (checked.length === 0) return false;
-      const token = await auth.currentUser.getIdToken();
-      const res = await fetch(`${API_URL}/api/calendars/${calendarId}/medicines`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ checked }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-      analyticsPromise.then((analytics) => {
-        if (analytics) {
-          logEvent(analytics, 'delete_personal_calendar_medicines', {
-            calendarId: calendarId,
-            uid: userInfo.uid,
-            checked: checked,
-          });
-        }
-      });
-      // trier par ordre alphabétique
-      const medicinesSortedByName = data.medicines ? data.medicines.sort((a, b) => a.name.localeCompare(b.name)) : [];
-      log.info(data.message, {
-        origin: "MED_DELETE_SUCCESS",
-        "uid": userInfo.uid,
-        "calendarId": calendarId,
-        "count": checked.length,
-      });
-      return {success: true, message: data.message, code: data.code, medicinesData: medicinesSortedByName, originalMedicinesData: medicinesSortedByName ? JSON.parse(JSON.stringify(medicinesSortedByName)) : []};
-    } catch (err) {
-      log.error(err.message || "Erreur lors de la suppression des médicaments", err, {
-        origin: "MED_DELETE_ERROR",
-        "uid": userInfo.uid,
-        "calendarId": calendarId,
-      });
-      return {success: false, error: err.message, code: err.code};
-    }
-  }, []);
-    
-  
-  // Fonction pour ajouter un nouveau médicament sanq la variable medicines
-  const addMedicine = useCallback((medicinesData, name = '') => {
-    // générer un uuid unique a 16 caractères 
-    const id = uuidv4();
-    if (medicinesData.length === 0) {
-      const newMedicinesData = [{ name: name, tablet_count: 1, time_of_day: 'morning', interval_days: 1, start_date: null, id: id }];
-      return {success: true, message: "Médicament ajouté avec succès", code: "MED_ADD_SUCCESS", medicinesData: newMedicinesData, id: id };
-    }
-    const newMedicinesData = [
-      ...medicinesData,
-      { name: name, tablet_count: 1, time_of_day: 'morning', interval_days: 1, start_date: null, id: id },
-    ];
-
-    return {success: true, message: "Médicament ajouté avec succès", code: "MED_ADD_SUCCESS", medicinesData: newMedicinesData, id: id };
-  }, []);
 
   // Fonction pour modifier la boîte d'un calendrier personnel
   const updatePersonalBox = useCallback(async (calendarId, boxId, box) => {
@@ -1046,88 +944,6 @@ function App() {
       return {success: false, error: err.message, code: err.code, schedule: [], calendarName: "", table: {}};
     }
   }, []);
-
-  // Fonction pour mettre à jour les médicaments d’un calendrier partagé par un utilisateur
-  const updateSharedUserCalendarMedicines = useCallback(async (calendarId, changes) => {
-    try {
-      const token = await auth.currentUser.getIdToken();
-      const res = await fetch(`${API_URL}/api/shared/users/calendars/${calendarId}/medicines`, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ changes }),
-      }); 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-      // trier par ordre alphabétique
-      const medicinesSortedByName = data.medicines ? data.medicines.sort((a, b) => a.name.localeCompare(b.name)) : [];
-      analyticsPromise.then((analytics) => {
-        if (analytics) {
-          logEvent(analytics, 'update_shared_user_calendar_medicines', {
-            calendarId: calendarId,
-            uid: userInfo.uid,
-            medicinesData: medicinesSortedByName,
-          });
-        }
-      });
-      log.info(data.message, {
-        origin: "SHARED_USER_CALENDAR_MEDICINES_UPDATE_SUCCESS",
-        calendarId,
-        "uid": userInfo.uid,
-      });
-      return {success: true, message: data.message, code: data.code, medicinesData: medicinesSortedByName, originalMedicinesData: JSON.parse(JSON.stringify(medicinesSortedByName))};
-    } catch (err) {
-      log.error(err.message || "Échec de mise à jour des médicaments du calendrier partagé par un utilisateur", err, {
-        origin: "SHARED_USER_CALENDAR_MEDICINES_UPDATE_ERROR",
-        calendarId,
-        "uid": userInfo.uid,
-      });
-      return {success: false, error: err.message, code: err.code};
-    }
-  }, []);
-
-  // Fonction pour supprimer les médicaments d’un calendrier partagé par un utilisateur
-  const deleteSharedUserCalendarMedicines = useCallback(async (calendarId, checked, medicinesData) => {
-    try {
-      const token = await auth.currentUser.getIdToken();
-      const res = await fetch(`${API_URL}/api/shared/users/calendars/${calendarId}/medicines`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ checked }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-      // trier par ordre alphabétique
-      const medicinesSortedByName = data.medicines ? data.medicines.sort((a, b) => a.name.localeCompare(b.name)) : [];
-      analyticsPromise.then((analytics) => {
-        if (analytics) {
-          logEvent(analytics, 'delete_shared_user_calendar_medicines', {
-            calendarId: calendarId,
-            uid: userInfo.uid,
-            medicinesData: medicinesSortedByName,
-          });
-        }
-      });
-      log.info(data.message, {
-        origin: "SHARED_USER_CALENDAR_MEDICINES_DELETE_SUCCESS",
-        calendarId,
-        "uid": userInfo.uid,
-      });
-      return {success: true, message: data.message, code: data.code, medicinesData: medicinesSortedByName, originalMedicinesData: JSON.parse(JSON.stringify(medicinesSortedByName))};
-    } catch (err) {
-      log.error(err.message || "Échec de suppression des médicaments du calendrier partagé par un utilisateur", err, {
-        origin: "SHARED_USER_CALENDAR_MEDICINES_DELETE_ERROR",
-        calendarId,
-        "uid": userInfo.uid,
-      });
-      return {success: false, error: err.message, code: err.code, medicinesData: [], originalMedicinesData: []};
-    }
-  }, []);
   
   // Fonction pour mettre à jour une boite de médicaments d'un calendrier partagé
   const updateSharedUserBox = useCallback(async (calendarId, boxId, box) => {
@@ -1250,9 +1066,6 @@ function App() {
       addCalendar,
       renameCalendar,
       deleteCalendar,
-      addMedicine,
-      updatePersonalCalendarMedicines,
-      deletePersonalCalendarMedicines,
       calendarsData,
       setCalendarsData,
       updatePersonalBox,
@@ -1267,11 +1080,8 @@ function App() {
       sendInvitation,
       acceptInvitation,
       rejectInvitation,
-      updateSharedUserCalendarMedicines,
-      deleteSharedUserCalendarMedicines,
       deleteSharedUser,
       deleteSharedCalendar,
-      addMedicine,
       sharedCalendarsData,
       setSharedCalendarsData,
       updateSharedUserBox,
