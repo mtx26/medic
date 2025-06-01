@@ -6,7 +6,7 @@ from . import api
 import time
 from flask import request
 from app.db.connection import get_connection
-from app.services.calendar_service import generate_schedule, generate_table, verify_calendar, verify_token_owner, verify_token
+from app.services.calendar_service import generate_calendar_schedule, verify_calendar, verify_token_owner, verify_token
 
 ERROR_UNAUTHORIZED_ACCESS = "accès refusé"
 
@@ -282,53 +282,30 @@ def handle_generate_token_schedule(token):
                 log_extra={"token": token}
             )
 
-        with get_connection() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute("SELECT * FROM calendars WHERE id = %s", (calendar_id,))
-                calendar = cursor.fetchone()
-                if not calendar:
-                    return warning_response(
-                        message="aucun calendrier trouvé", 
-                        code="CALENDAR_NOT_FOUND", 
-                        status_code=404, 
-                        uid="unknown", 
-                        origin="TOKEN_GENERATE_SCHEDULE", 
-                        log_extra={"token": token}
-                    )
-                calendar_name = calendar.get("name")
+        schedule, table = generate_calendar_schedule(calendar_id, start_date)
+        if schedule is None or table is None:
+            return warning_response(
+                message="calendrier non trouvé", 
+                code="TOKEN_GENERATE_SCHEDULE_ERROR", 
+                status_code=404, 
+                uid="unknown", 
+                origin="TOKEN_GENERATE_SCHEDULE", 
+                log_extra={"calendar_id": calendar_id}
+            )
+        t_1 = time.time()
 
-                cursor.execute("SELECT * FROM medicines WHERE calendar_id = %s", (calendar_id,))
-                medicines = cursor.fetchall()
-                t_1 = time.time()
-                if not medicines:
-                    return success_response(
-                        message="calendrier généré", 
-                        code="CALENDAR_GENERATED_SUCCESS", 
-                        uid="unknown", 
-                        origin="TOKEN_GENERATE_SCHEDULE", 
-                        data={"medicines": 0, "schedule": [], "calendar_name": calendar_name, "table": {}},
-                        log_extra={"token": token, "time": t_1 - t_0}
-                    )
-
-                t_2 = time.time()
-                schedule = generate_schedule(start_date, medicines)
-                t_3 = time.time()
-                table = generate_table(start_date, medicines)
-                t_4 = time.time()
-
-                return success_response(
-                    message="calendrier généré", 
-                    code="CALENDAR_GENERATED_SUCCESS", 
-                    uid="unknown",
-                    origin="TOKEN_GENERATE_SCHEDULE", 
-                    data={"medicines": len(medicines), "schedule": schedule, "calendar_name": calendar_name, "table": table},
-                    log_extra={"token": token, "time": t_4 - t_0, "time_medicines": t_2 - t_0, "time_schedule": t_3 - t_2, "time_table": t_4 - t_3}
-                )
-
+        return success_response(
+            message="calendrier généré", 
+            code="TOKEN_GENERATE_SCHEDULE_SUCCESS", 
+            uid="unknown", 
+            origin="TOKEN_GENERATE_SCHEDULE", 
+            data={"schedule": schedule, "table": table},
+            log_extra={"token": token, "time": t_1 - t_0}
+        )
     except Exception as e:
         return error_response(
             message="erreur lors de la génération du calendrier",
-            code="CALENDAR_TOKEN_GENERATE_ERROR", 
+            code="TOKEN_GENERATE_SCHEDULE_ERROR", 
             status_code=500, 
             uid="unknown", 
             origin="TOKEN_GENERATE_SCHEDULE", 

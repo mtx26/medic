@@ -68,14 +68,12 @@ def decrease_stock():
 
                 for result in results:
                     id_box = result.get("id")
-                    name = result.get("name")
                     qty = result.get("stock_quantity")
-                    calendar_id = result.get("calendar_id")
-                    cursor.execute("SELECT * FROM medicines WHERE box_id = %s", (id_box,))
-                    result = cursor.fetchall()
-                    for r in result:
-                        if is_medication_due(r, datetime.now().date()):
-                            tablet_count = r.get("tablet_count")
+                    cursor.execute("SELECT * FROM medicine_box_conditions WHERE box_id = %s", (id_box,))
+                    conditions = cursor.fetchall()
+                    for condition in conditions:
+                        if is_medication_due(condition, datetime.now().date()):
+                            tablet_count = condition.get("tablet_count")
                             new_qty = qty - tablet_count
                             cursor.execute("UPDATE medicine_boxes SET stock_quantity = %s WHERE id = %s", (new_qty, id_box))
 

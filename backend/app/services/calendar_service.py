@@ -114,6 +114,40 @@ def verify_token_owner(token : str, uid : str) -> bool:
         })
         return False
 
+def generate_calendar_schedule(calendar_id, start_date):
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT * FROM calendars WHERE id = %s", (calendar_id,))
+                calendar = cursor.fetchone()
+                if calendar is None:
+                    return None, None
+
+                cursor.execute("""
+                    SELECT 
+                        cond.*,
+                        box.name,
+                        box.dose
+                    FROM medicine_box_conditions cond
+                    JOIN medicine_boxes box ON cond.box_id = box.id
+                    WHERE box.calendar_id = %s
+                """, (calendar_id,))
+
+                medicines = cursor.fetchall()
+                if medicines:
+                    schedule = generate_schedule(start_date, medicines)
+                    table = generate_table(start_date, medicines)
+                    return schedule, table
+                else:
+                    return [], []
+
+    except Exception as e:
+        logger.error("erreur lors de la génération du calendrier", {
+            "origin": "CALENDAR_GENERATE_ERROR",
+            "error": str(e)
+        })
+        return None, None
+
 
 def is_medication_due(med, current_date):
     try:

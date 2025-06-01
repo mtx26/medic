@@ -2,7 +2,7 @@ from app.utils.validators import verify_firebase_token
 from datetime import datetime, timezone
 from . import api
 from firebase_admin import firestore, auth
-from app.services.calendar_service import verify_calendar_share, generate_schedule, generate_table
+from app.services.calendar_service import verify_calendar_share, generate_calendar_schedule
 from flask import request
 import time
 from app.services.user import fetch_user
@@ -61,9 +61,9 @@ def handle_shared_calendars():
                     owner_uid = calendar.get("owner_uid")
 
                     # Récupère le nombre de médicaments
-                    medicines_count = cursor.execute("SELECT COUNT(*) FROM medicines WHERE calendar_id = %s", (calendar_id,))
-                    medicines_count = cursor.fetchone()
-                    medicines_count = medicines_count.get("count", 0)
+                    cursor.execute("SELECT COUNT(*) FROM medicine_boxes WHERE calendar_id = %s", (calendar_id,))
+                    boxes_count = cursor.fetchone()
+                    boxes_count = boxes_count.get("count", 0) if boxes_count else 0
 
                     calendar_name = calendar.get("name")
 
@@ -96,7 +96,7 @@ def handle_shared_calendars():
                         "owner_photo_url": owner_photo_url,
                         "owner_email": owner_email,
                         "access": access,
-                        "medicines_count": medicines_count
+                        "boxes_count": boxes_count
                     })
 
                 t_2 = time.time()
@@ -213,47 +213,25 @@ def handle_user_shared_calendar_schedule(calendar_id):
         else:
             start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
 
-        with get_connection() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute(SELECT_SHARED_CALENDAR, (calendar_id,))
-                calendar = cursor.fetchone()
-                if not calendar:
-                    return warning_response(
-                        message=ERROR_CALENDAR_NOT_FOUND,
-                        code="SHARED_CALENDARS_LOAD_ERROR",
-                        status_code=404,
-                        uid=uid,
-                        origin="SHARED_CALENDARS_LOAD",
-                        log_extra={"calendar_id": calendar_id}
-                    )
-                calendar_name = calendar.get("name")
-
-                cursor.execute("SELECT * FROM medicines WHERE calendar_id = %s", (calendar_id,))
-                medicines = cursor.fetchall()
-                t_1 = time.time()
-                if not medicines:
-                    return success_response(
-                        message=SUCCESS_SHARED_CALENDARS_LOAD, 
-                        code="SHARED_CALENDARS_LOAD_SUCCESS", 
-                        uid=uid, 
-                        origin="SHARED_CALENDARS_LOAD",
-                        data={"medicines": 0, "schedule": [], "calendar_name": calendar_name, "table": {}},
-                        log_extra={"calendar_id": calendar_id, "time": t_1 - t_0}
-                    )
-
-                t_2 = time.time()
-                schedule = generate_schedule(start_date, medicines)
-                t_3 = time.time()
-                table = generate_table(start_date, medicines)
-                t_4 = time.time()
+        schedule, table = generate_calendar_schedule(calendar_id, start_date)
+        if schedule is None or table is None:
+            return warning_response(
+                message="calendrier non trouvé", 
+                code="SHARED_CALENDARS_LOAD_ERROR", 
+                status_code=404, 
+                uid=uid, 
+                origin="SHARED_CALENDARS_LOAD", 
+                log_extra={"calendar_id": calendar_id}
+            )
+        t_1 = time.time()
             
         return success_response(
             message=SUCCESS_SHARED_CALENDARS_LOAD, 
             code="SHARED_CALENDARS_LOAD_SUCCESS", 
             uid=uid, 
             origin="SHARED_CALENDARS_LOAD",
-            data={"medicines": len(medicines), "schedule": schedule, "calendar_name": calendar_name, "table": table},
-            log_extra={"calendar_id": calendar_id, "time": t_4 - t_0, "schedule_time": t_3 - t_2, "table_time": t_4 - t_3}
+            data={"schedule": schedule, "table": table},
+            log_extra={"calendar_id": calendar_id, "time": t_1 - t_0}
         )
 
     except Exception as e:

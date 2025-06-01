@@ -243,7 +243,7 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
                 <div className="text-muted small">
                 Nombre de médicaments :
                 <span className="fw-semibold ms-1">
-                  {calendarData.medicines_count ?? "..."}
+                  {calendarData.boxes_count ?? "..."}
                 </span>
                 </div>
               </div>
@@ -364,7 +364,7 @@ function SelectCalendar({ personalCalendars, sharedUserCalendars, tokenCalendars
               <div className="text-muted small">
                 Nombre de médicaments :
                 <span className="fw-semibold ms-1">
-                  {calendarData.medicines_count ?? "..."}
+                  {calendarData.boxes_count ?? "..."}
                 </span>
               </div>
               <div className="text-muted small d-flex align-items-center ">

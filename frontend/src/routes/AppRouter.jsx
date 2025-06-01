@@ -12,7 +12,6 @@ import VerifyEmail from '../pages/VerifyEmail';
 import AccountPage from '../pages/AccountPage';
 import NotificationsPage from '../pages/NotificationsPage';
 
-import MedicinesView from '../pages/MedicinesView';
 import CalendarView from '../pages/CalendarView';
 import CalendarList from '../pages/CalendarList';
 import SharedList from '../pages/SharedList';
@@ -98,16 +97,6 @@ function AppRoutes({ sharedProps }) {
             }
           />
         } />
-        <Route path="/calendar/:calendarId/medicines" element={
-          <PrivateRoute 
-            element={
-              <RouteWithLoader
-                element={<MedicinesView {...sharedProps} />}
-                isLoading={sharedProps.loadingStates.isInitialLoading}
-              />
-            }
-          />
-        } />
         <Route path="/calendar/:calendarId" element={
           <PrivateRoute 
             element={
@@ -138,16 +127,6 @@ function AppRoutes({ sharedProps }) {
             }
           />
         } />
-        <Route path="/shared-user-calendar/:calendarId/medicines" element={
-            <PrivateRoute 
-              element={
-                <RouteWithLoader
-                  element={<MedicinesView {...sharedProps} />}
-                  isLoading={sharedProps.loadingStates.isInitialLoading}
-                />
-              }
-            />
-        } />
         <Route path="/shared-user-calendar/:calendarId" element={
             <PrivateRoute 
               element={
@@ -159,7 +138,7 @@ function AppRoutes({ sharedProps }) {
             />
           } />
 
-        <Route path="/shared-token-calendar/:sharedToken/medicines" element={<MedicinesList {...sharedProps} />} />
+        <Route path="/shared-token-calendar/:sharedToken/boxes" element={<MedicinesList {...sharedProps} />} />
         <Route path="/shared-token-calendar/:sharedToken" element={<CalendarView {...sharedProps} />} />
 
         <Route path="/" element={<HomePage />} />

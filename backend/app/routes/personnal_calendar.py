@@ -3,7 +3,8 @@ from app.utils.validators import verify_firebase_token
 from datetime import datetime, timezone
 from flask import request
 from app.db.connection import get_connection
-from app.services.calendar_service import generate_schedule, generate_table
+from app.services.calendar_service import generate_calendar_schedule
+from app.services.calendar_service import verify_calendar
 import time
 from app.utils.response import success_response, error_response, warning_response
 
@@ -30,9 +31,11 @@ def handle_calendars():
                         origin="CALENDAR_FETCH", 
                     )
                 for calendar in calendars:
-                    medicines_count = cursor.execute("SELECT COUNT(*) FROM medicines WHERE calendar_id = %s", (calendar["id"],))
-                    medicines_count = cursor.fetchone()
-                    calendar["medicines_count"] = medicines_count.get("count", 0)
+                    cursor.execute("SELECT COUNT(*) FROM medicine_boxes WHERE calendar_id = %s", (calendar["id"],))
+                    boxes_count = cursor.fetchone()
+                    calendar["boxes_count"] = boxes_count.get("count", 0) if boxes_count else 0
+
+
         t_1 = time.time()
         return success_response(
             message="calendriers récupérés", 
@@ -105,7 +108,7 @@ def handle_delete_calendar():
         uid = user["uid"]
         calendar_id = request.json.get("calendarId")
 
-        if not calendar_id:
+        if not calendar_id or not verify_calendar(calendar_id, uid):
             return warning_response(
                 message="identifiant de calendrier invalide", 
                 code="CALENDAR_DELETE_ERROR", 
@@ -117,7 +120,7 @@ def handle_delete_calendar():
 
         with get_connection() as conn:
             with conn.cursor() as cursor:
-                cursor.execute("SELECT * FROM calendars WHERE id = %s AND owner_uid = %s", (calendar_id, uid))
+                cursor.execute("SELECT * FROM calendars WHERE id = %s", (calendar_id,))
                 calendar = cursor.fetchone()
                 t_1 = time.time()
                 if calendar is None:
@@ -127,10 +130,10 @@ def handle_delete_calendar():
                         status_code=404, 
                         uid=uid, 
                         origin="CALENDAR_DELETE_ERROR", 
-                        log_extra={"calendar_id": calendar_id}
+                        log_extra={"calendar_id": calendar_id, "time": t_1 - t_0}
                     )
 
-                cursor.execute("DELETE FROM calendars WHERE id = %s AND owner_uid = %s", (calendar_id, uid))
+                cursor.execute("DELETE FROM calendars WHERE id = %s", (calendar_id,))
                 conn.commit()
         t_2 = time.time()
         return success_response(
@@ -163,9 +166,29 @@ def handle_rename_calendar():
         calendar_id = data.get("calendarId")
         new_calendar_name = data.get("newCalendarName")
 
+        if not verify_calendar(calendar_id, uid):
+            return warning_response(
+                message="accès refusé", 
+                code="CALENDAR_RENAME_ERROR", 
+                status_code=400, 
+                uid=uid, 
+                origin="CALENDAR_RENAME", 
+                log_extra={"calendar_id": calendar_id, "new_calendar_name": new_calendar_name}
+            )
+
+        if not new_calendar_name:
+            return warning_response(
+                message="nom de calendrier manquant", 
+                code="CALENDAR_RENAME_ERROR", 
+                status_code=400, 
+                uid=uid, 
+                origin="CALENDAR_RENAME", 
+                log_extra={"calendar_id": calendar_id, "new_calendar_name": new_calendar_name}
+            )
+
         with get_connection() as conn:
             with conn.cursor() as cursor:
-                cursor.execute("SELECT name FROM calendars WHERE id = %s AND owner_uid = %s", (calendar_id, uid))
+                cursor.execute("SELECT name FROM calendars WHERE id = %s", (calendar_id,))
                 result = cursor.fetchone()
 
                 if result is None:
@@ -179,12 +202,21 @@ def handle_rename_calendar():
 
                 old_name = result['name']
 
-                if new_calendar_name != old_name:
-                    cursor.execute(
-                        "UPDATE calendars SET name = %s WHERE id = %s AND owner_uid = %s",
-                        (new_calendar_name, calendar_id, uid)
+                if new_calendar_name == old_name:
+                    return warning_response(
+                        message="le nom de calendrier est déjà le même", 
+                        code="CALENDAR_RENAME_ERROR", 
+                        status_code=400, 
+                        uid=uid, 
+                        origin="CALENDAR_RENAME", 
+                        log_extra={"calendar_id": calendar_id, "old_calendar_name": old_name, "new_calendar_name": new_calendar_name}
                     )
-                    conn.commit()
+                cursor.execute(
+                    "UPDATE calendars SET name = %s WHERE id = %s",
+                    (new_calendar_name, calendar_id)
+                )
+                conn.commit()
+
         t_1 = time.time()
         return success_response(
             message="calendrier renommé", 
@@ -217,48 +249,37 @@ def handle_calendar_schedule(calendar_id):
             start_date = datetime.now(timezone.utc).date()
         else:
             start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
-        
-        with get_connection() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute("SELECT * FROM calendars WHERE id = %s AND owner_uid = %s", (calendar_id, owner_uid))
-                calendar = cursor.fetchone()
-                if calendar is None:
-                    return warning_response(
-                        message=ERROR_CALENDAR_NOT_FOUND, 
-                        code="CALENDAR_GENERATE_ERROR", 
-                        status_code=404, 
-                        uid=owner_uid, 
-                        origin="CALENDAR_GENERATE", 
-                        log_extra={"calendar_id": calendar_id}
-                    )
 
-                calendar_name = calendar.get("name")
+        if not verify_calendar(calendar_id, owner_uid):
+            return warning_response(
+                message="accès refusé", 
+                code="CALENDAR_GENERATE_ERROR", 
+                status_code=400, 
+                uid=owner_uid, 
+                origin="CALENDAR_GENERATE", 
+                log_extra={"calendar_id": calendar_id}
+            )
 
-                cursor.execute("SELECT * FROM medicines WHERE calendar_id = %s", (calendar_id,))
-                medicines = cursor.fetchall()
-                t_1 = time.time()
-                if medicines is None:
-                    return success_response(
-                        message="calendrier généré", 
-                        code="CALENDAR_GENERATE_SUCCESS", 
-                        uid=owner_uid, 
-                        origin="CALENDAR_GENERATE", 
-                        data={"medicines": 0, "schedule": [], "calendar_name": calendar_name, "table": {}},
-                        log_extra={"calendar_id": calendar_id, "time": t_1 - t_0}
-                    )
-        t_2 = time.time()
-        schedule = generate_schedule(start_date, medicines)
-        t_3 = time.time()
-        table = generate_table(start_date, medicines)
-        t_4 = time.time()
+        schedule, table = generate_calendar_schedule(calendar_id, start_date)
+        if schedule is None or table is None:
+            return warning_response(
+                message="calendrier non trouvé", 
+                code="CALENDAR_GENERATE_ERROR", 
+                status_code=404, 
+                uid=owner_uid, 
+                origin="CALENDAR_GENERATE", 
+                log_extra={"calendar_id": calendar_id}
+            )
+
+        t_1 = time.time()
 
         return success_response(
             message="calendrier généré", 
             code="CALENDAR_GENERATE_SUCCESS", 
             uid=owner_uid, 
             origin="CALENDAR_GENERATE", 
-            data={"medicines": len(medicines), "schedule": schedule, "calendar_name": calendar_name, "table": table},
-            log_extra={"calendar_id": calendar_id, "time": t_4 - t_0, "time_schedule": t_3 - t_2, "time_table": t_4 - t_3}
+            data={"schedule": schedule, "table": table},
+            log_extra={"calendar_id": calendar_id, "time": t_1 - t_0}
         )
 
     except Exception as e:

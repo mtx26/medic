@@ -27,9 +27,21 @@ def handle_token_medicines(token):
 
         with get_connection() as conn:
             with conn.cursor() as cursor:
-                cursor.execute("SELECT * FROM medicines WHERE calendar_id = %s", (calendar_id,))
+                cursor.execute("""
+                    SELECT 
+                        cond.*,
+                        box.name,
+                        box.dose,
+                        box.box_capacity,
+                        box.stock_quantity,
+                        box.stock_alert_threshold
+                    FROM medicine_box_conditions cond
+                    JOIN medicine_boxes box ON cond.box_id = box.id
+                    WHERE box.calendar_id = %s
+                """, (calendar_id,))
                 medicines = cursor.fetchall()
                 t_1 = time.time()
+
 
         return success_response(
             message="médicaments récupérés",
