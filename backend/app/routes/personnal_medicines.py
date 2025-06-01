@@ -34,7 +34,7 @@ def handle_boxes(calendar_id):
             uid=uid,
             origin="GET_MEDICINE_BOXES",
             data={"boxes": boxes},
-            log_extra={"time": t_1 - t_0, "calendar_id": calendar_id, "boxes_count": len(boxes) if boxes is not [] else 0}
+            log_extra={"time": t_1 - t_0, "calendar_id": calendar_id, "boxes_count": len(boxes) if boxes is not None else 0}
         )
 
     except Exception as e:
