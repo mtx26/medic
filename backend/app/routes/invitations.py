@@ -2,7 +2,7 @@ from flask import request
 from app.utils.response import success_response, error_response, warning_response
 from app.utils.validators import verify_firebase_token
 from app.db.connection import get_connection
-from app.services.calendar_service import verify_calendar
+from app.services.verifications import verify_calendar
 from app.services.user import fetch_user
 from app.services.notifications import notify_and_record
 from firebase_admin import auth

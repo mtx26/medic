@@ -2,7 +2,7 @@ from flask import request
 from app.utils.validators import verify_firebase_token
 import time
 from . import api
-from app.services.calendar_service import verify_calendar
+from app.services.verifications import verify_calendar
 from app.services.medicines import update_box, create_box, delete_box, get_boxes
 from app.utils.response import success_response, error_response, warning_response
 

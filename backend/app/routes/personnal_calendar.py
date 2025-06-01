@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from flask import request
 from app.db.connection import get_connection
 from app.services.calendar_service import generate_calendar_schedule
-from app.services.calendar_service import verify_calendar
+from app.services.verifications import verify_calendar
 import time
 from app.utils.response import success_response, error_response, warning_response
 

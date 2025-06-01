@@ -1,10 +1,7 @@
-from flask import request
-from app.utils.validators import verify_firebase_token
-from datetime import datetime, timezone, timedelta
 from . import api
 import time
 from app.db.connection import get_connection
-from app.services.calendar_service import verify_token
+from app.services.verifications import verify_token
 from app.utils.response import success_response, error_response, warning_response
 
 

@@ -1,8 +1,8 @@
 from app.utils.validators import verify_firebase_token
 from datetime import datetime, timezone
 from . import api
-from firebase_admin import firestore, auth
-from app.services.calendar_service import verify_calendar_share, generate_calendar_schedule
+from app.services.verifications import verify_calendar_share
+from app.services.calendar_service import generate_calendar_schedule
 from flask import request
 import time
 from app.services.user import fetch_user
