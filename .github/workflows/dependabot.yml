@@ -1,11 +1,25 @@
 # .github/dependabot.yml
+
 version: 2
 updates:
+  # 🔧 Pour les dépendances NPM du frontend React
   - package-ecosystem: "npm"
     directory: "/frontend"
     schedule:
-      interval: "weekly"
+      interval: "weekly"          # Hebdomadaire (peut être "daily", "monthly")
+      day: "sunday"               # Facultatif : jour de la semaine
+      time: "08:00"               # Heure (UTC)
+    commit-message:
+      prefix: "⬆️ npm"
+    open-pull-requests-limit: 5
+
+  # 🐍 Pour les dépendances Python du backend Flask
   - package-ecosystem: "pip"
     directory: "/backend"
     schedule:
       interval: "weekly"
+      day: "sunday"
+      time: "08:00"
+    commit-message:
+      prefix: "⬆️ pip"
+    open-pull-requests-limit: 5
