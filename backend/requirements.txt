@@ -1,5 +1,5 @@
 cloudinary==1.44.0
-firebase_admin==6.7.0
+firebase_admin==6.8.0
 Flask==3.1.1
 Flask_Cors==6.0.0
 protobuf==6.30.2
