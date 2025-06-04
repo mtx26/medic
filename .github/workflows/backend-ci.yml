@@ -19,17 +19,21 @@ jobs:
         working-directory: backend
 
     env:
-      FIREBASE_CREDENTIALS: ${{ secrets.FIREBASE_CREDENTIALS }}
       SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      ENV: ${{ secrets.ENV }}
+      DEBUG: ${{ secrets.DEBUG }}
+      FIREBASE_CREDENTIALS: ${{ secrets.FIREBASE_CREDENTIALS }}
+      PG_HOST: ${{ secrets.PG_HOST }}
+      PG_DATABASE: ${{ secrets.PG_DATABASE }}
+      PG_USER: ${{ secrets.PG_USER }}
+      PG_PASSWORD: ${{ secrets.PG_PASSWORD }}
+      PG_PORT: ${{ secrets.PG_PORT }}
       CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
       CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
       CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
-      PG_USER: ${{ secrets.PG_USER }}
-      PG_PASSWORD: ${{ secrets.PG_PASSWORD }}
-      PG_HOST: ${{ secrets.PG_HOST }}
-      PG_PORT: ${{ secrets.PG_PORT }}
-      PG_DATABASE: ${{ secrets.PG_DATABASE }}
-      ENV: "production"
+      LOG_LEVEL: ${{ secrets.LOG_LEVEL }}
+      SYSTEM_UID: ${{ secrets.SYSTEM_UID }}
+      FRONTEND_URL: ${{ secrets.FRONTEND_URL }}
 
     steps:
       - uses: actions/checkout@v3
@@ -48,15 +52,19 @@ jobs:
         run: |
           echo "SECRET_KEY=${SECRET_KEY}" > .env
           echo "ENV=${ENV}" >> .env
+          echo "DEBUG=${DEBUG}" >> .env
           echo "FIREBASE_CREDENTIALS=${FIREBASE_CREDENTIALS}" >> .env
+          echo "PG_HOST=${PG_HOST}" >> .env
+          echo "PG_DATABASE=${PG_DATABASE}" >> .env
+          echo "PG_USER=${PG_USER}" >> .env
+          echo "PG_PASSWORD=${PG_PASSWORD}" >> .env
+          echo "PG_PORT=${PG_PORT}" >> .env
           echo "CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME}" >> .env
           echo "CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}" >> .env
           echo "CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}" >> .env
-          echo "PG_USER=${PG_USER}" >> .env
-          echo "PG_PASSWORD=${PG_PASSWORD}" >> .env
-          echo "PG_HOST=${PG_HOST}" >> .env
-          echo "PG_PORT=${PG_PORT}" >> .env
-          echo "PG_DATABASE=${PG_DATABASE}" >> .env
+          echo "LOG_LEVEL=${LOG_LEVEL}" >> .env
+          echo "SYSTEM_UID=${SYSTEM_UID}" >> .env
+          echo "FRONTEND_URL=${FRONTEND_URL}" >> .env
 
       - name: Debug .env
         run: cat .env
