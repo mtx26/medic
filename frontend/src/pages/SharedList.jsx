@@ -25,6 +25,7 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
   const [permissions, setPermissions] = useState({}); // Permissions associées aux partages
   const [expirationType, setExpirationType] = useState({});
   const [emailsToInvite, setEmailsToInvite] = useState({}); // E-mails à inviter au partage
+  const [selectedModifyCalendar, setSelectedModifyCalendar] = useState(null); // Calendrier sélectionné pour modification
 
   // 📅 Date du jour
   const today = formatToLocalISODate(new Date()); // Date du jour au format 'YYYY-MM-DD'
@@ -69,6 +70,7 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
       setAlertMessage("❌ " + rep.error);
     }
     setAlertId(tokenId);
+    setSelectedModifyCalendar(null);
   };
 
 
@@ -83,6 +85,7 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
       setAlertMessage("❌ " + rep.error);
     }
     setAlertId(tokenId);
+    setSelectedModifyCalendar(null);
   };
 
   const deleteTokenConfirmAction = (tokenId) => {
@@ -103,6 +106,7 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
       setAlertMessage("❌ " + rep.error);
     }
     setAlertId(tokenId);
+    setSelectedModifyCalendar(null);
   };
 
   const deleteUserConfirmAction = (calendarId, user) => {
@@ -234,15 +238,37 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
   }
 
   return (
-    <div className="container mt-2">
-      <h2 className="mb-4 fs-bold">Gestion des calendriers partagés</h2>
-      {Object.entries(groupedShared).map(([calendarId, data]) => (
-        <div key={calendarId} className="card mb-4">
-          <div className="card-body">
-            <h3 className="card-title">{data.calendar_name}</h3>
-            <hr />
+<div className="container py-4">
+  <h2 className="mb-4 fw-bold">
+    <i className="bi bi-people-fill me-2"></i>
+    Gestion des calendriers partagés
+  </h2>
 
-            {/* Lien de partage */}
+  <div className="row g-4">
+    {Object.entries(groupedShared).map(([calendarId, data]) => (
+      <div key={calendarId} className="col-12 col-md-6">
+        <div className="card h-100 shadow-sm border border-2">
+          <div className="card-body position-relative">
+
+            {/* Nom du calendrier */}
+            <h5 className="card-title mb-3 d-flex justify-content-between align-items-center">
+              <span>{data.calendar_name}</span>
+              <button 
+                type="button"
+                className="btn btn-secondary btn-sm rounded-circle"
+                onClick={() => setSelectedModifyCalendar(
+                  selectedModifyCalendar === calendarId ? null : calendarId
+                )}
+                aria-label="Modifier le partage"
+                title="Modifier le partage"
+              >
+                <i className={`bi ${selectedModifyCalendar === calendarId ? 'bi-x-lg' : 'bi-pencil'}`}></i>
+              </button>
+            </h5>
+
+            <hr className="my-3" />
+
+            {/* Liens de partage */}
             <TokenList
               alertId={alertId}
               alertType={alertType}
@@ -267,7 +293,11 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
               VITE_URL={VITE_URL}
               data={data}
               calendarId={calendarId}
+              setSelectedModifyCalendar={setSelectedModifyCalendar}
+              selectedModifyCalendar={selectedModifyCalendar}
             />
+
+            <hr className="my-3" />
 
             {/* Utilisateurs partagés */}
             <UserList
@@ -287,8 +317,11 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
             />
           </div>
         </div>
-      ))}
-    </div>
+      </div>
+    ))}
+  </div>
+</div>
+
   );
 }
 
@@ -316,10 +349,12 @@ function TokenList({
   VITE_URL,
   data,
   calendarId,
+  selectedModifyCalendar,
+  setSelectedModifyCalendar,
 }) {
   return (
     <ul className="list-group">
-      <h6 className="">Liens de partage :</h6>
+      <h6 className="">Liens publics :</h6>
       {(data.tokens || []).map((token) => (
         <div key={token.id}>
 
@@ -338,113 +373,107 @@ function TokenList({
               }}
             />
           )}
-            
-          <li key={token.id} className="list-group-item">
-            <div className="row align-items-center g-2">
 
-              {/* Lien */}
-              <div className="col-md-4">
-                <div className="input-group">
-                  <span className="input-group-text bg-primary text-white">
-                    <i className="bi bi-link-45deg"></i>
-                  </span>
-                  <input
-                    id={"tokenLink"+token.id}
-                    type="text"
-                    className="form-control"
-                    aria-label="Lien du calendrier partagé"
-                    title="Lien du calendrier partagé"
-                    value={`${VITE_URL}/shared-token-calendar/${token.id}`}
-                    readOnly
-                  />
-                  <button
-                    className="btn btn-outline-primary"
-                    onClick={() => handleCopyLink(token)}
-                    aria-label="Copier le lien"
-                    title="Copier le lien"
+          {/* TODO: racourcir le lien */}
+          {/* Lien */}
+          <div className="input-group col-md-6 mb-2">
+            <input
+              id={"tokenLink"+token.id}
+              type="text"
+              className={`form-control border-2 border-${token.revoked ? "danger" : "success"}`}
+              aria-label="Lien du calendrier partagé"
+              title="Lien du calendrier partagé"
+              value={`${VITE_URL}/shared-token-calendar/${token.id}`}
+              readOnly
+            />
+            <button
+              className={`btn btn-outline-${token.revoked ? "danger" : "success"}`}
+              onClick={() => handleCopyLink(token)}
+              aria-label="Copier le lien"
+              title="Copier le lien"
+              disabled={token.revoked}
+            >
+              <i className="bi bi-clipboard"></i>
+            </button>
+          </div>
+
+          {selectedModifyCalendar === calendarId && (
+            <li className="list-group-item py-3 px-3">
+              <div className="row align-items-center gy-3 gx-4">
+
+                {/* Colonne 1 : Switch */}
+                <div className="col-auto d-flex align-items-center gap-2">
+                  <label htmlFor={`switchToken-${token.id}`} className="form-label mb-0 fw-semibold">Activation :</label>
+                  <div className="form-check form-switch m-0">
+                    <input
+                      className={`form-check-input ${token.revoked ? "" : "bg-success"}`}
+                      type="checkbox"
+                      role="switch"
+                      id={`switchToken-${token.id}`}
+                      checked={!token.revoked}
+                      onChange={() => handleToggleToken(token.id)}
+                      aria-label="Activer ou désactiver le lien"
+                      title={token.revoked ? "Réactiver le lien" : "Révoquer le lien"}
+                    />
+                  </div>
+                </div>
+
+                {/* Colonne 2 : Expiration */}
+                <div className="col-auto d-flex align-items-center flex-wrap gap-2">
+                  <label htmlFor={`tokenExpiration${token.id}`} className="form-label mb-0 fw-semibold">Expiration :</label>
+                  <select
+                    id={`tokenExpiration${token.id}`}
+                    className="form-select w-auto"
+                    value={token.expires_at === null ? "" : "date"}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      handleUpdateTokenExpiration(token.id, value === "" ? null : today);
+                    }}
                   >
-                    <i className="bi bi-clipboard"></i>
+                    <option value="">Jamais</option>
+                    <option value="date">Date</option>
+                  </select>
+                  {token.expires_at && (
+                    <input
+                      type="date"
+                      className="form-control w-auto"
+                      style={{ minWidth: "130px" }}
+                      value={formatToLocalISODate(token.expires_at)}
+                      onChange={(e) => handleUpdateTokenExpiration(token.id, formatToLocalISODate(e.target.value))}
+                      min={formatToLocalISODate(today)}
+                    />
+                  )}
+                </div>
+
+                {/* Colonne 3 : Permissions */}
+                <div className="col-auto d-flex align-items-center gap-2">
+                  <label htmlFor={`tokenPermissions${token.id}`} className="form-label mb-0 fw-semibold">Accès :</label>
+                  <select
+                    id={`tokenPermissions${token.id}`}
+                    className="form-select w-auto"
+                    value={token.permissions}
+                    onChange={(e) => handleUpdateTokenPermissions(token.id, e.target.value)}
+                  >
+                    <option value="read">Lecture seule</option>
+                    <option value="edit">Lecture + Édition</option>
+                  </select>
+                </div>
+
+                {/* Colonne 4 : Supprimer */}
+                <div className="col-auto d-flex justify-content-end">
+                  <button
+                    className="btn btn-outline-danger"
+                    onClick={() => deleteTokenConfirmAction(token.id)}
+                    aria-label="Supprimer"
+                    title="Supprimer"
+                  >
+                    <i className="bi bi-trash"></i>
                   </button>
                 </div>
+
               </div>
-
-              {/* Jamais + Expiration */}
-              <div className={`d-flex align-items-center gap-2 col-md-4`}>
-                <select
-                  id={"tokenExpiration"+token.id}
-                  className="form-select"
-                  value={token.expires_at === null ? "" : "date"}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    if (value === "") {
-                      handleUpdateTokenExpiration(token.id, null);
-                    } else {
-                      handleUpdateTokenExpiration(token.id, today);
-                    }
-                  }}
-                  title="Expiration"
-                >
-                  <option value="">Jamais</option>
-                  <option value="date">Expiration le</option>
-                </select>
-
-                {token.expires_at !== null && (
-                  <input
-                    id={"tokenDate"+token.id}
-                    type="date"
-                    className="form-control"
-                    aria-label="Date d'expiration"
-                    title="Date d'expiration"
-                    style={{ minWidth: "120px" }}
-                    value={formatToLocalISODate(token.expires_at)}
-                    onChange={(e) => {
-                      handleUpdateTokenExpiration(token.id, formatToLocalISODate(e.target.value));
-                    }}
-                    min={formatToLocalISODate(today)}
-                  />
-                )}
-              </div>
-
-              {/* Permissions */}
-              <div className="col-md-2">
-                <select
-                  id={"tokenPermissions"+token.id}
-                  className="form-select"
-                  aria-label="Permissions"
-                  value={token.permissions}
-                  onChange={(e) => {
-                    handleUpdateTokenPermissions(token.id, e.target.value);
-                  }}
-                  title="Permissions"
-                >
-                  <option value="read">Lecture seule</option>
-                  <option value="edit">Lecture + Édition</option>
-                </select>
-              </div>
-
-              {/* Actions */}
-              <div className={`d-flex justify-content-end gap-2 col-md-2`}>
-                <button
-                  className={`btn ${token.revoked ? 'btn-outline-danger' : 'btn-outline-success'}`}
-                  onClick={() => handleToggleToken(token.id)}
-                  aria-label={token.revoked ? "Réactiver" : "Désactiver"}
-                  title={token.revoked ? "Réactiver" : "Désactiver"}
-                >
-                  <i className={`bi ${token.revoked ? 'bi-toggle-off' : 'bi-toggle-on'}`}></i>
-                </button>
-                <button
-                  className="btn btn-outline-danger"
-                  onClick={() => deleteTokenConfirmAction(token.id)}
-                  aria-label="Supprimer"
-                  title="Supprimer"
-                >
-                  <i className="bi bi-trash"></i>
-                </button>
-              </div>
-            </div>
-
-          </li>
-
+            </li>
+          )}
         </div>
       ))}
 
@@ -467,111 +496,20 @@ function TokenList({
               }}
             />
           )}
-          <li className="list-group-item" key={calendarId}>
-            <form onSubmit={ (e) => {
-              e.preventDefault();
-              handleCreateToken(calendarId);
-            }}>
-              <div className="row align-items-center g-2">
-
-                {/* Lien */}
-                <div className="col-md-4">
-                  <div className="input-group">
-                    <span className="input-group-text bg-primary text-white">
-                      <i className="bi bi-link-45deg"></i>
-                    </span>
-                    <input
-                      id={"newTokenLink"+calendarId}
-                      type="text"
-                      className="form-control text-muted bg-light"
-                      aria-label="Nouveau lien de partage"
-                      value="Nouveau lien de partage"
-                      disabled
-                      style={{ fontStyle: 'italic', fontWeight: 500 }}
-                    />
-                  </div>
-                </div>
-
-                {/* Jamais + Expiration */}
-                <div className={`d-flex align-items-center gap-2 col-md-4`}>
-                  <select
-                    id={`newTokenExpiration${calendarId}`}
-                    className={`form-select`}
-                    value={expirationType[calendarId] || 'never'}
-                    aria-label="Expiration"
-                    title="Expiration"
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      setExpirationType(prev => ({ ...prev, [calendarId]: val }));
-                      if (val === 'never') {
-                        setExpiresAt(prev => ({ ...prev, [calendarId]: null }));
-                      } else {
-                        setExpiresAt(prev => ({ ...prev, [calendarId]: prev[calendarId] || '' }));
-                      }
-                    }}
-                  >
-                    <option value="never">Jamais</option>
-                    <option value="date">Expiration le</option>
-                  </select>
-
-                  {expirationType[calendarId] === 'date' && (
-                    <input
-                      id={`newTokenDate${calendarId}`}
-                      type="date"
-                      className={`form-control`}
-                      required
-                      style={{ minWidth: "120px" }}
-                      title="Expiration"
-                      aria-label="Expiration"
-                      value={expiresAt[calendarId] || ''}
-                      onChange={(e) => {
-                        setExpiresAt(prev => ({
-                          ...prev,
-                          [calendarId]: e.target.value
-                        }));
-                      }}
-                      min={today}
-                    />
-                  )}
-                </div>
-
-                
-                {/* Permissions */}
-                <div className="col-md-2">
-                  <select
-                    id={"newTokenPermissions"+calendarId}
-                    className="form-select"
-                    value={permissions[calendarId]}
-                    aria-label="Permissions"
-                    title="Permissions"
-                    onChange={(e) => {
-                      setPermissions(prev => ({ ...prev, [calendarId]: e.target.value }));
-                    }}
-                  >
-                    <option value="read">Lecture seule</option>
-                    <option value="edit">Lecture + Édition</option>
-                  </select>
-                </div>
-
-                {/* Actions */}
-                <div className={`d-flex gap-2 justify-content-end col-md-2`}>
-                  <button 
-                    className="btn btn-success"
-                    aria-label="Ajouter"
-                    title="Ajouter"
-                    type="submit"
-                  >
-                    <i className="bi bi-plus"></i>
-                  </button>
-                </div>
-              </div>
-            </form>
-          </li>
+          <button
+            className="btn btn-outline-dark w-100"
+            onClick={() => handleCreateToken(calendarId)}
+            aria-label="Créer un lien de partage"
+            title="Créer un lien de partage"
+          >
+            <i className="bi bi-plus-lg me-2"></i>Créer un lien de partage
+          </button>
         </div>
       )}
     </ul>
   );
 }
+
 
 function UserList({ 
   alertId, 
@@ -590,7 +528,7 @@ function UserList({
 }) {
   return (
   <ul className="list-group">
-    <h6 className="mt-4">Utilisateurs partagés :</h6>
+    <h6>Utilisateurs partagés :</h6>
     {(data.users || []).map((user) => (
       <div key={user.receiver_uid + "-" + calendarId}>
         {alertId === user.receiver_uid + "-" + calendarId && (
@@ -607,10 +545,10 @@ function UserList({
             }}
           />
         )}
-        <li key={user.receiver_uid + "-" + calendarId} className="list-group-item px-3">
-          <div className="row align-items-center g-2">
-            <div className="col-md-6 d-flex align-items-center justify-content-between">
-              <div>
+        <li key={user.receiver_uid + "-" + calendarId} className="list-group-item">
+          <div className="row align-items-center">
+            <div className="col-md-12 d-flex align-items-center">
+              <div className="col-6">
                 <HoveredUserProfile
                   user={{
                     photo_url: user.receiver_photo_url,
@@ -634,42 +572,23 @@ function UserList({
               </div>
 
               {/* Statut */}
-              <div>
+              <div className="col-4 d-flex align-items-center justify-content-center">
                 <span className={`badge rounded-pill ${user.accepted ? "bg-success" : "bg-warning text-dark"}`}>
                   {user.accepted ? "Accepté" : "En attente"}
                 </span>
               </div>
-            </div>
-            
-            {/* Permissions*/}
-            <div className="col-md-2 offset-md-2">
-              <select
-                id={"sharedUserAccess"+user.receiver_uid}
-                className="form-select"
-                value={user.access}
-                onChange={(e) => {
-                  setAlertType("info");
-                  setAlertMessage("Vous ne pouvez pas modifier l'accès d'un utilisateur partagé.");
-                  setAlertId(user.receiver_uid + "-" + calendarId);
-                }}
-                title="Accès"
-                disabled={true}
-              >
-                <option value="read">Lecture seule</option>
-                <option value="edit">Lecture + Édition</option>
-              </select>
-            </div>
 
-            {/* 🗑️ Supprimer */}
-            <div className="col-md-2 d-flex justify-content-end">
-              <button
-                className="btn btn-outline-danger"
-                onClick={() => deleteUserConfirmAction(calendarId, user)}
-                aria-label="Supprimer l'accès"
-                title="Supprimer l'accès"
-              >
-                <i className="bi bi-trash"></i>
-              </button>
+              {/* Supprimer */}
+              <div className="col-2">
+                <button
+                  className="btn btn-outline-danger"
+                  onClick={() => deleteUserConfirmAction(calendarId, user)}
+                  aria-label="Supprimer l'accès"
+                  title="Supprimer l'accès"
+                >
+                  <i className="bi bi-trash"></i>
+                </button>
+              </div>
             </div>
           </div>
 
@@ -696,42 +615,40 @@ function UserList({
         />
       )}
 
-      <li className="list-group-item" key={calendarId}>
-        <div className="row align-items-center g-2">
-          <div className="col-md-6">
-            <form onSubmit={ (e) => {
-              e.preventDefault();
-              handleSendInvitation(calendarId);
-            }}>
-              <div className="input-group">
-                <input
-                  id={"emailToInvite"+calendarId}
-                  type="email"
-                  className={`form-control`}
-                  placeholder="Email du destinataire"
-                  aria-label="Email du destinataire"
-                  onChange={(e) => setEmailsToInvite(prev => ({ ...prev, [calendarId]: e.target.value }))}
-                  value={emailsToInvite[calendarId] ?? ""}
-                  required
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      handleSendInvitation(calendarId);
-                    }
-                  }}
-                />
-                <button
-                  className={`btn btn-primary`}
-                  aria-label="Envoyer une invitation"
-                  title="Envoyer une invitation"
-                  type="submit"
-                >
-                  <i className="bi bi-envelope-paper"></i>
-                </button>
-              </div>
-            </form>
-          </div>
+      <div className="row align-items-center mt-2">
+        <div className="col-md-12">
+          <form onSubmit={ (e) => {
+            e.preventDefault();
+            handleSendInvitation(calendarId);
+          }}>
+            <div className="input-group ">
+              <input
+                id={"emailToInvite"+calendarId}
+                type="email"
+                className={`form-control`}
+                placeholder="Email du destinataire"
+                aria-label="Email du destinataire"
+                onChange={(e) => setEmailsToInvite(prev => ({ ...prev, [calendarId]: e.target.value }))}
+                value={emailsToInvite[calendarId] ?? ""}
+                required
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleSendInvitation(calendarId);
+                  }
+                }}
+              />
+              <button
+                className={`btn btn-primary`}
+                aria-label="Envoyer une invitation"
+                title="Envoyer une invitation"
+                type="submit"
+              >
+                <i className="bi bi-envelope-paper"></i>
+              </button>
+            </div>
+          </form>
         </div>
-      </li>
+      </div>
     </div>
   </ul>
   );

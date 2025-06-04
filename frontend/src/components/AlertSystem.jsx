@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 
 
-function AlertSystem({ type = "info", message, onClose, onConfirm = null, duration = 3000 }) {
+function AlertSystem({ type = "info", message, onClose, onConfirm = null, duration = 2000 }) {
   const isConfirm = type.startsWith("confirm");
   const [visible, setVisible] = useState(false);
 
