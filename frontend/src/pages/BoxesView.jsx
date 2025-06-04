@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 import { useRealtimeBoxesSwitcher } from '../hooks/useRealtimeBoxesSwitcher';
 import AlertSystem from '../components/AlertSystem';
 import { getCalendarSourceMap } from '../utils/calendarSourceMap';
 import { v4 as uuidv4 } from 'uuid';
+import { fetchSuggestions } from '../utils/fetchSuggestions';
 
 
 function BoxesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
@@ -232,6 +233,7 @@ function BoxCard({
   setBoxConditions,
 }) {
   const editable = selectedModifyBox === box.id;
+  const [suggestions, setSuggestions] = useState([]);
   const timeOfDayMap = {
     'morning': 'Matin',
     'noon': 'Midi',
@@ -263,13 +265,10 @@ function BoxCard({
 
         <h5 className="card-title fs-semibold mb-1">
           {selectedModifyBox && selectedModifyBox === box.id ? (
-            <input
-              type="text"
-              aria-label="Nom de la boîte"
-              className="form-control form-control-sm"
-              defaultValue={box.name}
-              onChange={(e) => setModifyBoxName({...modifyBoxName, [box.id]: e.target.value})}
-              required
+            <InputDropdown
+              value={box.name}
+              onChange={(newName) => setModifyBoxName({ ...modifyBoxName, [box.id]: newName })}
+              fetchSuggestions={fetchSuggestions}
             />
           ) : (
             box.name
@@ -520,6 +519,62 @@ function StockBadge({ box }) {
   return <span className="badge bg-success"><i className="bi bi-check-circle" /> Stock élevé</span>;
 }
 
+function InputDropdown({ value, onChange, fetchSuggestions }) {
+  const [suggestions, setSuggestions] = useState([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const inputRef = useRef();
+
+  const handleInputChange = async (e) => {
+    const val = e.target.value;
+    onChange(val);
+
+    if (val.length < 2) {
+      setSuggestions([]);
+      setShowDropdown(false);
+      return;
+    }
+
+    const data = await fetchSuggestions(val);
+    setSuggestions(data);
+    setShowDropdown(true);
+  };
+
+  const handleSelect = (item) => {
+    onChange(item.medicament_name);
+    setShowDropdown(false);
+    setSuggestions([]);
+    inputRef.current.value = item.medicament_name;
+  };
+
+  return (
+    <div className="position-relative w-100">
+      <input
+        ref={inputRef}
+        type="text"
+        className="form-control"
+        defaultValue={value}
+        onChange={handleInputChange}
+        onBlur={() => setTimeout(() => setShowDropdown(false), 150)}
+        placeholder="Commencez à taper..."
+      />
+      {showDropdown && suggestions.length > 0 && (
+        <ul className="dropdown-menu show w-100" style={{ maxHeight: 200, overflowY: "auto" }}>
+          {suggestions.map((item, i) => (
+            <li key={i}>
+              <button
+                type="button"
+                className="dropdown-item text-wrap"
+                onClick={() => handleSelect(item)}
+              >
+                {item.medicament_name} - {item.dose}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
 
 
 export default BoxesView;
