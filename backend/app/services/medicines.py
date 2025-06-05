@@ -4,7 +4,7 @@ def get_boxes(calendar_id):
     with get_connection() as conn:
         with conn.cursor() as cursor:
             cursor.execute("""
-            SELECT mb.id, mb.name, mb.box_capacity, mb.stock_quantity, mb.stock_alert_threshold, mb.calendar_id, c.name AS calendar_name
+            SELECT mb.id, mb.name, mb.box_capacity, mb.stock_quantity, mb.stock_alert_threshold, mb.calendar_id, c.name AS calendar_name, mb.dose
             FROM medicine_boxes mb
             JOIN calendars c ON mb.calendar_id = c.id
             WHERE c.id = %s
@@ -20,6 +20,7 @@ def get_boxes(calendar_id):
 
 def update_box(box_id, calendar_id, data):
     name = data.get("name")
+    dose = data.get("dose")
     box_capacity = data.get("box_capacity")
     stock_alert_threshold = data.get("stock_alert_threshold")
     stock_quantity = data.get("stock_quantity")
@@ -29,9 +30,9 @@ def update_box(box_id, calendar_id, data):
         with conn.cursor() as cursor:
             cursor.execute("""
                 UPDATE medicine_boxes 
-                SET name = %s, box_capacity = %s, stock_alert_threshold = %s, stock_quantity = %s 
+                SET name = %s, dose = %s, box_capacity = %s, stock_alert_threshold = %s, stock_quantity = %s 
                 WHERE id = %s AND calendar_id = %s
-            """, (name, box_capacity, stock_alert_threshold, stock_quantity, box_id, calendar_id))
+            """, (name, dose, box_capacity, stock_alert_threshold, stock_quantity, box_id, calendar_id))
             cursor.execute("DELETE FROM medicine_box_conditions WHERE box_id = %s", (box_id,))
             if conditions:
                 for condition in conditions:
@@ -47,14 +48,15 @@ def create_box(calendar_id, data):
     box_capacity = data.get("box_capacity", 0)
     stock_alert_threshold = data.get("stock_alert_threshold", 10)
     stock_quantity = data.get("stock_quantity", 0)
+    dose = data.get("dose", 0)
 
     with get_connection() as conn:
         with conn.cursor() as cursor:
             cursor.execute("""
-                INSERT INTO medicine_boxes (calendar_id, name, box_capacity, stock_alert_threshold, stock_quantity) 
-                VALUES (%s, %s, %s, %s, %s)
+                INSERT INTO medicine_boxes (calendar_id, name, dose, box_capacity, stock_alert_threshold, stock_quantity) 
+                VALUES (%s, %s, %s, %s, %s, %s)
                 RETURNING id
-            """, (calendar_id, name, box_capacity, stock_alert_threshold, stock_quantity))
+            """, (calendar_id, name, dose, box_capacity, stock_alert_threshold, stock_quantity))
             box = cursor.fetchone()
             box_id = box.get("id")
             conn.commit()

@@ -22,6 +22,7 @@ function BoxesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
   const [modifyBoxStockAlertThreshold, setModifyBoxStockAlertThreshold] = useState({});
   const [modifyBoxStockQuantity, setModifyBoxStockQuantity] = useState({});
   const [boxConditions, setBoxConditions] = useState({});
+  const [dose, setDose] = useState({});
 
   let calendarType = 'personal';
   let calendarId = params.calendarId;
@@ -47,6 +48,7 @@ function BoxesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
     e.preventDefault();
     const box = {
       name: modifyBoxName[selectedModifyBox],
+      dose: dose[selectedModifyBox],
       box_capacity: modifyBoxCapacity[selectedModifyBox],
       stock_alert_threshold: modifyBoxStockAlertThreshold[selectedModifyBox],
       stock_quantity: modifyBoxStockQuantity[selectedModifyBox],
@@ -66,6 +68,7 @@ function BoxesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
   const restockBox = async (boxId) => {
     const box = {
       name: boxes.find(box => box.id === boxId).name,
+      dose: boxes.find(box => box.id === boxId).dose,
       box_capacity: boxes.find(box => box.id === boxId).box_capacity,
       stock_alert_threshold: boxes.find(box => box.id === boxId).stock_alert_threshold,
       stock_quantity: boxes.find(box => box.id === boxId).box_capacity,
@@ -103,6 +106,7 @@ function BoxesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
   useEffect(() => {
     if (boxes.length > 0) {
       setModifyBoxName(boxes.reduce((acc, box) => ({...acc, [box.id]: box.name}), {}))
+      setDose(boxes.reduce((acc, box) => ({...acc, [box.id]: box.dose}), {}))
       setModifyBoxCapacity(boxes.reduce((acc, box) => ({...acc, [box.id]: box.box_capacity}), {}))
       setModifyBoxStockAlertThreshold(boxes.reduce((acc, box) => ({...acc, [box.id]: box.stock_alert_threshold}), {}))
       setModifyBoxStockQuantity(boxes.reduce((acc, box) => ({...acc, [box.id]: box.stock_quantity}), {}))
@@ -166,6 +170,8 @@ function BoxesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
                     setSelectedDropBox={setSelectedDropBox}
                     boxConditions={boxConditions}
                     setBoxConditions={setBoxConditions}
+                    setDose={setDose}
+                    dose={dose}
                   />
                 </form>
               ) : (
@@ -187,6 +193,8 @@ function BoxesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
                   setSelectedDropBox={setSelectedDropBox}
                   boxConditions={boxConditions}
                   setBoxConditions={setBoxConditions}
+                  setDose={setDose}
+                  dose={dose}
                 />
               )}
             </div>
@@ -231,9 +239,10 @@ function BoxCard({
   setSelectedDropBox,
   boxConditions,
   setBoxConditions,
+  setDose,
+  dose,
 }) {
   const editable = selectedModifyBox === box.id;
-  const [suggestions, setSuggestions] = useState([]);
   const timeOfDayMap = {
     'morning': 'Matin',
     'noon': 'Midi',
@@ -264,35 +273,41 @@ function BoxCard({
         </div>
 
         <h5 className="card-title fs-semibold mb-1">
+          {console.log(dose[box.id])}
           {selectedModifyBox && selectedModifyBox === box.id ? (
             <InputDropdown
-              value={box.name}
-              onChange={(newName) => setModifyBoxName({ ...modifyBoxName, [box.id]: newName })}
+              name={box.name}
+              dose={dose[box.id]}
+              onChangeName={(newName) => setModifyBoxName({ ...modifyBoxName, [box.id]: newName })}
+              onChangeDose={(newDose) => setDose({ ...dose, [box.id]: newDose })}
               fetchSuggestions={fetchSuggestions}
             />
           ) : (
-            box.name
+            modifyBoxName[box.id] + " (" + dose[box.id] + " mg)"
           )}
         </h5>
 
         <div className="d-flex mb-2 gap-2">
           <BoxField 
+            type="number"
             label="Capacité de la boîte" 
-            value={box.box_capacity} 
+            value={modifyBoxCapacity[box.id]} 
             editable={editable} 
             onChange={(e) => setModifyBoxCapacity({...modifyBoxCapacity, [box.id]: e.target.value})} 
           />
           <BoxField 
+            type="number"
             label="Seuil d’alerte" 
-            value={box.stock_alert_threshold} 
+            value={modifyBoxStockAlertThreshold[box.id]} 
             editable={editable} 
             onChange={(e) => setModifyBoxStockAlertThreshold({...modifyBoxStockAlertThreshold, [box.id]: e.target.value})} 
           />
         </div>
         <div className="d-flex mb-2 gap-2 align-items-center">
           <BoxField 
+            type="number"
             label="Quantité restante" 
-            value={box.stock_quantity} 
+            value={modifyBoxStockQuantity[box.id]} 
             editable={editable} 
             onChange={(e) => setModifyBoxStockQuantity({...modifyBoxStockQuantity, [box.id]: e.target.value})} 
           />
@@ -459,8 +474,9 @@ function BoxCard({
                   setModifyBoxStockAlertThreshold({...modifyBoxStockAlertThreshold, [box.id]: box.stock_alert_threshold});
                   setModifyBoxStockQuantity({...modifyBoxStockQuantity, [box.id]: box.stock_quantity});
                   setBoxConditions({...boxConditions, [box.id]: box.conditions.reduce((acc, condition) => ({ ...acc, [condition.id]: condition }), {})});
+                  setDose({...dose, [box.id]: box.dose});
                 }}
-                aria-label="Annuler"
+                aria-label="Annuler"  
                 title="Annuler"
               >
                 <i className="bi bi-x"></i> Annuler
@@ -485,16 +501,17 @@ function BoxCard({
   );
 }
 
-function BoxField({ label, value, editable, onChange }) {
+function BoxField({ type, label, value, editable, onChange }) {
   return (
     <div className="w-50">
       <small className="text-muted">{label}</small><br />
       {editable ? (
         <input
-          type="number"
+          type={type}
           aria-label={label}
           className="form-control form-control-sm w-75"
           defaultValue={value}
+          value={value}
           onChange={onChange}
           required
         />
@@ -519,14 +536,14 @@ function StockBadge({ box }) {
   return <span className="badge bg-success"><i className="bi bi-check-circle" /> Stock élevé</span>;
 }
 
-function InputDropdown({ value, onChange, fetchSuggestions }) {
+function InputDropdown({ name, dose, onChangeName, onChangeDose, fetchSuggestions }) {
   const [suggestions, setSuggestions] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const inputRef = useRef();
 
   const handleInputChange = async (e) => {
     const val = e.target.value;
-    onChange(val);
+    onChangeName(val);
 
     if (val.length < 2) {
       setSuggestions([]);
@@ -540,25 +557,37 @@ function InputDropdown({ value, onChange, fetchSuggestions }) {
   };
 
   const handleSelect = (item) => {
-    onChange(item.medicament_name);
+    const onlyNumbers = parseInt(item.dose.replace(/\D/g, ""));
+    onChangeName(item.name);
+    onChangeDose(onlyNumbers);
     setShowDropdown(false);
     setSuggestions([]);
-    inputRef.current.value = item.medicament_name;
+    inputRef.current.value = item.name;
   };
 
   return (
-    <div className="position-relative w-100">
-      <input
-        ref={inputRef}
-        type="text"
-        className="form-control"
-        defaultValue={value}
-        onChange={handleInputChange}
-        onBlur={() => setTimeout(() => setShowDropdown(false), 150)}
-        placeholder="Commencez à taper..."
+    <div className="position-relative w-100 d-flex gap-2">
+      <div className="w-50">
+        <small className="text-muted">Nom</small><br />
+        <input
+          ref={inputRef}
+          type="text"
+          className="form-control form-control-sm"
+          defaultValue={name}
+          onChange={handleInputChange}
+          onBlur={() => setTimeout(() => setShowDropdown(false), 150)}
+          placeholder="Commencez à taper..."
+        />
+      </div>
+      <BoxField
+        type="number"
+        label="Dose"
+        value={dose}
+        editable={true}
+        onChange={(e) => onChangeDose(parseInt(e.target.value))}
       />
       {showDropdown && suggestions.length > 0 && (
-        <ul className="dropdown-menu show w-100" style={{ maxHeight: 200, overflowY: "auto" }}>
+        <ul className="dropdown-menu show position-absolute top-100 start-0 w-50" style={{ maxHeight: 200, overflowY: "auto" }}>
           {suggestions.map((item, i) => (
             <li key={i}>
               <button
@@ -566,7 +595,7 @@ function InputDropdown({ value, onChange, fetchSuggestions }) {
                 className="dropdown-item text-wrap"
                 onClick={() => handleSelect(item)}
               >
-                {item.medicament_name} - {item.dose}
+                {item.name} - {item.dose}
               </button>
             </li>
           ))}
