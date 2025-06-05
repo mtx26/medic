@@ -273,17 +273,18 @@ function BoxCard({
         </div>
 
         <h5 className="card-title fs-semibold mb-1">
-          {console.log(dose[box.id])}
           {selectedModifyBox && selectedModifyBox === box.id ? (
             <InputDropdown
               name={box.name}
               dose={dose[box.id]}
               onChangeName={(newName) => setModifyBoxName({ ...modifyBoxName, [box.id]: newName })}
               onChangeDose={(newDose) => setDose({ ...dose, [box.id]: newDose })}
+              onChangeBoxCapacity={(newBoxCapacity) => setModifyBoxCapacity({ ...modifyBoxCapacity, [box.id]: newBoxCapacity })}
+              onChangeStockQuantity={(newStockQuantity) => setModifyBoxStockQuantity({ ...modifyBoxStockQuantity, [box.id]: newStockQuantity })}
               fetchSuggestions={fetchSuggestions}
             />
           ) : (
-            modifyBoxName[box.id] + " (" + dose[box.id] + " mg)"
+            modifyBoxName[box.id] + (dose[box.id] > 0 ? " (" + dose[box.id] + " mg)" : "")
           )}
         </h5>
 
@@ -536,7 +537,7 @@ function StockBadge({ box }) {
   return <span className="badge bg-success"><i className="bi bi-check-circle" /> Stock élevé</span>;
 }
 
-function InputDropdown({ name, dose, onChangeName, onChangeDose, fetchSuggestions }) {
+function InputDropdown({ name, dose, onChangeName, onChangeDose, onChangeBoxCapacity, onChangeStockQuantity, fetchSuggestions }) {
   const [suggestions, setSuggestions] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const inputRef = useRef();
@@ -560,6 +561,8 @@ function InputDropdown({ name, dose, onChangeName, onChangeDose, fetchSuggestion
     const onlyNumbers = parseInt(item.dose.replace(/\D/g, ""));
     onChangeName(item.name);
     onChangeDose(onlyNumbers);
+    onChangeBoxCapacity(item.conditionnement);
+    onChangeStockQuantity(item.conditionnement);
     setShowDropdown(false);
     setSuggestions([]);
     inputRef.current.value = item.name;
@@ -587,7 +590,7 @@ function InputDropdown({ name, dose, onChangeName, onChangeDose, fetchSuggestion
         onChange={(e) => onChangeDose(parseInt(e.target.value))}
       />
       {showDropdown && suggestions.length > 0 && (
-        <ul className="dropdown-menu show position-absolute top-100 start-0 w-50" style={{ maxHeight: 200, overflowY: "auto" }}>
+        <ul className="dropdown-menu show position-absolute top-100 start-0 w-100" style={{ maxHeight: 200, overflowY: "auto" }}>
           {suggestions.map((item, i) => (
             <li key={i}>
               <button
@@ -595,7 +598,7 @@ function InputDropdown({ name, dose, onChangeName, onChangeDose, fetchSuggestion
                 className="dropdown-item text-wrap"
                 onClick={() => handleSelect(item)}
               >
-                {item.name} - {item.dose}
+                {item.name} - {item.dose} - {item.conditionnement} {item.forme_pharmaceutique}
               </button>
             </li>
           ))}
