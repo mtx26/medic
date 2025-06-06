@@ -14,6 +14,9 @@ def get_boxes(calendar_id):
                 cursor.execute("SELECT * FROM medicine_box_conditions WHERE box_id = %s", (box.get("id"),))
                 conditions = cursor.fetchall()
                 box["conditions"] = conditions
+                cursor.execute("SELECT url_notice_fr FROM medicaments_afmps WHERE name ilike %s", (box.get("name"),))
+                url_notice_fr = cursor.fetchone()
+                box["url_notice_fr"] = url_notice_fr.get("url_notice_fr")
     if not boxes:
         return []
     return boxes

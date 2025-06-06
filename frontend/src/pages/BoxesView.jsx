@@ -5,6 +5,7 @@ import AlertSystem from '../components/AlertSystem';
 import { getCalendarSourceMap } from '../utils/calendarSourceMap';
 import { v4 as uuidv4 } from 'uuid';
 import { fetchSuggestions } from '../utils/fetchSuggestions';
+import ViewNoticeButton from '../components/PdfView';
 
 
 function BoxesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
@@ -313,21 +314,30 @@ function BoxCard({
             onChange={(e) => setModifyBoxStockQuantity({...modifyBoxStockQuantity, [box.id]: e.target.value})} 
           />
           {(!selectedModifyBox || selectedModifyBox !== box.id) && (
-            <div className="w-50">
-              <button 
-                className="btn btn-outline-success"
-                onClick={() => restockBox(box.id)}
-                aria-label="Réstockage"
-                title="Réstockage"
-              >
-                <i className="bi bi-plus-circle"></i> Réstockage
-              </button>
-            </div>
+            <>
+              <div className="w-50">
+                <button 
+                  className="btn btn-outline-success"
+                  onClick={() => restockBox(box.id)}
+                  aria-label="Réstockage"
+                  title="Réstockage"
+                >
+                  <i className="bi bi-plus-circle"></i> Réstockage
+                </button>
+              </div>
+            </>
           )}
         </div>
 
         {(!selectedModifyBox || selectedModifyBox !== box.id) && (
-          <StockBadge box={box} />
+          <div className='d-flex mb-2 gap-2 align-items-center'>
+            <div className='w-50'>
+              <StockBadge box={box} />
+            </div>
+            <div className='w-50'>
+              <ViewNoticeButton url={box.url_notice_fr} />
+            </div>
+          </div>
         )}
 
 
