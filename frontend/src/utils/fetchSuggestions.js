@@ -4,7 +4,6 @@ const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 export const fetchSuggestions = async (name, dose) => {
   if (!name || name.length < 2) return [];
   if (!dose) dose = null;
-  console.log(name, dose);
 
   let url = `${SUPABASE_URL}/rest/v1/medicaments_afmps?select=name,dose,conditionnement,forme_pharmaceutique`;
   url += `&name=ilike.*${encodeURIComponent(name)}*`;
