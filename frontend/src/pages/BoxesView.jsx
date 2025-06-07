@@ -276,7 +276,7 @@ function BoxCard({
         <h5 className="card-title fs-semibold mb-1">
           {selectedModifyBox && selectedModifyBox === box.id ? (
             <InputDropdown
-              name={box.name}
+              name={modifyBoxName[box.id]}
               dose={dose[box.id]}
               onChangeName={(newName) => setModifyBoxName({ ...modifyBoxName, [box.id]: newName })}
               onChangeDose={(newDose) => setDose({ ...dose, [box.id]: newDose })}
@@ -512,7 +512,7 @@ function BoxCard({
   );
 }
 
-function BoxField({ type, label, value, editable, onChange }) {
+function BoxField({ type, label, value, editable, onChange, onFocus = null, onBlur = null, onClick = null }) {
   return (
     <div className="w-50">
       <small className="text-muted">{label}</small><br />
@@ -525,6 +525,9 @@ function BoxField({ type, label, value, editable, onChange }) {
           value={value}
           onChange={onChange}
           required
+          onFocus={onFocus}
+          onBlur={onBlur}
+          onClick={onClick}
         />
       ) : (
         <strong>{value}</strong>
@@ -552,21 +555,6 @@ function InputDropdown({ name, dose, onChangeName, onChangeDose, onChangeBoxCapa
   const [showDropdown, setShowDropdown] = useState(false);
   const inputRef = useRef();
 
-  const handleInputChange = async (e) => {
-    const val = e.target.value;
-    onChangeName(val);
-
-    if (val.length < 2) {
-      setSuggestions([]);
-      setShowDropdown(false);
-      return;
-    }
-
-    const data = await fetchSuggestions(val);
-    setSuggestions(data);
-    setShowDropdown(true);
-  };
-
   const handleSelect = (item) => {
     const onlyNumbers = parseInt(item.dose.replace(/\D/g, ""));
     onChangeName(item.name);
@@ -578,6 +566,23 @@ function InputDropdown({ name, dose, onChangeName, onChangeDose, onChangeBoxCapa
     inputRef.current.value = item.name;
   };
 
+  useEffect(() => {
+    if (!name || name.length < 2) {
+      setSuggestions([]);
+      setShowDropdown(false);
+      return;
+    }
+  
+    const fetchData = async () => {
+      const results = await fetchSuggestions(name, dose);
+      setSuggestions(results);
+    };
+  
+    const timeout = setTimeout(fetchData, 300); // anti-spam
+    return () => clearTimeout(timeout);
+  }, [name, dose]);
+  
+
   return (
     <div className="position-relative w-100 d-flex gap-2">
       <div className="w-50">
@@ -587,7 +592,10 @@ function InputDropdown({ name, dose, onChangeName, onChangeDose, onChangeBoxCapa
           type="text"
           className="form-control form-control-sm"
           defaultValue={name}
-          onChange={handleInputChange}
+          onChange={(e) => {
+            onChangeName(e.target.value)
+          }}
+          onClick={() => setTimeout(() => setShowDropdown(true), 300)}
           onBlur={() => setTimeout(() => setShowDropdown(false), 150)}
           placeholder="Commencez à taper..."
         />
@@ -597,7 +605,11 @@ function InputDropdown({ name, dose, onChangeName, onChangeDose, onChangeBoxCapa
         label="Dose"
         value={dose}
         editable={true}
-        onChange={(e) => onChangeDose(parseInt(e.target.value))}
+        onChange={(e) => {
+          onChangeDose(parseInt(e.target.value))
+        }}
+        onClick={() => setTimeout(() => setShowDropdown(true), 300)}
+        onBlur={() => setTimeout(() => setShowDropdown(false), 150)}
       />
       {showDropdown && suggestions.length > 0 && (
         <ul className="dropdown-menu show position-absolute top-100 start-0 w-100" style={{ maxHeight: 200, overflowY: "auto" }}>
