@@ -65,8 +65,8 @@ def send_email_notification(uid, notif_type, sender_uid, calendar_id=None):
 
 
 def generate_email_content(notif_type, sender_name, calendar_name=None):
-    base_link = f"{Config.FRONTEND_URL}/notifications"
-    logo_url = f"{Config.FRONTEND_URL}/icons/logo.png"
+    base_link = f"https://{Config.FRONTEND_URL}/notifications"
+    logo_url = f"https://{Config.FRONTEND_URL}/icons/logo.png"
 
     match notif_type:
         case "calendar_invitation":
