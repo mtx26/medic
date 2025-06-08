@@ -29,7 +29,7 @@
   "devDependencies": {
     "@svgr/plugin-svgo": "^6.5.1",
     "@svgr/webpack": "^6.5.1",
-    "@vitejs/plugin-react": "^4.4.1",
+    "@vitejs/plugin-react": "^4.5.1",
     "svgo": "^3.3.2",
     "vite": "^6.3.5",
     "vite-plugin-purgecss": "^0.2.13"
