@@ -263,7 +263,7 @@ function Navbar({ sharedProps }) {
                     {userInfo ? (
                       <>
                         <li><Link className="dropdown-item" to="/profile"><i className="bi bi-person fs-5 me-2"></i> Mon profil</Link></li>
-                        <li><Link className="dropdown-item" to="/account"><i className="bi bi-gear fs-5 me-2"></i> Paramètres</Link></li>
+                        <li><Link className="dropdown-item" to="/settings"><i className="bi bi-gear fs-5 me-2"></i> Paramètres</Link></li>
                         <li><hr className="dropdown-divider" /></li>
                         <li>
                           <button 
@@ -313,7 +313,7 @@ function Navbar({ sharedProps }) {
               </span>
             )}
           </Link>
-          <Link to="/account" className="text-center text-dark text-decoration-none link-hover">
+          <Link to="/settings" className="text-center text-dark text-decoration-none link-hover">
             <i className="bi bi-person-circle fs-4"></i>
             <div className="small">Comptes</div>
           </Link>

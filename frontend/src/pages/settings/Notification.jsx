@@ -36,13 +36,10 @@ const Notification = () => {
           }}
         />
         <label className="form-check-label" htmlFor="pushNotificationToggle">
-          Activer les notifications push (FCM)
+          Activer les notifications par web push
         </label>
       </div>
 
-      <div className="alert alert-info">
-        Ces paramètres s’appliquent à votre compte : <strong>{userInfo?.email}</strong>
-      </div>
     </div>
   );
 };
