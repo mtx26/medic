@@ -22,7 +22,7 @@ function NotificationsPage({ notifications, sharedUserCalendars }) {
         <h4 className="fw-bold">
           <i className="bi bi-bell-fill me-2"></i> Notifications
         </h4>
-        <Link to="/notifications/settings" className="btn btn-primary">
+        <Link to="/settings?tab=notifications" className="btn btn-primary">
           <i className="bi bi-gear-fill me-2"></i> Paramètres
         </Link>
       </div>
