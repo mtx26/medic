@@ -12,11 +12,11 @@ def update_existing_user(uid, user_db, display_name, email, photo_url, email_ena
         with conn.cursor() as cursor:
             updates = {}
 
-            if display_name and display_name != user_db["display_name"]:
+            if display_name is not None and display_name != user_db["display_name"]:
                 updates["display_name"] = display_name
-            if email and email != user_db["email"]:
+            if email is not None and email != user_db["email"]:
                 updates["email"] = email
-            if photo_url and not user_db["photo_url"]:
+            if photo_url is not None and photo_url != user_db["photo_url"]:
                 photo_url_uploaded = upload_logo(photo_url)
                 updates["photo_url"] = photo_url_uploaded
             if email_enabled is not None and email_enabled != user_db["email_enabled"]:
@@ -31,8 +31,8 @@ def update_existing_user(uid, user_db, display_name, email, photo_url, email_ena
 
             return fetch_user(uid)
 
-def insert_new_user(uid, display_name, email, photo_url, email_enabled, push_enabled):
-    if photo_url:
+def insert_new_user(uid, display_name, email, photo_url, email_enabled = True, push_enabled = True):
+    if photo_url is not None:
         photo_url = upload_logo(photo_url)
 
     with get_connection() as conn:

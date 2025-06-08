@@ -36,11 +36,11 @@ def handle_user_sync():
                 origin="USER_SYNC"
             )
 
-        display_name = user_data.get("display_name")
-        email = user_data.get("email")
+        display_name = user_data.get("display_name") or None
+        email = user_data.get("email") or None
         photo_url = user_data.get("photo_url") or None
-        email_enabled = user_data.get("email_enabled")
-        push_enabled = user_data.get("push_enabled")
+        email_enabled = user_data.get("email_enabled") or None
+        push_enabled = user_data.get("push_enabled") or None
 
         user_db = fetch_user(uid)
         t_1 = time.time()

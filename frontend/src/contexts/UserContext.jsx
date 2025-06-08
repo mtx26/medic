@@ -20,11 +20,11 @@ export const UserProvider = ({ children }) => {
 
     const body = {
       uid: user.id,
-      display_name: displayName || user.user_metadata?.name || userInfo?.displayName || null,
-      email: user.email || userInfo?.email || null,
-      photo_url: photoURL || user.user_metadata?.avatar_url || userInfo?.photoURL || null,
-      email_enabled: emailEnabled ?? userInfo?.emailEnabled ?? true,
-      push_enabled: pushEnabled ?? userInfo?.pushEnabled ?? true,
+      display_name: displayName || null,
+      email: user.email || null,
+      photo_url: photoURL || null,
+      email_enabled: emailEnabled ?? true,
+      push_enabled: pushEnabled ?? true,
     };
 
     const sameAsBefore =
