@@ -10,7 +10,7 @@
     "@mui/icons-material": "^7.1.1",
     "@mui/material": "^7.1.1",
     "@popperjs/core": "^2.11.8",
-    "@radix-ui/react-popover": "^1.1.12",
+    "@radix-ui/react-popover": "^1.1.14",
     "@supabase/supabase-js": "^2.49.5",
     "bootstrap": "^5.3.3",
     "date-fns": "^4.1.0",
