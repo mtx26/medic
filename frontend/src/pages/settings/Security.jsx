@@ -1,9 +1,8 @@
 import React, { useState, useContext } from 'react';
-import { EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
 import { updateUserPassword } from '../../services/authService';
 import { UserContext } from '../../contexts/UserContext';
 import AlertSystem from '../../components/AlertSystem';
-import { auth } from '../../services/firebase';
+import { supabase } from '../../services/supabaseClient';
 
 const Security = ({ sharedProps }) => {
   // 👤 Contexte utilisateur
@@ -19,16 +18,14 @@ const Security = ({ sharedProps }) => {
   const [alertMessage, setAlertMessage] = useState(null); // État pour le message d'alerte
   const [alertType, setAlertType] = useState("info"); // État pour le type d'alerte (par défaut : info)
 
-
-  const isGoogleUser = Array.isArray(userInfo?.providerData) && userInfo.providerData.some(
-    (provider) => provider.providerId === "google.com"
-  );
+  const isGoogleUser = userInfo?.provider === 'google';
 
   const reauthenticate = async () => {
     if (!userInfo || !oldPassword) throw new Error('Ancien mot de passe requis.');
-    const credential = EmailAuthProvider.credential(userInfo.email, oldPassword);
-    const user = auth.currentUser;
-    await reauthenticateWithCredential(user, credential);
+    const { error } = await supabase.auth.updateUser({
+      password: oldPassword,
+    });
+    if (error) throw new Error(error.message);
   };
 
   const handleUpdatePassword = async (e) => {
