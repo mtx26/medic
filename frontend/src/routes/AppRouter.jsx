@@ -9,8 +9,8 @@ import Auth from '../pages/Auth';
 import ResetPassword from '../pages/ResetPassword';
 import VerifyEmail from '../pages/VerifyEmail';
 
-import AccountPage from '../pages/AccountPage';
 import NotificationsPage from '../pages/NotificationsPage';
+import SettingsPage from '../pages/SettingsPage';
 
 import CalendarView from '../pages/CalendarView';
 import CalendarList from '../pages/CalendarList';
@@ -55,11 +55,11 @@ function AppRoutes({ sharedProps }) {
         <Route path="/reset-password" element={userInfo ? <Navigate to="/calendars" /> : <ResetPassword />} />
         <Route path="/verify-email" element={userInfo ? <VerifyEmail/> : <Navigate to="/login" />} />
 
-        <Route path="/account" element={
+        <Route path="/settings" element={
           <PrivateRoute 
             element={
               <RouteWithLoader
-                element={<AccountPage {...sharedProps} />}
+                element={<SettingsPage {...sharedProps} />}
                 isLoading={sharedProps.loadingStates.isInitialLoading}
               />
             }

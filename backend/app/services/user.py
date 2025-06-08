@@ -7,7 +7,7 @@ def fetch_user(uid):
             cursor.execute("SELECT * FROM users WHERE id = %s", (uid,))
             return cursor.fetchone()
 
-def update_existing_user(uid, user_db, display_name, email, photo_url):
+def update_existing_user(uid, user_db, display_name, email, photo_url, email_enabled, push_enabled):
     with get_connection() as conn:
         with conn.cursor() as cursor:
             updates = {}
@@ -19,7 +19,10 @@ def update_existing_user(uid, user_db, display_name, email, photo_url):
             if photo_url and not user_db["photo_url"]:
                 photo_url_uploaded = upload_logo(photo_url)
                 updates["photo_url"] = photo_url_uploaded
-
+            if email_enabled is not None and email_enabled != user_db["email_enabled"]:
+                updates["email_enabled"] = email_enabled
+            if push_enabled is not None and push_enabled != user_db["push_enabled"]:
+                updates["push_enabled"] = push_enabled
             if updates:
                 set_clause = ", ".join(f"{k} = %s" for k in updates)
                 values = list(updates.values()) + [uid]
@@ -28,7 +31,7 @@ def update_existing_user(uid, user_db, display_name, email, photo_url):
 
             return fetch_user(uid)
 
-def insert_new_user(uid, display_name, email, photo_url):
+def insert_new_user(uid, display_name, email, photo_url, email_enabled, push_enabled):
     if photo_url:
         photo_url = upload_logo(photo_url)
 
@@ -36,10 +39,10 @@ def insert_new_user(uid, display_name, email, photo_url):
         with conn.cursor() as cursor:
             cursor.execute(
                 """
-                INSERT INTO users (id, display_name, email, photo_url)
-                VALUES (%s, %s, %s, %s)
+                INSERT INTO users (id, display_name, email, photo_url, email_enabled, push_enabled)
+                VALUES (%s, %s, %s, %s, %s, %s)
                 """,
-                (uid, display_name, email, photo_url)
+                (uid, display_name, email, photo_url, email_enabled, push_enabled)
             )
             conn.commit()
 

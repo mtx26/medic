@@ -38,14 +38,16 @@ def handle_user_sync():
         display_name = user_data.get("display_name")
         email = user_data.get("email")
         photo_url = user_data.get("photo_url") or None
+        email_enabled = user_data.get("email_enabled")
+        push_enabled = user_data.get("push_enabled")
 
         user_db = fetch_user(uid)
         t_1 = time.time()
         
         if user_db:
-            updated_user = update_existing_user(uid, user_db, display_name, email, photo_url)
+            updated_user = update_existing_user(uid, user_db, display_name, email, photo_url, email_enabled, push_enabled)
         else:
-            updated_user = insert_new_user(uid, display_name, email, photo_url)
+            updated_user = insert_new_user(uid, display_name, email, photo_url, email_enabled, push_enabled)
         
         t_2 = time.time()
 

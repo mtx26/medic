@@ -13,7 +13,7 @@ export const UserProvider = ({ children }) => {
     JSON.parse(localStorage.getItem("userInfo")) || null
   );
 
-  const reloadUser = useCallback(async (name, photoURL) => {
+  const reloadUser = useCallback(async (name, photoURL, emailEnabled, pushEnabled) => {
     const user = auth.currentUser;
     if (!user) return;
 
@@ -24,6 +24,8 @@ export const UserProvider = ({ children }) => {
         display_name: name || user.displayName || null,
         email: user.email,
         photo_url: photoURL || user.photoURL || null,
+        email_enabled: emailEnabled ?? true,
+        push_enabled: pushEnabled ?? true,        
       };
 
       const res = await fetch(`${API_URL}/api/user/sync`, {
@@ -46,6 +48,8 @@ export const UserProvider = ({ children }) => {
         emailVerified: user.emailVerified,
         email: user.email,
         providerData: user.providerData,
+        emailEnabled: data.email_enabled,
+        pushEnabled: data.push_enabled,
       };
 
       setUserInfo(info);

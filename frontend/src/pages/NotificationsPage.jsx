@@ -1,5 +1,5 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import NotificationLine from "../components/NotificationLine";
 
 function NotificationsPage({ notifications, sharedUserCalendars }) {
@@ -19,9 +19,12 @@ function NotificationsPage({ notifications, sharedUserCalendars }) {
   return (
     <div className="container py-4">
       <div className="d-flex justify-content-between align-items-center mb-3">
-        <h4 className="fw-bold text-primary">
+        <h4 className="fw-bold">
           <i className="bi bi-bell-fill me-2"></i> Notifications
         </h4>
+        <Link to="/notifications/settings" className="btn btn-primary">
+          <i className="bi bi-gear-fill me-2"></i> Paramètres
+        </Link>
       </div>
 
       {notifications.notificationsData.length === 0 ? (

@@ -1,11 +1,11 @@
 import React, { useState, useContext } from 'react';
 import { EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
-import { updateUserPassword } from '../services/authService';
-import { UserContext } from '../contexts/UserContext';
-import AlertSystem from '../components/AlertSystem';
-import { auth } from '../services/firebase';
+import { updateUserPassword } from '../../services/authService';
+import { UserContext } from '../../contexts/UserContext';
+import AlertSystem from '../../components/AlertSystem';
+import { auth } from '../../services/firebase';
 
-const AccountPage = () => {
+const Account = ({ sharedProps }) => {
   // 👤 Contexte utilisateur
   const { userInfo } = useContext(UserContext); // Contexte de l'utilisateur connecté
 
@@ -55,7 +55,7 @@ const AccountPage = () => {
   }
 
   return (
-    <div className="container mt-5 card card-body shadow-sm" style={{ maxWidth: '600px' }}>
+    <div>
       <h2 className="mb-4">Gestion de compte</h2>
 
       <AlertSystem
@@ -167,4 +167,4 @@ const AccountPage = () => {
   );
 };
 
-export default AccountPage;
+export default Account;
