@@ -1,15 +1,16 @@
 import { useEffect, useRef, useContext } from "react";
-import { auth, analyticsPromise } from "../services/firebase";
 import { supabase } from "../services/supabaseClient";
 import { UserContext } from "../contexts/UserContext";
-import { logEvent } from "firebase/analytics";
 import { log } from "../utils/logger";
+import { analyticsPromise } from "../services/firebase";
+import { logEvent } from "firebase/analytics";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-const fetchBoxes = async ({ user, calendarId, setBoxes, setLoadingBoxes, sourceType }) => {
+const fetchBoxes = async ({ uid, calendarId, setBoxes, setLoadingBoxes, sourceType }) => {
   try {
-    const token = await user.getIdToken();
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) throw new Error("Session Supabase non trouvée");
 
     const endpoint =
       sourceType === "personal"
@@ -17,9 +18,8 @@ const fetchBoxes = async ({ user, calendarId, setBoxes, setLoadingBoxes, sourceT
         : `${API_URL}/api/shared/users/calendars/${calendarId}/boxes`;
 
     const res = await fetch(endpoint, {
-      method: "GET",
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${session.access_token}`,
       },
     });
 
@@ -43,7 +43,7 @@ const fetchBoxes = async ({ user, calendarId, setBoxes, setLoadingBoxes, sourceT
     analyticsPromise.then((analytics) => {
       if (analytics) {
         logEvent(analytics, eventName, {
-          uid: user.uid,
+          uid,
           count: data.boxes.length,
           calendarId,
         });
@@ -52,7 +52,7 @@ const fetchBoxes = async ({ user, calendarId, setBoxes, setLoadingBoxes, sourceT
 
     log.info(data.message, {
       origin: logOrigin,
-      uid: user.uid,
+      uid,
       count: data.boxes.length,
       calendarId,
     });
@@ -83,13 +83,8 @@ const useRealtimeBoxes = (sourceType, calendarId, setBoxes, setLoadingBoxes) => 
       return;
     }
 
-    const user = auth.currentUser;
-    if (!user) {
-      setLoadingBoxes(undefined);
-      return;
-    }
-
-    fetchBoxes({ user, calendarId, setBoxes, setLoadingBoxes, sourceType });
+    const uid = userInfo.uid;
+    fetchBoxes({ uid, calendarId, setBoxes, setLoadingBoxes, sourceType });
 
     const baseChannel = sourceType === "personal" ? "personal-meds" : "shared-meds";
     const deleteChannel = sourceType === "personal" ? "delete-personal-meds" : "delete-shared-meds";
@@ -104,7 +99,7 @@ const useRealtimeBoxes = (sourceType, calendarId, setBoxes, setLoadingBoxes) => 
           table: "medicine_boxes",
           filter: `calendar_id=eq.${calendarId}`,
         },
-        () => fetchBoxes({ user, calendarId, setBoxes, setLoadingBoxes, sourceType })
+        () => fetchBoxes({ uid, calendarId, setBoxes, setLoadingBoxes, sourceType })
       )
       .subscribe();
 
@@ -117,17 +112,22 @@ const useRealtimeBoxes = (sourceType, calendarId, setBoxes, setLoadingBoxes) => 
           schema: "public",
           table: "medicine_boxes",
         },
-        () => fetchBoxes({ user, calendarId, setBoxes, setLoadingBoxes, sourceType })
+        () => fetchBoxes({ uid, calendarId, setBoxes, setLoadingBoxes, sourceType })
       )
       .subscribe();
 
     channelRef.current = { channel, deletion };
 
     return () => {
-      if (channelRef.current) {
-        channelRef.current.channel.unsubscribe();
-        channelRef.current.deletion.unsubscribe();
+      try {
+        channel.unsubscribe();
+        deletion.unsubscribe();
         channelRef.current = null;
+      } catch (err) {
+        log.error("Erreur lors de la désinscription des canaux Supabase", {
+          error: err,
+          origin: "REALTIME_MEDICINE_BOXES_CLEANUP_ERROR",
+        });
       }
     };
   }, [userInfo, calendarId, sourceType]);

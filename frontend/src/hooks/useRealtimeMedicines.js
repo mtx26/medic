@@ -23,6 +23,7 @@ const fetchTokenMedicines = async (token, setMedicinesData, setLoadingMedicines)
         });
       }
     });
+
     log.info(data.message, {
       origin: "REALTIME_TOKEN_MEDICINES_SUCCESS",
       token,
@@ -54,12 +55,13 @@ export const useRealtimeTokenMedicines = (
         if (!res.ok) throw new Error(data.error);
 
         const { calendar_id } = data;
+        if (!calendar_id) {
+          throw new Error("calendar_id manquant dans le token");
+        }
 
-        // Fetch initial
         await fetchTokenMedicines(token, setMedicinesData, setLoadingMedicines);
 
-        // Supabase realtime
-        const channel = supabase
+        const realtimeChannel = supabase
           .channel(`token-meds-${calendar_id}`)
           .on(
             'postgres_changes',
@@ -69,13 +71,11 @@ export const useRealtimeTokenMedicines = (
               table: 'medicines',
               filter: `calendar_id=eq.${calendar_id}`,
             },
-            () => {
-              fetchTokenMedicines(token, setMedicinesData, setLoadingMedicines);
-            }
+            () => fetchTokenMedicines(token, setMedicinesData, setLoadingMedicines)
           )
           .subscribe();
 
-        channelRef.current = channel;
+        channelRef.current = realtimeChannel;
       } catch (err) {
         setLoadingMedicines(false);
         log.error(err.message, err, {
@@ -89,13 +89,11 @@ export const useRealtimeTokenMedicines = (
 
     return () => {
       try {
-        if (channelRef.current && typeof channelRef.current.unsubscribe === "function") {
-          channelRef.current.unsubscribe();
-          channelRef.current = null;
-        }
+        channelRef.current?.unsubscribe();
+        channelRef.current = null;
       } catch (err) {
-        log.error(err.message, err, {
-          origin: "REALTIME_TOKEN_INIT_ERROR",
+        log.error("Erreur lors du nettoyage du canal Supabase token", err, {
+          origin: "REALTIME_TOKEN_CLEANUP_ERROR",
           token,
         });
       }

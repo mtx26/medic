@@ -5,7 +5,7 @@ from app.db.connection import get_connection
 from app.services.verifications import verify_calendar
 from app.services.user import fetch_user
 from app.services.notifications import notify_and_record
-from firebase_admin import auth
+from app.services.user import fetch_user
 import time
 from . import api
 from urllib.parse import urljoin
@@ -23,8 +23,8 @@ def handle_send_invitation(calendar_id):
         owner_uid = g.uid
 
         receiver_email = request.get_json(force=True).get("email")
-        receiver_user = auth.get_user_by_email(receiver_email)
-        receiver_uid = receiver_user.uid
+        receiver_user = fetch_user(receiver_email)
+        receiver_uid = receiver_user.get("id")
 
         if not verify_calendar(calendar_id, owner_uid):
             return warning_response(

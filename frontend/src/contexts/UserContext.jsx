@@ -13,19 +13,34 @@ export const UserProvider = ({ children }) => {
   );
 
   const reloadUser = useCallback(async (displayName, photoURL, emailEnabled, pushEnabled) => {
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    console.log("[UserContext] reloadUser appelé");
+    console.trace();
+
+    const { data: { user } } = await supabase.auth.getUser();
     const { data: { session } } = await supabase.auth.getSession();
     if (!user || !session) return;
 
+    const body = {
+      uid: user.id,
+      display_name: displayName || user.user_metadata?.name || userInfo?.displayName || null,
+      email: user.email || userInfo?.email || null,
+      photo_url: photoURL || user.user_metadata?.avatar_url || userInfo?.photoURL || null,
+      email_enabled: emailEnabled ?? userInfo?.emailEnabled ?? true,
+      push_enabled: pushEnabled ?? userInfo?.pushEnabled ?? true,
+    };
+
+    const sameAsBefore =
+      body.display_name === userInfo?.displayName &&
+      body.photo_url === userInfo?.photoURL &&
+      body.email_enabled === userInfo?.emailEnabled &&
+      body.push_enabled === userInfo?.pushEnabled;
+
+    if (sameAsBefore) {
+      log.info("[UserContext] Données utilisateur inchangées, skip API");
+      return;
+    }
+
     try {
-      const body = {
-        uid: user.id,
-        display_name: displayName || user.user_metadata?.name || userInfo?.displayName || null,
-        email: user.email || userInfo?.email || null,
-        photo_url: photoURL || user.user_metadata?.avatar_url || userInfo?.photoURL || null,
-        email_enabled: emailEnabled ?? userInfo?.emailEnabled ?? true,
-        push_enabled: pushEnabled ?? userInfo?.pushEnabled ?? true,
-      };
       const res = await fetch(`${API_URL}/api/user/sync`, {
         method: "POST",
         headers: {
@@ -66,9 +81,11 @@ export const UserProvider = ({ children }) => {
 
   useEffect(() => {
     const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session) {
+      log.info("[UserContext] AuthStateChange", { event });
+
+      if (["SIGNED_IN", "TOKEN_REFRESHED"].includes(event) && session) {
         reloadUser();
-      } else {
+      } else if (event === "SIGNED_OUT") {
         setUserInfo(null);
         localStorage.removeItem("userInfo");
       }
