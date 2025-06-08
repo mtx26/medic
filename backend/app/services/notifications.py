@@ -11,7 +11,6 @@ import traceback
 def send_push_notification(uid, title, body, link, notif_type, sender_uid, calendar_id=None):
     with get_connection() as conn:
         with conn.cursor() as cursor:
-            print("here 0")
             # 1. Chercher le token FCM
             cursor.execute("SELECT token FROM fcm_tokens WHERE uid = %s", (uid,))
             results = cursor.fetchall()
@@ -41,7 +40,6 @@ def send_push_notification(uid, title, body, link, notif_type, sender_uid, calen
 def send_email_notification(uid, notif_type, sender_uid, calendar_id=None):
     with get_connection() as conn:
         with conn.cursor() as cursor:
-            print("here 2")
             user_settings = fetch_user(uid)
             email = user_settings.get("email")
 
@@ -69,7 +67,6 @@ def send_email_notification(uid, notif_type, sender_uid, calendar_id=None):
 def generate_email_content(notif_type, sender_name, calendar_name=None):
     base_link = f"{Config.FRONTEND_URL}/notifications"
     logo_url = f"{Config.FRONTEND_URL}/icons/logo.png"
-    print(f"logo_url: {logo_url}")
 
     match notif_type:
         case "calendar_invitation":
@@ -120,11 +117,9 @@ def generate_email_content(notif_type, sender_name, calendar_name=None):
 
 def notify_and_record(uid, title, link, body, notif_type, sender_uid, calendar_id=None):
     try:
-        print("here 1")
         user_settings = fetch_user(uid)
         email_enabled = user_settings.get("email_enabled")
         push_enabled = user_settings.get("push_enabled")
-        print(f"email_enabled: {email_enabled}, push_enabled: {push_enabled}")
 
         if push_enabled:
             send_push_notification(uid, title, body, link, notif_type, sender_uid, calendar_id)

@@ -5,7 +5,6 @@ from app.config import Config
 
 def send_email(to, subject, html, plain=None):
     try:
-        print("here 3")
         msg = EmailMessage()
         msg["Subject"] = subject
         msg["From"] = Config.NOTIFICATION_EMAIL_ADDRESS
