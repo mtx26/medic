@@ -16,7 +16,6 @@ import 'bootstrap/dist/css/bootstrap.css';
 import DateModal from '../components/DateModal';
 import WeekCalendarSelector from '../components/WeekCalendarSelector';
 import WeeklyEventContent from '../components/WeeklyEventContent';
-import { auth } from '../services/firebase';
 
 
 function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
@@ -140,7 +139,7 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
         setLoading(undefined);
         return;
       }
-      if (!auth?.currentUser) {
+      if (!userInfo) {
         setLoading(undefined);
         return;
       }
@@ -162,7 +161,7 @@ function CalendarPage({ personalCalendars, sharedUserCalendars, tokenCalendars }
     };
 
     load();
-  }, [calendarId, calendarSource.fetchSchedule, userInfo, auth?.currentUser]);
+  }, [calendarId, calendarSource.fetchSchedule, userInfo]);
 
 
   // 📍 Filtrage des événements pour un jour spécifique et tri par ordre alphabétique

@@ -95,7 +95,7 @@ export const useRealtimeCalendars = (setCalendarsData, setLoadingStates) => {
   const channelRef = useRef(null);
 
   useEffect(() => {
-    if (!userInfo) return;
+    if (!userInfo || !setCalendarsData) return;
 
     setLoadingStates(prev => ({ ...prev, calendars: true }));
     fetchCalendars(userInfo.uid, setCalendarsData, setLoadingStates);
@@ -149,7 +149,7 @@ export const useRealtimeSharedCalendars = (setSharedCalendarsData, setLoadingSta
   const channelRef = useRef(null);
 
   useEffect(() => {
-    if (!userInfo) return;
+    if (!userInfo || !setSharedCalendarsData) return;
 
     setLoadingStates(prev => ({ ...prev, sharedCalendars: true }));
     fetchSharedCalendars(userInfo.uid, setSharedCalendarsData, setLoadingStates);

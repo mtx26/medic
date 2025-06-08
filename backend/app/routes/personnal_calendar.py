@@ -63,6 +63,7 @@ def handle_create_calendar():
     try:
         t_0 = time.time()
         uid = g.uid
+        print(uid)
         calendar_name = request.json.get("calendarName")
 
         if not calendar_name:

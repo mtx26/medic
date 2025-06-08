@@ -56,7 +56,7 @@ export const useRealtimeNotifications = (setNotificationsData, setLoadingStates)
   const channelRef = useRef(null);
 
   useEffect(() => {
-    if (!userInfo) return;
+    if (!userInfo || !setNotificationsData) return;
 
     const uid = userInfo.uid;
     setLoadingStates(prev => ({ ...prev, notifications: true }));

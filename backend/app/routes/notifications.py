@@ -22,10 +22,8 @@ def safely_get_calendar_name(calendar_id):
     return None
 
 def get_user_info(uid):
-    with get_connection() as conn:
-        with conn.cursor() as cursor:
-            user = fetch_user(uid)
-            return user.get("display_name"), user.get("email"), user.get("photo_url")
+    user = fetch_user(uid)
+    return user.get("display_name"), user.get("email"), user.get("photo_url")
 
 # Route pour récupérer toutes les notifications
 @api.route("/notifications", methods=["GET"])

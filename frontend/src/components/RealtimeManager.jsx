@@ -16,6 +16,7 @@ export default function RealtimeManager({ setCalendarsData, setSharedCalendarsDa
     "/shared-token-calendar/",
     "/notifications",
     "/account",
+    "/settings",
     "/shared-calendars"
   ];
 

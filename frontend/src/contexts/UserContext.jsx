@@ -13,8 +13,6 @@ export const UserProvider = ({ children }) => {
   );
 
   const reloadUser = useCallback(async (displayName, photoURL, emailEnabled, pushEnabled) => {
-    console.log("[UserContext] reloadUser appelé");
-    console.trace();
 
     const { data: { user } } = await supabase.auth.getUser();
     const { data: { session } } = await supabase.auth.getSession();

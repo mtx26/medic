@@ -228,7 +228,7 @@ function SharedList({ tokenCalendars, personalCalendars, sharedUserCalendars }) 
     );
   }
   
-  if (personalCalendars.calendarsData.length === 0) {
+  if (personalCalendars.calendarsData && personalCalendars.calendarsData.length === 0) {
     return (
       <div className="container mt-4 text-center">
         <h3 className="text-muted">Aucun calendrier trouvé</h3>
