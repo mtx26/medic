@@ -11,7 +11,7 @@
     "@mui/material": "^7.1.1",
     "@popperjs/core": "^2.11.8",
     "@radix-ui/react-popover": "^1.1.12",
-    "@supabase/supabase-js": "^2.49.5",
+    "@supabase/supabase-js": "^2.50.0",
     "bootstrap": "^5.3.3",
     "date-fns": "^4.1.0",
     "firebase": "^11.7.1",
