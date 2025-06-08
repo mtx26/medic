@@ -68,6 +68,8 @@ def send_email_notification(uid, notif_type, sender_uid, calendar_id=None):
 
 def generate_email_content(notif_type, sender_name, calendar_name=None):
     base_link = f"{Config.FRONTEND_URL}/notifications"
+    logo_url = f"{Config.FRONTEND_URL}/icons/logo.png"
+    print(f"logo_url: {logo_url}")
 
     match notif_type:
         case "calendar_invitation":
@@ -90,11 +92,29 @@ def generate_email_content(notif_type, sender_name, calendar_name=None):
             body = "Vous avez reçu une nouvelle notification dans MediTime."
 
     html = f"""
-        <p>{body}</p>
-        <p>Consultez vos notifications ici : <a href="{base_link}">Ouvrir MediTime</a></p>
+    <div style="font-family: Arial, sans-serif; background-color: #f9f9f9; padding: 24px;">
+      <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+        <div style="background-color: #007bff; padding: 16px;">
+          <img src="{logo_url}" alt="MediTime Logo" style="height: 40px;" />
+        </div>
+        <div style="padding: 24px;">
+          <h2 style="color: #333;">{subject}</h2>
+          <p style="font-size: 16px; color: #555;">{body}</p>
+          <div style="margin: 32px 0;">
+            <a href="{base_link}" style="background-color: #007bff; color: white; text-decoration: none; padding: 12px 20px; border-radius: 4px; display: inline-block;">
+              Voir mes notifications
+            </a>
+          </div>
+          <p style="font-size: 13px; color: #999;">Si le bouton ne fonctionne pas, copiez-collez ce lien dans votre navigateur :<br/>
+            <a href="{base_link}" style="color: #007bff;">{base_link}</a>
+          </p>
+        </div>
+      </div>
+    </div>
     """
 
     return f"MediTime - {subject}", body, html
+
 
 
 
