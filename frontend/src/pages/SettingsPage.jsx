@@ -1,20 +1,21 @@
 import React, { useState } from 'react';
-import Account from './settings/Account';
+import Security from './settings/Security';
 import Notification from './settings/Notification';
+import Account from './settings/Account';
 // import NotificationPage from './NotificationPage';
 // import PreferencesPage from './PreferencesPage';
 
 const SettingsPage = ({ sharedProps }) => {
-  const [activeTab, setActiveTab] = useState('compte');
+  const [activeTab, setActiveTab] = useState('account');
 
   const renderTab = () => {
     switch (activeTab) {
-      case 'compte':
+      case 'account':
         return <Account {...sharedProps} />;
+      case 'security':
+        return <Security {...sharedProps} />;
       case 'notifications':
         return <Notification {...sharedProps} />;
-      // case 'preferences':
-      //   return <PreferencesPage />;
       default:
         return <Account {...sharedProps} />;
     }
@@ -30,10 +31,16 @@ const SettingsPage = ({ sharedProps }) => {
               <h5 className="mb-3">Paramètres</h5>
               <div className="nav flex-column nav-pills">
                 <button
-                  className={`nav-link text-start ${activeTab === 'compte' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('compte')}
+                  className={`nav-link text-start ${activeTab === 'account' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('account')}
                 >
                   <i className="bi bi-person me-2"></i> Mon compte
+                </button>
+                <button
+                  className={`nav-link text-start ${activeTab === 'security' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('security')}
+                >
+                  <i className="bi bi-shield-lock me-2"></i> Sécurité
                 </button>
                 <button
                   className={`nav-link text-start ${activeTab === 'notifications' ? 'active' : ''}`}

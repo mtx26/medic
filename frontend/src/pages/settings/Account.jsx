@@ -1,169 +1,194 @@
-import React, { useState, useContext } from 'react';
-import { EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
-import { updateUserPassword } from '../../services/authService';
-import { UserContext } from '../../contexts/UserContext';
-import AlertSystem from '../../components/AlertSystem';
+import React, { useContext, useState, useEffect } from 'react';
+import { UserContext, getGlobalReloadUser } from '../../contexts/UserContext';
 import { auth } from '../../services/firebase';
+import { log } from '../../utils/logger';
+import Cropper from 'react-easy-crop';
+import getCroppedImg from '../../utils/cropImage';
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 const Account = ({ sharedProps }) => {
-  // 👤 Contexte utilisateur
-  const { userInfo } = useContext(UserContext); // Contexte de l'utilisateur connecté
+  const { userInfo } = useContext(UserContext);
+  const reloadUser = getGlobalReloadUser();
 
-  // 🔒 Changement de mot de passe
-  const [oldPassword, setOldPassword] = useState(''); // État pour l'ancien mot de passe
-  const [newPassword, setNewPassword] = useState(''); // État pour le nouveau mot de passe
-  const [oldPasswordVisible, setOldPasswordVisible] = useState(false); // État pour l'affichage de l'ancien mot de passe
-  const [newPasswordVisible, setNewPasswordVisible] = useState(false); // État pour l'affichage du nouveau mot de passe
+  const [displayName, setDisplayName] = useState(userInfo?.displayName || '');
+  const [showOverlay, setShowOverlay] = useState(false);
+  const [previewURL, setPreviewURL] = useState(userInfo?.photoURL || "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/icons/person-circle.svg");
+  const [photoFile, setPhotoFile] = useState(null);
+  const [isModified, setIsModified] = useState(false);
+  const [showCropModal, setShowCropModal] = useState(false);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+  const [rawImage, setRawImage] = useState(null);
 
-  // ⚠️ Alertes
-  const [alertMessage, setAlertMessage] = useState(null); // État pour le message d'alerte
-  const [alertType, setAlertType] = useState("info"); // État pour le type d'alerte (par défaut : info)
-
-
-  const isGoogleUser = Array.isArray(userInfo?.providerData) && userInfo.providerData.some(
-    (provider) => provider.providerId === "google.com"
-  );
-
-  const reauthenticate = async () => {
-    if (!userInfo || !oldPassword) throw new Error('Ancien mot de passe requis.');
-    const credential = EmailAuthProvider.credential(userInfo.email, oldPassword);
-    const user = auth.currentUser;
-    await reauthenticateWithCredential(user, credential);
-  };
-
-  const handleUpdatePassword = async (e) => {
-    e.preventDefault();
-    try {
-      await reauthenticate();
-      await updateUserPassword(newPassword);
-
-      setAlertType('success');
-      setAlertMessage('✅ Mot de passe mis à jour avec succès.');
-
-      // Réinitialiser les champs
-      setNewPassword('');
-      setOldPassword('');
-
-    } catch (error) {
-      setAlertType('danger');
-      setAlertMessage(error.message);
+  useEffect(() => {
+    if (displayName !== userInfo?.displayName) {
+      setIsModified(true);
     }
+  }, [displayName, userInfo?.displayName]);
+
+  const uploadPhoto = async (file) => {
+    const token = await auth.currentUser.getIdToken();
+    const formData = new FormData();
+    formData.append('photo', file);
+    const response = await fetch(`${API_URL}/api/user/photo`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: formData,
+    });
+    const data = await response.json();
+    log.info(data.message, {
+      origin: "PHOTO_UPLOAD_SUCCESS",
+      "uid": userInfo.uid,
+    });
   };
 
-  if (!userInfo) {
-    return <div>Loading...</div>;
-  }
+  const handleCropConfirm = async () => {
+    const croppedImage = await getCroppedImg(rawImage, croppedAreaPixels);
+    setPreviewURL(croppedImage);
+    setPhotoFile(await fetch(croppedImage).then(r => r.blob()));
+    setShowCropModal(false);
+    setIsModified(true);
+  };
+  
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (photoFile) {
+      await uploadPhoto(photoFile);
+    }
+    reloadUser(displayName);
+    setIsModified(false);
+    setPhotoFile(null);
+  };
+
+  const openFilePicker = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const imageURL = URL.createObjectURL(file);
+        setRawImage(imageURL);
+        setShowCropModal(true); // ouvre l’éditeur
+      }
+    };
+    input.click();
+  };
+
+  
+  useEffect(() => {
+    return () => {
+      if (previewURL?.startsWith("blob:")) {
+        URL.revokeObjectURL(previewURL);
+      }
+    };
+  }, [previewURL]);
+  
   return (
+  <>
     <div>
-      <h2 className="mb-4">Gestion de compte</h2>
+      <h2 className="mb-3">Mon compte</h2>
+      <p className="text-muted mb-4">Vous pouvez modifier vos informations personnelles ici.</p>
 
-      <AlertSystem
-        type={alertType}
-        message={alertMessage}
-        onClose={() => setAlertMessage(null)}
-      />
+      <form className="row gap-3 align-items-center" onSubmit={handleSubmit}>
+        <button
+          className="position-relative d-inline-block rounded-circle overflow-hidden m-0 p-0 border-0"
+          style={{ width: "100px", height: "100px", cursor: "pointer" }}
+          type="button"
+          onClick={() => {
+            setShowOverlay(!showOverlay);
+            if (showOverlay) {
+              openFilePicker();
+            }
+          }}
+          onMouseEnter={() => setShowOverlay(true)}
+          onMouseLeave={() => setShowOverlay(false)}
+          onBlur={() => setShowOverlay(false)}
+        >
+          <img
+            src={previewURL}
+            alt="Profil"
+            className="w-100 h-100 rounded-circle"
+            style={{ objectFit: "cover" }}
+          />
 
-      <div className="mb-4">
-        <h5>Email actuel:</h5>
-        <p>{userInfo.email}</p>
-      </div>
+          {showOverlay && (
+            <div className="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-dark bg-opacity-75">
+              <i className="bi bi-pencil text-white fs-3"></i>
+            </div>
+          )}
+        </button>
 
-      {isGoogleUser ? (
-        <div className="alert alert-info">
-          Connecté avec Google. Vous ne pouvez pas modifier votre email ou mot de passe.
+        <div className="col">
+          <label htmlFor="displayName" className="form-label">Pseudo</label>
+          <input
+            type="text"
+            id="displayName"
+            className="form-control"
+            placeholder="Entrez votre pseudo"
+            value={displayName}
+            onChange={(e) => setDisplayName(e.target.value)}
+          />
         </div>
-      ) : (
-        <form onSubmit={handleUpdatePassword}>
-          {/* Champ Username visible */}
-          <div className="mb-3">
-            <label htmlFor="email" className="form-label">Email</label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              aria-label="Email"
-              autoComplete="email"
-              className="form-control"
-              value={userInfo?.email || ''}
-              readOnly
-            />
+        {isModified && (
+          <div className="d-flex gap-2 justify-content-end">
+            <button type="submit" className="btn btn-outline-primary">
+              <i className="bi bi-check-lg"></i> Enregistrer les modifications
+            </button>
+            <button type="button" className="btn btn-outline-danger" onClick={() => {
+              setDisplayName(userInfo?.displayName);
+              setPreviewURL(userInfo?.photoURL);
+              setIsModified(false);
+            }}>
+              <i className="bi bi-x-lg"></i> Annuler
+            </button>
           </div>
-
-          {/* Ancien mot de passe */}
-          <div className="mb-3 position-relative">
-            <label htmlFor="oldPassword" className="form-label">Mot de passe actuel</label>
-            <input
-              type={oldPasswordVisible ? "text" : "password"}
-              className="form-control"
-              id="oldPassword"
-              name="current-password"
-              aria-label="Mot de passe actuel"
-              autoComplete="current-password"
-              required
-              value={oldPassword}
-              onChange={(e) => setOldPassword(e.target.value)}
-              placeholder="Entrez le mot de passe actuel"
-            />
-            <i
-              className={`bi bi-${oldPasswordVisible ? "eye-slash" : "eye"} position-absolute`}
-              role="button"
-              tabIndex="0"
-              aria-label={oldPasswordVisible ? "Masquer le mot de passe" : "Afficher le mot de passe"}
-              style={{ top: "38px", right: "15px", cursor: "pointer", color: "#6c757d" }}
-              onClick={() => setOldPasswordVisible(!oldPasswordVisible)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  setOldPasswordVisible(!oldPasswordVisible);
-                }
-              }}
-            ></i>
-
-          </div>
-
-          {/* Nouveau mot de passe */}
-          <div className="mb-3 position-relative">
-            <label htmlFor="newPassword" className="form-label">Nouveau mot de passe</label>
-            <input
-              type={newPasswordVisible ? "text" : "password"}
-              className="form-control"
-              id="newPassword"
-              name="new-password"
-              aria-label="Nouveau mot de passe"
-              autoComplete="new-password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="Entrez le nouveau mot de passe"
-              required
-            />
-            <i
-              className={`bi bi-${newPasswordVisible ? "eye-slash" : "eye"} position-absolute`}
-              role="button"
-              tabIndex="0"
-              aria-label={newPasswordVisible ? "Masquer le mot de passe" : "Afficher le mot de passe"}
-              style={{ top: "38px", right: "15px", cursor: "pointer", color: "#6c757d" }}
-              onClick={() => setNewPasswordVisible(!newPasswordVisible)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  setNewPasswordVisible(!newPasswordVisible);
-                }
-              }}
-            ></i>
-          </div>
-
-          <button
-            type="submit"
-            className="btn btn-outline-primary mt-2"
-            aria-label="Mettre à jour le mot de passe"
-            title="Mettre à jour le mot de passe"
-          >
-            Mettre à jour le mot de passe
-          </button>
-        </form>
-      )}
+        )}
+      </form>
     </div>
+    {showCropModal && (
+      <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+        <div className="modal-dialog modal-dialog-centered modal-lg">
+          <div className="modal-content bg-white">
+            <div className="modal-header">
+              <h5 className="modal-title">Recadrer la photo</h5>
+              <button type="button" className="btn-close" onClick={() => setShowCropModal(false)}></button>
+            </div>
+            <div className="modal-body" style={{ height: '400px', position: 'relative' }}>
+              <Cropper
+                image={rawImage}
+                crop={crop}
+                zoom={zoom}
+                aspect={1}
+                cropShape="round"
+                showGrid={false}
+                onCropChange={setCrop}
+                onZoomChange={setZoom}
+                onCropComplete={(_, croppedPixels) => setCroppedAreaPixels(croppedPixels)}
+              />
+            </div>
+            <div className="modal-footer">
+              <input
+                type="range"
+                min="1"
+                max="3"
+                step="0.1"
+                value={zoom}
+                onChange={(e) => setZoom(e.target.value)}
+                className="form-range w-50"
+              />
+              <button className="btn btn-primary" onClick={handleCropConfirm}>Utiliser cette image</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
+  </> 
   );
 };
 

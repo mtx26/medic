@@ -4,6 +4,8 @@ from app.utils.validators import verify_firebase_token
 from app.utils.response import success_response, error_response
 from app.services.user import fetch_user, update_existing_user, insert_new_user
 import time
+from app.utils.logo_upload import upload_logo
+from app.db.connection import get_connection
 
 @api.route("/user/sync", methods=["POST"])
 def handle_user_sync():
@@ -66,5 +68,49 @@ def handle_user_sync():
             status_code=500,
             uid=uid,
             origin="USER_SYNC",
+            error=str(e),
+        )
+
+@api.route("/user/photo", methods=["POST"])
+def handle_user_photo():
+    uid = None
+    try:
+        t_0 = time.time()
+        user = verify_firebase_token()
+        uid = user["uid"]
+
+        photo = request.files.get("photo")
+        if not photo:
+            return error_response(
+                message="erreur lors de la récupération de la photo de l'utilisateur",
+                code="USER_PHOTO_ERROR",
+                status_code=400,
+                uid=uid,
+                origin="USER_PHOTO"
+            )
+
+        photo_url = upload_logo(photo)
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    "UPDATE users SET photo_url = %s WHERE id = %s",
+                    (photo_url, uid)
+                )
+                conn.commit()
+
+        return success_response(
+            message="photo de l'utilisateur mise à jour",
+            code="USER_PHOTO_SUCCESS",
+            uid=uid,
+            origin="USER_PHOTO",
+            data={"uid": uid, "photo_url": photo_url, "time": time.time() - t_0}
+        )
+    except Exception as e:
+        return error_response(
+            message="erreur lors de la mise à jour de la photo de l'utilisateur",
+            code="USER_PHOTO_ERROR",
+            status_code=500,
+            uid=uid,
+            origin="USER_PHOTO",
             error=str(e),
         )

@@ -13,7 +13,7 @@ export const UserProvider = ({ children }) => {
     JSON.parse(localStorage.getItem("userInfo")) || null
   );
 
-  const reloadUser = useCallback(async (name, photoURL, emailEnabled, pushEnabled) => {
+  const reloadUser = useCallback(async (displayName, photoURL, emailEnabled, pushEnabled) => {
     const user = auth.currentUser;
     if (!user) return;
 
@@ -21,11 +21,11 @@ export const UserProvider = ({ children }) => {
       const token = await user.getIdToken();
       const body = {
         uid: user.uid,
-        display_name: name || user.displayName || null,
-        email: user.email,
-        photo_url: photoURL || user.photoURL || null,
-        email_enabled: emailEnabled ?? true,
-        push_enabled: pushEnabled ?? true,        
+        display_name: displayName || user.displayName || userInfo?.displayName || null,
+        email: user.email || userInfo?.email || null,
+        photo_url: photoURL || user.photoURL || userInfo?.photoURL || null,
+        email_enabled: emailEnabled || userInfo?.emailEnabled || true,
+        push_enabled: pushEnabled || userInfo?.pushEnabled || true,
       };
 
       const res = await fetch(`${API_URL}/api/user/sync`, {
