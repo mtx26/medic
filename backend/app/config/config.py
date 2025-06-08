@@ -16,7 +16,9 @@ class Config:
     SUPABASE_DB_USER = os.getenv("PG_USER")
     SUPABASE_DB_PASSWORD = os.getenv("PG_PASSWORD")
     SUPABASE_DB_PORT = os.getenv("PG_PORT", 5432)
-
+    SUPABASE_PROJECT_URL = os.getenv("SUPABASE_PROJECT_URL")
+    SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY")
+    SUPABASE_JWT_SECRET = os.getenv("SUPABASE_JWT_SECRET")
     # Firebase
     FIREBASE_CREDENTIALS = os.getenv("FIREBASE_CREDENTIALS")
 

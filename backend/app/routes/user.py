@@ -1,6 +1,6 @@
 from . import api
-from flask import request
-from app.utils.validators import verify_firebase_token
+from flask import request, g
+from app.utils.validators import require_auth
 from app.utils.response import success_response, error_response
 from app.services.user import fetch_user, update_existing_user, insert_new_user
 import time
@@ -8,13 +8,12 @@ from app.utils.logo_upload import upload_logo
 from app.db.connection import get_connection
 
 @api.route("/user/sync", methods=["POST"])
+@require_auth
 def handle_user_sync():
     uid = None
     try:
         t_0 = time.time()
-        user = verify_firebase_token()
-        uid = user["uid"]
-
+        uid = g.uid
 
         try:
             user_data = request.get_json()
@@ -72,12 +71,12 @@ def handle_user_sync():
         )
 
 @api.route("/user/photo", methods=["POST"])
+@require_auth
 def handle_user_photo():
     uid = None
     try:
         t_0 = time.time()
-        user = verify_firebase_token()
-        uid = user["uid"]
+        uid = g.uid
 
         photo = request.files.get("photo")
         if not photo:

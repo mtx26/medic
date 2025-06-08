@@ -5,7 +5,8 @@ import Navbar from './components/Header';
 import Footer from './components/Footer';
 import AppRoutes from './routes/AppRouter';
 import { log } from './utils/logger';
-import { auth, analyticsPromise, requestPermissionAndGetToken} from './services/firebase';
+import { auth,analyticsPromise, requestPermissionAndGetToken} from './services/firebase';
+import { supabase } from './services/supabaseClient';
 import { logEvent } from 'firebase/analytics';
 import { UserContext } from './contexts/UserContext';
 import { useRealtimeCalendars, useRealtimeSharedCalendars } from './hooks/useRealtimeCalendars';
@@ -47,7 +48,7 @@ function App() {
   // Fonction pour ajouter un calendrier
   const addCalendar = useCallback(async (calendarName) => {
     try {
-      const token = await auth.currentUser.getIdToken();
+      const token = await supabase.auth.getSession();
       const res = await fetch(`${API_URL}/api/calendars`, {
         method: "POST",
         headers: {
@@ -86,7 +87,7 @@ function App() {
   // Fonction pour supprimer un calendrier
   const deleteCalendar = useCallback(async (calendarId) => {
     try {
-      const token = await auth.currentUser.getIdToken();
+      const token = await supabase.auth.getSession();
       const res = await fetch(`${API_URL}/api/calendars`, {
         method: "DELETE",
         headers: {
@@ -124,7 +125,7 @@ function App() {
   // Fonction pour renommer un calendrier
   const renameCalendar = useCallback(async (calendarId, newCalendarName) => {
     try {
-      const token = await auth.currentUser.getIdToken();
+      const token = await supabase.auth.getSession();
       const res = await fetch(`${API_URL}/api/calendars`, {
         method: "PUT",
         headers: {
@@ -167,7 +168,7 @@ function App() {
   // Fonction pour obtenir le nombre de médicaments d'un calendrier 
   const fetchPersonalCalendarMedicineCount = useCallback(async (calendarId) => {
     try {
-      const token = await auth.currentUser.getIdToken();
+      const token = await supabase.auth.getSession();
       const res = await fetch(`${API_URL}/api/medicines/count?calendarId=${calendarId}`, {
         method: "GET",
         headers: {
@@ -207,7 +208,7 @@ function App() {
   // Fonction pour obtenir le nombre de médicaments d'un calendrier partagé
   const fetchSharedUserCalendarMedicineCount = useCallback(async (calendarId, ownerUid) => {
     try {
-      const token = await auth.currentUser.getIdToken();
+      const token = await supabase.auth.getSession();
       const res = await fetch(`${API_URL}/api/medicines/shared/count?calendarId=${calendarId}&ownerUid=${ownerUid}`, {
         method: "GET",
         headers: {
@@ -255,7 +256,7 @@ function App() {
         startDate = formatToLocalISODate(new Date());
       }
 
-      const token = await auth.currentUser.getIdToken();
+      const token = await supabase.auth.getSession();
       const res = await fetch(`${API_URL}/api/calendars/${calendarId}/schedule?startTime=${startDate}`, {
         method: "GET",
         headers: {
@@ -299,7 +300,7 @@ function App() {
   // Fonction pour modifier la boîte d'un calendrier personnel
   const updatePersonalBox = useCallback(async (calendarId, boxId, box) => {
     try {
-      const token = await auth.currentUser.getIdToken();
+      const token = await supabase.auth.getSession();
       const res = await fetch(`${API_URL}/api/calendars/${calendarId}/boxes/${boxId}`, {
         method: "PUT",
         headers: {
@@ -337,7 +338,7 @@ function App() {
   // Fonction pour créer une boîte de médicaments
   const createPersonalBox = useCallback(async (calendarId, name, boxCapacity = 0, stockAlertThreshold = 10, stockQuantity = 0) => {
     try {
-      const token = await auth.currentUser.getIdToken();
+      const token = await supabase.auth.getSession();
       const res = await fetch(`${API_URL}/api/calendars/${calendarId}/boxes`, {
         method: "POST",
         headers: {
@@ -375,7 +376,7 @@ function App() {
   // Fonction pour supprimer une boîte
   const deletePersonalBox = useCallback(async (calendarId, boxId) => {
     try {
-      const token = await auth.currentUser.getIdToken();
+      const token = await supabase.auth.getSession();
       const res = await fetch(`${API_URL}/api/calendars/${calendarId}/boxes/${boxId}`, {
         method: "DELETE",
         headers: {
@@ -451,7 +452,7 @@ function App() {
   // Fonction pour créer un lien de partage
   const createToken = useCallback(async (calendarId, expiresAt, permissions) => {
     try {
-      const token = await auth.currentUser.getIdToken();
+      const token = await supabase.auth.getSession();
       const res = await fetch(`${API_URL}/api/tokens/${calendarId}`, {
         method: "POST",
         headers: {
@@ -488,7 +489,7 @@ function App() {
   // Fonction pour supprimer un lien de partage
   const deleteToken = useCallback(async (token) => {
     try {
-      const tokenFirebase = await auth.currentUser.getIdToken();
+      const tokenFirebase = await supabase.auth.getSession();
       const res = await fetch(`${API_URL}/api/tokens/${token}`, {
         method: "DELETE",
         headers: {
@@ -524,7 +525,7 @@ function App() {
   // Fonction pour revoker un token
   const updateRevokeToken = useCallback(async (token) => {
     try {
-      const tokenFirebase = await auth.currentUser.getIdToken();
+      const tokenFirebase = await supabase.auth.getSession();
       const res = await fetch(`${API_URL}/api/tokens/revoke/${token}`, {
         method: "POST",
         headers: {
@@ -560,7 +561,7 @@ function App() {
   // Fonction pour mettre à jour l'expiration d'un token
   const updateTokenExpiration = useCallback(async (token, expiresAt) => {
     try {
-      const tokenFirebase = await auth.currentUser.getIdToken();
+      const tokenFirebase = await supabase.auth.getSession();
       const res = await fetch(`${API_URL}/api/tokens/expiration/${token}`, {
         method: "POST",
         headers: {
@@ -599,7 +600,7 @@ function App() {
   // Fonction pour mettre à jour les permissions d'un token
   const updateTokenPermissions = useCallback(async (token, permissions) => {
     try {
-      const tokenFirebase = await auth.currentUser.getIdToken();
+      const tokenFirebase = await supabase.auth.getSession();
       const res = await fetch(`${API_URL}/api/tokens/permissions/${token}`, {
         method: "POST",
           headers: {
@@ -642,7 +643,7 @@ function App() {
   // Fonction pour envoyer une invitation à un utilisateur
   const sendInvitation = useCallback(async (email, calendarId) => {
     try {
-      const token = await auth.currentUser.getIdToken();
+      const token = await supabase.auth.getSession();
       const res = await fetch(`${API_URL}/api/invitations/send/${calendarId}`, {
         method: "POST",
         headers: {
@@ -682,7 +683,7 @@ function App() {
   // Fonction pour accepter une invitation
   const acceptInvitation = useCallback(async (notificationId) => {
     try {
-      const token = await auth.currentUser.getIdToken();
+      const token = await supabase.auth.getSession();
       const res = await fetch(`${API_URL}/api/invitations/accept/${notificationId}`, {
         method: "POST",
         headers: {
@@ -718,7 +719,7 @@ function App() {
   // Fonction pour rejeter une invitation
   const rejectInvitation = useCallback(async (notificationId) => {
     try {
-      const token = await auth.currentUser.getIdToken();
+      const token = await supabase.auth.getSession();
       const res = await fetch(`${API_URL}/api/invitations/reject/${notificationId}`, {
         method: "POST",
         headers: {
@@ -754,7 +755,7 @@ function App() {
   // Fonction pour marquer une notification comme lue
   const readNotification = useCallback(async (notificationId) => {
     try {
-      const token = await auth.currentUser.getIdToken();
+      const token = await supabase.auth.getSession();
       const res = await fetch(`${API_URL}/api/notifications/${notificationId}`, {
         method: "POST",
         headers: {
@@ -793,7 +794,7 @@ function App() {
   // Fonction pour supprimer un calendrier partagé pour le receiver
   const deleteSharedCalendar = useCallback(async (calendarId) => {
     try {
-      const token = await auth.currentUser.getIdToken();
+      const token = await supabase.auth.getSession();
       const res = await fetch(`${API_URL}/api/shared/users/calendars/${calendarId}`, {
         method: "DELETE",
         headers: {
@@ -829,7 +830,7 @@ function App() {
   // Fonction pour récupérer les différentes utilisateurs ayant accès à un calendrier
   const fetchSharedUsers = useCallback(async (calendarId) => {
     try {
-      const token = await auth.currentUser.getIdToken();
+      const token = await supabase.auth.getSession();
       const res = await fetch(`${API_URL}/api/shared/users/users/${calendarId}`, {
         method: "GET",
         headers: {
@@ -867,7 +868,7 @@ function App() {
   // Fonction pour supprimer un utilisateur partagé pour le owner
   const deleteSharedUser = useCallback(async (calendarId, userId) => {
     try {
-      const token = await auth.currentUser.getIdToken();
+      const token = await supabase.auth.getSession();
       const res = await fetch(`${API_URL}/api/shared/users/${calendarId}/${userId}`, {
         method: "DELETE",
         headers: {
@@ -909,7 +910,7 @@ function App() {
       if (!startDate) {
         startDate = formatToLocalISODate(new Date());
       }
-      const token = await auth.currentUser.getIdToken();
+      const token = await supabase.auth.getSession();
       const res = await fetch(`${API_URL}/api/shared/users/calendars/${calendarId}/schedule?startTime=${startDate}`, {
         method: "GET",
         headers: {
@@ -948,7 +949,7 @@ function App() {
   // Fonction pour mettre à jour une boite de médicaments d'un calendrier partagé
   const updateSharedUserBox = useCallback(async (calendarId, boxId, box) => {
     try {
-      const token = await auth.currentUser.getIdToken();
+      const token = await supabase.auth.getSession();
       const res = await fetch(`${API_URL}/api/shared/users/calendars/${calendarId}/boxes/${boxId}`, {
         method: "PUT",
         headers: {
@@ -987,7 +988,7 @@ function App() {
   // Fonction pour créer une boite de médicaments
   const createSharedUserBox = useCallback(async (calendarId, name, boxCapacity = 0, stockAlertThreshold = 10, stockQuantity = 0) => {
     try {
-      const token = await auth.currentUser.getIdToken();
+      const token = await supabase.auth.getSession();
       const res = await fetch(`${API_URL}/api/shared/users/calendars/${calendarId}/boxes`, {
         method: "POST",
         headers: {
@@ -1025,7 +1026,7 @@ function App() {
   // Fonction pour supprimer une boîte
   const deleteSharedUserBox = useCallback(async (calendarId, boxId) => {
     try {
-      const token = await auth.currentUser.getIdToken();
+      const token = await supabase.auth.getSession();
       const res = await fetch(`${API_URL}/api/shared/users/calendars/${calendarId}/boxes/${boxId}`, {
         method: "DELETE",
         headers: {
