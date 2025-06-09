@@ -5,11 +5,7 @@ import Navbar from './components/Header';
 import Footer from './components/Footer';
 import AppRoutes from './routes/AppRouter';
 import { log } from './utils/logger';
-import {
-  analyticsPromise,
-  requestPermissionAndGetToken,
-} from './services/firebase';
-import { logEvent } from 'firebase/analytics';
+import { requestPermissionAndGetToken } from './services/firebase';
 import { UserContext } from './contexts/UserContext';
 import { formatToLocalISODate } from './utils/dateUtils';
 import RealtimeManager from './components/RealtimeManager';
