@@ -17,7 +17,12 @@ const Notification = () => {
           id="emailNotificationToggle"
           checked={userInfo?.emailEnabled}
           onChange={() => {
-            reloadUser(null, null, !userInfo?.emailEnabled, userInfo?.pushEnabled);
+            reloadUser(
+              null,
+              null,
+              !userInfo?.emailEnabled,
+              userInfo?.pushEnabled
+            );
           }}
         />
         <label className="form-check-label" htmlFor="emailNotificationToggle">
@@ -32,14 +37,18 @@ const Notification = () => {
           id="pushNotificationToggle"
           checked={userInfo?.pushEnabled}
           onChange={() => {
-            reloadUser(null, null, userInfo?.emailEnabled, !userInfo?.pushEnabled);
+            reloadUser(
+              null,
+              null,
+              userInfo?.emailEnabled,
+              !userInfo?.pushEnabled
+            );
           }}
         />
         <label className="form-check-label" htmlFor="pushNotificationToggle">
           Activer les notifications par web push
         </label>
       </div>
-
     </div>
   );
 };

@@ -1,9 +1,9 @@
 from app.utils.response import success_response, error_response, warning_response
-from app.utils.validators import verify_firebase_token
+from app.utils.validators import require_auth
 from datetime import datetime, timezone
 from . import api
 import time
-from flask import request
+from flask import request, g
 from app.db.connection import get_connection
 from app.services.calendar_service import generate_calendar_schedule
 from app.services.verifications import verify_calendar, verify_token_owner, verify_token
@@ -12,12 +12,12 @@ ERROR_UNAUTHORIZED_ACCESS = "accès refusé"
 
 # Route pour récupérer tous les tokens et les informations associées
 @api.route("/tokens", methods=["GET"])
+@require_auth
 def handle_tokens():
     try:
         t_0 = time.time()
         if request.method == "GET":
-            user = verify_firebase_token()
-            uid = user["uid"]
+            uid = g.uid
 
             with get_connection() as conn:
                 with conn.cursor() as cursor:
@@ -47,11 +47,11 @@ def handle_tokens():
 
 # Route pour créer un lien de partage avec un token
 @api.route("/tokens/<calendar_id>", methods=["POST"])
+@require_auth
 def handle_create_token(calendar_id):
     try:
         t_0 = time.time()
-        user = verify_firebase_token()
-        owner_uid = user["uid"]
+        owner_uid = g.uid
 
         data = request.get_json(force=True)
 
@@ -113,11 +113,11 @@ def handle_create_token(calendar_id):
 
 # Route pour révoquer un token
 @api.route("/tokens/revoke/<token>", methods=["POST"])
+@require_auth
 def handle_update_revoke_token(token):
     try:
         t_0 = time.time()
-        user = verify_firebase_token()
-        owner_uid = user["uid"]
+        owner_uid = g.uid
 
         if not verify_token_owner(token, owner_uid):
             return warning_response(
@@ -161,11 +161,11 @@ def handle_update_revoke_token(token):
 
 # Route pour mettre à jour l'expiration d'un token
 @api.route("/tokens/expiration/<token>", methods=["POST"])
+@require_auth
 def handle_update_token_expiration(token):
     try:
         t_0 = time.time()
-        user = verify_firebase_token()
-        owner_uid = user["uid"]
+        owner_uid = g.uid
 
         data = request.get_json(force=True)
         expires_at = data.get("expiresAt")
@@ -213,11 +213,11 @@ def handle_update_token_expiration(token):
 
 # Route pour mettre à jour les permissions d'un token
 @api.route("/tokens/permissions/<token>", methods=["POST"])
+@require_auth
 def handle_update_token_permissions(token):
     try:
         t_0 = time.time()
-        user = verify_firebase_token()
-        owner_uid = user["uid"]
+        owner_uid = g.uid
 
         data = request.get_json(force=True)
 
@@ -261,6 +261,7 @@ def handle_update_token_permissions(token):
 
 # Route pour générer un calendrier partagé pour un token
 @api.route("/tokens/<token>/schedule", methods=["GET"])
+@require_auth
 def handle_generate_token_schedule(token):
     try:
         t_0 = time.time()
@@ -315,7 +316,8 @@ def handle_generate_token_schedule(token):
 
 # Route pour obtenir les métadonnées d’un token public
 @api.route("/tokens/<token>", methods=["GET"])
-def get_token_metadata(token):
+@require_auth
+def handle_get_token_metadata(token):
     try:
         t_0 = time.time()
         if not verify_token(token):
@@ -370,11 +372,11 @@ def get_token_metadata(token):
 
 # Route pour supprimer un token
 @api.route("/tokens/<token>", methods=["DELETE"])
+@require_auth
 def handle_delete_token(token):
     try:
         t_0 = time.time()
-        user = verify_firebase_token()
-        owner_uid = user["uid"]
+        owner_uid = g.uid
 
         if not verify_token_owner(token, owner_uid):
             return warning_response(

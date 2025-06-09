@@ -1,12 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Security from './settings/Security';
 import Notification from './settings/Notification';
 import Account from './settings/Account';
-// import NotificationPage from './NotificationPage';
-// import PreferencesPage from './PreferencesPage';
+import { Link, useLocation } from 'react-router-dom';
 
 const SettingsPage = ({ sharedProps }) => {
-  const [activeTab, setActiveTab] = useState('account');
+  const location = useLocation();
+
+  const getInitialTab = () => {
+    const params = new URLSearchParams(location.search);
+    return params.get('tab') || 'account';
+  };
+
+  const [activeTab, setActiveTab] = useState(getInitialTab());
+
+  useEffect(() => {
+    // Met à jour le tab si l’URL change
+    setActiveTab(getInitialTab());
+  }, [location.search]);
 
   const renderTab = () => {
     switch (activeTab) {
@@ -30,30 +41,30 @@ const SettingsPage = ({ sharedProps }) => {
             <div className="card-body p-3">
               <h5 className="mb-3">Paramètres</h5>
               <div className="nav flex-column nav-pills">
-                <button
+                <Link
                   className={`nav-link text-start ${activeTab === 'account' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('account')}
+                  to="/settings?tab=account"
                 >
                   <i className="bi bi-person me-2"></i> Mon compte
-                </button>
-                <button
+                </Link>
+                <Link
                   className={`nav-link text-start ${activeTab === 'security' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('security')}
+                  to="/settings?tab=security"
                 >
                   <i className="bi bi-shield-lock me-2"></i> Sécurité
-                </button>
-                <button
+                </Link>
+                <Link
                   className={`nav-link text-start ${activeTab === 'notifications' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('notifications')}
+                  to="/settings?tab=notifications"
                 >
                   <i className="bi bi-bell me-2"></i> Notifications
-                </button>
-                <button
+                </Link>
+                <Link
                   className={`nav-link text-start ${activeTab === 'preferences' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('preferences')}
+                  to="/settings?tab=preferences"
                 >
                   <i className="bi bi-sliders me-2"></i> Préférences
-                </button>
+                </Link>
               </div>
             </div>
           </div>

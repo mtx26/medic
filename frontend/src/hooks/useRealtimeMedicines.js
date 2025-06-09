@@ -1,12 +1,16 @@
-import { useEffect, useRef } from "react";
-import { analyticsPromise } from "../services/firebase";
-import { log } from "../utils/logger";
-import { logEvent } from "firebase/analytics";
-import { supabase } from "../services/supabaseClient";
+import { useEffect, useRef } from 'react';
+import { analyticsPromise } from '../services/firebase';
+import { log } from '../utils/logger';
+import { logEvent } from 'firebase/analytics';
+import { supabase } from '../services/supabaseClient';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-const fetchTokenMedicines = async (token, setMedicinesData, setLoadingMedicines) => {
+const fetchTokenMedicines = async (
+  token,
+  setMedicinesData,
+  setLoadingMedicines
+) => {
   try {
     const res = await fetch(`${API_URL}/api/tokens/${token}/medicines`);
     const data = await res.json();
@@ -18,20 +22,21 @@ const fetchTokenMedicines = async (token, setMedicinesData, setLoadingMedicines)
 
     analyticsPromise.then((analytics) => {
       if (analytics) {
-        logEvent(analytics, "fetch_token_calendar_medicines", {
+        logEvent(analytics, 'fetch_token_calendar_medicines', {
           count: data.medicines.length,
         });
       }
     });
+
     log.info(data.message, {
-      origin: "REALTIME_TOKEN_MEDICINES_SUCCESS",
+      origin: 'REALTIME_TOKEN_MEDICINES_SUCCESS',
       token,
       count: data.medicines.length,
     });
   } catch (err) {
     setLoadingMedicines(false);
     log.error(err.message, err, {
-      origin: "REALTIME_TOKEN_MEDICINES_FETCH_ERROR",
+      origin: 'REALTIME_TOKEN_MEDICINES_FETCH_ERROR',
       token,
     });
   }
@@ -54,12 +59,13 @@ export const useRealtimeTokenMedicines = (
         if (!res.ok) throw new Error(data.error);
 
         const { calendar_id } = data;
+        if (!calendar_id) {
+          throw new Error('calendar_id manquant dans le token');
+        }
 
-        // Fetch initial
         await fetchTokenMedicines(token, setMedicinesData, setLoadingMedicines);
 
-        // Supabase realtime
-        const channel = supabase
+        const realtimeChannel = supabase
           .channel(`token-meds-${calendar_id}`)
           .on(
             'postgres_changes',
@@ -69,17 +75,16 @@ export const useRealtimeTokenMedicines = (
               table: 'medicines',
               filter: `calendar_id=eq.${calendar_id}`,
             },
-            () => {
-              fetchTokenMedicines(token, setMedicinesData, setLoadingMedicines);
-            }
+            () =>
+              fetchTokenMedicines(token, setMedicinesData, setLoadingMedicines)
           )
           .subscribe();
 
-        channelRef.current = channel;
+        channelRef.current = realtimeChannel;
       } catch (err) {
         setLoadingMedicines(false);
         log.error(err.message, err, {
-          origin: "REALTIME_TOKEN_INIT_ERROR",
+          origin: 'REALTIME_TOKEN_INIT_ERROR',
           token,
         });
       }
@@ -89,13 +94,11 @@ export const useRealtimeTokenMedicines = (
 
     return () => {
       try {
-        if (channelRef.current && typeof channelRef.current.unsubscribe === "function") {
-          channelRef.current.unsubscribe();
-          channelRef.current = null;
-        }
+        channelRef.current?.unsubscribe();
+        channelRef.current = null;
       } catch (err) {
-        log.error(err.message, err, {
-          origin: "REALTIME_TOKEN_INIT_ERROR",
+        log.error('Erreur lors du nettoyage du canal Supabase token', err, {
+          origin: 'REALTIME_TOKEN_CLEANUP_ERROR',
           token,
         });
       }

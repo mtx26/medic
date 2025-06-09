@@ -8,15 +8,19 @@ import { useContext } from 'react';
 import { UserContext } from '../contexts/UserContext';
 import { formatToLocalISODate } from '../utils/dateUtils';
 
-function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
+function MedicinesView({
+  personalCalendars,
+  sharedUserCalendars,
+  tokenCalendars,
+}) {
   // 📍 Paramètres d'URL et navigation
   const navigate = useNavigate(); // Hook de navigation
   const location = useLocation();
   const params = useParams();
 
   // ⚠️ Alertes et confirmations
-  const [alertType, setAlertType] = useState(""); // État pour le type d'alerte
-  const [alertMessage, setAlertMessage] = useState(""); // État pour le message d'alerte
+  const [alertType, setAlertType] = useState(''); // État pour le type d'alerte
+  const [alertMessage, setAlertMessage] = useState(''); // État pour le message d'alerte
   const [onConfirmAction, setOnConfirmAction] = useState(null); // État pour l'action à confirmer
 
   // 📦 Données & interface
@@ -30,8 +34,8 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
   const { userInfo } = useContext(UserContext);
 
   // 🔄 Modifications
-  const hasChanges = JSON.stringify(medicinesData) !== JSON.stringify(originalMedicinesData); // Détection des changements dans les médicaments
-  
+  const hasChanges =
+    JSON.stringify(medicinesData) !== JSON.stringify(originalMedicinesData); // Détection des changements dans les médicaments
 
   let calendarType = 'personal';
   let calendarId = params.calendarId;
@@ -43,7 +47,11 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
     basePath = 'shared-user-calendar';
   }
 
-  const calendarSource = getCalendarSourceMap(personalCalendars, sharedUserCalendars, tokenCalendars)[calendarType];
+  const calendarSource = getCalendarSourceMap(
+    personalCalendars,
+    sharedUserCalendars,
+    tokenCalendars
+  )[calendarType];
 
   // 🔄 Gestion de la sélection des médicaments
   const toggleSelection = (id) => {
@@ -52,117 +60,117 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
     );
   };
 
-
   // 🔄 Groupement des médicaments par nom
   const getGroupedMedicinesList = (medicines) => {
     const sorted = [...medicines].sort((a, b) =>
       a.name.toLowerCase().localeCompare(b.name.toLowerCase())
     );
-  
+
     const result = [];
     let currentGroup = null;
-  
+
     for (const med of sorted) {
       if (med.name !== currentGroup) {
         currentGroup = med.name;
-        result.push({ type: "group", name: currentGroup, ids: [med.id] });
+        result.push({ type: 'group', name: currentGroup, ids: [med.id] });
       } else {
-        const lastItem = result.find(item => item.name === med.name);
+        const lastItem = result.find((item) => item.name === med.name);
         if (lastItem) {
           lastItem.ids.push(med.id);
         }
       }
-      result.push({ type: "med", data: med });
+      result.push({ type: 'med', data: med });
     }
 
     setGroupedMedicines(result);
-  };   
-
+  };
 
   // 🔄 Détection des modifications
   const isFieldChanged = (id, field) => {
     if (!originalMedicinesData) return false;
-    const original = originalMedicinesData.find(med => med.id === id);
-    const current = medicinesData.find(med => med.id === id);
+    const original = originalMedicinesData.find((med) => med.id === id);
+    const current = medicinesData.find((med) => med.id === id);
     if (!original || !current) return false;
     return JSON.stringify(original[field]) !== JSON.stringify(current[field]);
   };
 
-  
   // 🔄 Détection des nouveaux médicaments
   const isNewMed = (id) => {
     if (!originalMedicinesData) return false;
     return !originalMedicinesData.some((med) => med.id === id);
-  };  
-
+  };
 
   // 🔄 Validation des médicaments
   const getMedFieldValidity = (med) => {
-    if (!med || typeof med !== 'object') return {
-      name: false,
-      tablet_count: false,
-      time_of_day: false,
-      interval_days: false,
-      start_date: false
-    };
-  
+    if (!med || typeof med !== 'object')
+      return {
+        name: false,
+        tablet_count: false,
+        time_of_day: false,
+        interval_days: false,
+        start_date: false,
+      };
+
     return {
       name: typeof med.name === 'string' && med.name.trim() !== '',
-      tablet_count: med.tablet_count !== '' &&
-                    med.tablet_count !== null &&
-                    !isNaN(parseFloat(med.tablet_count)),
+      tablet_count:
+        med.tablet_count !== '' &&
+        med.tablet_count !== null &&
+        !isNaN(parseFloat(med.tablet_count)),
       time_of_day: ['morning', 'noon', 'evening'].includes(med.time_of_day),
-      interval_days: med.interval_days !== '' &&
-                      med.interval_days !== null &&
-                      !isNaN(parseInt(med.interval_days)),
-      start_date: parseInt(med.interval_days) === 1 ||
-                  (typeof med.start_date === 'string' && med.start_date.trim() !== '')
+      interval_days:
+        med.interval_days !== '' &&
+        med.interval_days !== null &&
+        !isNaN(parseInt(med.interval_days)),
+      start_date:
+        parseInt(med.interval_days) === 1 ||
+        (typeof med.start_date === 'string' && med.start_date.trim() !== ''),
     };
   };
-  const allMedsValid = medicinesData.length > 0 && medicinesData.every(
-    (med) => {
+  const allMedsValid =
+    medicinesData.length > 0 &&
+    medicinesData.every((med) => {
       const validity = getMedFieldValidity(med);
       return Object.values(validity).every(Boolean);
-    }
-  );
-  
+    });
 
   // 🔄 Gestion des modifications
   const handleMedChange = (id, field, value) => {
     const index = medicinesData.findIndex((med) => med.id === id);
     if (index === -1) return; // id introuvable, on ne fait rien
-  
+
     const updated = [...medicinesData]; // copie du tableau
     const numericFields = ['tablet_count', 'interval_days'];
-  
+
     if (numericFields.includes(field)) {
       updated[index][field] = value === '' ? '' : parseFloat(value);
     } else {
       updated[index][field] = value;
     }
-  
+
     setMedicinesData(updated);
     setHighlightedField({ id, field });
   };
 
-
   // 🔄 Détection des modifications
   const getChangedFields = () => {
     const changes = [];
-  
+
     for (const current of medicinesData) {
-      const original = originalMedicinesData.find(med => med.id === current.id);
-  
+      const original = originalMedicinesData.find(
+        (med) => med.id === current.id
+      );
+
       // ➕ Nouveau médicament → on envoie tout
       if (!original) {
         changes.push({ ...current });
         continue;
       }
-  
+
       // 🔄 Médicament existant → on détecte les différences
       const diff = { id: current.id };
       let hasChange = false;
-  
+
       for (const key of Object.keys(current)) {
         if (key === 'id') continue;
         if (JSON.stringify(current[key]) !== JSON.stringify(original[key])) {
@@ -170,38 +178,39 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
           hasChange = true;
         }
       }
-  
+
       if (hasChange) changes.push(diff);
     }
-  
+
     return changes;
   };
-  
 
   // 🔄 Enregistrement des modifications
   const handleSave = async () => {
     const changes = getChangedFields();
     const rep = await calendarSource.updateMedicines(calendarId, changes);
     if (rep.success) {
-      setAlertMessage("✅ " + rep.message);
-      setAlertType("success");
+      setAlertMessage('✅ ' + rep.message);
+      setAlertType('success');
       setMedicinesData(rep.medicinesData);
-      setOriginalMedicinesData(JSON.parse(JSON.stringify(rep.originalMedicinesData)));
+      setOriginalMedicinesData(
+        JSON.parse(JSON.stringify(rep.originalMedicinesData))
+      );
     } else {
-      setAlertMessage("❌ " + rep.error);
-      setAlertType("danger");
+      setAlertMessage('❌ ' + rep.error);
+      setAlertType('danger');
       setMedicinesData(JSON.parse(JSON.stringify(originalMedicinesData)));
     }
     setTimeout(() => {
-      setAlertMessage("");
-      setAlertType("");
+      setAlertMessage('');
+      setAlertType('');
     }, 2000);
     setOnConfirmAction(null);
   };
-  
+
   const onSaveClick = () => {
-    setAlertType("confirm-safe");
-    setAlertMessage("✅ Enregistrer les modifications ?");
+    setAlertType('confirm-safe');
+    setAlertMessage('✅ Enregistrer les modifications ?');
     setOnConfirmAction(() => handleSave);
   };
 
@@ -213,23 +222,22 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
         setOriginalMedicinesData(rep.originalMedicinesData);
       }
       setChecked([]);
-      setAlertMessage("✅ " + rep.message);
-      setAlertType("success");
+      setAlertMessage('✅ ' + rep.message);
+      setAlertType('success');
       getGroupedMedicinesList(rep.medicinesData);
     } else {
-      setAlertMessage("❌ " + rep.error);
-      setAlertType("danger");
+      setAlertMessage('❌ ' + rep.error);
+      setAlertType('danger');
       setMedicinesData(JSON.parse(JSON.stringify(originalMedicinesData)));
     }
   };
-  
+
   // 🔄 Suppression des médicaments
   const onDeleteClick = () => {
-    setAlertType("confirm-danger");
-    setAlertMessage("❌ Supprimer les médicaments ?");
+    setAlertType('confirm-danger');
+    setAlertMessage('❌ Supprimer les médicaments ?');
     setOnConfirmAction(() => () => deleteConfirmAction());
   };
-
 
   // 🔄 Gestion des médicaments en temps réel
   useRealtimeMedicinesSwitcher(
@@ -238,8 +246,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
     setMedicinesData,
     setOriginalMedicinesData,
     setLoadingMedicines
-  );  
-
+  );
 
   // 🔄 Gestion du rendu
   useEffect(() => {
@@ -248,12 +255,13 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
     }
   }, [userInfo, medicinesData]);
 
-
-  // 🔄 Gestion du focus 
+  // 🔄 Gestion du focus
   useEffect(() => {
     if (highlightedField && highlightedField.id && highlightedField.field) {
       setTimeout(() => {
-        const input = document.getElementById(`${highlightedField.field}-${highlightedField.id}`);
+        const input = document.getElementById(
+          `${highlightedField.field}-${highlightedField.id}`
+        );
         if (input) {
           input.focus();
           input.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -262,19 +270,21 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
       }, 100);
     }
   }, [highlightedField]);
-  
 
   // 🔄 Gestion du chargement
   if (loadingMedicines === undefined) {
     return (
-      <div className="d-flex justify-content-center align-items-center" style={{ height: '60vh' }}>
+      <div
+        className="d-flex justify-content-center align-items-center"
+        style={{ height: '60vh' }}
+      >
         <div className="spinner-border text-primary">
           <span className="visually-hidden">Chargement des médicaments...</span>
         </div>
       </div>
     );
   }
-  
+
   if (loadingMedicines === false) {
     return (
       <div className="alert alert-danger text-center mt-5" role="alert">
@@ -302,7 +312,6 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
           <span> Liste des médicaments</span>
         </h4>
         <div className="d-flex flex-column flex-md-row gap-2 mb-3 align-items-stretch align-items-md-center">
-
           {/*test bouton boxe */}
           {/* <button 
             onClick={() => navigate(`/${basePath}/${calendarId}/boxes`)}
@@ -314,9 +323,8 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
             <span> Voir les boites</span>
           </button> */}
 
-
           {/* Ajouter */}
-          <button 
+          <button
             onClick={() => {
               const rep = calendarSource.addMedicine(medicinesData);
               if (rep.success) setMedicinesData(rep.medicinesData);
@@ -355,7 +363,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
           type={alertType}
           message={alertMessage}
           onClose={() => {
-            setAlertMessage("");
+            setAlertMessage('');
             setOnConfirmAction(null);
           }}
           onConfirm={() => {
@@ -364,7 +372,9 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
         />
 
         {groupedMedicines.length === 0 ? (
-          <div className="text-center mt-5 text-muted">❌ Aucun médicament n'a encore été ajouté pour ce calendrier.</div>
+          <div className="text-center mt-5 text-muted">
+            ❌ Aucun médicament n'a encore été ajouté pour ce calendrier.
+          </div>
         ) : (
           <>
             {/* Checkbox */}
@@ -381,7 +391,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
                     if (checked.length === medicinesData.length) {
                       setChecked([]);
                     } else {
-                      setChecked(medicinesData.map(med => med.id));
+                      setChecked(medicinesData.map((med) => med.id));
                     }
                   }}
                   onKeyDown={(e) => {
@@ -389,7 +399,7 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
                       if (checked.length === medicinesData.length) {
                         setChecked([]);
                       } else {
-                        setChecked(medicinesData.map(med => med.id));
+                        setChecked(medicinesData.map((med) => med.id));
                       }
                     }
                   }}
@@ -401,201 +411,268 @@ function MedicinesView({ personalCalendars, sharedUserCalendars, tokenCalendars 
             </div>
 
             <ul className="list-group striped-bootstrap">
-                {groupedMedicines.map((item, index) => {
-                  const validity = getMedFieldValidity(item.data);
-                  if (item.type === "group") {
-                    return (
-                      <li key={`group-${index}`} className="list-group-item fw-bold bg-light">
-                        <div className="d-flex justify-content-between align-items-center">
-                          {/* Checkbox */}
-                          <div className="d-flex align-items-center">
-                            <div className="me-2">
-                              <input
-                                className="form-check-input"
-                                type="checkbox"
-                                checked={checked.some(id => item.ids.includes(id))}
-                                onChange={() => {
+              {groupedMedicines.map((item, index) => {
+                const validity = getMedFieldValidity(item.data);
+                if (item.type === 'group') {
+                  return (
+                    <li
+                      key={`group-${index}`}
+                      className="list-group-item fw-bold bg-light"
+                    >
+                      <div className="d-flex justify-content-between align-items-center">
+                        {/* Checkbox */}
+                        <div className="d-flex align-items-center">
+                          <div className="me-2">
+                            <input
+                              className="form-check-input"
+                              type="checkbox"
+                              checked={checked.some((id) =>
+                                item.ids.includes(id)
+                              )}
+                              onChange={() => {
+                                for (const id of item.ids) {
+                                  toggleSelection(id);
+                                }
+                              }}
+                              id={`check-${item.ids}`}
+                              title="Sélectionner le médicament"
+                              aria-label={`Sélectionner le groupe de médicaments ${item.name}`}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
                                   for (const id of item.ids) {
                                     toggleSelection(id);
                                   }
-                                }}
-                                id={`check-${item.ids}`}
-                                title="Sélectionner le médicament"
-                                aria-label={`Sélectionner le groupe de médicaments ${item.name}`}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter') {
-                                    for (const id of item.ids) {
-                                      toggleSelection(id);
-                                    }
-                                  }
-                                }}
-                              />
-                            </div>
-                            <label htmlFor={`check-${item.ids}`}>{item.name}</label>
-                          </div>
-
-                          {/* Bouton "+" */}
-                          <button
-                            className="btn btn-success btn-sm"
-                            title="Ajouter un médicament"
-                            aria-label={`Ajouter un médicament au groupe ${item.name}`}
-                            onClick={() => {
-                              const rep = calendarSource.addMedicine(medicinesData, item.name);
-                              if (rep.success) {
-                                setMedicinesData(rep.medicinesData);
-                                setHighlightedField({ id: rep.id, field: 'dose' });
-                              }
-                            }}
-                          >
-                            <i className="bi bi-plus-lg"></i>
-                          </button>
-                        </div>
-                      </li>
-                    );
-                  } 
-                  return (
-                    <li
-                      key={item.data.id}
-                      id={`med-${item.data.id}`}
-                      className={`list-group-item px-2 py-3 ${isNewMed(item.data.id) ? 'med-added' : ''}`}
-                    >
-                      <div className="row g-2 align-items-center" key={item.data.id}>
-                        {/* Checkbox */}
-                        <div className="col-2 col-md-1 d-flex justify-content-center">
-                          <input
-                            className="form-check-input mt-2"
-                            type="checkbox"
-                            checked={checked.includes(item.data.id)}
-                            onChange={() => toggleSelection(item.data.id)}
-                            id={`check-${item.data.id}`}
-                            title="Sélectionner le médicament"
-                            aria-label={`Sélectionner le médicament ${item.data.name || ''}`}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
-                                toggleSelection(item.data.id);
-                              }
-                            }}
-                          />
-                        </div>
-
-                        {/* Nom */}
-                        <div className="col-10 col-md-2">
-                          <div className="form-floating">
-                            <input
-                              type="text"
-                              className={`form-control form-control-sm ${!validity.name ? 'is-invalid' : ''} ${isFieldChanged(item.data.id, 'name') ? 'field-changed' : ''}`}
-                              id={`name-${item.data.id}`}
-                              aria-label="Nom du médicament"
-                              placeholder="Nom"
-                              value={item.data?.name || ''}
-                              onChange={(e) => handleMedChange(item.data.id, 'name', e.target.value)}
-                              title="Nom du médicament"
-                            />
-                            <label htmlFor={`name-${item.data.id}`}>Nom</label>
-                          </div>
-                        </div>
-                        {/* Dose */}
-                        <div className="col-6 col-md-2">
-                          <div className="form-floating">
-                            <input
-                              type="number"
-                              step="5"
-                              min="0"
-                              className={`form-control form-control-sm ${isFieldChanged(item.data.id, 'dose') ? 'field-changed' : ''}`}
-                              id={`dose-${item.data.id}`}
-                              aria-label="Dose en mg"
-                              placeholder="Dose"
-                              value={item.data?.dose || ''}
-                              onChange={(e) => handleMedChange(item.data.id, 'dose', e.target.value)}
-                              title="Dose en mg"
-                            />
-                            <label htmlFor={`dose-${item.data.id}`}>Dose (mg)</label>
-                          </div>
-                        </div>
-                        {/* Comprimés */}
-                        <div className="col-6 col-md-2">
-                          <div className="form-floating">
-                            <input
-                              type="number"
-                              step="0.25"
-                              min="0"
-                              className={`form-control form-control-sm ${!validity.tablet_count ? 'is-invalid' : ''} ${isFieldChanged(item.data.id, 'tablet_count') ? 'field-changed' : ''}`}
-                              id={`comps-${item.data.id}`}
-                              aria-label="Nombre de comprimés"
-                              placeholder="Comprimés"
-                              value={item.data?.tablet_count || ''}
-                              onChange={(e) => handleMedChange(item.data.id, 'tablet_count', e.target.value)}
-                              title="Nombre de comprimés"
-                            />
-                            <label htmlFor={`comps-${item.data.id}`}>Comprimés</label>
-                          </div>
-                        </div>
-
-                        {/* Moment */}
-                        <div className="col-6 col-md-2">
-                          <div className="form-floating">
-                            <select
-                              className={`form-select form-select-sm ${isFieldChanged(item.data.id, 'time_of_day') ? 'field-changed' : ''}`}
-                              id={`moment-${item.data.id}`}
-                              aria-label="Moment"
-                              value={item.data?.time_of_day || ''}
-                              onChange={(e) => handleMedChange(item.data.id, 'time_of_day', e.target.value)}
-                            >
-                              <option value="" disabled hidden>Choisir</option>
-                              <option value="morning">Matin</option>
-                              <option value="noon">Midi</option>
-                              <option value="evening">Soir</option>
-                            </select>
-                            <label htmlFor={`moment-${item.data.id}`}>Moment</label>
-                          </div>
-                        </div>
-
-                        {/* Intervalle */}
-                        <div className="col-6 col-md-1">
-                          <div className="form-floating">
-                            <input
-                              type="number"
-                              step="1"
-                              min="0"
-                              className={`form-control form-control-sm ${!validity.interval_days ? 'is-invalid' : ''} ${isFieldChanged(item.data.id, 'interval_days') ? 'field-changed' : ''}`}
-                              id={`interval-${item.data.id}`}
-                              aria-label="Intervalle en jours"
-                              placeholder="Intervalle"
-                              value={item.data?.interval_days || ''}
-                              onChange={(e) => handleMedChange(item.data.id, 'interval_days', e.target.value)}
-                              title="Intervalle en jours"
-                            />
-                            <label htmlFor={`interval-${item.data.id}`}>Intervalle</label>
-                          </div>
-                        </div>
-
-                        {/* Date de début */}
-                        <div className="col-6 col-md-2">
-                          <div className="form-floating">
-                            <input
-                              type="date"
-                              className={`form-control form-control-sm ${!validity.start_date ? 'is-invalid' : ''} ${isFieldChanged(item.data.id, 'start_date') ? 'field-changed' : ''}`}
-                              id={`start-${item.data.id}`}
-                              aria-label="Date de début"
-                              placeholder="Date de début"
-                              value={item.data?.start_date ? formatToLocalISODate(item.data?.start_date) : ''}
-                              onChange={(e) => {
-                                const value = e.target.value ? e.target.value : null;
-                                handleMedChange(item.data.id, 'start_date', value)
+                                }
                               }}
-                              title="Date de début"
                             />
-                            <label htmlFor={`start-${item.data.id}`}>Date de début</label>
                           </div>
+                          <label htmlFor={`check-${item.ids}`}>
+                            {item.name}
+                          </label>
                         </div>
+
+                        {/* Bouton "+" */}
+                        <button
+                          className="btn btn-success btn-sm"
+                          title="Ajouter un médicament"
+                          aria-label={`Ajouter un médicament au groupe ${item.name}`}
+                          onClick={() => {
+                            const rep = calendarSource.addMedicine(
+                              medicinesData,
+                              item.name
+                            );
+                            if (rep.success) {
+                              setMedicinesData(rep.medicinesData);
+                              setHighlightedField({
+                                id: rep.id,
+                                field: 'dose',
+                              });
+                            }
+                          }}
+                        >
+                          <i className="bi bi-plus-lg"></i>
+                        </button>
                       </div>
                     </li>
                   );
-                })}
+                }
+                return (
+                  <li
+                    key={item.data.id}
+                    id={`med-${item.data.id}`}
+                    className={`list-group-item px-2 py-3 ${isNewMed(item.data.id) ? 'med-added' : ''}`}
+                  >
+                    <div
+                      className="row g-2 align-items-center"
+                      key={item.data.id}
+                    >
+                      {/* Checkbox */}
+                      <div className="col-2 col-md-1 d-flex justify-content-center">
+                        <input
+                          className="form-check-input mt-2"
+                          type="checkbox"
+                          checked={checked.includes(item.data.id)}
+                          onChange={() => toggleSelection(item.data.id)}
+                          id={`check-${item.data.id}`}
+                          title="Sélectionner le médicament"
+                          aria-label={`Sélectionner le médicament ${item.data.name || ''}`}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              toggleSelection(item.data.id);
+                            }
+                          }}
+                        />
+                      </div>
+
+                      {/* Nom */}
+                      <div className="col-10 col-md-2">
+                        <div className="form-floating">
+                          <input
+                            type="text"
+                            className={`form-control form-control-sm ${!validity.name ? 'is-invalid' : ''} ${isFieldChanged(item.data.id, 'name') ? 'field-changed' : ''}`}
+                            id={`name-${item.data.id}`}
+                            aria-label="Nom du médicament"
+                            placeholder="Nom"
+                            value={item.data?.name || ''}
+                            onChange={(e) =>
+                              handleMedChange(
+                                item.data.id,
+                                'name',
+                                e.target.value
+                              )
+                            }
+                            title="Nom du médicament"
+                          />
+                          <label htmlFor={`name-${item.data.id}`}>Nom</label>
+                        </div>
+                      </div>
+                      {/* Dose */}
+                      <div className="col-6 col-md-2">
+                        <div className="form-floating">
+                          <input
+                            type="number"
+                            step="5"
+                            min="0"
+                            className={`form-control form-control-sm ${isFieldChanged(item.data.id, 'dose') ? 'field-changed' : ''}`}
+                            id={`dose-${item.data.id}`}
+                            aria-label="Dose en mg"
+                            placeholder="Dose"
+                            value={item.data?.dose || ''}
+                            onChange={(e) =>
+                              handleMedChange(
+                                item.data.id,
+                                'dose',
+                                e.target.value
+                              )
+                            }
+                            title="Dose en mg"
+                          />
+                          <label htmlFor={`dose-${item.data.id}`}>
+                            Dose (mg)
+                          </label>
+                        </div>
+                      </div>
+                      {/* Comprimés */}
+                      <div className="col-6 col-md-2">
+                        <div className="form-floating">
+                          <input
+                            type="number"
+                            step="0.25"
+                            min="0"
+                            className={`form-control form-control-sm ${!validity.tablet_count ? 'is-invalid' : ''} ${isFieldChanged(item.data.id, 'tablet_count') ? 'field-changed' : ''}`}
+                            id={`comps-${item.data.id}`}
+                            aria-label="Nombre de comprimés"
+                            placeholder="Comprimés"
+                            value={item.data?.tablet_count || ''}
+                            onChange={(e) =>
+                              handleMedChange(
+                                item.data.id,
+                                'tablet_count',
+                                e.target.value
+                              )
+                            }
+                            title="Nombre de comprimés"
+                          />
+                          <label htmlFor={`comps-${item.data.id}`}>
+                            Comprimés
+                          </label>
+                        </div>
+                      </div>
+
+                      {/* Moment */}
+                      <div className="col-6 col-md-2">
+                        <div className="form-floating">
+                          <select
+                            className={`form-select form-select-sm ${isFieldChanged(item.data.id, 'time_of_day') ? 'field-changed' : ''}`}
+                            id={`moment-${item.data.id}`}
+                            aria-label="Moment"
+                            value={item.data?.time_of_day || ''}
+                            onChange={(e) =>
+                              handleMedChange(
+                                item.data.id,
+                                'time_of_day',
+                                e.target.value
+                              )
+                            }
+                          >
+                            <option value="" disabled hidden>
+                              Choisir
+                            </option>
+                            <option value="morning">Matin</option>
+                            <option value="noon">Midi</option>
+                            <option value="evening">Soir</option>
+                          </select>
+                          <label htmlFor={`moment-${item.data.id}`}>
+                            Moment
+                          </label>
+                        </div>
+                      </div>
+
+                      {/* Intervalle */}
+                      <div className="col-6 col-md-1">
+                        <div className="form-floating">
+                          <input
+                            type="number"
+                            step="1"
+                            min="0"
+                            className={`form-control form-control-sm ${!validity.interval_days ? 'is-invalid' : ''} ${isFieldChanged(item.data.id, 'interval_days') ? 'field-changed' : ''}`}
+                            id={`interval-${item.data.id}`}
+                            aria-label="Intervalle en jours"
+                            placeholder="Intervalle"
+                            value={item.data?.interval_days || ''}
+                            onChange={(e) =>
+                              handleMedChange(
+                                item.data.id,
+                                'interval_days',
+                                e.target.value
+                              )
+                            }
+                            title="Intervalle en jours"
+                          />
+                          <label htmlFor={`interval-${item.data.id}`}>
+                            Intervalle
+                          </label>
+                        </div>
+                      </div>
+
+                      {/* Date de début */}
+                      <div className="col-6 col-md-2">
+                        <div className="form-floating">
+                          <input
+                            type="date"
+                            className={`form-control form-control-sm ${!validity.start_date ? 'is-invalid' : ''} ${isFieldChanged(item.data.id, 'start_date') ? 'field-changed' : ''}`}
+                            id={`start-${item.data.id}`}
+                            aria-label="Date de début"
+                            placeholder="Date de début"
+                            value={
+                              item.data?.start_date
+                                ? formatToLocalISODate(item.data?.start_date)
+                                : ''
+                            }
+                            onChange={(e) => {
+                              const value = e.target.value
+                                ? e.target.value
+                                : null;
+                              handleMedChange(
+                                item.data.id,
+                                'start_date',
+                                value
+                              );
+                            }}
+                            title="Date de début"
+                          />
+                          <label htmlFor={`start-${item.data.id}`}>
+                            Date de début
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           </>
         )}
-
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 from . import api
-from app.utils.validators import verify_firebase_token
+from app.utils.validators import require_auth
 from datetime import datetime, timezone
-from flask import request
+from flask import request, g
 from app.db.connection import get_connection
 from app.services.calendar_service import generate_calendar_schedule
 from app.services.verifications import verify_calendar
@@ -12,11 +12,11 @@ ERROR_CALENDAR_NOT_FOUND = "calendrier non trouvé"
 
 # Route pour récupérer les calendriers de l'utilisateur
 @api.route("/calendars", methods=["GET"])
+@require_auth
 def handle_calendars():
     try:
         t_0 = time.time()
-        user = verify_firebase_token()
-        uid = user["uid"]
+        uid = g.uid
         with get_connection() as conn:
             with conn.cursor() as cursor:
                 cursor.execute("SELECT * FROM calendars WHERE owner_uid = %s", (uid,))
@@ -58,11 +58,12 @@ def handle_calendars():
 
 # Route pour créer un calendrier
 @api.route("/calendars", methods=["POST"])
+@require_auth
 def handle_create_calendar():
     try:
         t_0 = time.time()
-        user = verify_firebase_token()
-        uid = user["uid"]
+        uid = g.uid
+        print(uid)
         calendar_name = request.json.get("calendarName")
 
         if not calendar_name:
@@ -101,11 +102,11 @@ def handle_create_calendar():
 
 # Route pour supprimer un calendrier
 @api.route("/calendars", methods=["DELETE"])
+@require_auth
 def handle_delete_calendar():
     try:
         t_0 = time.time()
-        user = verify_firebase_token()
-        uid = user["uid"]
+        uid = g.uid
         calendar_id = request.json.get("calendarId")
 
         if not calendar_id or not verify_calendar(calendar_id, uid):
@@ -157,11 +158,11 @@ def handle_delete_calendar():
 
 # Route pour renommer un calendrier
 @api.route("/calendars", methods=["PUT"])
+@require_auth
 def handle_rename_calendar():
     try:
         t_0 = time.time()
-        user = verify_firebase_token()
-        uid = user["uid"]
+        uid = g.uid
         data = request.get_json(force=True)
         calendar_id = data.get("calendarId")
         new_calendar_name = data.get("newCalendarName")
@@ -238,11 +239,11 @@ def handle_rename_calendar():
 
 # Route pour générer le calendrier 
 @api.route("/calendars/<calendar_id>/schedule", methods=["GET"])
+@require_auth
 def handle_calendar_schedule(calendar_id):
     try:
         t_0 = time.time()
-        user = verify_firebase_token()
-        owner_uid = user["uid"]
+        owner_uid = g.uid
 
         start_date = request.args.get("startTime")
         if not start_date:

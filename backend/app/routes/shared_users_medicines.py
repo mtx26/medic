@@ -1,5 +1,5 @@
-from flask import request
-from app.utils.validators import verify_firebase_token
+from flask import request, g
+from app.utils.validators import require_auth
 from . import api
 from app.utils.response import success_response, error_response, warning_response
 from app.services.verifications import verify_calendar_share
@@ -10,11 +10,11 @@ ERROR_CALENDAR_NOT_FOUND = "calendrier non trouvé"
 
 # Route pour récupérer les boites de médicaments d'un calendrier
 @api.route("/shared/users/calendars/<calendar_id>/boxes", methods=["GET"])
+@require_auth
 def handle_shared_boxes(calendar_id):
     try:
         t_0 = time.time()
-        user = verify_firebase_token()
-        receiver_uid = user["uid"]
+        receiver_uid = g.uid
 
         if not verify_calendar_share(calendar_id, receiver_uid):
             return warning_response(
@@ -52,11 +52,11 @@ def handle_shared_boxes(calendar_id):
 
 # Route pour modifier une boite de médicaments
 @api.route("/shared/users/calendars/<calendar_id>/boxes/<box_id>", methods=["PUT"])
+@require_auth
 def handle_update_shared_box(calendar_id, box_id):
     try:
         t_0 = time.time()
-        user = verify_firebase_token()
-        uid = user["uid"]
+        uid = g.uid
         data = request.get_json()
 
         if not data or not verify_calendar_share(calendar_id, uid):
@@ -93,11 +93,11 @@ def handle_update_shared_box(calendar_id, box_id):
 
 # Route pour créer une boite de médicaments
 @api.route("/shared/users/calendars/<calendar_id>/boxes", methods=["POST"])
+@require_auth
 def handle_create_shared_box(calendar_id):
     try:
         t_0 = time.time()
-        user = verify_firebase_token()
-        uid = user["uid"]
+        uid = g.uid
 
         data = request.get_json()
 
@@ -136,11 +136,11 @@ def handle_create_shared_box(calendar_id):
 
 # Route pour supprimer une boite de médicaments
 @api.route("/shared/users/calendars/<calendar_id>/boxes/<box_id>", methods=["DELETE"])
+@require_auth
 def handle_delete_shared_box(calendar_id, box_id):
     try:
         t_0 = time.time()
-        user = verify_firebase_token()
-        uid = user["uid"]
+        uid = g.uid
 
         delete_box(box_id, calendar_id)
         t_1 = time.time()

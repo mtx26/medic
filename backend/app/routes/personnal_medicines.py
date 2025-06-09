@@ -1,5 +1,5 @@
-from flask import request
-from app.utils.validators import verify_firebase_token
+from flask import request, g
+from app.utils.validators import require_auth
 import time
 from . import api
 from app.services.verifications import verify_calendar
@@ -10,11 +10,11 @@ ERROR_UNAUTHORIZED_ACCESS = "accès refusé"
 
 # Route pour récupérer les boites de médicaments d'un calendrier
 @api.route("/calendars/<calendar_id>/boxes", methods=["GET"])
+@require_auth
 def handle_boxes(calendar_id):
     try:
         t_0 = time.time()
-        user = verify_firebase_token()
-        uid = user["uid"]
+        uid = g.uid
 
         if not verify_calendar(calendar_id, uid):
             return warning_response(
@@ -51,11 +51,11 @@ def handle_boxes(calendar_id):
 
 # Route pour modifier une boite de médicaments
 @api.route("/calendars/<calendar_id>/boxes/<box_id>", methods=["PUT"])
+@require_auth
 def handle_update_box(calendar_id, box_id):
     try:
         t_0 = time.time()
-        user = verify_firebase_token()
-        uid = user["uid"]
+        uid = g.uid
 
         data = request.get_json()
 
@@ -94,11 +94,11 @@ def handle_update_box(calendar_id, box_id):
 
 # Route pour créer une boite de médicaments
 @api.route("/calendars/<calendar_id>/boxes", methods=["POST"])
+@require_auth
 def handle_create_box(calendar_id):
     try:
         t_0 = time.time()
-        user = verify_firebase_token()
-        uid = user["uid"]
+        uid = g.uid
 
         data = request.get_json()
 
@@ -137,11 +137,11 @@ def handle_create_box(calendar_id):
 
 # Route pour supprimer une boite de médicaments
 @api.route("/calendars/<calendar_id>/boxes/<box_id>", methods=["DELETE"])
+@require_auth
 def handle_delete_box(calendar_id, box_id):
     try:
         t_0 = time.time()
-        user = verify_firebase_token()
-        uid = user["uid"]
+        uid = g.uid
 
         if not verify_calendar(calendar_id, uid):
             return warning_response(

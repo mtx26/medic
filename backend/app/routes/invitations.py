@@ -1,30 +1,31 @@
-from flask import request
+from flask import request, g
 from app.utils.response import success_response, error_response, warning_response
-from app.utils.validators import verify_firebase_token
+from app.utils.validators import require_auth
 from app.db.connection import get_connection
 from app.services.verifications import verify_calendar
 from app.services.user import fetch_user
 from app.services.notifications import notify_and_record
-from firebase_admin import auth
 import time
 from . import api
 from urllib.parse import urljoin
 from app.config.config import Config
-import json
 
 
 
 # Route pour envoyer une invitation à un utilisateur pour un partage de calendrier
 @api.route("/invitations/send/<calendar_id>", methods=["POST"])
+@require_auth
 def handle_send_invitation(calendar_id):
     try:
         t_0 = time.time()
-        owner_user = verify_firebase_token()
-        owner_uid = owner_user["uid"]
+        owner_uid = g.uid
 
         receiver_email = request.get_json(force=True).get("email")
-        receiver_user = auth.get_user_by_email(receiver_email)
-        receiver_uid = receiver_user.uid
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT * FROM users WHERE email = %s", (receiver_email,))
+                receiver_user = cursor.fetchone()
+                receiver_uid = receiver_user.get("id")
 
         if not verify_calendar(calendar_id, owner_uid):
             return warning_response(
@@ -121,11 +122,11 @@ def handle_send_invitation(calendar_id):
 
 # Route pour accepter une invitation pour un partage de calendrier
 @api.route("/invitations/accept/<notification_id>", methods=["POST"])
+@require_auth
 def handle_accept_invitation(notification_id):
     try:
         t_0 = time.time()
-        user = verify_firebase_token()
-        receiver_uid = user["uid"]
+        receiver_uid = g.uid
 
         with get_connection() as conn:
             with conn.cursor() as cursor:
@@ -206,11 +207,11 @@ def handle_accept_invitation(notification_id):
 
 # Route pour rejeter une invitation pour un partage de calendrier
 @api.route("/invitations/reject/<notification_id>", methods=["POST"])
+@require_auth
 def handle_reject_invitation(notification_id):
     try:
         t_0 = time.time()
-        user = verify_firebase_token()
-        receiver_uid = user["uid"]
+        receiver_uid = g.uid
 
         with get_connection() as conn:
             with conn.cursor() as cursor:

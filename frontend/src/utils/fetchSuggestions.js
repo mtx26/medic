@@ -8,7 +8,7 @@ export const fetchSuggestions = async (name, dose) => {
   let url = `${SUPABASE_URL}/rest/v1/medicaments_afmps?select=name,dose,conditionnement,forme_pharmaceutique`;
   url += `&name=ilike.*${encodeURIComponent(name)}*`;
 
-  if (dose !== null && dose !== undefined && dose !== "") {
+  if (dose !== null && dose !== undefined && dose !== '') {
     url += `&dose=ilike.*${encodeURIComponent(dose)}*`;
   }
 

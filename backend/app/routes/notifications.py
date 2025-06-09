@@ -1,9 +1,9 @@
 from . import api
-from app.utils.validators import verify_firebase_token
+from app.utils.validators import require_auth
 from app.utils.response import success_response, error_response, warning_response
 from app.services.user import fetch_user
 from app.db.connection import get_connection
-from flask import request
+from flask import request, g
 import time
 from app.auth.fcm import send_fcm_notification
 
@@ -22,18 +22,16 @@ def safely_get_calendar_name(calendar_id):
     return None
 
 def get_user_info(uid):
-    with get_connection() as conn:
-        with conn.cursor() as cursor:
-            user = fetch_user(uid)
-            return user.get("display_name"), user.get("email"), user.get("photo_url")
+    user = fetch_user(uid)
+    return user.get("display_name"), user.get("email"), user.get("photo_url")
 
 # Route pour récupérer toutes les notifications
 @api.route("/notifications", methods=["GET"])
+@require_auth
 def handle_notifications():
     try:
         t_0 = time.time()
-        user = verify_firebase_token()
-        uid = user["uid"]
+        uid = g.uid
         with get_connection() as conn:
             with conn.cursor() as cursor:
                 cursor.execute("SELECT * FROM notifications WHERE user_id = %s", (uid,))
@@ -106,11 +104,11 @@ def handle_notifications():
 
 # Route pour marquer une notification comme lue
 @api.route("/notifications/<notification_id>", methods=["POST"])
+@require_auth
 def handle_read_notification(notification_id):
     try:
         t_0 = time.time()
-        user = verify_firebase_token()
-        uid = user["uid"]
+        uid = g.uid
 
         with get_connection() as conn:
             with conn.cursor() as cursor:
@@ -150,10 +148,11 @@ def handle_read_notification(notification_id):
 
 # Route pour enregistrer un token FCM
 @api.route("/notifications/register-token", methods=["POST"])
+@require_auth
 def register_token():
     data = request.json
     token = data.get("token")
-    uid = data.get("uid")
+    uid = g.uid
 
     if not token or not uid:
         return error_response(
@@ -191,9 +190,10 @@ def register_token():
         )
 
 @api.route("/notifications/send", methods=["POST"])
+@require_auth
 def send_notification():
     data = request.json
-    uid = data.get("uid")
+    uid = g.uid
     title = data.get("title")
     body = data.get("body")
 

@@ -1,9 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 
-
-function AlertSystem({ type = "info", message, onClose, onConfirm = null, duration = 2000 }) {
-  const isConfirm = type.startsWith("confirm");
+function AlertSystem({
+  type = 'info',
+  message,
+  onClose,
+  onConfirm = null,
+  duration = 2000,
+}) {
+  const isConfirm = type.startsWith('confirm');
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -23,10 +28,10 @@ function AlertSystem({ type = "info", message, onClose, onConfirm = null, durati
 
   let bootstrapType;
 
-  if (type === "confirm-danger") {
-    bootstrapType = "danger";
-  } else if (type === "confirm-safe") {
-    bootstrapType = "success";
+  if (type === 'confirm-danger') {
+    bootstrapType = 'danger';
+  } else if (type === 'confirm-safe') {
+    bootstrapType = 'success';
   } else {
     bootstrapType = type;
   }
@@ -79,19 +84,18 @@ function AlertSystem({ type = "info", message, onClose, onConfirm = null, durati
           )}
         </div>
       </div>
-
     </div>
   );
 }
 
 AlertSystem.propTypes = {
   type: PropTypes.oneOf([
-    "info",
-    "success",
-    "warning",
-    "danger",
-    "confirm-safe",
-    "confirm-danger",
+    'info',
+    'success',
+    'warning',
+    'danger',
+    'confirm-safe',
+    'confirm-danger',
   ]),
   message: PropTypes.string.isRequired,
   onClose: PropTypes.func.isRequired,

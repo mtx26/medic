@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -9,10 +9,10 @@ function ViewNoticeButton({ url }) {
       const res = await fetch(`${API_URL}/api/proxy/pdf?url=${encodedUrl}`);
       const blob = await res.blob();
       const blobUrl = URL.createObjectURL(blob);
-      window.open(blobUrl, "_blank");
+      window.open(blobUrl, '_blank');
     } catch (err) {
-      console.error("Erreur PDF :", err);
-      alert("Impossible d’afficher la notice.");
+      console.error('Erreur PDF :', err);
+      alert('Impossible d’afficher la notice.');
     }
   };
 

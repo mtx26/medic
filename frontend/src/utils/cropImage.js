@@ -31,4 +31,3 @@ async function getCroppedImg(imageSrc, pixelCrop) {
 }
 
 export default getCroppedImg;
-

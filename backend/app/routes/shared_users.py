@@ -1,9 +1,9 @@
-from app.utils.validators import verify_firebase_token
+from app.utils.validators import require_auth
 from datetime import datetime, timezone
 from . import api
 from app.services.verifications import verify_calendar_share
 from app.services.calendar_service import generate_calendar_schedule
-from flask import request
+from flask import request, g
 import time
 from app.services.user import fetch_user
 from app.utils.response import success_response, error_response, warning_response
@@ -19,11 +19,11 @@ SELECT_SHARED_CALENDAR = "SELECT * FROM calendars WHERE id = %s"
 
 # Route pour récupérer les calendriers partagés
 @api.route("/shared/users/calendars", methods=["GET"])
+@require_auth
 def handle_shared_calendars():
     try:
         t_0 = time.time()
-        user = verify_firebase_token()
-        uid = user["uid"]
+        uid = g.uid
 
         with get_connection() as conn:
             with conn.cursor() as cursor:
@@ -123,11 +123,11 @@ def handle_shared_calendars():
 
 # Route pour récupérer les informations d'un calendrier partagé
 @api.route("/shared/users/calendars/<calendar_id>", methods=["GET"])
+@require_auth
 def handle_user_shared_calendar(calendar_id):
     try:
         t_0 = time.time()
-        user = verify_firebase_token()
-        receiver_uid = user["uid"]
+        receiver_uid = g.uid
 
         if not verify_calendar_share(calendar_id, receiver_uid):
             return warning_response(
@@ -192,11 +192,11 @@ def handle_user_shared_calendar(calendar_id):
 
 # Route pour générer un calendrier partagé
 @api.route("/shared/users/calendars/<calendar_id>/schedule", methods=["GET"])
+@require_auth
 def handle_user_shared_calendar_schedule(calendar_id):
     try:
         t_0 = time.time()
-        user = verify_firebase_token()
-        uid = user["uid"]
+        uid = g.uid
 
         if not verify_calendar_share(calendar_id, uid):
             return warning_response(
@@ -249,11 +249,11 @@ def handle_user_shared_calendar_schedule(calendar_id):
 
 # Route pour supprimer un calendrier partagé pour le receiver
 @api.route("/shared/users/calendars/<calendar_id>", methods=["DELETE"])
+@require_auth
 def handle_delete_user_shared_calendar(calendar_id):
     try:
         t_0 = time.time()
-        user = verify_firebase_token()
-        receiver_uid = user["uid"]
+        receiver_uid = g.uid
 
         if not verify_calendar_share(calendar_id, receiver_uid):
             return warning_response(
@@ -316,11 +316,11 @@ def handle_delete_user_shared_calendar(calendar_id):
 
 # Route pour supprimer un utilisateur partagé pour le owner
 @api.route("/shared/users/<calendar_id>/<receiver_uid>", methods=["DELETE"])
+@require_auth
 def handle_delete_user_shared_user(calendar_id, receiver_uid):
     try:
         t_0 = time.time()
-        user = verify_firebase_token()
-        owner_uid = user["uid"]
+        owner_uid = g.uid
 
         if owner_uid == receiver_uid:
             return warning_response(
@@ -399,11 +399,11 @@ def handle_delete_user_shared_user(calendar_id, receiver_uid):
 
 # Route pour récupérer les utilisateurs ayant accès à un calendrier
 @api.route("/shared/users/users/<calendar_id>", methods=["GET"])
+@require_auth
 def handle_shared_users(calendar_id):
     try:
         t_0 = time.time()
-        user = verify_firebase_token()
-        owner_uid = user["uid"]
+        owner_uid = g.uid
 
         with get_connection() as conn:
             with conn.cursor() as cursor:
