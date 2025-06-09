@@ -4,7 +4,6 @@ import { GoogleHandleLogin, registerWithEmail, loginWithEmail } from "../service
 import AlertSystem from "../components/AlertSystem";
 import { getFirebaseErrorMessage } from "../utils/FirebaseErrorMessage";
 import { log } from "../utils/logger";
-import { auth } from "../services/firebase";
 import { Link } from "react-router-dom";
 
 
@@ -93,7 +92,7 @@ function Auth() {
                   log.info("Connexion réussie", {
                     id: "LOGIN-SUCCESS",
                     origin: "Auth.jsx",
-                    user: auth.currentUser,
+                    user: userInfo.uid,
                   });
                   
                 } else {
@@ -101,7 +100,7 @@ function Auth() {
                   log.info("Inscription réussie", {
                     id: "REGISTER-SUCCESS",
                     origin: "Auth.jsx",
-                    user: auth.currentUser,
+                    user: userInfo.uid,
                   });
                 }
               } catch (err) {

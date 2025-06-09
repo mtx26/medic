@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { sendEmailVerification } from 'firebase/auth';
-import { auth } from "../services/firebase";
+import { supabase } from '../services/supabaseClient';
 import { useNavigate } from "react-router-dom";
 import { UserContext, getGlobalReloadUser } from "../contexts/UserContext";
 import AlertSystem from "../components/AlertSystem";
@@ -33,11 +32,11 @@ function VerifyEmail() {
   const handleSendVerification = async (e) => {
     e.preventDefault();
 
-    const user = auth.currentUser;
+    const user = userInfo;
 
     if (user) {
       try {
-        await sendEmailVerification(user);
+        await supabase.auth.sendEmailVerification();
         setAlertMessage("Email de vérification envoyé ! Vérifiez votre boîte mail.");
         setAlertType("success");
         log.info("Email de vérification envoyé", {
@@ -63,7 +62,7 @@ function VerifyEmail() {
 
   useEffect(() => {
     const intervalId = setInterval(async () => {
-      const user = auth.currentUser;
+      const user = userInfo;
       if (user) {
         await user.reload();
         const reloadUser = getGlobalReloadUser();

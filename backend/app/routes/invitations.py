@@ -23,8 +23,11 @@ def handle_send_invitation(calendar_id):
         owner_uid = g.uid
 
         receiver_email = request.get_json(force=True).get("email")
-        receiver_user = fetch_user(receiver_email)
-        receiver_uid = receiver_user.get("id")
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT * FROM users WHERE email = %s", (receiver_email,))
+                receiver_user = cursor.fetchone()
+                receiver_uid = receiver_user.get("id")
 
         if not verify_calendar(calendar_id, owner_uid):
             return warning_response(

@@ -5,7 +5,7 @@ import Navbar from './components/Header';
 import Footer from './components/Footer';
 import AppRoutes from './routes/AppRouter';
 import { log } from './utils/logger';
-import { auth,analyticsPromise, requestPermissionAndGetToken} from './services/firebase';
+import { analyticsPromise, requestPermissionAndGetToken} from './services/firebase';
 import { supabase } from './services/supabaseClient';
 import { logEvent } from 'firebase/analytics';
 import { UserContext } from './contexts/UserContext';
@@ -1129,10 +1129,10 @@ function App() {
       notifications: false, 
       tokens: false,
     }));
-  }, [userInfo]);
+  }, [userInfo?.uid]);
 
   useEffect(() => {
-    if (!auth.currentUser) return;
+    if (!userInfo?.uid) return;
 
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker
@@ -1151,31 +1151,32 @@ function App() {
 
     // 🔐 Demande de permission et envoi du token
     const sendTokenToBackend = async () => {
-      const token = await requestPermissionAndGetToken();
-      if (!token || !auth.currentUser) return;
+      const token = await requestPermissionAndGetToken(userInfo?.uid);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!token || !userInfo?.uid) return;
 
       // 🎯 Envoi du token FCM au backend Flask
-      fetch(`${import.meta.env.VITE_API_URL}/api/notifications/register-token`, {
+      fetch(`${API_URL}/api/notifications/register-token`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({
-          uid: auth.currentUser.uid,
           token: token,
         }),
       })
         .then((res) => res.json())
         .then((data) => {
           log.info("[FCM] Token enregistré côté backend", {
-            uid: auth.currentUser.uid,
+            uid: userInfo.uid,
             token: token,
             origin: "FCM_TOKEN_REGISTER_SUCCESS",
           });
         })
         .catch((error) => {
           log.error("[FCM] Erreur d’envoi du token", {
-            uid: auth.currentUser.uid,
+            uid: userInfo.uid,
             token: token,
             origin: "FCM_TOKEN_REGISTER_ERROR",
             error: error,
@@ -1185,7 +1186,7 @@ function App() {
 
     sendTokenToBackend();
 
-  }, [auth.currentUser]);
+  }, [userInfo?.uid]);
 
   return (
     <Router>

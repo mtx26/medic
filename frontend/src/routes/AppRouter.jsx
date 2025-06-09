@@ -20,6 +20,9 @@ import MedicinesList from '../pages/MedicinesList';
 import BoxesView from '../pages/BoxesView';
 import NotFound from '../pages/NotFound';
 
+import PrivacyPage from '../pages/PrivacyPage';
+import TermsPage from '../pages/TermsPage';
+
 function PrivateRoute({ element }) {
   const { userInfo } = useContext(UserContext);
 
@@ -141,6 +144,8 @@ function AppRoutes({ sharedProps }) {
         <Route path="/shared-token-calendar/:sharedToken/boxes" element={<MedicinesList {...sharedProps} />} />
         <Route path="/shared-token-calendar/:sharedToken" element={<CalendarView {...sharedProps} />} />
 
+        <Route path="/privacy" element={<PrivacyPage />} />
+        <Route path="/terms" element={<TermsPage />} />
         <Route path="/" element={<HomePage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
