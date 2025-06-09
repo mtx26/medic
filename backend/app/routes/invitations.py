@@ -5,12 +5,10 @@ from app.db.connection import get_connection
 from app.services.verifications import verify_calendar
 from app.services.user import fetch_user
 from app.services.notifications import notify_and_record
-from app.services.user import fetch_user
 import time
 from . import api
 from urllib.parse import urljoin
 from app.config.config import Config
-import json
 
 
 

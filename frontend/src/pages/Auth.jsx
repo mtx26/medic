@@ -5,10 +5,12 @@ import AlertSystem from "../components/AlertSystem";
 import { getFirebaseErrorMessage } from "../utils/FirebaseErrorMessage";
 import { log } from "../utils/logger";
 import { Link } from "react-router-dom";
+import { UserContext } from "../contexts/UserContext";
 
 
 
 function Auth() {
+  const { userInfo } = useContext(UserContext);
   // 👤 Authentification utilisateur
   const [email, setEmail] = useState(""); // État pour l'adresse e-mail
   const [password, setPassword] = useState(""); // État pour le mot de passe
