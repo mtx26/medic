@@ -17,8 +17,13 @@ def proxy_pdf():
                 return "Box not found", 404
 
             cursor.execute(
-                "SELECT url_notice_fr FROM medicaments_afmps WHERE name ILIKE %s AND dose ILIKE %s",
-                (f"%{box['name']}%", f"%{box['dose']}%")
+                """
+                SELECT url_notice_fr
+                FROM medicaments_afmps
+                WHERE name ILIKE CONCAT('%%', %s, '%%')
+                AND dose ILIKE CONCAT('%%', %s, '%%')
+                """,
+                (box["name"], box["dose"])
             )
             url_result = cursor.fetchone()
 
