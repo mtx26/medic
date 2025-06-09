@@ -2,11 +2,10 @@ import React from 'react';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-function ViewNoticeButton({ url }) {
+function ViewNoticeButton({ box_id }) {
   const openPdfInNewTab = async () => {
     try {
-      const encodedUrl = encodeURIComponent(url);
-      const res = await fetch(`${API_URL}/api/proxy/pdf?url=${encodedUrl}`);
+      const res = await fetch(`${API_URL}/api/proxy/pdf?box_id=${box_id}`);
       const blob = await res.blob();
       const blobUrl = URL.createObjectURL(blob);
       window.open(blobUrl, '_blank');

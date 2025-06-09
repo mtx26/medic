@@ -406,7 +406,7 @@ function BoxCard({
               <StockBadge box={box} />
             </div>
             <div className="w-50">
-              <ViewNoticeButton url={box.url_notice_fr} />
+              <ViewNoticeButton box_id={box.id} />
             </div>
           </div>
         )}

@@ -21,8 +21,7 @@ function App() {
   const [sharedCalendarsData, setSharedCalendarsData] = useState(null);
 
   const { userInfo } = useContext(UserContext);
-  const uid = userInfo.uid;
-
+  const uid = userInfo?.uid ?? null;
 
   const [loadingStates, setLoadingStates] = useState({
     calendars: true,
