@@ -12,7 +12,7 @@
 
 ## 🚀 Key Features
 
-* 🔐 Firebase Authentication (Google / Email)
+* 🔐 Supabase Authentication (Google / Email)
 * 📅 Create and manage personal or shared calendars
 * 💊 Medication tracking: time, dose, frequency, alternation
 * 🔗 Share calendars via public links or with other Firebase users
