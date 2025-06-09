@@ -7,7 +7,7 @@ python-dotenv==1.1.0
 requests==2.32.3
 gunicorn==23.0.0
 psycopg2-binary==2.9.10
-pyfcm==1.5.4
+pyfcm==2.0.8
 schedule==1.2.2
 pyjwt==2.10.1
 cryptography==45.0.3
