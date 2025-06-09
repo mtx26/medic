@@ -6,7 +6,7 @@ def get_boxes(calendar_id):
             cursor.execute("""
             SELECT mb.id, mb.name, mb.box_capacity, mb.stock_quantity, mb.stock_alert_threshold, mb.calendar_id, c.name AS calendar_name, mb.dose
             FROM medicine_boxes mb
-            JOIN calendars c ON mb.calendar_id = c.id
+            LEFT JOIN calendars c ON mb.calendar_id = c.id
             WHERE c.id = %s
             """, (calendar_id,))
             boxes = cursor.fetchall()
@@ -16,7 +16,10 @@ def get_boxes(calendar_id):
                 box["conditions"] = conditions
                 cursor.execute("SELECT url_notice_fr FROM medicaments_afmps WHERE name ilike %s", (box.get("name"),))
                 url_notice_fr = cursor.fetchone()
-                box["url_notice_fr"] = url_notice_fr.get("url_notice_fr")
+                if url_notice_fr:
+                    box["url_notice_fr"] = url_notice_fr.get("url_notice_fr")
+                else:
+                    box["url_notice_fr"] = None
     if not boxes:
         return []
     return boxes
