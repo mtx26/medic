@@ -1,33 +1,33 @@
-import React, { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
-import { GoogleHandleLogin, registerWithEmail, loginWithEmail } from "../services/authService";
-import AlertSystem from "../components/AlertSystem";
-import { getFirebaseErrorMessage } from "../utils/FirebaseErrorMessage";
-import { log } from "../utils/logger";
-import { Link } from "react-router-dom";
-import { UserContext } from "../contexts/UserContext";
-
-
+import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+import {
+  GoogleHandleLogin,
+  registerWithEmail,
+  loginWithEmail,
+} from '../services/authService';
+import AlertSystem from '../components/AlertSystem';
+import { getFirebaseErrorMessage } from '../utils/FirebaseErrorMessage';
+import { log } from '../utils/logger';
+import { Link } from 'react-router-dom';
+import { UserContext } from '../contexts/UserContext';
 
 function Auth() {
   const { userInfo } = useContext(UserContext);
   // 👤 Authentification utilisateur
-  const [email, setEmail] = useState(""); // État pour l'adresse e-mail
-  const [password, setPassword] = useState(""); // État pour le mot de passe
-  const [name, setName] = useState(""); // État pour le nom d'utilisateur
+  const [email, setEmail] = useState(''); // État pour l'adresse e-mail
+  const [password, setPassword] = useState(''); // État pour le mot de passe
+  const [name, setName] = useState(''); // État pour le nom d'utilisateur
   const [passwordVisible, setPasswordVisible] = useState(false); // État pour l'affichage du mot de passe
-  const [activeTab, setActiveTab] = useState("login"); // État pour l'onglet actif (login/register)
+  const [activeTab, setActiveTab] = useState('login'); // État pour l'onglet actif (login/register)
 
   // ⚠️ Alertes
   const [alertMessage, setAlertMessage] = useState(null); // État pour le message d'alerte
-  const [alertType, setAlertType] = useState("info"); // État pour le type d'alerte (par défaut : info)
-
-
+  const [alertType, setAlertType] = useState('info'); // État pour le type d'alerte (par défaut : info)
 
   const location = useLocation();
 
   useEffect(() => {
-    setActiveTab(location.pathname === "/register" ? "register" : "login");
+    setActiveTab(location.pathname === '/register' ? 'register' : 'login');
   }, [location.pathname]);
 
   const switchTab = (tab) => {
@@ -36,14 +36,17 @@ function Auth() {
 
   return (
     <div className="container d-flex justify-content-center align-items-center my-5">
-      <div className="card shadow-sm w-100" style={{ maxWidth: "500px", borderRadius: "1rem" }}>
+      <div
+        className="card shadow-sm w-100"
+        style={{ maxWidth: '500px', borderRadius: '1rem' }}
+      >
         <div className="card-body p-4">
           {/* Tabs */}
           <ul className="nav nav-pills nav-justified mb-4">
             <li className="nav-item">
               <button
-                className={` shadow-sm nav-link ${activeTab === "login" ? "active" : ""}`}
-                onClick={() => switchTab("login")}
+                className={` shadow-sm nav-link ${activeTab === 'login' ? 'active' : ''}`}
+                onClick={() => switchTab('login')}
                 aria-label="Connexion"
                 title="Connexion"
               >
@@ -53,8 +56,8 @@ function Auth() {
             </li>
             <li className="nav-item">
               <button
-                className={` shadow-sm nav-link ${activeTab === "register" ? "active" : ""}`}
-                onClick={() => switchTab("register")}
+                className={` shadow-sm nav-link ${activeTab === 'register' ? 'active' : ''}`}
+                onClick={() => switchTab('register')}
                 aria-label="Inscription"
                 title="Inscription"
               >
@@ -66,9 +69,13 @@ function Auth() {
 
           {/* Auth Form */}
           <div className="text-center mb-3">
-            <p>{activeTab === "login" ? "Se connecter avec :" : "S'inscrire avec :"}</p>
-            <button 
-              className="btn btn-outline-danger rounded-pill px-3 py-2 shadow-sm" 
+            <p>
+              {activeTab === 'login'
+                ? 'Se connecter avec :'
+                : "S'inscrire avec :"}
+            </p>
+            <button
+              className="btn btn-outline-danger rounded-pill px-3 py-2 shadow-sm"
               onClick={GoogleHandleLogin}
               aria-label="Connexion avec Google"
               title="Connexion avec Google"
@@ -84,41 +91,41 @@ function Auth() {
             onClose={() => setAlertMessage(null)}
           />
 
-
           <form
             onSubmit={async (e) => {
               e.preventDefault();
               try {
-                if (activeTab === "login") {
+                if (activeTab === 'login') {
                   await loginWithEmail(email, password);
-                  log.info("Connexion réussie", {
-                    id: "LOGIN-SUCCESS",
-                    origin: "Auth.jsx",
+                  log.info('Connexion réussie', {
+                    id: 'LOGIN-SUCCESS',
+                    origin: 'Auth.jsx',
                     user: userInfo.uid,
                   });
-                  
                 } else {
                   await registerWithEmail(email, password, name);
-                  log.info("Inscription réussie", {
-                    id: "REGISTER-SUCCESS",
-                    origin: "Auth.jsx",
+                  log.info('Inscription réussie', {
+                    id: 'REGISTER-SUCCESS',
+                    origin: 'Auth.jsx',
                     user: userInfo.uid,
                   });
                 }
               } catch (err) {
-                log.error("Firebase auth error", {
-                  id: "AUTH-ERROR",
-                  origin: "App.js",
+                log.error('Firebase auth error', {
+                  id: 'AUTH-ERROR',
+                  origin: 'App.js',
                   stack: err.stack,
                 });
-                setAlertMessage("❌ " + getFirebaseErrorMessage(err.code));
-                setAlertType("danger");
+                setAlertMessage('❌ ' + getFirebaseErrorMessage(err.code));
+                setAlertType('danger');
               }
             }}
           >
-            {activeTab === "register" && (
+            {activeTab === 'register' && (
               <div className="mb-3">
-                <label htmlFor="name" className="form-label">Nom complet</label>
+                <label htmlFor="name" className="form-label">
+                  Nom complet
+                </label>
                 <input
                   type="text"
                   className="form-control"
@@ -133,7 +140,9 @@ function Auth() {
             )}
 
             <div className="mb-3">
-              <label htmlFor="email" className="form-label">Adresse e-mail</label>
+              <label htmlFor="email" className="form-label">
+                Adresse e-mail
+              </label>
               <input
                 type="email"
                 className="form-control"
@@ -147,9 +156,11 @@ function Auth() {
             </div>
 
             <div className="mb-3 position-relative">
-              <label htmlFor="password" className="form-label">Mot de passe</label>
+              <label htmlFor="password" className="form-label">
+                Mot de passe
+              </label>
               <input
-                type={passwordVisible ? "text" : "password"}
+                type={passwordVisible ? 'text' : 'password'}
                 className="form-control"
                 id="password"
                 aria-label="Mot de passe"
@@ -159,14 +170,23 @@ function Auth() {
                 onChange={(e) => setPassword(e.target.value)}
               />
               <i
-                className={`bi bi-${passwordVisible ? "eye-slash" : "eye"} position-absolute`}
+                className={`bi bi-${passwordVisible ? 'eye-slash' : 'eye'} position-absolute`}
                 role="button"
                 tabIndex="0"
-                aria-label={passwordVisible ? "Masquer le mot de passe" : "Afficher le mot de passe"}
-                style={{ top: "38px", right: "15px", cursor: "pointer", color: "#6c757d" }}
+                aria-label={
+                  passwordVisible
+                    ? 'Masquer le mot de passe'
+                    : 'Afficher le mot de passe'
+                }
+                style={{
+                  top: '38px',
+                  right: '15px',
+                  cursor: 'pointer',
+                  color: '#6c757d',
+                }}
                 onClick={() => setPasswordVisible(!passwordVisible)}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
+                  if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
                     setPasswordVisible(!passwordVisible);
                   }
@@ -174,31 +194,48 @@ function Auth() {
               ></i>
             </div>
 
-            {activeTab === "login" && (
+            {activeTab === 'login' && (
               <div className="mb-3 text-end">
-                <Link to="/reset-password" className="text-decoration-none">Mot de passe oublié ?</Link>
+                <Link to="/reset-password" className="text-decoration-none">
+                  Mot de passe oublié ?
+                </Link>
               </div>
             )}
 
-            {activeTab === "register" && (
-              <div 
+            {activeTab === 'register' && (
+              <div
                 className="form-check mb-3 text-left"
-                style={{ cursor: "pointer" }}
+                style={{ cursor: 'pointer' }}
               >
-                <input className="form-check-input" style={{ cursor: "pointer" }} type="checkbox" required id="terms" name="terms" aria-label="Accepter les conditions générales"/>
-                <label className="form-check-label" style={{ cursor: "pointer" }} htmlFor="terms">
-                  J’accepte les <Link to="/terms" className="text-decoration-none">conditions générales</Link>
+                <input
+                  className="form-check-input"
+                  style={{ cursor: 'pointer' }}
+                  type="checkbox"
+                  required
+                  id="terms"
+                  name="terms"
+                  aria-label="Accepter les conditions générales"
+                />
+                <label
+                  className="form-check-label"
+                  style={{ cursor: 'pointer' }}
+                  htmlFor="terms"
+                >
+                  J’accepte les{' '}
+                  <Link to="/terms" className="text-decoration-none">
+                    conditions générales
+                  </Link>
                 </label>
               </div>
             )}
 
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="btn btn-outline-primary w-100 shadow-sm"
-              aria-label={activeTab === "login" ? "Connexion" : "Inscription"}
-              title={activeTab === "login" ? "Connexion" : "Inscription"}
+              aria-label={activeTab === 'login' ? 'Connexion' : 'Inscription'}
+              title={activeTab === 'login' ? 'Connexion' : 'Inscription'}
             >
-              {activeTab === "login" ? "Connexion" : "Inscription"}
+              {activeTab === 'login' ? 'Connexion' : 'Inscription'}
             </button>
           </form>
         </div>

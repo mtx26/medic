@@ -1,9 +1,8 @@
-import React from "react";
-import ArrowControls from "./ArrowControls";
-import WeekDayCircles from "./WeekDayCircles";
-import { getMondayFromDate, getWeekDaysISOStrings } from "../utils/dateUtils";
+import React from 'react';
+import ArrowControls from './ArrowControls';
+import WeekDayCircles from './WeekDayCircles';
+import { getMondayFromDate, getWeekDaysISOStrings } from '../utils/dateUtils';
 import PropTypes from 'prop-types';
-
 
 export default function WeeklyEventContent({
   ifModal,
@@ -13,7 +12,6 @@ export default function WeeklyEventContent({
   onNext,
   onPrev,
 }) {
-
   const monday = getMondayFromDate(selectedDate);
   const weekDays = getWeekDaysISOStrings(monday);
   const isFirstDay = weekDays[0] === selectedDate;
@@ -21,34 +19,31 @@ export default function WeeklyEventContent({
 
   return (
     <>
-      <ArrowControls 
-        onLeft={isFirstDay ? () => {} : onPrev} 
-        onRight={isLastDay ? () => {} : onNext} 
+      <ArrowControls
+        onLeft={isFirstDay ? () => {} : onPrev}
+        onRight={isLastDay ? () => {} : onNext}
       />
 
-      <WeekDayCircles
-        selectedDate={selectedDate}
-        onSelectDate={onSelectDate}
-      />
+      <WeekDayCircles selectedDate={selectedDate} onSelectDate={onSelectDate} />
 
       {!ifModal && (
         <div className="text-center mb-4">
-            <h6 className="mb-0">
-                <i className="bi bi-calendar-date me-2"></i>
-            {new Date(selectedDate).toLocaleDateString("fr-FR", {
-                weekday: "long",
-                year: "numeric",
-                month: "long",
-                day: "numeric"
+          <h6 className="mb-0">
+            <i className="bi bi-calendar-date me-2"></i>
+            {new Date(selectedDate).toLocaleDateString('fr-FR', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
             })}
-            </h6>
+          </h6>
         </div>
       )}
 
       <div className="d-flex justify-content-between align-items-center mb-3">
-        <button 
-          className="btn btn-outline-secondary btn-sm" 
-          onClick={onPrev} 
+        <button
+          className="btn btn-outline-secondary btn-sm"
+          onClick={onPrev}
           disabled={isFirstDay}
           aria-label="Semaine précédente"
           title="Semaine précédente"
@@ -64,20 +59,18 @@ export default function WeeklyEventContent({
                   key={index}
                   className="list-group-item d-flex align-items-center justify-content-between"
                 >
-                  {event.title} {event.dose != null ? `${event.dose} mg` : ""}
+                  {event.title} {event.dose != null ? `${event.dose} mg` : ''}
                   <div className="d-flex align-items-center">
-                    <span
-                      className="badge me-2 badge bg-secondary"
-                    >
+                    <span className="badge me-2 badge bg-secondary">
                       {event.tablet_count}
                     </span>
                     <span
                       className="badge"
-                      style={{ backgroundColor: event.color, color: "white" }}
+                      style={{ backgroundColor: event.color, color: 'white' }}
                     >
                       {new Date(event.start).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit"
+                        hour: '2-digit',
+                        minute: '2-digit',
                       })}
                     </span>
                   </div>
@@ -91,9 +84,9 @@ export default function WeeklyEventContent({
           )}
         </div>
 
-        <button 
-          className="btn btn-outline-secondary btn-sm" 
-          onClick={onNext} 
+        <button
+          className="btn btn-outline-secondary btn-sm"
+          onClick={onNext}
           disabled={isLastDay}
           aria-label="Semaine suivante"
           title="Semaine suivante"
@@ -113,4 +106,3 @@ WeeklyEventContent.propTypes = {
   onNext: PropTypes.func.isRequired,
   onPrev: PropTypes.func.isRequired,
 };
-

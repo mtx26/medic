@@ -18,8 +18,10 @@ export const useRealtimeTokens = (setTokensList, setLoadingStates) => {
 
     const fetchTokens = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) throw new Error("Session Supabase non trouvée");
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        if (!session) throw new Error('Session Supabase non trouvée');
 
         const res = await fetch(`${API_URL}/api/tokens`, {
           headers: { Authorization: `Bearer ${session.access_token}` },
@@ -29,7 +31,7 @@ export const useRealtimeTokens = (setTokensList, setLoadingStates) => {
         if (!res.ok) throw new Error(data.error);
 
         setTokensList(data.tokens);
-        setLoadingStates(prev => ({ ...prev, tokens: false }));
+        setLoadingStates((prev) => ({ ...prev, tokens: false }));
 
         analyticsPromise.then((analytics) => {
           if (analytics) {
@@ -41,14 +43,14 @@ export const useRealtimeTokens = (setTokensList, setLoadingStates) => {
         });
 
         log.info(data.message, {
-          origin: "TOKENS_FETCH_SUCCESS",
+          origin: 'TOKENS_FETCH_SUCCESS',
           uid,
           count: data.tokens.length,
         });
       } catch (err) {
-        setLoadingStates(prev => ({ ...prev, tokens: false }));
-        log.error(err.message || "Échec de récupération des tokens", err, {
-          origin: "TOKENS_FETCH_ERROR",
+        setLoadingStates((prev) => ({ ...prev, tokens: false }));
+        log.error(err.message || 'Échec de récupération des tokens', err, {
+          origin: 'TOKENS_FETCH_ERROR',
           uid,
         });
       }
@@ -93,8 +95,8 @@ export const useRealtimeTokens = (setTokensList, setLoadingStates) => {
         deleteChannel.unsubscribe();
         channelRef.current = null;
       } catch (err) {
-        log.error("Erreur lors de la désinscription des canaux token", err, {
-          origin: "REALTIME_TOKENS_UNSUBSCRIBE_ERROR",
+        log.error('Erreur lors de la désinscription des canaux token', err, {
+          origin: 'REALTIME_TOKENS_UNSUBSCRIBE_ERROR',
           uid,
         });
       }

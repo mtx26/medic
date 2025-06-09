@@ -16,12 +16,13 @@ const Security = ({ sharedProps }) => {
 
   // ⚠️ Alertes
   const [alertMessage, setAlertMessage] = useState(null); // État pour le message d'alerte
-  const [alertType, setAlertType] = useState("info"); // État pour le type d'alerte (par défaut : info)
+  const [alertType, setAlertType] = useState('info'); // État pour le type d'alerte (par défaut : info)
 
   const isGoogleUser = userInfo?.provider === 'google';
 
   const reauthenticate = async () => {
-    if (!userInfo || !oldPassword) throw new Error('Ancien mot de passe requis.');
+    if (!userInfo || !oldPassword)
+      throw new Error('Ancien mot de passe requis.');
     const { error } = await supabase.auth.updateUser({
       password: oldPassword,
     });
@@ -40,7 +41,6 @@ const Security = ({ sharedProps }) => {
       // Réinitialiser les champs
       setNewPassword('');
       setOldPassword('');
-
     } catch (error) {
       setAlertType('danger');
       setAlertMessage(error.message);
@@ -68,13 +68,16 @@ const Security = ({ sharedProps }) => {
 
       {isGoogleUser ? (
         <div className="alert alert-info">
-          Connecté avec Google. Vous ne pouvez pas modifier votre email ou mot de passe.
+          Connecté avec Google. Vous ne pouvez pas modifier votre email ou mot
+          de passe.
         </div>
       ) : (
         <form onSubmit={handleUpdatePassword}>
           {/* Champ Username visible */}
           <div className="mb-3">
-            <label htmlFor="email" className="form-label">Email</label>
+            <label htmlFor="email" className="form-label">
+              Email
+            </label>
             <input
               type="email"
               id="email"
@@ -89,9 +92,11 @@ const Security = ({ sharedProps }) => {
 
           {/* Ancien mot de passe */}
           <div className="mb-3 position-relative">
-            <label htmlFor="oldPassword" className="form-label">Mot de passe actuel</label>
+            <label htmlFor="oldPassword" className="form-label">
+              Mot de passe actuel
+            </label>
             <input
-              type={oldPasswordVisible ? "text" : "password"}
+              type={oldPasswordVisible ? 'text' : 'password'}
               className="form-control"
               id="oldPassword"
               name="current-password"
@@ -103,27 +108,37 @@ const Security = ({ sharedProps }) => {
               placeholder="Entrez le mot de passe actuel"
             />
             <i
-              className={`bi bi-${oldPasswordVisible ? "eye-slash" : "eye"} position-absolute`}
+              className={`bi bi-${oldPasswordVisible ? 'eye-slash' : 'eye'} position-absolute`}
               role="button"
               tabIndex="0"
-              aria-label={oldPasswordVisible ? "Masquer le mot de passe" : "Afficher le mot de passe"}
-              style={{ top: "38px", right: "15px", cursor: "pointer", color: "#6c757d" }}
+              aria-label={
+                oldPasswordVisible
+                  ? 'Masquer le mot de passe'
+                  : 'Afficher le mot de passe'
+              }
+              style={{
+                top: '38px',
+                right: '15px',
+                cursor: 'pointer',
+                color: '#6c757d',
+              }}
               onClick={() => setOldPasswordVisible(!oldPasswordVisible)}
               onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
+                if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
                   setOldPasswordVisible(!oldPasswordVisible);
                 }
               }}
             ></i>
-
           </div>
 
           {/* Nouveau mot de passe */}
           <div className="mb-3 position-relative">
-            <label htmlFor="newPassword" className="form-label">Nouveau mot de passe</label>
+            <label htmlFor="newPassword" className="form-label">
+              Nouveau mot de passe
+            </label>
             <input
-              type={newPasswordVisible ? "text" : "password"}
+              type={newPasswordVisible ? 'text' : 'password'}
               className="form-control"
               id="newPassword"
               name="new-password"
@@ -135,14 +150,23 @@ const Security = ({ sharedProps }) => {
               required
             />
             <i
-              className={`bi bi-${newPasswordVisible ? "eye-slash" : "eye"} position-absolute`}
+              className={`bi bi-${newPasswordVisible ? 'eye-slash' : 'eye'} position-absolute`}
               role="button"
               tabIndex="0"
-              aria-label={newPasswordVisible ? "Masquer le mot de passe" : "Afficher le mot de passe"}
-              style={{ top: "38px", right: "15px", cursor: "pointer", color: "#6c757d" }}
+              aria-label={
+                newPasswordVisible
+                  ? 'Masquer le mot de passe'
+                  : 'Afficher le mot de passe'
+              }
+              style={{
+                top: '38px',
+                right: '15px',
+                cursor: 'pointer',
+                color: '#6c757d',
+              }}
               onClick={() => setNewPasswordVisible(!newPasswordVisible)}
               onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
+                if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
                   setNewPasswordVisible(!newPasswordVisible);
                 }

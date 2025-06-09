@@ -1,16 +1,18 @@
-import { useEffect, useContext, useRef } from "react";
-import { supabase } from "../services/supabaseClient";
-import { log } from "../utils/logger";
+import { useEffect, useContext, useRef } from 'react';
+import { supabase } from '../services/supabaseClient';
+import { log } from '../utils/logger';
 import { UserContext } from '../contexts/UserContext';
-import { analyticsPromise } from "../services/firebase";
-import { logEvent } from "firebase/analytics";
+import { analyticsPromise } from '../services/firebase';
+import { logEvent } from 'firebase/analytics';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 const fetchCalendars = async (uid, setCalendarsData, setLoadingStates) => {
   try {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) throw new Error("Session Supabase non trouvée");
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (!session) throw new Error('Session Supabase non trouvée');
 
     const res = await fetch(`${API_URL}/api/calendars`, {
       headers: {
@@ -25,11 +27,11 @@ const fetchCalendars = async (uid, setCalendarsData, setLoadingStates) => {
       a.name.localeCompare(b.name)
     );
     setCalendarsData(sortedCalendars);
-    setLoadingStates(prev => ({ ...prev, calendars: false }));
+    setLoadingStates((prev) => ({ ...prev, calendars: false }));
 
     analyticsPromise.then((analytics) => {
       if (analytics) {
-        logEvent(analytics, "fetch_calendars", {
+        logEvent(analytics, 'fetch_calendars', {
           uid,
           count: data.calendars?.length,
         });
@@ -37,23 +39,29 @@ const fetchCalendars = async (uid, setCalendarsData, setLoadingStates) => {
     });
 
     log.info(data.message, {
-      origin: "CALENDARS_FETCH_SUCCESS",
+      origin: 'CALENDARS_FETCH_SUCCESS',
       uid,
       count: data.calendars?.length,
     });
   } catch (err) {
-    setLoadingStates(prev => ({ ...prev, calendars: false }));
-    log.error(err.message || "Échec de récupération des calendriers", {
-      origin: "CALENDARS_FETCH_ERROR",
+    setLoadingStates((prev) => ({ ...prev, calendars: false }));
+    log.error(err.message || 'Échec de récupération des calendriers', {
+      origin: 'CALENDARS_FETCH_ERROR',
       uid,
     });
   }
 };
 
-const fetchSharedCalendars = async (uid, setSharedCalendarsData, setLoadingStates) => {
+const fetchSharedCalendars = async (
+  uid,
+  setSharedCalendarsData,
+  setLoadingStates
+) => {
   try {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) throw new Error("Session Supabase non trouvée");
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (!session) throw new Error('Session Supabase non trouvée');
 
     const res = await fetch(`${API_URL}/api/shared/users/calendars`, {
       headers: {
@@ -65,11 +73,11 @@ const fetchSharedCalendars = async (uid, setSharedCalendarsData, setLoadingState
     if (!res.ok) throw new Error(data.error);
 
     setSharedCalendarsData(data.calendars);
-    setLoadingStates(prev => ({ ...prev, sharedCalendars: false }));
+    setLoadingStates((prev) => ({ ...prev, sharedCalendars: false }));
 
     analyticsPromise.then((analytics) => {
       if (analytics) {
-        logEvent(analytics, "fetch_shared_calendars", {
+        logEvent(analytics, 'fetch_shared_calendars', {
           uid,
           count: data.calendars?.length,
         });
@@ -77,14 +85,14 @@ const fetchSharedCalendars = async (uid, setSharedCalendarsData, setLoadingState
     });
 
     log.info(data.message, {
-      origin: "SHARED_CALENDARS_FETCH_SUCCESS",
+      origin: 'SHARED_CALENDARS_FETCH_SUCCESS',
       uid,
       count: data.calendars?.length,
     });
   } catch (err) {
-    setLoadingStates(prev => ({ ...prev, sharedCalendars: false }));
-    log.error(err.message || "Échec de récupération des calendriers partagés", {
-      origin: "SHARED_CALENDARS_FETCH_ERROR",
+    setLoadingStates((prev) => ({ ...prev, sharedCalendars: false }));
+    log.error(err.message || 'Échec de récupération des calendriers partagés', {
+      origin: 'SHARED_CALENDARS_FETCH_ERROR',
       uid,
     });
   }
@@ -97,7 +105,7 @@ export const useRealtimeCalendars = (setCalendarsData, setLoadingStates) => {
   useEffect(() => {
     if (!userInfo || !setCalendarsData) return;
 
-    setLoadingStates(prev => ({ ...prev, calendars: true }));
+    setLoadingStates((prev) => ({ ...prev, calendars: true }));
     fetchCalendars(userInfo.uid, setCalendarsData, setLoadingStates);
 
     const channel = supabase
@@ -135,24 +143,31 @@ export const useRealtimeCalendars = (setCalendarsData, setLoadingStates) => {
         deleteChannel.unsubscribe();
         channelRef.current = null;
       } catch (err) {
-        log.error("Erreur lors de la désinscription des canaux Supabase", {
+        log.error('Erreur lors de la désinscription des canaux Supabase', {
           error: err,
-          origin: "REALTIME_CALENDARS_CLEANUP_ERROR",
+          origin: 'REALTIME_CALENDARS_CLEANUP_ERROR',
         });
       }
     };
   }, [userInfo, setCalendarsData, setLoadingStates]);
 };
 
-export const useRealtimeSharedCalendars = (setSharedCalendarsData, setLoadingStates) => {
+export const useRealtimeSharedCalendars = (
+  setSharedCalendarsData,
+  setLoadingStates
+) => {
   const { userInfo } = useContext(UserContext);
   const channelRef = useRef(null);
 
   useEffect(() => {
     if (!userInfo || !setSharedCalendarsData) return;
 
-    setLoadingStates(prev => ({ ...prev, sharedCalendars: true }));
-    fetchSharedCalendars(userInfo.uid, setSharedCalendarsData, setLoadingStates);
+    setLoadingStates((prev) => ({ ...prev, sharedCalendars: true }));
+    fetchSharedCalendars(
+      userInfo.uid,
+      setSharedCalendarsData,
+      setLoadingStates
+    );
 
     const channel = supabase
       .channel('shared-calendars-realtime')
@@ -164,7 +179,12 @@ export const useRealtimeSharedCalendars = (setSharedCalendarsData, setLoadingSta
           table: 'shared_calendars',
           filter: `receiver_uid=eq.${userInfo.uid}`,
         },
-        () => fetchSharedCalendars(userInfo.uid, setSharedCalendarsData, setLoadingStates)
+        () =>
+          fetchSharedCalendars(
+            userInfo.uid,
+            setSharedCalendarsData,
+            setLoadingStates
+          )
       )
       .subscribe();
 
@@ -177,7 +197,12 @@ export const useRealtimeSharedCalendars = (setSharedCalendarsData, setLoadingSta
           schema: 'public',
           table: 'shared_calendars',
         },
-        () => fetchSharedCalendars(userInfo.uid, setSharedCalendarsData, setLoadingStates)
+        () =>
+          fetchSharedCalendars(
+            userInfo.uid,
+            setSharedCalendarsData,
+            setLoadingStates
+          )
       )
       .subscribe();
 
@@ -189,9 +214,9 @@ export const useRealtimeSharedCalendars = (setSharedCalendarsData, setLoadingSta
         deleteChannel.unsubscribe();
         channelRef.current = null;
       } catch (err) {
-        log.error("Erreur lors de la désinscription des canaux Supabase", {
+        log.error('Erreur lors de la désinscription des canaux Supabase', {
           error: err,
-          origin: "REALTIME_SHARED_CALENDARS_CLEANUP_ERROR",
+          origin: 'REALTIME_SHARED_CALENDARS_CLEANUP_ERROR',
         });
       }
     };

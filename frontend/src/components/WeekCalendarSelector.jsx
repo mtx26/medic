@@ -1,9 +1,12 @@
 import React from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
-import { getWeekDaysISOStrings, getMondayFromDate, formatToLocalISODate } from '../utils/dateUtils';
+import {
+  getWeekDaysISOStrings,
+  getMondayFromDate,
+  formatToLocalISODate,
+} from '../utils/dateUtils';
 import PropTypes from 'prop-types';
-
 
 export default function WeekCalendarSelector({ selectedDate, onWeekSelect }) {
   const monday = getMondayFromDate(selectedDate);
@@ -34,7 +37,6 @@ export default function WeekCalendarSelector({ selectedDate, onWeekSelect }) {
     />
   );
 }
-
 
 WeekCalendarSelector.propTypes = {
   selectedDate: PropTypes.string.isRequired,

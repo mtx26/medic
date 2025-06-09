@@ -1,5 +1,8 @@
 // useRealtimeBoxesSwitcher.js
-import { useRealtimePersonalBoxes, useRealtimeSharedBoxes } from './useRealtimeBoxes';
+import {
+  useRealtimePersonalBoxes,
+  useRealtimeSharedBoxes,
+} from './useRealtimeBoxes';
 
 export const useRealtimeBoxesSwitcher = (
   calendarType,
@@ -21,4 +24,4 @@ export const useRealtimeBoxesSwitcher = (
     setBoxes,
     setLoadingBoxes
   );
-}
+};

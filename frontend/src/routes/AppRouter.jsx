@@ -38,7 +38,10 @@ function PrivateRoute({ element }) {
 function RouteWithLoader({ element, isLoading }) {
   if (isLoading) {
     return (
-      <div className="d-flex justify-content-center align-items-center" style={{ flexGrow: 1, minHeight: '60vh' }}>
+      <div
+        className="d-flex justify-content-center align-items-center"
+        style={{ flexGrow: 1, minHeight: '60vh' }}
+      >
         <span className="spinner-border text-primary">
           <span className="visually-hidden">Chargement...</span>
         </span>
@@ -52,14 +55,28 @@ function AppRoutes({ sharedProps }) {
   const { userInfo } = useContext(UserContext);
 
   return (
-      <Routes>
-        <Route path="/login" element={userInfo ? <Navigate to="/calendars" /> : <Auth />}  />
-        <Route path="/register" element={userInfo ? <Navigate to="/calendars" /> : <Auth />} />
-        <Route path="/reset-password" element={userInfo ? <Navigate to="/calendars" /> : <ResetPassword />} />
-        <Route path="/verify-email" element={userInfo ? <VerifyEmail/> : <Navigate to="/login" />} />
+    <Routes>
+      <Route
+        path="/login"
+        element={userInfo ? <Navigate to="/calendars" /> : <Auth />}
+      />
+      <Route
+        path="/register"
+        element={userInfo ? <Navigate to="/calendars" /> : <Auth />}
+      />
+      <Route
+        path="/reset-password"
+        element={userInfo ? <Navigate to="/calendars" /> : <ResetPassword />}
+      />
+      <Route
+        path="/verify-email"
+        element={userInfo ? <VerifyEmail /> : <Navigate to="/login" />}
+      />
 
-        <Route path="/settings" element={
-          <PrivateRoute 
+      <Route
+        path="/settings"
+        element={
+          <PrivateRoute
             element={
               <RouteWithLoader
                 element={<SettingsPage {...sharedProps} />}
@@ -67,9 +84,12 @@ function AppRoutes({ sharedProps }) {
               />
             }
           />
-        } />
-        <Route path="/notifications" element={
-          <PrivateRoute 
+        }
+      />
+      <Route
+        path="/notifications"
+        element={
+          <PrivateRoute
             element={
               <RouteWithLoader
                 element={<NotificationsPage {...sharedProps} />}
@@ -77,10 +97,13 @@ function AppRoutes({ sharedProps }) {
               />
             }
           />
-        } />
+        }
+      />
 
-        <Route path="/shared-calendars" element={
-          <PrivateRoute 
+      <Route
+        path="/shared-calendars"
+        element={
+          <PrivateRoute
             element={
               <RouteWithLoader
                 element={<SharedList {...sharedProps} />}
@@ -88,10 +111,13 @@ function AppRoutes({ sharedProps }) {
               />
             }
           />
-        } />
+        }
+      />
 
-        <Route path="/calendar/:calendarId/boxes" element={
-          <PrivateRoute 
+      <Route
+        path="/calendar/:calendarId/boxes"
+        element={
+          <PrivateRoute
             element={
               <RouteWithLoader
                 element={<BoxesView {...sharedProps} />}
@@ -99,9 +125,12 @@ function AppRoutes({ sharedProps }) {
               />
             }
           />
-        } />
-        <Route path="/calendar/:calendarId" element={
-          <PrivateRoute 
+        }
+      />
+      <Route
+        path="/calendar/:calendarId"
+        element={
+          <PrivateRoute
             element={
               <RouteWithLoader
                 element={<CalendarView {...sharedProps} />}
@@ -109,9 +138,12 @@ function AppRoutes({ sharedProps }) {
               />
             }
           />
-        } />
-        <Route path="/calendars" element={
-          <PrivateRoute 
+        }
+      />
+      <Route
+        path="/calendars"
+        element={
+          <PrivateRoute
             element={
               <RouteWithLoader
                 element={<CalendarList {...sharedProps} />}
@@ -119,9 +151,12 @@ function AppRoutes({ sharedProps }) {
               />
             }
           />
-        } />
-        <Route path="/shared-user-calendar/:calendarId/boxes" element={
-          <PrivateRoute 
+        }
+      />
+      <Route
+        path="/shared-user-calendar/:calendarId/boxes"
+        element={
+          <PrivateRoute
             element={
               <RouteWithLoader
                 element={<BoxesView {...sharedProps} />}
@@ -129,26 +164,36 @@ function AppRoutes({ sharedProps }) {
               />
             }
           />
-        } />
-        <Route path="/shared-user-calendar/:calendarId" element={
-            <PrivateRoute 
-              element={
-                <RouteWithLoader
-                  element={<CalendarView {...sharedProps} />}
-                  isLoading={sharedProps.loadingStates.isInitialLoading}
-                />
-              }
-            />
-          } />
+        }
+      />
+      <Route
+        path="/shared-user-calendar/:calendarId"
+        element={
+          <PrivateRoute
+            element={
+              <RouteWithLoader
+                element={<CalendarView {...sharedProps} />}
+                isLoading={sharedProps.loadingStates.isInitialLoading}
+              />
+            }
+          />
+        }
+      />
 
-        <Route path="/shared-token-calendar/:sharedToken/boxes" element={<MedicinesList {...sharedProps} />} />
-        <Route path="/shared-token-calendar/:sharedToken" element={<CalendarView {...sharedProps} />} />
+      <Route
+        path="/shared-token-calendar/:sharedToken/boxes"
+        element={<MedicinesList {...sharedProps} />}
+      />
+      <Route
+        path="/shared-token-calendar/:sharedToken"
+        element={<CalendarView {...sharedProps} />}
+      />
 
-        <Route path="/privacy" element={<PrivacyPage />} />
-        <Route path="/terms" element={<TermsPage />} />
-        <Route path="/" element={<HomePage />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+      <Route path="/privacy" element={<PrivacyPage />} />
+      <Route path="/terms" element={<TermsPage />} />
+      <Route path="/" element={<HomePage />} />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
   );
 }
 

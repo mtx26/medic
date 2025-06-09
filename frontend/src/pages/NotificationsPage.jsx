@@ -1,20 +1,24 @@
-import React from "react";
-import { Link, useNavigate } from "react-router-dom";
-import NotificationLine from "../components/NotificationLine";
+import React from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import NotificationLine from '../components/NotificationLine';
 
 function NotificationsPage({ notifications, sharedUserCalendars }) {
   const navigate = useNavigate();
 
   if (notifications.notificationsData === null) {
     return (
-      <div className="d-flex justify-content-center align-items-center" style={{ height: '60vh' }}>
+      <div
+        className="d-flex justify-content-center align-items-center"
+        style={{ height: '60vh' }}
+      >
         <div className="spinner-border text-primary">
-          <span className="visually-hidden">Chargement des notifications...</span>
+          <span className="visually-hidden">
+            Chargement des notifications...
+          </span>
         </div>
       </div>
     );
   }
-  
 
   return (
     <div className="container py-4">
@@ -28,7 +32,9 @@ function NotificationsPage({ notifications, sharedUserCalendars }) {
       </div>
 
       {notifications.notificationsData.length === 0 ? (
-        <div className="alert alert-info text-center">Aucune notification pour le moment.</div>
+        <div className="alert alert-info text-center">
+          Aucune notification pour le moment.
+        </div>
       ) : (
         <ul className="list-group">
           {notifications.notificationsData.map((notif) => (

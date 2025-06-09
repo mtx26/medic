@@ -1,25 +1,27 @@
-import { supabase } from "../services/supabaseClient";
-import { getGlobalReloadUser } from "../contexts/UserContext";
-import { log } from "../utils/logger";
+import { supabase } from '../services/supabaseClient';
+import { getGlobalReloadUser } from '../contexts/UserContext';
+import { log } from '../utils/logger';
 
 /**
  * Connexion avec Google
  */
 export const GoogleHandleLogin = async () => {
   try {
-    await supabase.auth.signInWithOAuth({ provider: "google" });
+    await supabase.auth.signInWithOAuth({ provider: 'google' });
 
     const user = (await supabase.auth.getUser()).data.user;
-    getGlobalReloadUser()(user?.user_metadata?.name, user?.user_metadata?.avatar_url);
+    getGlobalReloadUser()(
+      user?.user_metadata?.name,
+      user?.user_metadata?.avatar_url
+    );
 
-    log.info("Utilisateur connecté avec Google", {
-      origin: "GOOGLE_HANDLE_LOGIN_SUCCESS",
+    log.info('Utilisateur connecté avec Google', {
+      origin: 'GOOGLE_HANDLE_LOGIN_SUCCESS',
       uid: user?.id || null,
     });
-
   } catch (err) {
-    log.error(err.message || "Erreur lors de la connexion avec Google", err, {
-      origin: "GOOGLE_HANDLE_LOGIN_ERROR",
+    log.error(err.message || 'Erreur lors de la connexion avec Google', err, {
+      origin: 'GOOGLE_HANDLE_LOGIN_ERROR',
       uid: null,
     });
   }
@@ -46,15 +48,15 @@ export const registerWithEmail = async (email, password, name) => {
     const user = data.user;
     getGlobalReloadUser()(name, null);
 
-    log.info("Utilisateur inscrit et connecté :", {
-      origin: "REGISTER_WITH_EMAIL_SUCCESS",
+    log.info('Utilisateur inscrit et connecté :', {
+      origin: 'REGISTER_WITH_EMAIL_SUCCESS',
       uid: user?.id || null,
     });
 
     return user;
   } catch (error) {
     log.error("Erreur lors de l'inscription avec email :", error.message, {
-      origin: "REGISTER_WITH_EMAIL_ERROR",
+      origin: 'REGISTER_WITH_EMAIL_ERROR',
       uid: null,
     });
   }
@@ -65,21 +67,27 @@ export const registerWithEmail = async (email, password, name) => {
  */
 export const loginWithEmail = async (email, password) => {
   try {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
     if (error) throw error;
 
     const user = data.user;
-    getGlobalReloadUser()(user?.user_metadata?.name, user?.user_metadata?.avatar_url);
+    getGlobalReloadUser()(
+      user?.user_metadata?.name,
+      user?.user_metadata?.avatar_url
+    );
 
-    log.info("Utilisateur connecté avec email :", {
-      origin: "LOGIN_WITH_EMAIL_SUCCESS",
+    log.info('Utilisateur connecté avec email :', {
+      origin: 'LOGIN_WITH_EMAIL_SUCCESS',
       uid: user?.id || null,
     });
 
     return user;
   } catch (error) {
-    log.error("Erreur lors de la connexion avec email :", error.message, {
-      origin: "LOGIN_WITH_EMAIL_ERROR",
+    log.error('Erreur lors de la connexion avec email :', error.message, {
+      origin: 'LOGIN_WITH_EMAIL_ERROR',
       uid: null,
     });
   }
@@ -92,15 +100,19 @@ export const resetPassword = async (email) => {
   try {
     await supabase.auth.resetPasswordForEmail(email);
 
-    log.info("Email de réinitialisation envoyé à :", email, {
-      origin: "RESET_PASSWORD_SUCCESS",
+    log.info('Email de réinitialisation envoyé à :', email, {
+      origin: 'RESET_PASSWORD_SUCCESS',
       uid: null,
     });
   } catch (error) {
-    log.error("Erreur lors de l'envoi de l'email de réinitialisation :", error.message, {
-      origin: "RESET_PASSWORD_ERROR",
-      uid: null,
-    });
+    log.error(
+      "Erreur lors de l'envoi de l'email de réinitialisation :",
+      error.message,
+      {
+        origin: 'RESET_PASSWORD_ERROR',
+        uid: null,
+      }
+    );
   }
 };
 
@@ -114,13 +126,13 @@ export const handleLogout = async () => {
 
     getGlobalReloadUser()();
 
-    log.info("Utilisateur déconnecté", {
-      origin: "HANDLE_LOGOUT_SUCCESS",
+    log.info('Utilisateur déconnecté', {
+      origin: 'HANDLE_LOGOUT_SUCCESS',
       uid: user?.id || null,
     });
   } catch (error) {
-    log.error("Erreur de déconnexion :", error.message, {
-      origin: "HANDLE_LOGOUT_ERROR",
+    log.error('Erreur de déconnexion :', error.message, {
+      origin: 'HANDLE_LOGOUT_ERROR',
       uid: null,
     });
   }
@@ -132,18 +144,18 @@ export const handleLogout = async () => {
 export const updateUserPassword = async (newPassword) => {
   try {
     const user = (await supabase.auth.getUser()).data.user;
-    if (!user) throw new Error("Aucun utilisateur connecté.");
+    if (!user) throw new Error('Aucun utilisateur connecté.');
 
     const { error } = await supabase.auth.updateUser({ password: newPassword });
     if (error) throw error;
 
-    log.info("Mot de passe utilisateur mis à jour", {
-      origin: "UPDATE_USER_PASSWORD_SUCCESS",
+    log.info('Mot de passe utilisateur mis à jour', {
+      origin: 'UPDATE_USER_PASSWORD_SUCCESS',
       uid: user?.id || null,
     });
   } catch (error) {
-    log.error("Erreur lors de la mise à jour du mot de passe", error.message, {
-      origin: "UPDATE_USER_PASSWORD_ERROR",
+    log.error('Erreur lors de la mise à jour du mot de passe', error.message, {
+      origin: 'UPDATE_USER_PASSWORD_ERROR',
       uid: null,
     });
   }

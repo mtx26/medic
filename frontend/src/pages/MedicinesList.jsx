@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useRealtimeTokenMedicines } from '../hooks/useRealtimeMedicines';
 
-
 function MedicinesList() {
   // 📍 Paramètres d’URL et navigation
   const { sharedToken } = useParams(); // Récupération du token de partage depuis l'URL
@@ -20,18 +19,21 @@ function MedicinesList() {
       acc[med.name].push(med);
       return acc;
     }, {});
-  }
+  };
 
   if (loadingMedicines === undefined && sharedToken) {
     return (
-      <div className="d-flex justify-content-center align-items-center" style={{ height: '60vh' }}>
+      <div
+        className="d-flex justify-content-center align-items-center"
+        style={{ height: '60vh' }}
+      >
         <div className="spinner-border text-primary">
           <span className="visually-hidden">Chargement des médicaments...</span>
         </div>
       </div>
     );
   }
-  
+
   if (loadingMedicines === false && sharedToken) {
     return (
       <div className="alert alert-danger text-center mt-5" role="alert">
@@ -40,7 +42,9 @@ function MedicinesList() {
     );
   }
 
-  const groupedMedicines = medicinesData ? groupMedicinesByName(medicinesData) : {};
+  const groupedMedicines = medicinesData
+    ? groupMedicinesByName(medicinesData)
+    : {};
 
   return (
     <div className="container mt-4">
@@ -65,11 +69,19 @@ function MedicinesList() {
         <ul className="list-group mt-3">
           {Object.keys(groupedMedicines).map((key, index) => (
             <li key={index} className="list-group-item align-items-center">
-              <strong>{key} {groupedMedicines[key][0].dose != null ? `${groupedMedicines[key][0].dose} mg` : ""}</strong> 
+              <strong>
+                {key}{' '}
+                {groupedMedicines[key][0].dose != null
+                  ? `${groupedMedicines[key][0].dose} mg`
+                  : ''}
+              </strong>
               {groupedMedicines[key].map((med, index) => (
                 <div key={index} className="text-muted small">
-                  {med.time_of_day[0] === "morning" ? "Matin" : "Soir"} - {med.tablet_count} comprimé(s) - Tous les {med.interval_days} jour(s)
-                  {med.start_date && ` à partir du ${new Date(med.start_date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })}`}
+                  {med.time_of_day[0] === 'morning' ? 'Matin' : 'Soir'} -{' '}
+                  {med.tablet_count} comprimé(s) - Tous les {med.interval_days}{' '}
+                  jour(s)
+                  {med.start_date &&
+                    ` à partir du ${new Date(med.start_date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })}`}
                 </div>
               ))}
             </li>

@@ -29,4 +29,4 @@ export function getWeekDaysISOStrings(monday) {
     d.setHours(0, 0, 0, 0);
     return formatToLocalISODate(d);
   });
-} 
+}

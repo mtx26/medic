@@ -1,14 +1,16 @@
-import * as Popover from "@radix-ui/react-popover";
-import { useState } from "react";
-import useIsTouchDevice from "../hooks/useIsTouchDevice";
+import * as Popover from '@radix-ui/react-popover';
+import { useState } from 'react';
+import useIsTouchDevice from '../hooks/useIsTouchDevice';
 import PropTypes from 'prop-types';
 
-
-export default function HoveredUserProfile({ user, trigger, containerRef = null }) {
+export default function HoveredUserProfile({
+  user,
+  trigger,
+  containerRef = null,
+}) {
   const [open, setOpen] = useState(false);
-  
-  const isTouchDevice = useIsTouchDevice();
 
+  const isTouchDevice = useIsTouchDevice();
 
   // gestion mobile : click toggle
   const handleClick = () => {
@@ -28,12 +30,10 @@ export default function HoveredUserProfile({ user, trigger, containerRef = null 
       <Popover.Trigger asChild>
         <button
           type="button"
-          onClick={
-            (e) => {
-              e.stopPropagation();
-              handleClick();
-            }
-          }
+          onClick={(e) => {
+            e.stopPropagation();
+            handleClick();
+          }}
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') {
               e.stopPropagation();
@@ -46,23 +46,27 @@ export default function HoveredUserProfile({ user, trigger, containerRef = null 
           aria-label="Afficher le profil de l'utilisateur"
           title="Afficher le profil de l'utilisateur"
           style={{
-            textDecoration: open ? "underline" : "none",
-            color: open ? "#0d6efd" : "inherit",
-            cursor: "pointer",
-            font: "inherit",
-            lineHeight: "inherit",
+            textDecoration: open ? 'underline' : 'none',
+            color: open ? '#0d6efd' : 'inherit',
+            cursor: 'pointer',
+            font: 'inherit',
+            lineHeight: 'inherit',
           }}
         >
-          <span 
+          <span
             style={{
-              cursor: "pointer",
-              textDecoration: open ? "underline" : "none",
-              color: open ? "#0d6efd" : "inherit",
-              transition: "color 0.2s, text-decoration 0.2s"
+              cursor: 'pointer',
+              textDecoration: open ? 'underline' : 'none',
+              color: open ? '#0d6efd' : 'inherit',
+              transition: 'color 0.2s, text-decoration 0.2s',
             }}
             className="d-flex align-items-center gap-1"
           >
-            {trigger} <i className="bi bi-info-circle" style={{ fontSize: "0.9em", color: "#6c757d" }}></i>
+            {trigger}{' '}
+            <i
+              className="bi bi-info-circle"
+              style={{ fontSize: '0.9em', color: '#6c757d' }}
+            ></i>
           </span>
         </button>
       </Popover.Trigger>
@@ -75,7 +79,7 @@ export default function HoveredUserProfile({ user, trigger, containerRef = null 
           style={{
             width: 250,
             zIndex: 9999,
-            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
           }}
           onClick={handleClick}
           onPointerEnter={handleMouseEnter}
@@ -86,7 +90,7 @@ export default function HoveredUserProfile({ user, trigger, containerRef = null 
               src={user.photo_url}
               alt="Profil"
               className="rounded-circle"
-              style={{ width: "70px", height: "70px", objectFit: "cover" }}
+              style={{ width: '70px', height: '70px', objectFit: 'cover' }}
             />
             <div>
               <h6 className="mb-0">{user.display_name}</h6>
