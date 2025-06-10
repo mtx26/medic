@@ -6,7 +6,8 @@ import {
   loginWithEmail,
   GithubHandleLogin,
   TwitterHandleLogin,
-  DiscordHandleLogin
+  DiscordHandleLogin,
+  FacebookHandleLogin
 } from '../services/authService';
 import AlertSystem from '../components/AlertSystem';
 import { getSupabaseErrorMessage } from '../utils/SupabaseErrorMessage';
@@ -122,6 +123,17 @@ function Auth() {
                   <i className="bi bi-twitter fs-4"></i>
                 </button>
                 <span> Twitter</span>
+              </div>
+              <div className="d-flex flex-column align-items-center">
+                <button
+                  className="btn btn-outline-primary rounded-pill py-1 shadow-sm d-flex align-items-center justify-content-center gap-2"
+                  onClick={FacebookHandleLogin}
+                  aria-label="Connexion avec Facebook"
+                  title="Connexion avec Facebook"
+                >
+                  <i className="bi bi-facebook fs-4"></i>
+                </button>
+                <span> Facebook</span>
               </div>
             </div>
             <p className="text-center mt-3 mb-0 text-muted">ou avec email :</p>
