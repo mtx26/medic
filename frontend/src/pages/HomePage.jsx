@@ -207,6 +207,23 @@ function HomePage() {
           </button>
         </div>
       </section>
+      <section className="bg-white border-top py-4">
+        <div className="container text-center">
+          <a
+            href="/privacy"
+            className="text-muted text-decoration-none small me-3"
+          >
+            Politique de confidentialité
+          </a>
+          <span className="text-muted small">|</span>
+          <a
+            href="/terms"
+            className="text-muted text-decoration-none small ms-3"
+          >
+            Conditions d'utilisation
+          </a>
+        </div>
+      </section>
     </>
   );
 }
