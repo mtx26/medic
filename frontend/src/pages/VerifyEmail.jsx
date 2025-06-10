@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { UserContext, getGlobalReloadUser } from '../contexts/UserContext';
 import AlertSystem from '../components/AlertSystem';
 import { log } from '../utils/logger';
-import { getFirebaseErrorMessage } from '../utils/FirebaseErrorMessage';
+import { getSupabaseErrorMessage } from '../utils/SupabaseErrorMessage';
 
 function VerifyEmail() {
   // 🔐 Contexte utilisateur
@@ -51,7 +51,7 @@ function VerifyEmail() {
           origin: 'VerifyEmail.jsx',
           error,
         });
-        setAlertMessage('❌ ' + getFirebaseErrorMessage(error.code));
+        setAlertMessage('❌ ' + getSupabaseErrorMessage(error.code));
         setAlertType('danger');
       }
     } else {

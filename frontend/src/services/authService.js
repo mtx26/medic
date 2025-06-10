@@ -74,6 +74,7 @@ export const TwitterHandleLogin = async () => {
   }
 };
 
+/*TODO: FacebookHandleLogin*/
 /**
  * Connexion avec Facebook
  */
@@ -99,11 +100,35 @@ export const FacebookHandleLogin = async () => {
 };
 
 /**
+ * Connexion avec Discord
+ */
+export const DiscordHandleLogin = async () => {
+  try {
+    await supabase.auth.signInWithOAuth({
+      provider: 'discord',
+      options: {
+        redirectTo: window.location.origin + '/auth/callback',
+        queryParams: {
+          prompt: 'select_account',
+          access_type: 'offline',
+        },
+        flowType: 'redirect',
+      },
+    });
+  } catch (err) {
+    log.error(err.message || 'Erreur lors de la connexion avec Discord', err, {
+      origin: 'DISCORD_HANDLE_LOGIN',
+      uid: null,
+    });
+  }
+};
+
+  /**
  * Inscription avec email et mot de passe
  */
 export const registerWithEmail = async (email, password, name) => {
   try {
-    await supabase.auth.signUp({
+    const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -114,6 +139,15 @@ export const registerWithEmail = async (email, password, name) => {
         },
       },
     });
+    if (error) {
+      log.error("Erreur lors de l'inscription avec email :", error.message, error, {
+        origin: 'REGISTER_WITH_EMAIL',
+        uid: null,
+      });
+      return error;
+    }
+    return null;
+
   } catch (error) {
     log.error("Erreur lors de l'inscription avec email :", error.message, {
       origin: 'REGISTER_WITH_EMAIL',
@@ -127,13 +161,21 @@ export const registerWithEmail = async (email, password, name) => {
  */
 export const loginWithEmail = async (email, password) => {
   try {
-    await supabase.auth.signInWithPassword({
+    const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
       options: {
         redirectTo: window.location.origin + '/auth/callback',
       },
     });
+    if (error) {
+      log.error("Erreur lors de la connexion avec email :", error.message, error, {
+        origin: 'LOGIN_WITH_EMAIL',
+        uid: null,
+      });
+      return error;
+    }
+    return null;
   } catch (error) {
     log.error('Erreur lors de la connexion avec email :', error.message, {
       origin: 'LOGIN_WITH_EMAIL',
@@ -171,7 +213,7 @@ export const handleLogout = async () => {
   try {
     await supabase.auth.signOut({
       options: {
-        redirectTo: window.location.origin,
+        redirectTo: window.location.origin + '/auth/callback',
       },
     });
   } catch (error) {

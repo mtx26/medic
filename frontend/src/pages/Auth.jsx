@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   GoogleHandleLogin,
   registerWithEmail,
   loginWithEmail,
   GithubHandleLogin,
   TwitterHandleLogin,
-  FacebookHandleLogin,
+  DiscordHandleLogin
 } from '../services/authService';
 import AlertSystem from '../components/AlertSystem';
-import { getFirebaseErrorMessage } from '../utils/FirebaseErrorMessage';
+import { getSupabaseErrorMessage } from '../utils/SupabaseErrorMessage';
 import { log } from '../utils/logger';
 import { Link } from 'react-router-dom';
 import { UserContext } from '../contexts/UserContext';
@@ -26,9 +26,10 @@ function Auth() {
   // ⚠️ Alertes
   const [alertMessage, setAlertMessage] = useState(null); // État pour le message d'alerte
   const [alertType, setAlertType] = useState('info'); // État pour le type d'alerte (par défaut : info)
+  const [duration, setDuration] = useState(2000); // État pour la durée de l'alerte
 
   const location = useLocation();
-
+  const navigate = useNavigate();
   useEffect(() => {
     setActiveTab(location.pathname === '/register' ? 'register' : 'login');
   }, [location.pathname]);
@@ -77,39 +78,51 @@ function Auth() {
                 ? 'Se connecter avec :'
                 : "S'inscrire avec :"}
             </p>
-            <div className="gap-2 d-flex justify-content-center align-items-center">
-              <button
-                className="btn btn-outline-danger rounded-pill py-1 shadow-sm"
-                onClick={GoogleHandleLogin}
-                aria-label="Connexion avec Google"
-                title="Connexion avec Google"
-              >
-                <i className="bi bi-google fs-4"></i>
-              </button>
-              <button
-                className="btn btn-outline-secondary rounded-pill py-1 shadow-sm"
-                onClick={GithubHandleLogin}
-                aria-label="Connexion avec Github"
-                title="Connexion avec Github"
-              >
-                <i className="bi bi-github fs-4"></i> 
-              </button>
-              <button
-                className="btn btn-outline-primary rounded-pill py-1 shadow-sm"
-                onClick={FacebookHandleLogin}
-                aria-label="Connexion avec Facebook"
-                title="Connexion avec Facebook"
-              >
-                <i className="bi bi-facebook fs-4"></i>
-              </button>
-              <button
-                className="btn btn-outline-info rounded-pill py-1 shadow-sm"
-                onClick={TwitterHandleLogin}
-                aria-label="Connexion avec Twitter"
-                title="Connexion avec Twitter"
-              >
-                <i className="bi bi-twitter fs-4"></i> 
-              </button>
+            <div className="gap-2 d-flex justify-content-center align-items-center flex-wrap">
+              <div className="d-flex flex-column align-items-center">
+                <button
+                  className="btn btn-outline-danger rounded-pill py-1 shadow-sm d-flex align-items-center justify-content-center gap-2"
+                  onClick={GoogleHandleLogin}
+                  aria-label="Connexion avec Google"
+                  title="Connexion avec Google"
+                >
+                  <i className="bi bi-google fs-4"></i>
+                </button>
+                <span> Google</span>
+              </div>
+              <div className="d-flex flex-column align-items-center">
+                <button
+                  className="btn btn-outline-secondary rounded-pill py-1 shadow-sm d-flex align-items-center justify-content-center gap-2"
+                  onClick={GithubHandleLogin}
+                  aria-label="Connexion avec Github"
+                  title="Connexion avec Github"
+                >
+                  <i className="bi bi-github fs-4"></i>
+                </button>
+                <span> Github</span>
+              </div>
+              <div className="d-flex flex-column align-items-center">
+                <button
+                  className="btn btn-outline-primary rounded-pill py-1 shadow-sm d-flex align-items-center justify-content-center gap-2"
+                  onClick={DiscordHandleLogin}
+                  aria-label="Connexion avec Discord"
+                  title="Connexion avec Discord"
+                >
+                  <i className="bi bi-discord fs-4"></i>
+                </button>
+                <span> Discord</span>
+              </div>
+              <div className="d-flex flex-column align-items-center">
+                <button
+                  className="btn btn-outline-info rounded-pill py-1 shadow-sm d-flex align-items-center justify-content-center gap-2"
+                  onClick={TwitterHandleLogin}
+                  aria-label="Connexion avec Twitter"
+                  title="Connexion avec Twitter"
+                >
+                  <i className="bi bi-twitter fs-4"></i>
+                </button>
+                <span> Twitter</span>
+              </div>
             </div>
             <p className="text-center mt-3 mb-0 text-muted">ou avec email :</p>
           </div>
@@ -118,6 +131,7 @@ function Auth() {
             type={alertType}
             message={alertMessage}
             onClose={() => setAlertMessage(null)}
+            duration={duration}
           />
 
           <form
@@ -125,28 +139,40 @@ function Auth() {
               e.preventDefault();
               try {
                 if (activeTab === 'login') {
-                  await loginWithEmail(email, password);
-                  log.info('Connexion réussie', {
-                    id: 'LOGIN-SUCCESS',
-                    origin: 'Auth.jsx',
-                    user: userInfo.uid,
-                  });
+                  const error = await loginWithEmail(email, password);
+                  if (error) {
+                    setAlertMessage('❌ ' + getSupabaseErrorMessage(error.message));
+                    setAlertType('danger');
+                  } else {
+                    log.info('Connexion réussie', {
+                      id: 'LOGIN-SUCCESS',
+                      origin: 'Auth.jsx',
+                      user: userInfo.uid,
+                    });
+                  }
                 } else {
-                  await registerWithEmail(email, password, name);
-                  log.info('Inscription réussie', {
-                    id: 'REGISTER-SUCCESS',
-                    origin: 'Auth.jsx',
-                    user: userInfo.uid,
-                  });
+                  const error = await registerWithEmail(email, password, name);
+                  if (error) {
+                    console.log(error.message);
+                    setAlertMessage('❌ ' + getSupabaseErrorMessage(error.message));
+                    setAlertType('danger');
+                  } else {
+                    setDuration(5000);
+                    setAlertMessage('📩 Un lien de vérification a été envoyé à votre adresse e-mail.');
+                    setAlertType('success');
+                    log.info('Inscription réussie', {
+                      id: 'REGISTER-SUCCESS',
+                      origin: 'Auth.jsx',
+                      user: userInfo.uid,
+                    });
+                  }
                 }
               } catch (err) {
-                log.error('Firebase auth error', {
+                log.error('Supabase auth error', {
                   id: 'AUTH-ERROR',
-                  origin: 'App.js',
+                  origin: 'Auth.jsx',
                   stack: err.stack,
                 });
-                setAlertMessage('❌ ' + getFirebaseErrorMessage(err.code));
-                setAlertType('danger');
               }
             }}
           >
@@ -162,7 +188,7 @@ function Auth() {
                   aria-label="Nom complet"
                   required
                   value={name}
-                  autoComplete="name"
+                  autoComplete={activeTab === 'login' ? 'name' : 'new-name'}
                   onChange={(e) => setName(e.target.value)}
                 />
               </div>
@@ -179,7 +205,7 @@ function Auth() {
                 aria-label="Adresse e-mail"
                 required
                 value={email}
-                autoComplete="email"
+                autoComplete={activeTab === 'login' ? 'email' : 'new-email'}
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
@@ -195,7 +221,7 @@ function Auth() {
                 aria-label="Mot de passe"
                 required
                 value={password}
-                autoComplete="current-password"
+                autoComplete={activeTab === 'login' ? 'current-password' : 'new-password'}
                 onChange={(e) => setPassword(e.target.value)}
               />
               <i
