@@ -23,6 +23,8 @@ import NotFound from '../pages/NotFound';
 import PrivacyPage from '../pages/PrivacyPage';
 import TermsPage from '../pages/TermsPage';
 
+import AuthCallback from '../pages/AuthCallback';
+
 function PrivateRoute({ element }) {
   const { userInfo } = useContext(UserContext);
 
@@ -193,6 +195,8 @@ function AppRoutes({ sharedProps }) {
       <Route path="/terms" element={<TermsPage />} />
       <Route path="/" element={<HomePage />} />
       <Route path="*" element={<NotFound />} />
+
+      <Route path="/auth/callback" element={<AuthCallback />} />
     </Routes>
   );
 }

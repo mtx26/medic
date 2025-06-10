@@ -4,6 +4,9 @@ import {
   GoogleHandleLogin,
   registerWithEmail,
   loginWithEmail,
+  GithubHandleLogin,
+  TwitterHandleLogin,
+  FacebookHandleLogin,
 } from '../services/authService';
 import AlertSystem from '../components/AlertSystem';
 import { getFirebaseErrorMessage } from '../utils/FirebaseErrorMessage';
@@ -74,14 +77,40 @@ function Auth() {
                 ? 'Se connecter avec :'
                 : "S'inscrire avec :"}
             </p>
-            <button
-              className="btn btn-outline-danger rounded-pill px-3 py-2 shadow-sm"
-              onClick={GoogleHandleLogin}
-              aria-label="Connexion avec Google"
-              title="Connexion avec Google"
-            >
-              <i className="bi bi-google"></i>
-            </button>
+            <div className="gap-2 d-flex justify-content-center align-items-center">
+              <button
+                className="btn btn-outline-danger rounded-pill py-1 shadow-sm"
+                onClick={GoogleHandleLogin}
+                aria-label="Connexion avec Google"
+                title="Connexion avec Google"
+              >
+                <i className="bi bi-google fs-4"></i>
+              </button>
+              <button
+                className="btn btn-outline-secondary rounded-pill py-1 shadow-sm"
+                onClick={GithubHandleLogin}
+                aria-label="Connexion avec Github"
+                title="Connexion avec Github"
+              >
+                <i className="bi bi-github fs-4"></i> 
+              </button>
+              <button
+                className="btn btn-outline-primary rounded-pill py-1 shadow-sm"
+                onClick={FacebookHandleLogin}
+                aria-label="Connexion avec Facebook"
+                title="Connexion avec Facebook"
+              >
+                <i className="bi bi-facebook fs-4"></i>
+              </button>
+              <button
+                className="btn btn-outline-info rounded-pill py-1 shadow-sm"
+                onClick={TwitterHandleLogin}
+                aria-label="Connexion avec Twitter"
+                title="Connexion avec Twitter"
+              >
+                <i className="bi bi-twitter fs-4"></i> 
+              </button>
+            </div>
             <p className="text-center mt-3 mb-0 text-muted">ou avec email :</p>
           </div>
 

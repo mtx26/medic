@@ -445,7 +445,21 @@ function Navbar({ sharedProps }) {
             to="/settings"
             className="text-center text-dark text-decoration-none link-hover"
           >
-            <i className="bi bi-person-circle fs-4"></i>
+            {userInfo ? (
+              <img
+                src={
+                  userInfo?.photoURL ||
+                  'https://www.w3schools.com/howto/img_avatar.png'
+                }
+                alt="Profil"
+                className="rounded-circle me-2"
+                width="32"
+                height="32"
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              <i className="bi bi-person-circle fs-3 me-2"></i>
+            )}
             <div className="small">Comptes</div>
           </Link>
         </div>

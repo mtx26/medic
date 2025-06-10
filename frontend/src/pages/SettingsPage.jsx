@@ -3,6 +3,7 @@ import Security from './settings/Security';
 import Notification from './settings/Notification';
 import Account from './settings/Account';
 import { Link, useLocation } from 'react-router-dom';
+import { handleLogout } from '../services/authService';
 
 const SettingsPage = ({ sharedProps }) => {
   const location = useLocation();
@@ -65,6 +66,15 @@ const SettingsPage = ({ sharedProps }) => {
                 >
                   <i className="bi bi-sliders me-2"></i> Préférences
                 </Link>
+                <hr />
+                <button
+                  aria-label="Déconnexion"
+                  title="Déconnexion"
+                  onClick={handleLogout}
+                  className='btn btn-outline-primary text-start nav-link text-start'
+                >
+                  <i className="bi bi-unlock fs-5 me-2"></i> Déconnexion
+                </button>
               </div>
             </div>
           </div>
