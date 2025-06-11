@@ -7,6 +7,7 @@ import HomePage from '../pages/HomePage';
 
 import Auth from '../pages/Auth';
 import ResetPassword from '../pages/ResetPassword';
+import ResetPasswordConfirm from '../pages/ResetPasswordConfirm';
 import VerifyEmail from '../pages/VerifyEmail';
 
 import NotificationsPage from '../pages/NotificationsPage';
@@ -68,7 +69,11 @@ function AppRoutes({ sharedProps }) {
       />
       <Route
         path="/reset-password"
-        element={userInfo ? <Navigate to="/calendars" /> : <ResetPassword />}
+        element={<ResetPassword />}
+      />
+      <Route
+        path="/reset-password-confirm"
+        element={<ResetPasswordConfirm />}
       />
       <Route
         path="/verify-email"

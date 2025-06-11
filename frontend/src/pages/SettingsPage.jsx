@@ -1,12 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import Security from './settings/Security';
 import Notification from './settings/Notification';
 import Account from './settings/Account';
 import { Link, useLocation } from 'react-router-dom';
-import { handleLogout } from '../services/authService';
+import { handleLogout, resetPassword } from '../services/authService';
+import { UserContext } from '../contexts/UserContext';
+import AlertSystem from '../components/AlertSystem';
 
 const SettingsPage = ({ sharedProps }) => {
   const location = useLocation();
+  const { userInfo } = useContext(UserContext);
+  const [alertType, setAlertType] = useState('');
+  const [alertMessage, setAlertMessage] = useState('');
+  const [showAlert, setShowAlert] = useState(false);
 
   const getInitialTab = () => {
     const params = new URLSearchParams(location.search);
@@ -74,6 +80,20 @@ const SettingsPage = ({ sharedProps }) => {
                   className='btn btn-outline-primary text-start nav-link text-start'
                 >
                   <i className="bi bi-unlock fs-5 me-2"></i> Déconnexion
+                </button>
+                {showAlert && <AlertSystem type={alertType} message={alertMessage} />}
+                <button
+                  aria-label="Réinitialiser le mot de passe"
+                  title="Réinitialiser le mot de passe"
+                  onClick={() => {
+                    resetPassword(userInfo.email);
+                    setAlertType('success');
+                    setAlertMessage('Un email de réinitialisation a été envoyé à votre adresse email.');
+                    setShowAlert(true);
+                  }}
+                  className='btn btn-outline-primary text-start nav-link text-start'
+                >
+                  <i className="bi bi-envelope fs-5 me-2"></i> Réinitialiser le mot de passe
                 </button>
               </div>
             </div>
