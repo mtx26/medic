@@ -1,7 +1,7 @@
 import schedule
 import time
 from threading import Thread
-from app.cron.tasks.stock import decrease_stock
+from app.cron.tasks.stock import check_low_stock_and_notify, decrease_stock
 from app.utils.logger import log_backend
 
 def run_scheduler():
@@ -16,6 +16,7 @@ def run_scheduler():
 
 
 def start_cron():
+    check_low_stock_and_notify()
     t = Thread(target=run_scheduler)
     t.daemon = True
     t.start()

@@ -2,7 +2,7 @@
 from app.db.connection import get_connection
 from app.services.notifications import notify_and_record
 from app.utils.logger import log_backend
-from app.config.config import Config
+from app.config import Config
 from urllib.parse import urljoin
 from datetime import datetime
 from app.services.calendar_service import is_medication_due
@@ -27,14 +27,10 @@ def check_low_stock_and_notify():
         for result in results:
             id_box = result.get("id")
             calendar_id = result.get("calendar_id")
-            name = result.get("name")
             qty = result.get("stock_quantity")
             threshold = result.get("stock_alert_threshold")
             owner_uid = result.get("owner_uid")
 
-            title = "Stock faible"
-            body = f"Le médicament '{name}' est presque épuisé ({qty} restants)."
-            
             # TODO: ajouter le lien pour ouvrir la boîte de médicament dans l'application
             link = urljoin(Config.FRONTEND_URL, f"/medication/{id_box}")
 
@@ -42,12 +38,14 @@ def check_low_stock_and_notify():
                 try:
                     notify_and_record(
                         uid=owner_uid,
-                        title=title,
-                        link=link,
-                        body=body,
+                        json_body={
+                            "link": link,
+                            "medication_id": id_box,
+                            "medication_qty": qty,
+                            "calendar_id": calendar_id
+                        },
                         notif_type="low_stock",
                         sender_uid=Config.SYSTEM_UID,
-                        calendar_id=calendar_id
                     )
                     log_backend.info(f"✅ Notification de stock faible envoyée à {owner_uid} pour le médicament {id_box}", {"origin": "CRON", "code": "STOCK_CHECK_SUCCESS"})
                 except Exception as e:

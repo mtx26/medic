@@ -10,6 +10,8 @@ from app.utils.response import success_response, error_response, warning_respons
 from app.db.connection import get_connection
 from app.services.notifications import notify_and_record
 import json
+from app.config import Config
+from urllib.parse import urljoin
 
 ERROR_CALENDAR_NOT_FOUND = "calendrier non trouvé"
 ERROR_UNAUTHORIZED_ACCESS = "accès refusé"
@@ -282,15 +284,16 @@ def handle_delete_user_shared_calendar(calendar_id):
 
                 owner_uid = calendar.get("owner_uid")
                 cursor.execute("DELETE FROM shared_calendars WHERE receiver_uid = %s AND calendar_id = %s", (receiver_uid, calendar_id))
-            
+                link = urljoin(Config.FRONTEND_URL, "/calendars")
+
                 notify_and_record(
                     uid=owner_uid,
-                    title="📬 Calendrier partagé supprimé",
-                    link=None,
-                    body="Un utilisateur a supprimé le calendrier partagé.",
+                    json_body={
+                        "link": link,
+                        "calendar_id": calendar_id,
+                    },
                     notif_type="calendar_shared_deleted_by_receiver",
                     sender_uid=receiver_uid,
-                    calendar_id=calendar_id
                 )
                 t_1 = time.time()
 
@@ -366,14 +369,16 @@ def handle_delete_user_shared_user(calendar_id, receiver_uid):
                         owner_uid
                     )
                 )       
+                link = urljoin(Config.FRONTEND_URL, f"/calendar/{calendar_id}")
+
                 notify_and_record(
                     uid=receiver_uid,
-                    title="📬 Calendrier partagé supprimé",
-                    link=None,
-                    body="Le calendrier partagé a été supprimé par le propriétaire.",
+                    json_body={
+                        "link": link,
+                        "calendar_id": calendar_id,
+                    },
                     notif_type="calendar_shared_deleted_by_owner",
                     sender_uid=owner_uid,
-                    calendar_id=calendar_id
                 )
                 t_1 = time.time()
 

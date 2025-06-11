@@ -79,60 +79,70 @@ function Auth() {
                 ? 'Se connecter avec :'
                 : "S'inscrire avec :"}
             </p>
-            <div className="gap-2 d-flex justify-content-center align-items-center flex-wrap">
+            <div className="gap-1 d-flex justify-content-center align-items-center flex-wrap">
               <div className="d-flex flex-column align-items-center">
-                <button
-                  className="btn btn-outline-danger rounded-pill py-1 shadow-sm d-flex align-items-center justify-content-center gap-2"
-                  onClick={GoogleHandleLogin}
-                  aria-label="Connexion avec Google"
-                  title="Connexion avec Google"
-                >
-                  <i className="bi bi-google fs-4"></i>
-                </button>
-                <span> Google</span>
+                <div className="px-2">
+                  <button
+                    className="btn btn-outline-danger rounded-pill py-1 d-flex align-items-center justify-content-center gap-2"
+                    onClick={GoogleHandleLogin}
+                    aria-label="Connexion avec Google"
+                    title="Connexion avec Google"
+                  >
+                    <i className="bi bi-google fs-4"></i>
+                  </button>
+                </div>
+                <span>Google</span>
               </div>
               <div className="d-flex flex-column align-items-center">
-                <button
-                  className="btn btn-outline-secondary rounded-pill py-1 shadow-sm d-flex align-items-center justify-content-center gap-2"
-                  onClick={GithubHandleLogin}
-                  aria-label="Connexion avec Github"
-                  title="Connexion avec Github"
-                >
-                  <i className="bi bi-github fs-4"></i>
-                </button>
+                <div className="px-2">
+                  <button
+                    className="btn btn-outline-secondary rounded-pill py-1 d-flex align-items-center justify-content-center gap-2"
+                    onClick={GithubHandleLogin}
+                    aria-label="Connexion avec Github"
+                    title="Connexion avec Github"
+                  >
+                    <i className="bi bi-github fs-4"></i>
+                  </button>
+                </div>
                 <span> Github</span>
               </div>
               <div className="d-flex flex-column align-items-center">
-                <button
-                  className="btn btn-outline-primary rounded-pill py-1 shadow-sm d-flex align-items-center justify-content-center gap-2"
-                  onClick={DiscordHandleLogin}
-                  aria-label="Connexion avec Discord"
-                  title="Connexion avec Discord"
-                >
-                  <i className="bi bi-discord fs-4"></i>
-                </button>
+                <div className="px-2">
+                  <button
+                    className="btn btn-outline-primary rounded-pill py-1 d-flex align-items-center justify-content-center gap-2"
+                    onClick={DiscordHandleLogin}
+                    aria-label="Connexion avec Discord"
+                    title="Connexion avec Discord"
+                  >
+                    <i className="bi bi-discord fs-4"></i>
+                  </button>
+                </div>
                 <span> Discord</span>
               </div>
               <div className="d-flex flex-column align-items-center">
-                <button
-                  className="btn btn-outline-info rounded-pill py-1 shadow-sm d-flex align-items-center justify-content-center gap-2"
-                  onClick={TwitterHandleLogin}
-                  aria-label="Connexion avec Twitter"
-                  title="Connexion avec Twitter"
-                >
-                  <i className="bi bi-twitter fs-4"></i>
-                </button>
+                <div className="px-2">
+                  <button
+                    className="btn btn-outline-info rounded-pill py-1 d-flex align-items-center justify-content-center gap-2"
+                    onClick={TwitterHandleLogin}
+                    aria-label="Connexion avec Twitter"
+                    title="Connexion avec Twitter"
+                  >
+                    <i className="bi bi-twitter fs-4"></i>
+                  </button>
+                </div>
                 <span> Twitter</span>
               </div>
               <div className="d-flex flex-column align-items-center">
-                <button
-                  className="btn btn-outline-primary rounded-pill py-1 shadow-sm d-flex align-items-center justify-content-center gap-2"
-                  onClick={FacebookHandleLogin}
-                  aria-label="Connexion avec Facebook"
-                  title="Connexion avec Facebook"
-                >
-                  <i className="bi bi-facebook fs-4"></i>
-                </button>
+                <div className="px-2">
+                  <button
+                    className="btn btn-outline-primary rounded-pill py-1 d-flex align-items-center justify-content-center gap-2"
+                    onClick={FacebookHandleLogin}
+                    aria-label="Connexion avec Facebook"
+                    title="Connexion avec Facebook"
+                  >
+                    <i className="bi bi-facebook fs-4"></i>
+                  </button>
+                </div>
                 <span> Facebook</span>
               </div>
             </div>

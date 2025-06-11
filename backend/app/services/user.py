@@ -5,7 +5,8 @@ def fetch_user(uid):
     with get_connection() as conn:
         with conn.cursor() as cursor:
             cursor.execute("SELECT * FROM users WHERE id = %s", (uid,))
-            return cursor.fetchone()
+            user = cursor.fetchone() or {}
+            return user
 
 def update_existing_user(uid, user_db, display_name, email, photo_url, email_enabled, push_enabled):
     with get_connection() as conn:

@@ -8,7 +8,7 @@ from app.services.notifications import notify_and_record
 import time
 from . import api
 from urllib.parse import urljoin
-from app.config.config import Config
+from app.config import Config
 
 
 
@@ -74,17 +74,17 @@ def handle_send_invitation(calendar_id):
                         log_extra={"calendar_id": calendar_id}
                     )
                 
-                link = urljoin(Config.FRONTEND_URL, "/shared-calendars")
+                link = urljoin(Config.FRONTEND_URL, "/notifications")
 
                 # Créer une notif pour l'utilisateur receveur
                 notify_and_record(
                     uid=receiver_uid,
-                    title="📬 Nouvelle invitation à un calendrier",
-                    link=link,
-                    body="Tu as été invité à rejoindre un calendrier partagé.",
+                    json_body={
+                        "calendar_id": calendar_id,
+                        "link": link,
+                    },
                     notif_type="calendar_invitation",
                     sender_uid=owner_uid,
-                    calendar_id=calendar_id,
                 )
 
 
@@ -155,7 +155,7 @@ def handle_accept_invitation(notification_id):
                 
                 calendar_id = notification.get("content").get("calendar_id")
                 sender_uid = notification.get("sender_uid")
-
+                link = urljoin(Config.FRONTEND_URL, f"/calendar/{calendar_id}")
                 # Dire que l'utilisateur receveur a accepté l'invitation
                 cursor.execute(
                     """
@@ -175,12 +175,12 @@ def handle_accept_invitation(notification_id):
                 # Créer une notif pour l'utilisateur expéditeur
                 notify_and_record(
                     uid=sender_uid,
-                    title="✅ Invitation acceptée",
-                    link=None,
-                    body="Ton invitation a été acceptée.",
+                    json_body={
+                        "link": link,
+                        "calendar_id": calendar_id,
+                    },
                     notif_type="calendar_invitation_accepted",
                     sender_uid=receiver_uid,
-                    calendar_id=calendar_id
                 )
 
                 t_1 = time.time()
@@ -240,7 +240,7 @@ def handle_reject_invitation(notification_id):
 
                 calendar_id = notification.get("content").get("calendar_id")
                 owner_uid = notification.get("sender_uid")
-
+                link = urljoin(Config.FRONTEND_URL, f"/calendar/{calendar_id}")
                 # Supprimer la notif
                 cursor.execute(
                     """
@@ -251,12 +251,12 @@ def handle_reject_invitation(notification_id):
                 # Créer une notif pour l'utilisateur expéditeur
                 notify_and_record(
                     uid=owner_uid,
-                    title="❌ Invitation refusée",
-                    link=None,
-                    body="Ton invitation a été refusée.",
+                    json_body={
+                        "link": link,
+                        "calendar_id": calendar_id,
+                    },
                     notif_type="calendar_invitation_rejected",
                     sender_uid=receiver_uid,
-                    calendar_id=calendar_id
                 )
 
 

@@ -2,6 +2,7 @@ from . import api
 from app.utils.validators import require_auth
 from app.utils.response import success_response, error_response, warning_response
 from app.services.user import fetch_user
+from app.services.calendar_service import fetch_medicine_name
 from app.db.connection import get_connection
 from flask import request, g
 import time
@@ -48,17 +49,27 @@ def handle_notifications():
 
                 calendar_name_cache = {}
                 sender_info_cache = {}
+                medication_name_cache = {}
                 notifications = []
                 t_1 = time.time()
 
                 for notif in notifications_data:
-                    content = notif.get("content") or {}
+                    json_body = notif.get("content") or {}
                     sender_uid = notif.get("sender_uid")
-                    calendar_id = content.get("calendar_id")
-                    notification_id = notif.get("id")
+                    calendar_id = json_body.get("calendar_id")
+                    link = json_body.get("link") if json_body.get("link") else None
+                    medication_id = json_body.get("medication_id") if json_body.get("medication_id") else None
+                    medication_qty = json_body.get("medication_qty") if json_body.get("medication_qty") else None
 
                     if not calendar_id:
                         continue
+
+                    if medication_id:
+                        if medication_id not in medication_name_cache:
+                            medication_name_cache[medication_id] = fetch_medicine_name(medication_id)
+                        medication_name = medication_name_cache[medication_id]
+                    else:
+                        medication_name = None
 
                     # Cache calendar name
                     if calendar_id not in calendar_name_cache:
@@ -80,6 +91,9 @@ def handle_notifications():
                         "sender_name": sender_name,
                         "sender_email": sender_email,
                         "sender_photo_url": sender_photo_url or DEFAULT_PHOTO,
+                        "link" : link,
+                        "medication_name": medication_name,
+                        "medication_qty": medication_qty,
                     })
                 t_2 = time.time()
 

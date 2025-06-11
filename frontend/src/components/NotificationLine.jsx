@@ -31,6 +31,7 @@ export default function NotificationLine({
 
   let icon = null;
   let message = null;
+  let link = null;
   let actions = null;
 
   switch (notif.notification_type) {
@@ -138,6 +139,17 @@ export default function NotificationLine({
         </>
       );
       break;
+    case 'low_stock':
+      icon = (
+        <i className="bi bi-exclamation-triangle-fill text-warning me-2" style={iconStyle}></i>
+      );
+      message = (
+        <>
+          {notif.medication_name} est presque épuisé ({notif.medication_qty} restants).
+        </>
+      );
+      link = notif.link;
+      break;
 
     default:
       return null;
@@ -152,12 +164,16 @@ export default function NotificationLine({
       }`}
     >
       <div
-        onClick={() => isUnread && onRead(notif.notification_id)}
-        style={{ cursor: isUnread ? 'pointer' : 'default' }}
+        onClick={() => {
+          isUnread && onRead(notif.notification_id);
+          link && navigate(link);
+        }}
+        style={{ cursor: isUnread || link ? 'pointer' : 'default' }}
         tabIndex={0}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             isUnread && onRead(notif.notification_id);
+            link && navigate(link);
           }
         }}
       >

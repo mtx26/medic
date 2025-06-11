@@ -185,3 +185,18 @@ def merge_or_append_by_moment(moment_list, name, cells, dose):
         "cells": cells,
         "dose": dose
     })
+
+def fetch_calendar(calendar_id):
+    with get_connection() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT * FROM calendars WHERE id = %s", (calendar_id,))
+            calendar = cursor.fetchone() or {}
+            return calendar
+
+def fetch_medicine_name(medication_id):
+    with get_connection() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT name FROM medicine_boxes WHERE id = %s", (medication_id,))
+            result = cursor.fetchone() or {}
+            return result.get("name", "unknown")
+    
