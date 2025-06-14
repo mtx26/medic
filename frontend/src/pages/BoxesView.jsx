@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, useLocation } from 'react-router-dom';
+import { useParams, useLocation, Link } from 'react-router-dom';
 import { useRealtimeBoxesSwitcher } from '../hooks/useRealtimeBoxesSwitcher';
 import AlertSystem from '../components/AlertSystem';
 import { getCalendarSourceMap } from '../utils/calendarSourceMap';
 import { v4 as uuidv4 } from 'uuid';
 import { fetchSuggestions } from '../utils/fetchSuggestions';
-import ViewNoticeButton from '../components/PdfView';
+import ViewNoticeButton from '../components/ViewNoticeButton';
 
 function BoxesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
   const location = useLocation();
@@ -405,9 +405,7 @@ function BoxCard({
             <div className="w-50">
               <StockBadge box={box} />
             </div>
-            <div className="w-50">
-              <ViewNoticeButton box_id={box.id} />
-            </div>
+            <ViewNoticeButton box_id={box.id} />
           </div>
         )}
 
