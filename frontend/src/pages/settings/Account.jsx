@@ -76,6 +76,11 @@ const Account = ({ sharedProps }) => {
     input.onchange = (e) => {
       const file = e.target.files[0];
       if (file) {
+        const maxSize = 1024 * 1024 * 5; // 5MB
+        if (file.size > maxSize) {
+          alert('La taille de l\'image ne doit pas dépasser 5MB');
+          return;
+        }
         const imageURL = URL.createObjectURL(file);
         setRawImage(imageURL);
         setShowCropModal(true); // ouvre l’éditeur
