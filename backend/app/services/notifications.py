@@ -9,9 +9,9 @@ from app.email.send_email import send_email
 from app.config import Config
 import traceback
 
-def fetch_sender_name(sender_uid):
-    sender = fetch_user(sender_uid)
-    return sender.get("display_name") if sender else "un utilisateur"
+def fetch_user_name(uid):
+    user = fetch_user(uid)
+    return user.get("display_name") if user else "un utilisateur"
 
 def fetch_calendar_name(calendar_id):
     calendar = fetch_calendar(calendar_id)
@@ -66,13 +66,13 @@ def send_email_notification(uid, json_body, notif_type, sender_name, calendar_na
     user = fetch_user(uid)
     email = user.get("email") if user else None
 
-    subject, plain_body, html_body = generate_email_content(notif_type, sender_name, calendar_name, json_body)
+    subject, plain_body, html_content = generate_email_content(notif_type, sender_name, calendar_name, json_body)
 
     if email:
         send_email(
             to=email,
             subject=subject,
-            html=html_body,
+            html_content=html_content,
             plain=plain_body    
         )
 
@@ -105,29 +105,19 @@ def generate_email_content(notif_type, sender_name, calendar_name, json_body):
             subject = "Nouvelle notification"
             body = "Vous avez reçu une nouvelle notification dans MediTime."
 
-    html = f"""
-    <div style="font-family: Arial, sans-serif; background-color: #f9f9f9; padding: 24px;">
-        <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
-            <div style="background-color: #007bff; padding: 16px; text-align: center;">
-                <img src="https://meditime-app.com/icons/logo_white.png" alt="MediTime Logo" style="height: 100px;" />
-            </div>
-            <div style="padding: 24px;">
-                <h2 style="color: #333;">{subject}</h2>
-                <p style="font-size: 16px; color: #555;">{body}</p>
-                <div style="margin: 32px 0;">
-                    <a href="{base_link}" style="background-color: #007bff; color: white; text-decoration: none; padding: 12px 20px; border-radius: 4px; display: inline-block;">
-                    Voir mes notifications
-                    </a>
-                </div>
-                <p style="font-size: 13px; color: #999;">Si le bouton ne fonctionne pas, copiez-collez ce lien dans votre navigateur :<br/>
-                    <a href="{base_link}" style="color: #007bff;">{base_link}</a>
-                </p>
-            </div>
+    html_content = f"""
+        <p style="font-size: 16px; color: #555;">{body}</p>
+        <div style="margin: 32px 0;">
+            <a href="{base_link}" style="background-color: #007bff; color: white; text-decoration: none; padding: 12px 20px; border-radius: 4px; display: inline-block;">
+            Voir mes notifications
+            </a>
         </div>
-    </div>
+        <p style="font-size: 13px; color: #999;">Si le bouton ne fonctionne pas, copiez-collez ce lien dans votre navigateur :<br/>
+            <a href="{base_link}" style="color: #007bff;">{base_link}</a>
+        </p>
     """
 
-    return f"MediTime - {subject}", body, html
+    return f"MediTime - {subject}", body, html_content
 
 
 
@@ -138,8 +128,9 @@ def notify_and_record(uid, json_body, notif_type, sender_uid):
         email_enabled = user_settings.get("email_enabled")
         push_enabled = user_settings.get("push_enabled")
 
-        sender_name = fetch_sender_name(sender_uid)
+        sender_name = fetch_user_name(sender_uid)
         calendar_name = fetch_calendar_name(json_body.get("calendar_id"))
+
 
         if push_enabled:
             send_push_notification(uid, json_body, notif_type, sender_name, calendar_name)
