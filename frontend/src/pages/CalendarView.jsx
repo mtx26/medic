@@ -16,6 +16,7 @@ import 'bootstrap/dist/css/bootstrap.css';
 import DateModal from '../components/DateModal';
 import WeekCalendarSelector from '../components/WeekCalendarSelector';
 import WeeklyEventContent from '../components/WeeklyEventContent';
+import PillboxDisplay from '../components/PillboxDisplay';
 
 function CalendarPage({
   personalCalendars,
@@ -288,8 +289,36 @@ function CalendarPage({
               </div>
             )}
           </div>
+          <div className="d-block d-lg-none col-12 col-lg-8 mb-4">
+            <div className="mb-2">
+              <h4 className="mb-3 fw-bold">
+                <i className="bi bi-capsule"></i> Pilulier
+              </h4>
+              <button
+                className="btn btn-outline-success"
+                onClick={() => navigate(`/${basePath}/${calendarId}/pillbox?date=${selectedDate}`)}
+              >
+                <i className="bi bi-capsule"></i> Faire le pilulier
+              </button>
+            </div>
+          </div>
+          <div className="d-none d-lg-block col-12 col-lg-8 mb-4">
+            <h4 className="mb-3 fw-bold">
+              <i className="bi bi-capsule"></i> Pilulier
+            </h4>
+            <PillboxDisplay
+              selectedDate={selectedDate}
+              calendarType={calendarType}
+              calendarId={calendarId}
+              basePath={basePath}
+              personalCalendars={personalCalendars}
+              sharedUserCalendars={sharedUserCalendars}
+              tokenCalendars={tokenCalendars}
+            />
+          </div>
 
           {/* Tableau hebdomadaire */}
+          {/*
           {Object.keys(calendarTable).filter(
             (key) => calendarTable[key].length > 0
           ).length > 0 && (
@@ -298,7 +327,7 @@ function CalendarPage({
                 <h4 className="mb-3 fw-bold">
                   <i className="bi bi-table"></i> Tableau hebdomadaire
                 </h4>
-                {/*trier matin, midi, soir et supprimer les moments non présents*/}
+                {/*trier matin, midi, soir et supprimer les moments non présents
                 {Object.keys(calendarTable)
                   .sort((a, b) => {
                     const order = ['morning', 'noon', 'evening'];
@@ -358,13 +387,15 @@ function CalendarPage({
                   ))}
               </div>
             </div>
-          )}
+          )}*/}
         </div>
       </div>
+
+
       {/* Calendrier par semaine */}
       {Object.keys(calendarTable).filter((key) => calendarTable[key].length > 0)
         .length > 0 ? (
-        <>
+        <div className="container mt-4">
           {/* Calendrier mensuel */}
           <div className="container d-none d-md-block">
             <h4 className="mb-3 fw-bold">
@@ -440,7 +471,7 @@ function CalendarPage({
               </div>
             </div>
           </div>
-        </>
+        </div>
       ) : (
         <div className="alert alert-info mt-4 mb-0" role="alert">
           <i className="bi bi-pin-angle-fill"></i>

@@ -47,6 +47,8 @@ function Navbar({ sharedProps }) {
       pathParts.length === 3 && pathParts[0] === 'shared-token-calendar',
   };
   const [isPortrait, setIsPortrait] = useState(window.innerHeight < window.innerWidth);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 992);
+
   const isPillboxPage =
     pathParts.length === 3 &&
     ['calendar', 'shared-user-calendar', 'shared-token-calendar'].includes(pathParts[0]) &&
@@ -55,6 +57,7 @@ function Navbar({ sharedProps }) {
   useEffect(() => {
     const handleResize = () => {
       setIsPortrait(window.innerHeight < window.innerWidth);
+      setIsMobile(window.innerWidth < 992);
     };
 
     window.addEventListener('resize', handleResize);
@@ -109,15 +112,7 @@ function Navbar({ sharedProps }) {
   const { notificationsData, readNotification } = sharedProps.notifications;
   const { acceptInvitation, rejectInvitation } =  sharedProps.sharedUserCalendars;
 
-  useEffect(() => {
-    console.log(isPortrait);
-  }, [isPortrait]);
-  useEffect(() => {
-    console.log(isPillboxPage);
-  }, [isPillboxPage]);
-
-
-  if (isPillboxPage && isPortrait) {
+  if (isPillboxPage && isPortrait && isMobile) {
     return (
       <Link
         to={`/${basePath}/${calendarInfo?.id}`}
