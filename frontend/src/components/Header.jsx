@@ -28,7 +28,8 @@ function Navbar({ sharedProps }) {
   const pathParts = location.pathname.split('/').filter(Boolean);
 
   const locationAvailableForReturnToCalendarList = {
-    calendar: pathParts.length === 2 && pathParts[0] === 'calendar',
+    calendar: 
+      pathParts.length === 2 && pathParts[0] === 'calendar',
     sharedUserCalendar:
       pathParts.length === 2 && pathParts[0] === 'shared-user-calendar',
   };
@@ -37,14 +38,28 @@ function Navbar({ sharedProps }) {
     calendar:
       pathParts.length === 3 &&
       pathParts[0] === 'calendar' &&
-      (pathParts[2] === 'medicines' || pathParts[2] === 'boxes'),
+      (pathParts[2] === 'medicines' || pathParts[2] === 'boxes' || pathParts[2] === 'pillbox'),
     sharedUserCalendar:
       pathParts.length === 3 &&
       pathParts[0] === 'shared-user-calendar' &&
-      (pathParts[2] === 'medicines' || pathParts[2] === 'boxes'),
+      (pathParts[2] === 'medicines' || pathParts[2] === 'boxes' || pathParts[2] === 'pillbox'),
     tokenCalendar:
       pathParts.length === 3 && pathParts[0] === 'shared-token-calendar',
   };
+  const [isPortrait, setIsPortrait] = useState(window.innerHeight < window.innerWidth);
+  const isPillboxPage =
+    pathParts.length === 3 &&
+    ['calendar', 'shared-user-calendar', 'shared-token-calendar'].includes(pathParts[0]) &&
+    pathParts[2] === 'pillbox';
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsPortrait(window.innerHeight < window.innerWidth);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     if (locationList.calendar && sharedProps.personalCalendars.calendarsData) {
@@ -92,9 +107,33 @@ function Navbar({ sharedProps }) {
   }, []);
 
   const { notificationsData, readNotification } = sharedProps.notifications;
-  const { acceptInvitation, rejectInvitation } =
-    sharedProps.sharedUserCalendars;
+  const { acceptInvitation, rejectInvitation } =  sharedProps.sharedUserCalendars;
 
+  useEffect(() => {
+    console.log(isPortrait);
+  }, [isPortrait]);
+  useEffect(() => {
+    console.log(isPillboxPage);
+  }, [isPillboxPage]);
+
+
+  if (isPillboxPage && isPortrait) {
+    return (
+      <Link
+        to={`/${basePath}/${calendarInfo?.id}`}
+        className="fs-2 text-dark"
+        style={{
+          position: 'fixed',
+          top: '1rem',
+          left: '1rem',
+          zIndex: 1050,
+        }}
+      >
+        <i className="bi bi-x-lg"></i>
+      </Link>
+    );
+  }
+  
   return (
     <>
       <nav className="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm py-2 sticky-top">

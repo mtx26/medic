@@ -9,7 +9,7 @@ def generate_calendar_schedule(calendar_id, start_date):
                 cursor.execute("SELECT * FROM calendars WHERE id = %s", (calendar_id,))
                 calendar = cursor.fetchone()
                 if calendar is None:
-                    return None, None
+                    return None, None, None
 
                 cursor.execute("""
                     SELECT 
@@ -25,16 +25,16 @@ def generate_calendar_schedule(calendar_id, start_date):
                 if medicines:
                     schedule = generate_schedule(start_date, medicines)
                     table = generate_table(start_date, medicines)
-                    return schedule, table
+                    return schedule, table, calendar.get("name")
                 else:
-                    return [], []
+                    return [], [], None
 
     except Exception as e:
         logger.error("erreur lors de la génération du calendrier", {
             "origin": "CALENDAR_GENERATE_ERROR",
             "error": str(e)
         })
-        return None, None
+        return None, None, None
 
 
 def is_medication_due(med, current_date):

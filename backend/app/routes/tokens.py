@@ -283,8 +283,8 @@ def handle_generate_token_schedule(token):
                 log_extra={"token": token}
             )
 
-        schedule, table = generate_calendar_schedule(calendar_id, start_date)
-        if schedule is None or table is None:
+        schedule, table, calendar_name = generate_calendar_schedule(calendar_id, start_date)
+        if schedule is None or table is None or calendar_name is None:
             return warning_response(
                 message="calendrier non trouvé", 
                 code="TOKEN_GENERATE_SCHEDULE_ERROR", 
@@ -300,7 +300,7 @@ def handle_generate_token_schedule(token):
             code="TOKEN_GENERATE_SCHEDULE_SUCCESS", 
             uid="unknown", 
             origin="TOKEN_GENERATE_SCHEDULE", 
-            data={"schedule": schedule, "table": table},
+            data={"schedule": schedule, "table": table, "calendar_name": calendar_name},
             log_extra={"token": token, "time": t_1 - t_0}
         )
     except Exception as e:

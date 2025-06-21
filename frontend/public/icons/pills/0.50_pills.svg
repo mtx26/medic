@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Calque_1" data-name="Calque 1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 160 160">
+  <defs>
+    <style>
+      .cls-1 {
+        mask: url(#mask-1);
+      }
+
+      .cls-2 {
+        mask: url(#mask);
+      }
+
+      .cls-3 {
+        filter: url(#luminosity-noclip-2);
+      }
+
+      .cls-4 {
+        opacity: .2;
+        stroke: #000;
+        stroke-miterlimit: 10;
+        stroke-width: .25px;
+      }
+
+      .cls-4, .cls-5 {
+        fill: #0d6efd;
+      }
+
+      .cls-6 {
+        filter: url(#luminosity-noclip);
+      }
+    </style>
+    <filter id="luminosity-noclip" x="13.3" y="13.3" width="133.4" height="133.4" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse">
+      <feFlood flood-color="#fff" result="bg"/>
+      <feBlend in="SourceGraphic" in2="bg"/>
+    </filter>
+    <mask id="mask" x="13.3" y="13.3" width="133.4" height="133.4" maskUnits="userSpaceOnUse">
+      <g class="cls-6">
+        <g>
+          <rect x="76" y="50" width="8" height="60" transform="translate(-33.14 80) rotate(-45)"/>
+          <rect x="20" y="76" width="120" height="8" transform="translate(-33.14 80) rotate(-45)"/>
+        </g>
+      </g>
+    </mask>
+    <filter id="luminosity-noclip-2" x="13.42" y="-33.14" width="179.71" height="179.71" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse">
+      <feFlood flood-color="#fff" result="bg"/>
+      <feBlend in="SourceGraphic" in2="bg"/>
+    </filter>
+    <mask id="mask-1" x="13.42" y="-33.14" width="179.71" height="179.71" maskUnits="userSpaceOnUse">
+      <g class="cls-3">
+        <g>
+          <rect x="68.28" y="-28.28" width="80" height="160" transform="translate(-4.85 91.72) rotate(-45)"/>
+          <g>
+            <rect x="76" y="50" width="8" height="60" transform="translate(-33.14 80) rotate(-45)"/>
+            <rect x="20" y="76" width="120" height="8" transform="translate(-33.14 80) rotate(-45)"/>
+          </g>
+        </g>
+      </g>
+    </mask>
+  </defs>
+  <g class="cls-2">
+    <path id="_0" data-name="0" class="cls-4" d="M80,24.85l-55.15,55.15c-15.23,15.23-15.23,39.92,0,55.15s39.92,15.23,55.15,0l55.15-55.15c15.23-15.23,15.23-39.92,0-55.15-15.23-15.23-39.92-15.23-55.15,0Z"/>
+  </g>
+  <g class="cls-1">
+    <path id="_2_4" data-name="2/4" class="cls-5" d="M80,24.85l-55.15,55.15c-15.23,15.23-15.23,39.92,0,55.15s39.92,15.23,55.15,0l55.15-55.15c15.23-15.23,15.23-39.92,0-55.15-15.23-15.23-39.92-15.23-55.15,0Z"/>
+  </g>
+</svg>

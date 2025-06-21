@@ -261,8 +261,8 @@ def handle_calendar_schedule(calendar_id):
                 log_extra={"calendar_id": calendar_id}
             )
 
-        schedule, table = generate_calendar_schedule(calendar_id, start_date)
-        if schedule is None or table is None:
+        schedule, table, calendar_name = generate_calendar_schedule(calendar_id, start_date)
+        if schedule is None or table is None or calendar_name is None:
             return warning_response(
                 message="calendrier non trouvé", 
                 code="CALENDAR_GENERATE_ERROR", 
@@ -279,7 +279,7 @@ def handle_calendar_schedule(calendar_id):
             code="CALENDAR_GENERATE_SUCCESS", 
             uid=owner_uid, 
             origin="CALENDAR_GENERATE", 
-            data={"schedule": schedule, "table": table},
+            data={"schedule": schedule, "table": table, "calendar_name": calendar_name},
             log_extra={"calendar_id": calendar_id, "time": t_1 - t_0}
         )
 

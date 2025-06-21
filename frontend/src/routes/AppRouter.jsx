@@ -14,6 +14,7 @@ import NotificationsPage from '../pages/NotificationsPage';
 import SettingsPage from '../pages/SettingsPage';
 
 import CalendarView from '../pages/CalendarView';
+import PillboxPage from '../pages/pillbox';
 import CalendarList from '../pages/CalendarList';
 import SharedList from '../pages/SharedList';
 
@@ -141,6 +142,19 @@ function AppRoutes({ sharedProps }) {
             element={
               <RouteWithLoader
                 element={<CalendarView {...sharedProps} />}
+                isLoading={sharedProps.loadingStates.isInitialLoading}
+              />
+            }
+          />
+        }
+      />
+      <Route
+        path="/calendar/:calendarId/pillbox"
+        element={
+          <PrivateRoute
+            element={
+              <RouteWithLoader
+                element={<PillboxPage {...sharedProps} />}
                 isLoading={sharedProps.loadingStates.isInitialLoading}
               />
             }
