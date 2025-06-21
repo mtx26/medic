@@ -106,7 +106,7 @@ export default function PillboxDisplay({
   }
 
   return (
-    <div className="container-fluid text-center">
+    <div className="container-fluid text-center w-100">
       {orderedMeds.length > 0 && (
         <>
           <div className="bg-white text-primary border rounded-top px-3 py-2">

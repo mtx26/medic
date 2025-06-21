@@ -1,22 +1,41 @@
 import React, { useEffect, useState } from 'react';
 
 export default function OrientationWrapper({ children }) {
-  const [isLandscape, setIsLandscape] = useState(window.innerWidth > window.innerHeight);
+  const getOrientation = () => {
+    if (window.screen.orientation) {
+      return window.screen.orientation.type.startsWith('landscape');
+    }
+    // Fallback
+    return window.innerWidth > window.innerHeight;
+  };
+
+  const [isLandscape, setIsLandscape] = useState(getOrientation());
 
   useEffect(() => {
-    const checkOrientation = () => {
-      setIsLandscape(window.innerWidth > window.innerHeight);
+    const handleChange = () => {
+      setIsLandscape(getOrientation());
     };
 
-    window.addEventListener('resize', checkOrientation);
-    return () => window.removeEventListener('resize', checkOrientation);
+    if (window.screen.orientation?.addEventListener) {
+      window.screen.orientation.addEventListener('change', handleChange);
+    } else {
+      window.addEventListener('resize', handleChange); // fallback
+    }
+
+    return () => {
+      if (window.screen.orientation?.removeEventListener) {
+        window.screen.orientation.removeEventListener('change', handleChange);
+      } else {
+        window.removeEventListener('resize', handleChange);
+      }
+    };
   }, []);
 
   if (!isLandscape) {
     return (
       <div style={{
         height: '100vh',
-        backgroundColor: '#f8f9fa', // Bootstrap light
+        backgroundColor: '#f8f9fa',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
