@@ -217,15 +217,7 @@ def handle_user_shared_calendar_schedule(calendar_id):
             start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
 
         schedule, table, calendar_name = generate_calendar_schedule(calendar_id, start_date)
-        if schedule is None or table is None or calendar_name is None:
-            return warning_response(
-                message="calendrier non trouvé", 
-                code="SHARED_CALENDARS_LOAD_ERROR", 
-                status_code=404, 
-                uid=uid, 
-                origin="SHARED_CALENDARS_LOAD", 
-                log_extra={"calendar_id": calendar_id}
-            )
+
         t_1 = time.time()
             
         return success_response(

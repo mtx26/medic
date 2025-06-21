@@ -284,15 +284,7 @@ def handle_generate_token_schedule(token):
             )
 
         schedule, table, calendar_name = generate_calendar_schedule(calendar_id, start_date)
-        if schedule is None or table is None or calendar_name is None:
-            return warning_response(
-                message="calendrier non trouvé", 
-                code="TOKEN_GENERATE_SCHEDULE_ERROR", 
-                status_code=404, 
-                uid="unknown", 
-                origin="TOKEN_GENERATE_SCHEDULE", 
-                log_extra={"calendar_id": calendar_id}
-            )
+        
         t_1 = time.time()
 
         return success_response(

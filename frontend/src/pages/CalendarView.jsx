@@ -232,7 +232,7 @@ function CalendarPage({
               />
 
               {/* Boutons de navigation et partage */}
-              <div className="d-flex flex-wrap gap-2 mb-3">
+              <div className="d-flex flex-wrap gap-2 mb-3 justify-content-center">
                 {/* Boutons de navigation */}
                 <button
                   className="btn btn-outline-secondary"
@@ -273,34 +273,44 @@ function CalendarPage({
               </div>
             )}
           </div>
-          <div className="d-block d-lg-none col-12 col-lg-8 mb-4">
-            <div className="mb-2">
-              <h4 className="mb-3 fw-bold">
-                <i className="bi bi-capsule"></i> Pilulier
-              </h4>
-              <button
-                className="btn btn-outline-success"
-                onClick={() => navigate(`/${basePath}/${calendarId}/pillbox?date=${selectedDate}`)}
-              >
-                <i className="bi bi-capsule"></i> Faire le pilulier
-              </button>
-            </div>
-          </div>
-          <div className="d-none d-lg-block col-12 col-lg-8 mb-4">
-            <h4 className="mb-3 fw-bold">
-              <i className="bi bi-capsule"></i> Pilulier
-            </h4>
-            <PillboxDisplay
-              type="calendar"
-              selectedDate={selectedDate}
-              calendarType={calendarType}
-              calendarId={calendarId}
-              basePath={basePath}
-              personalCalendars={personalCalendars}
-              sharedUserCalendars={sharedUserCalendars}
-              tokenCalendars={tokenCalendars}
-            />
-          </div>
+
+          {/* Pilulier */}
+          {Object.keys(calendarTable).filter((key) => calendarTable[key].length > 0)
+          .length > 0 && (
+            <>
+              {/* Pilulier - Vue mobile */}
+              <div className="d-block d-lg-none col-12 col-lg-8 mb-4">
+                <div className="mb-2">
+                  <h4 className="mb-3 fw-bold">
+                    <i className="bi bi-capsule"></i> Pilulier
+                  </h4>
+                  <button
+                    className="btn btn-outline-success w-100"
+                    onClick={() => navigate(`/${basePath}/${calendarId}/pillbox?date=${selectedDate}`)}
+                  >
+                    <i className="bi bi-capsule"></i> Faire le pilulier
+                  </button>
+                </div>
+              </div>
+
+              {/* Pilulier - Vue desktop */}
+              <div className="d-none d-lg-block col-12 col-lg-8 mb-4">
+                <h4 className="mb-3 fw-bold">
+                  <i className="bi bi-capsule"></i> Pilulier
+                </h4>
+                <PillboxDisplay
+                  type="calendar"
+                  selectedDate={selectedDate}
+                  calendarType={calendarType}
+                  calendarId={calendarId}
+                  basePath={basePath}
+                  personalCalendars={personalCalendars}
+                  sharedUserCalendars={sharedUserCalendars}
+                  tokenCalendars={tokenCalendars}
+                />
+              </div>
+            </>
+          )}
 
           {/* Tableau hebdomadaire */}
           {/*
