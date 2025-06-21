@@ -262,15 +262,6 @@ def handle_calendar_schedule(calendar_id):
             )
 
         schedule, table, calendar_name = generate_calendar_schedule(calendar_id, start_date)
-        if schedule is None or table is None or calendar_name is None:
-            return warning_response(
-                message="calendrier non trouvé", 
-                code="CALENDAR_GENERATE_ERROR", 
-                status_code=404, 
-                uid=owner_uid, 
-                origin="CALENDAR_GENERATE", 
-                log_extra={"calendar_id": calendar_id}
-            )
 
         t_1 = time.time()
 

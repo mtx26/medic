@@ -200,6 +200,19 @@ function AppRoutes({ sharedProps }) {
           />
         }
       />
+      <Route
+        path="/shared-user-calendar/:calendarId/pillbox"
+        element={
+          <PrivateRoute
+            element={
+              <RouteWithLoader
+                element={<PillboxPage {...sharedProps} />}
+                isLoading={sharedProps.loadingStates.isInitialLoading}
+              />
+            }
+          />
+        }
+      />
 
       <Route
         path="/shared-token-calendar/:sharedToken/boxes"
@@ -208,6 +221,10 @@ function AppRoutes({ sharedProps }) {
       <Route
         path="/shared-token-calendar/:sharedToken"
         element={<CalendarView {...sharedProps} />}
+      />
+      <Route
+        path="/shared-token-calendar/:sharedToken/pillbox"
+        element={<PillboxPage {...sharedProps} />}
       />
 
       <Route path="/privacy" element={<PrivacyPage />} />

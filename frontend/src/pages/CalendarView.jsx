@@ -51,22 +51,6 @@ function CalendarPage({
 
   const [startDate, setStartDate] = useState(formatToLocalISODate(new Date()));
 
-  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-  const days_map = {
-    Mon: 'Lun',
-    Tue: 'Mar',
-    Wed: 'Mer',
-    Thu: 'Jeu',
-    Fri: 'Ven',
-    Sat: 'Sam',
-    Sun: 'Dim',
-  };
-  const moment_map = {
-    morning: 'Matin',
-    noon: 'Midi',
-    evening: 'Soir',
-  };
-
   let calendarType = 'personal';
   let calendarId = params.calendarId;
   let basePath = 'calendar';
