@@ -7,6 +7,10 @@ from app.db.connection import get_connection
 from flask import request, g
 import time
 from app.auth.fcm import send_fcm_notification
+from app.config import Config
+from urllib.parse import urljoin
+
+frontend_url = Config.FRONTEND_URL or ""
 
 
 DEFAULT_PHOTO = "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/icons/person-circle.svg"
@@ -208,8 +212,10 @@ def register_token():
 def send_notification():
     data = request.json
     uid = g.uid
-    title = data.get("title")
-    body = data.get("body")
+    title = data.get("title") or ""
+    body = data.get("body") or ""
+    json_body = data.get("json_body") or {}
+    json_body["link"] = urljoin(frontend_url, "/notifications")
 
     if not uid or not title or not body:
         return error_response(
@@ -233,7 +239,7 @@ def send_notification():
                         origin="FCM_SEND"
                     )
                 tokens = [result.get("token") for result in results]
-                status_code, result_data = send_fcm_notification(tokens=tokens, title=title, body=body, link=None)
+                status_code, result_data = send_fcm_notification(tokens=tokens, title=title, body=body, json_body=json_body)
 
 
         if status_code == 200:

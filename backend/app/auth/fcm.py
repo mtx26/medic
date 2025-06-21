@@ -7,11 +7,14 @@ from urllib.parse import urljoin
 from app.config import Config
 from app.utils.logger import log_backend
 
+firebase_credentials = Config.FIREBASE_CREDENTIALS
+frontend_url = Config.FRONTEND_URL
+
 SCOPES = ["https://www.googleapis.com/auth/firebase.messaging"]
 
 def get_fcm_access_token():
     try:
-        service_account_info = json.loads(Config.FIREBASE_CREDENTIALS)
+        service_account_info = json.loads(firebase_credentials or "{}")
         credentials_obj = service_account.Credentials.from_service_account_info(
             service_account_info, scopes=SCOPES
         )
@@ -26,6 +29,7 @@ def get_fcm_access_token():
                 "error": traceback.format_exc()
             }
         )
+        return None, None
 
 def send_fcm_notification(tokens, title, body, json_body):
     access_token, project_id = get_fcm_access_token()
@@ -44,11 +48,11 @@ def send_fcm_notification(tokens, title, body, json_body):
                 "notification": {
                     "title": title,
                     "body": body,
-                    "image": urljoin(Config.FRONTEND_URL, "/icons/icon-192.png")
+                    "image": urljoin(frontend_url or "", "/icons/icon-192.png")
                 },
                 "webpush": {
                     "fcm_options": {
-                        "link": json_body.get("link") if json_body.get("link") else urljoin(Config.FRONTEND_URL, "/notifications")
+                        "link": json_body.get("link") if json_body.get("link") else urljoin(frontend_url or "", "/notifications")
                     }
                 }
             }
