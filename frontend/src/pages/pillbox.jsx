@@ -32,10 +32,10 @@ function PillboxPage({ personalCalendars, sharedUserCalendars, tokenCalendars })
         selectedDate={selectedDate}
         calendarType={calendarType}
         calendarId={calendarId}
+        basePath={basePath}
         personalCalendars={personalCalendars}
         sharedUserCalendars={sharedUserCalendars}
         tokenCalendars={tokenCalendars}
-        finished={() => {}}
       />
     </ForcedLandscapeWrapper>
   );

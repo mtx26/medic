@@ -32,13 +32,13 @@ export default function PillboxDisplay({
   selectedDate = null,
   calendarType,
   calendarId,
+  basePath,
   personalCalendars,
   sharedUserCalendars,
   tokenCalendars,
-  finished,
 }) {
   const { userInfo } = useContext(UserContext);
-
+  const navigate = useNavigate();
   const [calendarTable, setCalendarTable] = useState([]);
   const [selectedMedIndex, setSelectedMedIndex] = useState(0);
   const [orderedMeds, setOrderedMeds] = useState([]);
@@ -168,8 +168,11 @@ export default function PillboxDisplay({
                   <button
                     className="btn btn-success mt-4"
                     onClick={() => {
-                      setSuccessMessage(true);
-                      if (finished) finished();
+                      if (type === 'calendar') {
+                        setSuccessMessage(true);
+                      } else {
+                        navigate(`/${basePath}/${calendarId}`);
+                      }
                     }}
                   >
                     <i className="bi bi-check-circle"></i> Terminé
