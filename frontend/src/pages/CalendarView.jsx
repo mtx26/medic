@@ -307,13 +307,14 @@ function CalendarPage({
               <i className="bi bi-capsule"></i> Pilulier
             </h4>
             <PillboxDisplay
+              type="calendar"
               selectedDate={selectedDate}
               calendarType={calendarType}
               calendarId={calendarId}
-              basePath={basePath}
               personalCalendars={personalCalendars}
               sharedUserCalendars={sharedUserCalendars}
               tokenCalendars={tokenCalendars}
+              finished={() => navigate(`/${basePath}/${calendarId}`)}
             />
           </div>
 

@@ -46,23 +46,11 @@ function Navbar({ sharedProps }) {
     tokenCalendar:
       pathParts.length === 3 && pathParts[0] === 'shared-token-calendar',
   };
-  const [isPortrait, setIsPortrait] = useState(window.innerHeight < window.innerWidth);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 992);
 
   const isPillboxPage =
     pathParts.length === 3 &&
     ['calendar', 'shared-user-calendar', 'shared-token-calendar'].includes(pathParts[0]) &&
     pathParts[2] === 'pillbox';
-
-  useEffect(() => {
-    const handleResize = () => {
-      setIsPortrait(window.innerHeight < window.innerWidth);
-      setIsMobile(window.innerWidth < 992);
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   useEffect(() => {
     if (locationList.calendar && sharedProps.personalCalendars.calendarsData) {
@@ -112,15 +100,15 @@ function Navbar({ sharedProps }) {
   const { notificationsData, readNotification } = sharedProps.notifications;
   const { acceptInvitation, rejectInvitation } =  sharedProps.sharedUserCalendars;
 
-  if (isPillboxPage && isPortrait && isMobile) {
+  if (isPillboxPage) {
     return (
       <Link
         to={`/${basePath}/${calendarInfo?.id}`}
-        className="fs-2 text-dark"
+        className="fs-2 text-dark align-self-end"
         style={{
           position: 'fixed',
           top: '1rem',
-          left: '1rem',
+          right: '1rem',
           zIndex: 1050,
         }}
       >
