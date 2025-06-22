@@ -483,8 +483,7 @@ function App() {
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   const downloadPersonalCalendarPdf = useCallback(async (calendarId) => {
-    const token = await getToken();
-    const url = `${API_URL}/api/calendars/${calendarId}/pdf?token=${encodeURIComponent(token)}`;
+    const url = `${API_URL}/api/calendars/${calendarId}/pdf`;
     window.open(url, '_blank');
   }, []);
   

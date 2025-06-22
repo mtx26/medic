@@ -293,33 +293,35 @@ def handle_calendar_schedule(calendar_id):
 def download_pdf_calendar(calendar_id):
     try:
         t_0 = time.time()
-        token = request.args.get("token")
-        if not token:
-            return error_response(
-                message="token manquant",
-                code="MISSING_TOKEN",
-                status_code=400,
-                origin="PDF_DOWNLOAD"
-            )
+        # TODO: Secirisé cette route
+        """        token = request.args.get("token")
+                if not token:
+                    return error_response(
+                        message="token manquant",
+                        code="MISSING_TOKEN",
+                        status_code=400,
+                        origin="PDF_DOWNLOAD"
+                    )
 
-        user = decode_token(token)
-        if not user:
-            return warning_response(
-                message="accès refusé", 
-                code="ACCESS_DENIED", 
-                status_code=400, 
-                origin="PDF_DOWNLOAD", 
-                log_extra={"calendar_id": calendar_id}
-            )
-        uid = user.get("sub")
-        if not verify_calendar(calendar_id, uid):
-            return warning_response(
-                message="accès refusé", 
-                code="ACCESS_DENIED", 
-                status_code=400, 
-                origin="PDF_DOWNLOAD", 
-                log_extra={"calendar_id": calendar_id}
-            )
+                user = decode_token(token)
+                if not user:
+                    return warning_response(
+                        message="accès refusé", 
+                        code="ACCESS_DENIED", 
+                        status_code=400, 
+                        origin="PDF_DOWNLOAD", 
+                        log_extra={"calendar_id": calendar_id}
+                    )
+                uid = user.get("sub")
+                if not verify_calendar(calendar_id, uid):
+                    return warning_response(
+                        message="accès refusé", 
+                        code="ACCESS_DENIED", 
+                        status_code=400, 
+                        origin="PDF_DOWNLOAD", 
+                        log_extra={"calendar_id": calendar_id}
+                    )
+        """
 
         if not calendar_id:
             return error_response(
@@ -336,7 +338,7 @@ def download_pdf_calendar(calendar_id):
         # Log facultatif
         log_backend.info("PDF généré avec succès", {
             "origin": "PDF_DOWNLOAD",
-            "uid": uid,
+            "uid": "unknown",
             "code": "PDF_DOWNLOAD_SUCCESS",
             "time": round(t_1 - t_0, 3),
         })
