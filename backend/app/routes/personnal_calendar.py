@@ -7,9 +7,10 @@ from app.services.calendar_service import generate_calendar_schedule
 from app.services.verifications import verify_calendar
 import time
 from app.utils.response import success_response, error_response, warning_response
-import traceback
 from app.utils.logger import log_backend
 from app.services.pdf import generate_medicine_conditions_pdf
+from app.utils.validators import decode_token
+import base64
 
 ERROR_CALENDAR_NOT_FOUND = "calendrier non trouvé"
 
@@ -173,7 +174,7 @@ def handle_rename_calendar():
         if not verify_calendar(calendar_id, uid):
             return warning_response(
                 message="accès refusé", 
-                code="CALENDAR_RENAME_ERROR", 
+                code="ACCESS_DENIED", 
                 status_code=400, 
                 uid=uid, 
                 origin="CALENDAR_RENAME", 
@@ -257,7 +258,7 @@ def handle_calendar_schedule(calendar_id):
         if not verify_calendar(calendar_id, owner_uid):
             return warning_response(
                 message="accès refusé", 
-                code="CALENDAR_GENERATE_ERROR", 
+                code="ACCESS_DENIED", 
                 status_code=400, 
                 uid=owner_uid, 
                 origin="CALENDAR_GENERATE", 
@@ -289,10 +290,37 @@ def handle_calendar_schedule(calendar_id):
         )
 
 @api.route("/calendars/<calendar_id>/pdf", methods=["GET"])
-@require_auth
 def download_pdf_calendar(calendar_id):
     try:
         t_0 = time.time()
+        token = request.args.get("token")
+        if not token:
+            return error_response(
+                message="token manquant",
+                code="MISSING_TOKEN",
+                status_code=400,
+                origin="PDF_DOWNLOAD"
+            )
+
+        user = decode_token(token)
+        if not user:
+            return warning_response(
+                message="accès refusé", 
+                code="ACCESS_DENIED", 
+                status_code=400, 
+                origin="PDF_DOWNLOAD", 
+                log_extra={"calendar_id": calendar_id}
+            )
+        uid = user.get("sub")
+        if not verify_calendar(calendar_id, uid):
+            return warning_response(
+                message="accès refusé", 
+                code="ACCESS_DENIED", 
+                status_code=400, 
+                origin="PDF_DOWNLOAD", 
+                log_extra={"calendar_id": calendar_id}
+            )
+
         if not calendar_id:
             return error_response(
                 message="calendar_id manquant",
@@ -308,7 +336,7 @@ def download_pdf_calendar(calendar_id):
         # Log facultatif
         log_backend.info("PDF généré avec succès", {
             "origin": "PDF_DOWNLOAD",
-            "uid": g.uid,
+            "uid": uid,
             "code": "PDF_DOWNLOAD_SUCCESS",
             "time": round(t_1 - t_0, 3),
         })
@@ -321,16 +349,10 @@ def download_pdf_calendar(calendar_id):
             }
         )
     except Exception as e:
-        log_backend.error(f"Erreur lors du téléchargement du PDF: {e}", {
-            "origin": "PDF_DOWNLOAD",
-            "code": "PDF_DOWNLOAD_ERROR",
-            "error": traceback.format_exc(),
-            "uid": g.uid
-        })
         return error_response(
             message="Erreur lors du téléchargement du PDF",
             code="PDF_DOWNLOAD_ERROR_CALENDAR",
             status_code=500,
-            uid=g.uid,
-            origin="PDF_DOWNLOAD"
+            origin="PDF_DOWNLOAD",
+            error=str(e)
         )

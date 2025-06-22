@@ -483,30 +483,9 @@ function App() {
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   const downloadPersonalCalendarPdf = useCallback(async (calendarId) => {
-    const url = `${API_URL}/api/calendars/${calendarId}/pdf`;
-    try {
-      const token = await getToken();
-      const res = await fetch(url, {
-        method: "GET",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error("Erreur de téléchargement");
-      const blob = await res.blob();
-      const blobUrl = URL.createObjectURL(blob);
-      window.open(blobUrl, "_blank");
-      log.info("PDF téléchargé", {
-        origin: "PERSONAL_CALENDAR_PDF_DOWNLOAD",
-        uid,
-        calendarId
-      });
-    } catch (err) {
-      alert("Impossible de télécharger le PDF");
-      log.error("Erreur PDF", err, {
-        origin: "PERSONAL_CALENDAR_PDF_DOWNLOAD",
-        uid,
-        calendarId
-      });
-    }
+    const token = await getToken();
+    const url = `${API_URL}/api/calendars/${calendarId}/pdf?token=${encodeURIComponent(token)}`;
+    window.open(url, '_blank');
   }, []);
   
   

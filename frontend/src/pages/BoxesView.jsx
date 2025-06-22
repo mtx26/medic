@@ -177,9 +177,7 @@ function BoxesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
           {calendarSource.downloadCalendarPdf && (
             <button
               className="btn btn-sm btn-primary"
-              onClick={async () => {
-                await calendarSource.downloadCalendarPdf(calendarId);
-              }}
+              onClick={() => calendarSource.downloadCalendarPdf(calendarId)}
             >
               <i className="bi bi-download"></i> Exporter le PDF
             </button>
