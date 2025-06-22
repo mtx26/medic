@@ -276,16 +276,16 @@ def handle_delete_user_shared_calendar(calendar_id):
 
                 owner_uid = calendar.get("owner_uid")
                 cursor.execute("DELETE FROM shared_calendars WHERE receiver_uid = %s AND calendar_id = %s", (receiver_uid, calendar_id))
-                link = urljoin(Config.FRONTEND_URL, "/calendars")
+                link = urljoin(Config.FRONTEND_URL or "", "/calendars")
 
                 notify_and_record(
                     uid=owner_uid,
                     json_body={
                         "link": link,
                         "calendar_id": calendar_id,
+                        "sender_uid": receiver_uid
                     },
                     notif_type="calendar_shared_deleted_by_receiver",
-                    sender_uid=receiver_uid,
                 )
                 t_1 = time.time()
 
@@ -361,16 +361,16 @@ def handle_delete_user_shared_user(calendar_id, receiver_uid):
                         owner_uid
                     )
                 )       
-                link = urljoin(Config.FRONTEND_URL, f"/calendar/{calendar_id}")
+                link = urljoin(Config.FRONTEND_URL or "", f"/calendar/{calendar_id}")
 
                 notify_and_record(
                     uid=receiver_uid,
                     json_body={
                         "link": link,
                         "calendar_id": calendar_id,
+                        "sender_uid": owner_uid
                     },
                     notif_type="calendar_shared_deleted_by_owner",
-                    sender_uid=owner_uid,
                 )
                 t_1 = time.time()
 

@@ -74,7 +74,7 @@ def handle_send_invitation(calendar_id):
                         log_extra={"calendar_id": calendar_id}
                     )
                 
-                link = urljoin(Config.FRONTEND_URL, "/notifications")
+                link = urljoin(Config.FRONTEND_URL or "", "/notifications")
 
                 # Créer une notif pour l'utilisateur receveur
                 notify_and_record(
@@ -82,9 +82,9 @@ def handle_send_invitation(calendar_id):
                     json_body={
                         "calendar_id": calendar_id,
                         "link": link,
+                        "sender_uid": owner_uid
                     },
                     notif_type="calendar_invitation",
-                    sender_uid=owner_uid,
                 )
 
 
@@ -155,7 +155,7 @@ def handle_accept_invitation(notification_id):
                 
                 calendar_id = notification.get("content").get("calendar_id")
                 sender_uid = notification.get("sender_uid")
-                link = urljoin(Config.FRONTEND_URL, f"/calendar/{calendar_id}")
+                link = urljoin(Config.FRONTEND_URL or "", f"/calendar/{calendar_id}")
                 # Dire que l'utilisateur receveur a accepté l'invitation
                 cursor.execute(
                     """
@@ -178,9 +178,9 @@ def handle_accept_invitation(notification_id):
                     json_body={
                         "link": link,
                         "calendar_id": calendar_id,
+                        "sender_uid": receiver_uid
                     },
                     notif_type="calendar_invitation_accepted",
-                    sender_uid=receiver_uid,
                 )
 
                 t_1 = time.time()
@@ -240,7 +240,7 @@ def handle_reject_invitation(notification_id):
 
                 calendar_id = notification.get("content").get("calendar_id")
                 owner_uid = notification.get("sender_uid")
-                link = urljoin(Config.FRONTEND_URL, f"/calendar/{calendar_id}")
+                link = urljoin(Config.FRONTEND_URL or "", f"/calendar/{calendar_id}")
                 # Supprimer la notif
                 cursor.execute(
                     """
@@ -254,9 +254,9 @@ def handle_reject_invitation(notification_id):
                     json_body={
                         "link": link,
                         "calendar_id": calendar_id,
+                        "sender_uid": receiver_uid
                     },
                     notif_type="calendar_invitation_rejected",
-                    sender_uid=receiver_uid,
                 )
 
 

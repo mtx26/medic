@@ -21,14 +21,14 @@ def send_email(to, subject, html_content, plain=None):
             """
         msg = EmailMessage()
         msg["Subject"] = subject
-        msg["From"] = formataddr(("MediTime", Config.NOTIFICATION_EMAIL_ADDRESS))
+        msg["From"] = formataddr(("MediTime", Config.NOTIFICATION_EMAIL_ADDRESS or ""))
         msg["To"] = to
         msg.set_content(plain or "Ce message contient du HTML.")
         msg.add_alternative(html, subtype="html")
 
-        with smtplib.SMTP(Config.SMTP_HOST, Config.SMTP_PORT) as server:
+        with smtplib.SMTP(Config.SMTP_HOST or "", int(Config.SMTP_PORT or 465)) as server:
             server.starttls()
-            server.login(Config.NOTIFICATION_EMAIL_ADDRESS, Config.NOTIFICATION_EMAIL_PASSWORD)
+            server.login(Config.NOTIFICATION_EMAIL_ADDRESS or "", Config.NOTIFICATION_EMAIL_PASSWORD or "")
             server.send_message(msg)
         log_backend.info(f"Email sent to {to} with subject '{subject}'", {"origin": "EMAIL", "code": "EMAIL_SENT"})
     except Exception as e:

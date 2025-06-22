@@ -9,6 +9,7 @@ import time
 from app.auth.fcm import send_fcm_notification
 from app.config import Config
 from urllib.parse import urljoin
+from app.services.notifications import notify_and_record
 
 frontend_url = Config.FRONTEND_URL or ""
 
@@ -269,3 +270,22 @@ def send_notification():
             origin="FCM_SEND", 
             error=str(e)
         )
+
+#test notification
+@api.route("/notifications/test", methods=["POST"])
+def test_notification():
+    data = request.json
+    uid = data.get("uid")
+    json_body = {
+        "link": urljoin(frontend_url, "/notifications"),
+        "sender_uid": uid
+    }
+    notify_and_record(uid, json_body, "test")
+
+    return success_response(
+        message="notification envoyée", 
+        code="NOTIFICATION_SENT", 
+        uid=uid, 
+        origin="FCM_SEND",
+        log_extra={"response": "test"}
+    )

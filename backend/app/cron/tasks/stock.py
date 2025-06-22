@@ -32,7 +32,7 @@ def check_low_stock_and_notify():
             owner_uid = result.get("owner_uid")
 
             # TODO: ajouter le lien pour ouvrir la boîte de médicament dans l'application
-            link = urljoin(Config.FRONTEND_URL, f"/medication/{id_box}")
+            link = urljoin(Config.FRONTEND_URL or "", f"/medication/{id_box}")
 
             if qty <= threshold:
                 try:
@@ -42,10 +42,10 @@ def check_low_stock_and_notify():
                             "link": link,
                             "medication_id": id_box,
                             "medication_qty": qty,
-                            "calendar_id": calendar_id
+                            "calendar_id": calendar_id,
+                            "sender_uid": Config.SYSTEM_UID
                         },
                         notif_type="low_stock",
-                        sender_uid=Config.SYSTEM_UID,
                     )
                     log_backend.info(f"✅ Notification de stock faible envoyée à {owner_uid} pour le médicament {id_box}", {"origin": "CRON", "code": "STOCK_CHECK_SUCCESS"})
                 except Exception as e:
