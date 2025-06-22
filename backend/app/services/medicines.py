@@ -93,9 +93,25 @@ def get_medicines_for_calendar(calendar_id):
                 ORDER BY mb.name, c.start_date NULLS LAST
             """, (calendar_id,))
             medicines = cursor.fetchall()
-            grouped_medicines = {}
-            for medicine in medicines:
-                if medicine.get("name") not in grouped_medicines:
-                    grouped_medicines[medicine.get("name")] = []
-                grouped_medicines[medicine.get("name")].append(medicine)
-            return grouped_medicines
+
+            grouped = {}
+            for med in medicines:
+                name = med["name"]
+                dose = med["dose"]
+
+                # Extraire les conditions uniquement
+                condition = {
+                    "tablet_count": med["tablet_count"],
+                    "time_of_day": med["time_of_day"],
+                    "interval_days": med["interval_days"],
+                    "start_date": med["start_date"],
+                }
+
+                if name not in grouped:
+                    grouped[name] = {
+                        "dose": dose,
+                        "conditions": []
+                    }
+                grouped[name]["conditions"].append(condition)
+
+            return grouped
