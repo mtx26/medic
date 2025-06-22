@@ -345,7 +345,8 @@ def download_pdf_calendar(calendar_id):
             pdf_buffer.getvalue(),
             mimetype="application/pdf",
             headers={
-                "Content-Disposition": f"inline; filename=calendrier_{calendar_id[:8]}.pdf"
+                "Content-Disposition": f"inline; filename=calendrier_{calendar_id[:8]}.pdf",
+                "Content-Type": "application/pdf"
             }
         )
     except Exception as e:
