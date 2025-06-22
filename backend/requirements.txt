@@ -12,3 +12,4 @@ schedule==1.2.2
 pyjwt==2.10.1
 cryptography==45.0.3
 twilio==9.6.3
+reportlab==4.4.2

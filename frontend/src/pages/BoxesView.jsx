@@ -170,9 +170,21 @@ function BoxesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
   return (
     <div className="container align-items-center d-flex flex-column gap-3">
       <div className="p-1 w-100" style={{ maxWidth: '800px' }}>
-        <h4 className="mb-3 fw-bold">
-          <i className="bi bi-box-seam"></i> Boîtes de médicaments
-        </h4>
+        <div className="d-flex flex-column flex-md-row justify-content-between mb-3">
+          <h4 className="mb-3 fw-bold">
+            <i className="bi bi-box-seam"></i> Boîtes de médicaments
+          </h4>
+          {calendarSource.downloadCalendarPdf && (
+            <button
+              className="btn btn-sm btn-primary"
+              onClick={async () => {
+                await calendarSource.downloadCalendarPdf(calendarId);
+              }}
+            >
+              <i className="bi bi-download"></i> Exporter le PDF
+            </button>
+          )}
+        </div>
         <AlertSystem
           type={alertType}
           message={alertMessage}

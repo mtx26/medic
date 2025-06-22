@@ -13,6 +13,7 @@ export const getCalendarSourceMap = (
     updateBox: personalCalendars.updatePersonalBox,
     createBox: personalCalendars.createPersonalBox,
     deleteBox: personalCalendars.deletePersonalBox,
+    downloadCalendarPdf: personalCalendars.downloadPersonalCalendarPdf,
   },
   sharedUser: {
     fetchSchedule: sharedUserCalendars.fetchSharedUserCalendarSchedule,
@@ -24,6 +25,7 @@ export const getCalendarSourceMap = (
     updateBox: sharedUserCalendars.updateSharedUserBox,
     createBox: sharedUserCalendars.createSharedUserBox,
     deleteBox: sharedUserCalendars.deleteSharedUserBox,
+    downloadCalendarPdf: null,
   },
   token: {
     fetchSchedule: tokenCalendars.fetchTokenCalendarSchedule,
@@ -36,5 +38,6 @@ export const getCalendarSourceMap = (
     updateBox: null,
     createBox: null,
     deleteBox: null,
+    downloadCalendarPdf: null,
   },
 });

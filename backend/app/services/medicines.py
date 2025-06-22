@@ -75,3 +75,27 @@ def delete_box(box_id, calendar_id):
             cursor.execute("DELETE FROM medicine_boxes WHERE id = %s AND calendar_id = %s", (box_id, calendar_id))
             cursor.execute("DELETE FROM medicine_box_conditions WHERE box_id = %s", (box_id,))
             conn.commit()
+
+def get_medicines_for_calendar(calendar_id):
+    with get_connection() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                SELECT
+                    mb.name,
+                    mb.dose,
+                    c.tablet_count,
+                    c.time_of_day,
+                    c.interval_days,
+                    c.start_date
+                FROM medicine_boxes mb
+                LEFT JOIN medicine_box_conditions c ON mb.id = c.box_id
+                WHERE mb.calendar_id = %s
+                ORDER BY mb.name, c.start_date NULLS LAST
+            """, (calendar_id,))
+            medicines = cursor.fetchall()
+            grouped_medicines = {}
+            for medicine in medicines:
+                if medicine.get("name") not in grouped_medicines:
+                    grouped_medicines[medicine.get("name")] = []
+                grouped_medicines[medicine.get("name")].append(medicine)
+            return grouped_medicines

@@ -1,12 +1,15 @@
 from . import api
 from app.utils.validators import require_auth
 from datetime import datetime, timezone
-from flask import request, g
+from flask import request, g, Response
 from app.db.connection import get_connection
 from app.services.calendar_service import generate_calendar_schedule
 from app.services.verifications import verify_calendar
 import time
 from app.utils.response import success_response, error_response, warning_response
+import traceback
+from app.utils.logger import log_backend
+from app.services.pdf import generate_medicine_conditions_pdf
 
 ERROR_CALENDAR_NOT_FOUND = "calendrier non trouvé"
 
@@ -283,4 +286,51 @@ def handle_calendar_schedule(calendar_id):
             origin="CALENDAR_GENERATE", 
             error=str(e),
             log_extra={"calendar_id": calendar_id}
+        )
+
+@api.route("/calendars/<calendar_id>/pdf", methods=["GET"])
+@require_auth
+def download_pdf_calendar(calendar_id):
+    try:
+        t_0 = time.time()
+        if not calendar_id:
+            return error_response(
+                message="calendar_id manquant",
+                code="MISSING_CALENDAR_ID",
+                status_code=400,
+                origin="PDF_DOWNLOAD"
+            )
+
+        # Génère le PDF en mémoire
+        pdf_buffer = generate_medicine_conditions_pdf(calendar_id)
+        t_1 = time.time()
+
+        # Log facultatif
+        log_backend.info("PDF généré avec succès", {
+            "origin": "PDF_DOWNLOAD",
+            "uid": g.uid,
+            "code": "PDF_DOWNLOAD_SUCCESS",
+            "time": round(t_1 - t_0, 3),
+        })
+
+        return Response(
+            pdf_buffer.getvalue(),
+            mimetype="application/pdf",
+            headers={
+                "Content-Disposition": f"inline; filename=calendrier_{calendar_id[:8]}.pdf"
+            }
+        )
+    except Exception as e:
+        log_backend.error(f"Erreur lors du téléchargement du PDF: {e}", {
+            "origin": "PDF_DOWNLOAD",
+            "code": "PDF_DOWNLOAD_ERROR",
+            "error": traceback.format_exc(),
+            "uid": g.uid
+        })
+        return error_response(
+            message="Erreur lors du téléchargement du PDF",
+            code="PDF_DOWNLOAD_ERROR_CALENDAR",
+            status_code=500,
+            uid=g.uid,
+            origin="PDF_DOWNLOAD"
         )
