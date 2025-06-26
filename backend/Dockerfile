@@ -1,9 +1,14 @@
 FROM python:3.10
 
 WORKDIR /app
-COPY . /app
+
+# Copier uniquement le fichier requirements pour profiter du cache Docker
+COPY requirements.txt /app/
 
 RUN pip install --no-cache-dir -r requirements.txt
+
+# Copier le reste des fichiers
+COPY . /app
 
 EXPOSE 5000
 
