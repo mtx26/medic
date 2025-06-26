@@ -12,7 +12,17 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      # Pas de node/npm ici, on suppose que backend est Python/Flask
+      - name: Debug secrets presence
+        run: |
+          if [ -z "${{ secrets.CAPROVER_SERVER }}" ]; then echo "CAPROVER_SERVER is EMPTY"; else echo "CAPROVER_SERVER is set"; fi
+          if [ -z "${{ secrets.APP_NAME }}" ]; then echo "APP_NAME is EMPTY"; else echo "APP_NAME is set"; fi
+          if [ -z "${{ secrets.APP_TOKEN }}" ]; then echo "APP_TOKEN is EMPTY"; else echo "APP_TOKEN is set"; fi
+
+      - name: Debug partial secrets
+        run: |
+          echo "CAPROVER_SERVER (start): ${{ secrets.CAPROVER_SERVER }}" | cut -c1-30
+          echo "APP_NAME: ${{ secrets.APP_NAME }}"
+          echo "APP_TOKEN (start): ${{ secrets.APP_TOKEN }}" | cut -c1-10
 
       - name: Pack backend for CapRover
         uses: a7ul/tar-action@v1.1.0
