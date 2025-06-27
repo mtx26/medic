@@ -115,7 +115,17 @@ export default function PillboxDisplay({
         <>
           {orderedMeds.length > 0 && (
             <>
-              <div className="bg-white text-primary border rounded-top px-3 py-2">
+              <div 
+                className={
+                  `rounded-top px-3 py-2 ${
+                  orderedMeds[selectedMedIndex].moment === 'morning' ?
+                  'bg-danger text-white' :
+                  orderedMeds[selectedMedIndex].moment === 'noon' ?
+                  'bg-success text-white' :
+                  orderedMeds[selectedMedIndex].moment === 'evening' ?
+                  'bg-info text-white' :
+                  'bg-white text-primary'}`}
+              >
                 <h4 className="mb-0"><strong>{moment_map[orderedMeds[selectedMedIndex].moment]}</strong></h4>
               </div>
               <div className="bg-primary text-white px-3 py-3 rounded-bottom mb-4">
@@ -158,7 +168,16 @@ export default function PillboxDisplay({
                       );
                     } else {
                       return (
-                        <button className="btn btn-success mt-4" onClick={handleNextMed}>
+                        <button 
+                          className={`btn ${
+                            nextMoment === 'morning' ?
+                            'btn-danger text-white' :
+                            nextMoment === 'noon' ?
+                            'btn-success text-white' :
+                            nextMoment === 'evening' ?
+                            'btn-info text-white' :
+                            'btn-primary text-white'
+                          } mt-4`} onClick={handleNextMed}>
                           {moment_map[nextMoment]} <i className="bi bi-arrow-right"></i>
                         </button>
                       );
@@ -168,6 +187,7 @@ export default function PillboxDisplay({
                   <button
                     className="btn btn-success mt-4"
                     onClick={() => {
+                      {/* TODO: supprimer les medicaments de la bd ici */}
                       if (type === 'calendar') {
                         setSuccessMessage(true);
                       } else {
