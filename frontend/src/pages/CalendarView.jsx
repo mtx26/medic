@@ -49,6 +49,7 @@ function CalendarPage({
   const dateModalRef = useRef(null);
   const shareModalRef = useRef(null); // Référence vers le modal (pour gestion focus/fermeture)
   const [loading, setLoading] = useState(undefined); // État de chargement du calendrier
+  const [loadingShare, setLoadingShare] = useState(false); // État de chargement du partage du calendrier
 
   const [startDate, setStartDate] = useState(formatToLocalISODate(new Date()));
 
@@ -100,7 +101,10 @@ function CalendarPage({
 
   // Fonction pour partager le calendrier
   const handleShareCalendarClick = async () => {
+    setLoadingShare(true);
     setExistingShareToken(null);
+    setSharedUsersData([]);
+    shareModalRef.current?.open();
     const token = await tokenCalendars.tokensList.find(
       (t) =>
         t.calendar_id === calendarId &&
@@ -112,7 +116,7 @@ function CalendarPage({
       setSharedUsersData(rep.users);
     }
     setExistingShareToken(token || null);
-    shareModalRef.current?.open();
+    setLoadingShare(false);
   };
 
   // Fonction pour naviguer vers la date suivante ou precedente
@@ -208,6 +212,7 @@ function CalendarPage({
         // Modal pour partager un calendrier
         <ShareCalendarModal
           ref={shareModalRef}
+          loading={loadingShare}
           calendarId={calendarId}
           calendarName={calendarName}
           existingShareToken={existingShareToken}

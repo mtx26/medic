@@ -365,6 +365,7 @@ ModalBody.propTypes = {
 const ShareCalendarModal = forwardRef(
   (
     {
+      loading,
       calendarId,
       calendarName,
       existingShareToken,
@@ -474,6 +475,27 @@ const ShareCalendarModal = forwardRef(
       ref?.current?.close();
     };
 
+    if (loading) {
+      return (
+        <div className="modal fade" tabIndex="-1" id="shareModal">
+          <div className="modal-dialog">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Partager le calendrier <strong>{calendarName}</strong></h5>
+              </div>
+              <div className="modal-body d-flex justify-content-center align-items-center" style={{ minHeight: '150px' }}>
+                <div className="spinner-border text-primary" role="status">
+                  <span className="visually-hidden">Chargement du partage...</span>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-outline-secondary" onClick={() => ref?.current?.close()}>Fermer</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
     return (
       <div className="modal fade" tabIndex="-1" id="shareModal">
         <div className="modal-dialog">
@@ -530,6 +552,7 @@ const ShareCalendarModal = forwardRef(
 );
 
 ShareCalendarModal.propTypes = {
+  loading: PropTypes.bool.isRequired,
   calendarId: PropTypes.string.isRequired,
   calendarName: PropTypes.string.isRequired,
   existingShareToken: PropTypes.object,

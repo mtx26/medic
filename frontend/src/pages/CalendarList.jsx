@@ -30,6 +30,9 @@ function SelectCalendar({
   // 👥 Partage ciblé par utilisateur
   const [sharedUsersData, setSharedUsersData] = useState([]); // État pour les données des utilisateurs ayant accès
 
+  // 🔄 Partage de calendrier
+  const [loadingShare, setLoadingShare] = useState(false); // État de chargement du partage du calendrier
+
   // 🔄 Ajout d'un calendrier
   const handleAddCalendarClick = async () => {
     const rep = await personalCalendars.addCalendar(newCalendarName);
@@ -92,9 +95,12 @@ function SelectCalendar({
 
   // 🔗 Partager un calendrier
   const handleShareCalendarClick = async (calendarData) => {
+    setLoadingShare(true);
     setCalendarNameToShare(calendarData.name); // On retient quel calendrier partager
     setCalendarIdToShare(calendarData.id);
+    setSharedUsersData([]);
     setExistingShareToken(null);
+    shareModalRef.current?.open();
     const token = await tokenCalendars.tokensList.find(
       (t) => t.calendar_id === calendarData.id
     );
@@ -103,7 +109,7 @@ function SelectCalendar({
       setSharedUsersData(rep.users);
     }
     setExistingShareToken(token || null);
-    shareModalRef.current?.open();
+    setLoadingShare(false);
   };
 
   const deleteSharedCalendarConfirmAction = async (calendarId) => {
@@ -146,6 +152,7 @@ function SelectCalendar({
       {/* Modal pour partager un calendrier */}
       <ShareCalendarModal
         ref={shareModalRef}
+        loading={loadingShare}
         calendarId={calendarIdToShare}
         calendarName={calendarNameToShare}
         existingShareToken={existingShareToken}
