@@ -17,6 +17,7 @@ import DateModal from '../components/DateModal';
 import WeekCalendarSelector from '../components/WeekCalendarSelector';
 import WeeklyEventContent from '../components/WeeklyEventContent';
 import PillboxDisplay from '../components/PillboxDisplay';
+import CalendarActionSheet from '../components/actionSheet/CalendarActionSheet';
 
 function CalendarPage({
   personalCalendars,
@@ -255,6 +256,40 @@ function CalendarPage({
                     <i className="bi bi-box-arrow-up"></i> Partager
                   </button>
                 )}
+
+                {/* Bouton pour afficher le menu déroulant */}
+                <div className="d-flex justify-content-end">
+                <CalendarActionSheet
+                  actions={[
+                    {
+                      label: (
+                        <>
+                          <i className="bi bi-gear me-2" /> Paramètres
+                        </>
+                      ),
+                      onClick: () => console.log('Paramètres'),
+                    },
+                    {
+                      label: (
+                        <>
+                          <i className="bi bi-box-arrow-up me-2" /> Partager
+                        </>
+                      ),
+                      onClick: () => console.log('partagé'), 
+                    },
+                    {
+                      label: (
+                        <>
+                          <i className="bi bi-trash me-2" /> Supprimer
+                        </>
+                      ),
+                      onClick: () => console.log('Supprimer'),
+                      danger: true,
+                    },
+                  ]}
+                />
+
+                </div>
               </div>
             </div>
 
