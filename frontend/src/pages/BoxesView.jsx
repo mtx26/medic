@@ -5,8 +5,8 @@ import AlertSystem from '../components/AlertSystem';
 import { getCalendarSourceMap } from '../utils/calendarSourceMap';
 import { v4 as uuidv4 } from 'uuid';
 import { fetchSuggestions } from '../utils/fetchSuggestions';
-import ViewNoticeButton from '../components/ViewNoticeButton';
 import ActionSheet from '../components/ActionSheet';
+import openNotice from '../utils/openNotice';
 
 function BoxesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
   const location = useLocation();
@@ -171,25 +171,25 @@ function BoxesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
   return (
     <div className="container align-items-center d-flex flex-column gap-3">
       <div className="p-1 w-100" style={{ maxWidth: '800px' }}>
-      <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap">
-  <h4 className="mb-0 fw-bold">
-    <i className="bi bi-box-seam me-2"></i> Boîtes de médicaments
-  </h4>
-  <div className="ms-auto">
-    <ActionSheet
-      actions={[
-        {
-          label: (
-            <>
-              <i className="bi bi-download me-2" /> Exporter
-            </>
-          ),
-          onClick: () => calendarSource.downloadCalendarPdf(calendarId),
-        },
-      ]}
-    />
-  </div>
-</div>
+        <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+          <h4 className="mb-0 fw-bold">
+            <i className="bi bi-box-seam me-2"></i> Boîtes de médicaments
+          </h4>
+          <div className="ms-auto">
+            <ActionSheet
+              actions={[
+                {
+                  label: (
+                    <>
+                      <i className="bi bi-download me-2" /> Exporter
+                    </>
+                  ),
+                  onClick: () => calendarSource.downloadCalendarPdf(calendarId),
+                },
+              ]}
+            />
+          </div>
+        </div>
 
 
 
@@ -322,15 +322,39 @@ function BoxCard({
       <div className="card-body position-relative">
         <div className="position-absolute top-0 end-0 m-2">
           {(!selectedModifyBox || selectedModifyBox !== box.id) && (
-            <button
-              type="button"
-              className="btn btn-secondary btn-sm rounded-circle"
-              onClick={() => setSelectedModifyBox(box.id)}
-              aria-label="Modifier le nom de la boîte"
-              title="Modifier le nom de la boîte"
-            >
-              <i className="bi bi-pencil"></i>
-            </button>
+            <ActionSheet
+              buttonSize="sm"
+              actions={[
+                {
+                  label: (
+                    <>
+                      <i className="bi bi-pencil me-2" /> Modifier
+                    </>
+                  ),
+                  onClick: () => setSelectedModifyBox(box.id),
+                },
+                {
+                  label: (
+                    <>
+                      <i className="bi bi-file-earmark-pdf me-2" /> Voir la notice
+                    </>
+                  ),
+                  onClick: () => openNotice(box.id),
+                },
+                {
+                  separator: true,
+                },
+                {
+                  label: (
+                    <>
+                      <i className="bi bi-trash me-2" /> Supprimer
+                    </>
+                  ),
+                  onClick: () => deleteBox(box.id),
+                  danger: true,
+                },
+              ]}
+            />
           )}
         </div>
 
@@ -421,12 +445,9 @@ function BoxCard({
         </div>
 
         {(!selectedModifyBox || selectedModifyBox !== box.id) && (
-          <div className="d-flex mb-2 gap-2 align-items-center">
-            <div className="w-50">
-              <StockBadge box={box} />
-            </div>
-            <ViewNoticeButton box_id={box.id} />
-          </div>
+          <div className="d-flex mb-2 align-items-center w-100">
+            <StockBadge box={box} />
+          </div>  
         )}
 
         <div className="mt-4 mb-2">
@@ -452,6 +473,7 @@ function BoxCard({
             </button>
           </h5>
 
+          {/* Condition de prise */}
           {selectedDropBox[box.id] === true && (
             <div className="mt-2">
               {editable ? (
@@ -689,17 +711,6 @@ function BoxCard({
                 title="Annuler"
               >
                 <i className="bi bi-x"></i> Annuler
-              </button>
-              <button
-                type="button"
-                className="btn btn-danger btn-sm"
-                onClick={() => {
-                  deleteBox(box.id);
-                }}
-                aria-label="Supprimer"
-                title="Supprimer"
-              >
-                <i className="bi bi-trash"></i> Supprimer
               </button>
             </div>
           </>

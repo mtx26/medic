@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 
-function ActionSheet({ actions }) {
+function ActionSheet({ actions, buttonSize }) {
   const [show, setShow] = useState(false);
   const [position, setPosition] = useState({ top: 0, left: 0 });
   const buttonRef = useRef(null);
@@ -34,7 +34,7 @@ function ActionSheet({ actions }) {
   return (
     <>
       {/* pas de background */}
-      <button className="btn btn-outline-dark" ref={buttonRef} onClick={toggleDropdown}>
+      <button className={`btn btn-outline-dark ${buttonSize === 'sm' ? 'btn-sm' : ''}`} ref={buttonRef} onClick={toggleDropdown}>
         <i className="bi bi-three-dots-vertical"></i>
       </button>
 
@@ -75,6 +75,7 @@ function ActionSheet({ actions }) {
 }
 
 ActionSheet.propTypes = {
+  buttonSize: PropTypes.string,
   actions: PropTypes.arrayOf(
     PropTypes.shape({
       label: PropTypes.node,  // ← autorise du JSX

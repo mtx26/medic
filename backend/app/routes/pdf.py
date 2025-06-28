@@ -1,4 +1,4 @@
-from flask import request, Response, g
+from flask import request, Response
 import requests
 from app.db.connection import get_connection
 from . import api
@@ -18,7 +18,6 @@ def proxy_pdf():
                 message="Missing box_id",
                 code="MISSING_BOX_ID",
                 status_code=400,
-                uid=g.uid,
                 origin="PDF_PROXY"
             )
 
@@ -31,7 +30,6 @@ def proxy_pdf():
                         message="Box not found",
                         code="BOX_NOT_FOUND",
                         status_code=404,
-                        uid=g.uid,
                         origin="PDF_PROXY"
                     )
 
@@ -51,7 +49,6 @@ def proxy_pdf():
                 message="URL not found",
                 code="URL_NOT_FOUND",
                 status_code=404,
-                uid=g.uid,
                 origin="PDF_PROXY"
             )
         r = requests.get(url_result["url_notice_fr"], stream=True, timeout=10)
@@ -70,8 +67,6 @@ def proxy_pdf():
         log_backend.error(f"Error downloading PDF: {e}", {
             "origin": "PDF_PROXY", 
             "code": "PDF_DOWNLOAD_ERROR", 
-            "url": url_result["url_notice_fr"], 
             "error": traceback.format_exc(),
-            "uid": g.uid
         })
         return f"Erreur lors du téléchargement : {e}", 500
