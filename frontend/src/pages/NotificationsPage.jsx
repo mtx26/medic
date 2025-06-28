@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import NotificationLine from '../components/NotificationLine';
+import ActionSheet from '../components/ActionSheet';
 
 function NotificationsPage({ notifications, sharedUserCalendars }) {
   const navigate = useNavigate();
@@ -26,9 +27,18 @@ function NotificationsPage({ notifications, sharedUserCalendars }) {
         <h4 className="fw-bold">
           <i className="bi bi-bell-fill me-2"></i> Notifications
         </h4>
-        <Link to="/settings?tab=notifications" className="btn btn-primary">
-          <i className="bi bi-gear-fill me-2"></i> Paramètres
-        </Link>
+        <ActionSheet
+          actions={[
+            {
+              label: (
+                <>
+                  <i className="bi bi-gear-fill me-2"></i> Paramètres
+                </>
+              ),
+              onClick: () => navigate('/settings?tab=notifications'),
+            },
+          ]}
+        />
       </div>
 
       {notifications.notificationsData.length === 0 ? (
