@@ -276,7 +276,15 @@ function CalendarPage({
                             <i className="bi bi-trash me-2" /> Supprimer
                           </>
                         ),
-                        onClick: () => console.log('Supprimer'),
+                        onClick: async () => {
+                          const rep = await calendarSource.deleteCalendar(calendarId)
+                          if (rep.success) {
+                            navigate('/calendars');
+                          } else {
+                            setAlertType('danger');
+                            setAlertMessage(rep.error);
+                          }
+                        },
                         danger: true,
                       },
                     ]}
