@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import AlertSystem from '../components/AlertSystem';
 import HoveredUserProfile from '../components/HoveredUserProfile';
 import ShareCalendarModal from '../components/ShareCalendarModal';
+import ActionSheet from '../components/ActionSheet';
+
 
 function SelectCalendar({
   personalCalendars,
@@ -14,6 +16,7 @@ function SelectCalendar({
   // 📅 Gestion des calendriers
   const [newCalendarName, setNewCalendarName] = useState(''); // État pour le nom du nouveau calendrier
   const [renameValues, setRenameValues] = useState({}); // État pour les valeurs de renommage de calendrier
+  const [renameMode, setRenameMode] = useState(null); // État pour le mode de renommage
 
   // ⚠️ Alertes et confirmations
   const [alertType, setAlertType] = useState(''); // État pour le type d'alerte
@@ -249,81 +252,109 @@ function SelectCalendar({
                     }}
                   />
                 )}
-                <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
-                  {/* Partie gauche : Nom du calendrier et nombre de médicaments */}
-                  <div className="flex-grow-1">
+                <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+                  {/* Partie gauche : Nom + nombre */}
+                  <div className="me-auto">
                     <h5 className="mb-1 fs-semibold">{calendarData.name}</h5>
                     <div className="text-muted small">
-                      Nombre de médicaments :
+                      Médicaments :
                       <span className="fw-semibold ms-1">
                         {calendarData.boxes_count ?? '...'}
                       </span>
                     </div>
                   </div>
 
-                  {/* Partie pour renommer un calendrier */}
-                  <form
-                    className="input-group input-group w-100 w-md-auto"
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      handleRenameClick(calendarData.id);
-                    }}
+                  {/* Bouton Ouvrir */}
+                  <button
+                    className="btn btn-outline-success"
+                    title="Ouvrir"
+                    aria-label="Ouvrir"
+                    onClick={() => navigate('/calendar/' + calendarData.id)}
                   >
-                    <input
-                      id={'renameCalendarName' + calendarData.id}
-                      aria-label="Nouveau nom"
-                      type="text"
-                      className="form-control form-control"
-                      placeholder="Nouveau nom"
-                      required
-                      value={renameValues[calendarData.id] || ''} // Valeur du champ de renommage
-                      onChange={(e) =>
-                        setRenameValues({
-                          ...renameValues,
-                          [calendarData.id]: e.target.value,
-                        })
-                      } // Mise à jour de l'état
-                    />
-                    <button
-                      className="btn btn-warning"
-                      title="Renommer"
-                      type="submit"
-                      aria-label="Renommer"
-                    >
-                      <i className="bi bi-pencil"></i>
-                    </button>
-                  </form>
+                    Ouvrir
+                  </button>
 
-                  {/* Boutons d'action : ouvrir ou supprimer */}
-                  <div className="btn-group btn-group w-md-auto">
-                    <button
-                      className="btn btn-outline-success"
-                      title="Ouvrir"
-                      aria-label="Ouvrir"
-                      onClick={() => navigate('/calendar/' + calendarData.id)} // Navigation vers le calendrier
-                    >
-                      Ouvrir
-                    </button>
-
-                    <button
-                      className="btn btn-outline-warning"
-                      title="Partager"
-                      aria-label="Partager"
-                      onClick={() => handleShareCalendarClick(calendarData)}
-                    >
-                      <i className="bi bi-box-arrow-up"></i>
-                    </button>
-
-                    <button
-                      className="btn btn-outline-danger"
-                      title="Supprimer"
-                      aria-label="Supprimer"
-                      onClick={() => handleDeleteCalendarClick(calendarData.id)}
-                    >
-                      <i className="bi bi-trash3"></i>
-                    </button>
-                  </div>
+                  {/* ActionSheet */}
+                  <ActionSheet
+                    actions={[
+                      {
+                        label: (
+                          <>
+                            <i className="bi bi-box-arrow-up"></i> Partager
+                          </>
+                        ),
+                        onClick: () => handleShareCalendarClick(calendarData)
+                      },
+                      {
+                        label: (
+                          <>
+                            <i className="bi bi-pencil"></i> Renommer
+                          </>
+                        ),
+                        onClick: () => setRenameMode(calendarData.id)
+                      },
+                      {
+                        separator: true,
+                      },
+                      {
+                        label: (
+                          <>
+                            <i className="bi bi-trash"></i> Supprimer
+                          </>
+                        ),
+                        onClick: () => handleDeleteCalendarClick(calendarData.id),
+                        danger: true,
+                      },
+                    ]}
+                  />
                 </div>
+                {/* afficher la form si on est en mode renommage */}
+                {renameMode === calendarData.id && (
+                  <div className="d-flex justify-content-center">
+                    {/* Partie pour renommer un calendrier */}
+                    <form
+                      className="input-group input-group w-100 w-md-auto"
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        handleRenameClick(calendarData.id);
+                        setRenameMode(null);
+                      }}
+                    >
+                      <input
+                        id={'renameCalendarName' + calendarData.id}
+                        aria-label="Nouveau nom"
+                        type="text"
+                        className="form-control form-control"
+                        placeholder="Nouveau nom"
+                        required
+                        value={renameValues[calendarData.id] || ''} // Valeur du champ de renommage
+                        onChange={(e) =>
+                          setRenameValues({
+                            ...renameValues,
+                            [calendarData.id]: e.target.value,
+                          })
+                        } // Mise à jour de l'état
+                      />
+                      <button
+                        className="btn btn-warning"
+                        title="Renommer"
+                        type="submit"
+                        aria-label="Renommer"
+                      >
+                        <i className="bi bi-pencil"></i>
+                      </button>
+                      <button
+                        className="btn btn-outline-danger"
+                        title="Annuler"
+                        type="button"
+                        aria-label="Annuler"
+                        onClick={() => setRenameMode(null)}
+                      >
+                        <i className="bi bi-x-lg"></i>
+                      </button>
+                    </form>
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -382,7 +413,7 @@ function SelectCalendar({
                     <div className="flex-grow-1">
                       <h5 className="mb-1 fs-semibold">{calendarData.name}</h5>
                       <div className="text-muted small">
-                        Nombre de médicaments :
+                        Médicaments :
                         <span className="fw-semibold ms-1">
                           {calendarData.boxes_count ?? '...'}
                         </span>

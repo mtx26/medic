@@ -50,17 +50,23 @@ function ActionSheet({ actions }) {
           }}
         >
           {actions.map((action, index) => (
-            <li key={index}>
-              <button
-                className={`dropdown-item btn btn-outline-dark ${action.danger ? 'text-danger' : ''}`}
-                onClick={() => {
-                  action.onClick?.();
-                  setShow(false);
-                }}
-              >
-                {action.label}
-              </button>
-            </li>
+            action.separator ? (
+              <li key={`separator-${index}`}>
+                <hr className="dropdown-divider" />
+              </li>
+            ) : (
+              <li key={index}>
+                <button
+                  className={`dropdown-item btn btn-outline-dark ${action.danger ? 'text-danger' : ''}`}
+                  onClick={() => {
+                    action.onClick?.();
+                    setShow(false);
+                  }}
+                >
+                  {action.label}
+                </button>
+              </li>
+            )
           ))}
         </ul>
       )}
@@ -71,9 +77,10 @@ function ActionSheet({ actions }) {
 ActionSheet.propTypes = {
   actions: PropTypes.arrayOf(
     PropTypes.shape({
-      label: PropTypes.node.isRequired,  // ← autorise du JSX
-      onClick: PropTypes.func.isRequired,
+      label: PropTypes.node,  // ← autorise du JSX
+      onClick: PropTypes.func,
       danger: PropTypes.bool,
+      separator: PropTypes.bool,
     })
   ).isRequired,
 };

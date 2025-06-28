@@ -271,6 +271,9 @@ function CalendarPage({
                         onClick: handleShareCalendarClick, 
                       },
                       {
+                        separator: true,
+                      },
+                      {
                         label: (
                           <>
                             <i className="bi bi-trash me-2" /> Supprimer
