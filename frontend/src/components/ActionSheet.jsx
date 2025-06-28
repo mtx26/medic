@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 
-function CalendarActionSheet({ actions }) {
+function ActionSheet({ actions }) {
   const [show, setShow] = useState(false);
   const [position, setPosition] = useState({ top: 0, left: 0 });
   const buttonRef = useRef(null);
@@ -33,7 +33,8 @@ function CalendarActionSheet({ actions }) {
 
   return (
     <>
-      <button className="btn btn-dark" ref={buttonRef} onClick={toggleDropdown}>
+      {/* pas de background */}
+      <button className="btn btn-outline-dark" ref={buttonRef} onClick={toggleDropdown}>
         <i className="bi bi-three-dots-vertical"></i>
       </button>
 
@@ -51,7 +52,7 @@ function CalendarActionSheet({ actions }) {
           {actions.map((action, index) => (
             <li key={index}>
               <button
-                className={`dropdown-item ${action.danger ? 'text-danger' : ''}`}
+                className={`dropdown-item btn btn-outline-dark ${action.danger ? 'text-danger' : ''}`}
                 onClick={() => {
                   action.onClick?.();
                   setShow(false);
@@ -67,7 +68,7 @@ function CalendarActionSheet({ actions }) {
   );
 }
 
-CalendarActionSheet.propTypes = {
+ActionSheet.propTypes = {
   actions: PropTypes.arrayOf(
     PropTypes.shape({
       label: PropTypes.node.isRequired,  // ← autorise du JSX
@@ -77,4 +78,4 @@ CalendarActionSheet.propTypes = {
   ).isRequired,
 };
 
-export default CalendarActionSheet;
+export default ActionSheet;

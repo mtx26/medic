@@ -17,7 +17,7 @@ import DateModal from '../components/DateModal';
 import WeekCalendarSelector from '../components/WeekCalendarSelector';
 import WeeklyEventContent from '../components/WeeklyEventContent';
 import PillboxDisplay from '../components/PillboxDisplay';
-import CalendarActionSheet from '../components/actionSheet/CalendarActionSheet';
+import ActionSheet from '../components/ActionSheet';
 
 function CalendarPage({
   personalCalendars,
@@ -252,7 +252,7 @@ function CalendarPage({
 
                 {/* Bouton pour afficher le menu déroulant */}
                 {calendarType === 'personal' && (
-                  <CalendarActionSheet
+                  <ActionSheet
                     actions={[
                       {
                         label: (

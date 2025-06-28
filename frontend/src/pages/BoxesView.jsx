@@ -6,6 +6,7 @@ import { getCalendarSourceMap } from '../utils/calendarSourceMap';
 import { v4 as uuidv4 } from 'uuid';
 import { fetchSuggestions } from '../utils/fetchSuggestions';
 import ViewNoticeButton from '../components/ViewNoticeButton';
+import ActionSheet from '../components/ActionSheet';
 
 function BoxesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
   const location = useLocation();
@@ -170,19 +171,28 @@ function BoxesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
   return (
     <div className="container align-items-center d-flex flex-column gap-3">
       <div className="p-1 w-100" style={{ maxWidth: '800px' }}>
-        <div className="d-flex flex-column flex-md-row justify-content-between mb-3">
-          <h4 className="mb-3 fw-bold">
-            <i className="bi bi-box-seam"></i> Boîtes de médicaments
-          </h4>
-          {calendarSource.downloadCalendarPdf && (
-            <button
-              className="btn btn-sm btn-primary"
-              onClick={() => calendarSource.downloadCalendarPdf(calendarId)}
-            >
-              <i className="bi bi-download"></i> Exporter le PDF
-            </button>
-          )}
-        </div>
+      <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+  <h4 className="mb-0 fw-bold">
+    <i className="bi bi-box-seam me-2"></i> Boîtes de médicaments
+  </h4>
+  <div className="ms-auto">
+    <ActionSheet
+      actions={[
+        {
+          label: (
+            <>
+              <i className="bi bi-download me-2" /> Exporter
+            </>
+          ),
+          onClick: () => calendarSource.downloadCalendarPdf(calendarId),
+        },
+      ]}
+    />
+  </div>
+</div>
+
+
+
         <AlertSystem
           type={alertType}
           message={alertMessage}
