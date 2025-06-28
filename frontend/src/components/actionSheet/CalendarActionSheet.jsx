@@ -19,7 +19,11 @@ function CalendarActionSheet({ actions }) {
 
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (buttonRef.current && !buttonRef.current.contains(e.target)) {
+      if (
+        buttonRef.current &&
+        !buttonRef.current.contains(e.target) &&
+        !e.target.closest('.dropdown-menu')
+      ) {
         setShow(false);
       }
     };
@@ -29,8 +33,8 @@ function CalendarActionSheet({ actions }) {
 
   return (
     <>
-      <button className="btn btn-light" ref={buttonRef} onClick={toggleDropdown}>
-        ⋯
+      <button className="btn btn-dark" ref={buttonRef} onClick={toggleDropdown}>
+        <i className="bi bi-three-dots-vertical"></i>
       </button>
 
       {show && (
@@ -49,7 +53,7 @@ function CalendarActionSheet({ actions }) {
               <button
                 className={`dropdown-item ${action.danger ? 'text-danger' : ''}`}
                 onClick={() => {
-                  action.onClick();
+                  action.onClick?.();
                   setShow(false);
                 }}
               >
@@ -66,7 +70,7 @@ function CalendarActionSheet({ actions }) {
 CalendarActionSheet.propTypes = {
   actions: PropTypes.arrayOf(
     PropTypes.shape({
-      label: PropTypes.string.isRequired,
+      label: PropTypes.node.isRequired,  // ← autorise du JSX
       onClick: PropTypes.func.isRequired,
       danger: PropTypes.bool,
     })

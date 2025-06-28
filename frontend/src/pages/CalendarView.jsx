@@ -233,10 +233,10 @@ function CalendarPage({
               />
 
               {/* Boutons de navigation et partage */}
-              <div className="d-flex flex-wrap gap-2 mb-3 justify-content-center">
-                {/* Boutons de navigation */}
+              <div className="d-flex align-items-center gap-2 mb-3">
+                {/* Bouton Médicaments qui prend tout l'espace dispo */}
                 <button
-                  className="btn btn-outline-secondary"
+                  className="btn btn-outline-secondary flex-grow-1 me-auto"
                   onClick={() => navigate(`/${basePath}/${calendarId}/boxes`)}
                   aria-label="Médicaments"
                   title="Médicaments"
@@ -245,51 +245,38 @@ function CalendarPage({
                   <span> Médicaments</span>
                 </button>
 
-                {/* Bouton pour partager le calendrier */}
-                {calendarType === 'personal' && (
-                  <button
-                    className="btn btn-outline-warning"
-                    title="Partager"
-                    aria-label="Partager"
-                    onClick={handleShareCalendarClick}
-                  >
-                    <i className="bi bi-box-arrow-up"></i> Partager
-                  </button>
-                )}
-
                 {/* Bouton pour afficher le menu déroulant */}
-                <div className="d-flex justify-content-end">
-                <CalendarActionSheet
-                  actions={[
-                    {
-                      label: (
-                        <>
-                          <i className="bi bi-gear me-2" /> Paramètres
-                        </>
-                      ),
-                      onClick: () => console.log('Paramètres'),
-                    },
-                    {
-                      label: (
-                        <>
-                          <i className="bi bi-box-arrow-up me-2" /> Partager
-                        </>
-                      ),
-                      onClick: () => console.log('partagé'), 
-                    },
-                    {
-                      label: (
-                        <>
-                          <i className="bi bi-trash me-2" /> Supprimer
-                        </>
-                      ),
-                      onClick: () => console.log('Supprimer'),
-                      danger: true,
-                    },
-                  ]}
-                />
-
-                </div>
+                {calendarType === 'personal' && (
+                  <CalendarActionSheet
+                    actions={[
+                      {
+                        label: (
+                          <>
+                            <i className="bi bi-gear me-2" /> Paramètres
+                          </>
+                        ),
+                        onClick: () => console.log('Paramètres'),
+                      },
+                      {
+                        label: (
+                          <>
+                            <i className="bi bi-box-arrow-up me-2" /> Partager
+                          </>
+                        ),
+                        onClick: handleShareCalendarClick, 
+                      },
+                      {
+                        label: (
+                          <>
+                            <i className="bi bi-trash me-2" /> Supprimer
+                          </>
+                        ),
+                        onClick: () => console.log('Supprimer'),
+                        danger: true,
+                      },
+                    ]}
+                  />
+                )}
               </div>
             </div>
 
