@@ -62,20 +62,30 @@ def decrease_stock():
     try:
         with get_connection() as conn:
             with conn.cursor() as cursor:
+                # recup les calendar avec stock_decrement_mode = auto
+                cursor.execute("""
+                    SELECT * FROM calendars
+                    WHERE stock_decrement_mode = 'auto'
+                """)
+                calendars = cursor.fetchall()
 
-                cursor.execute("SELECT * FROM medicine_boxes WHERE stock_quantity > 0")
-                results = cursor.fetchall()
+                for calendar in calendars:
+                    cursor.execute("""
+                        SELECT * FROM medicine_boxes
+                        WHERE calendar_id = %s and stock_quantity > 0
+                    """, (calendar.get("id"),))
+                    results = cursor.fetchall()
 
-                for result in results:
-                    id_box = result.get("id")
-                    qty = result.get("stock_quantity")
-                    cursor.execute("SELECT * FROM medicine_box_conditions WHERE box_id = %s", (id_box,))
-                    conditions = cursor.fetchall()
-                    for condition in conditions:
-                        if is_medication_due(condition, datetime.now().date()):
-                            tablet_count = condition.get("tablet_count")
-                            new_qty = qty - tablet_count
-                            cursor.execute("UPDATE medicine_boxes SET stock_quantity = %s WHERE id = %s", (new_qty, id_box))
+                    for result in results:
+                        id_box = result.get("id")
+                        qty = result.get("stock_quantity")
+                        cursor.execute("SELECT * FROM medicine_box_conditions WHERE box_id = %s", (id_box,))
+                        conditions = cursor.fetchall()
+                        for condition in conditions:
+                            if is_medication_due(condition, datetime.now().date()):
+                                tablet_count = condition.get("tablet_count")
+                                new_qty = qty - tablet_count
+                                cursor.execute("UPDATE medicine_boxes SET stock_quantity = %s WHERE id = %s", (new_qty, id_box))
 
             conn.commit()
             
