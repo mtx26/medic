@@ -29,7 +29,7 @@ const moment_map = {
 
 export default function PillboxDisplay({
   type,
-  selectedDate = null,
+  selectedDate,
   calendarType,
   calendarId,
   basePath,
@@ -186,8 +186,9 @@ export default function PillboxDisplay({
                 ) : (
                   <button
                     className="btn btn-success mt-4"
-                    onClick={() => {
-                      {/* TODO: supprimer les medicaments de la bd ici */}
+                    onClick={async () => {
+                      console.log(selectedDate)
+                      await calendarSource.decreaseStock(calendarId, selectedDate);
                       if (type === 'calendar') {
                         setSuccessMessage(true);
                       } else {

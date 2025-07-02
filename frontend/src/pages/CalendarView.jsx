@@ -6,7 +6,7 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import frLocale from '@fullcalendar/core/locales/fr';
 import { UserContext } from '../contexts/UserContext';
-import { formatToLocalISODate } from '../utils/dateUtils';
+import { formatToLocalISODate, getMondayFromDate } from '../utils/dateUtils';
 import { getCalendarSourceMap } from '../utils/calendarSourceMap';
 import ShareCalendarModal from '../components/ShareCalendarModal';
 import AlertSystem from '../components/AlertSystem';
@@ -51,7 +51,7 @@ function CalendarPage({
   const [loading, setLoading] = useState(undefined); // État de chargement du calendrier
   const [loadingShare, setLoadingShare] = useState(false); // État de chargement du partage du calendrier
 
-  const [startDate, setStartDate] = useState(formatToLocalISODate(new Date()));
+  const [startDate, setStartDate] = useState(getMondayFromDate(new Date()));
 
   let calendarType = 'personal';
   let calendarId = params.calendarId;
@@ -175,6 +175,11 @@ function CalendarPage({
     );
     setEventsForDay(filtered);
   }, [selectedDate, calendarEvents]);
+
+  useEffect(() => {
+    console.log(startDate)
+    console.log(selectedDate)
+  }, [startDate, selectedDate])
 
   // 📍 Mémoisation des événements pour le calendrier
   const memoizedEvents = useMemo(() => {
@@ -324,7 +329,7 @@ function CalendarPage({
                   </h4>
                   <button
                     className="btn btn-outline-success w-100"
-                    onClick={() => navigate(`/${basePath}/${calendarId}/pillbox?date=${selectedDate}`)}
+                    onClick={() => navigate(`/${basePath}/${calendarId}/pillbox?date=${startDate}`)}
                   >
                     <i className="bi bi-capsule"></i> Faire le pilulier
                   </button>
@@ -338,7 +343,7 @@ function CalendarPage({
                 </h4>
                 <PillboxDisplay
                   type="calendar"
-                  selectedDate={selectedDate}
+                  selectedDate={startDate}
                   calendarType={calendarType}
                   calendarId={calendarId}
                   basePath={basePath}

@@ -182,6 +182,19 @@ function App() {
       analyticsData: { calendarId, uid },
     });
   }, []);
+
+  // fonction pour diminuer le stock du pillulier
+  const useMedicinesForPersonalPillbox   = useCallback(async (calendarId, startDate = null) => {
+    const startTime = startDate || formatToLocalISODate(new Date());
+    return await performApiCall({
+      url: `${API_URL}/api/calendars/${calendarId}/pilluliers/used?startTime=${startTime}`,
+      method: 'POST',
+      origin: 'PILLULIER_USE_MEDICATION',
+      uid,
+      analyticsEvent: 'use_pillulier_medication',
+      analyticsData: { calendarId, uid },
+    });
+  }, []);
   
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -480,6 +493,19 @@ function App() {
     });
   }, []);
 
+  // Fonction pour diminuer le stock du pillulier
+  const useMedicinesForSharedUserPillbox = useCallback(async (calendarId, startDate = null) => {
+    const startTime = startDate || formatToLocalISODate(new Date());
+    return await performApiCall({
+      url: `${API_URL}/api/shared/users/calendars/${calendarId}/pilluliers/used?startTime=${startTime}`,
+      method: 'POST',
+      origin: 'SHARED_USER_PILLULIER_USE_MEDICATION',
+      uid,
+      analyticsEvent: 'use_shared_user_pillulier_medication',
+      analyticsData: { calendarId, startTime },
+    });
+  }, []);
+
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   const downloadPersonalCalendarPdf = useCallback(async (calendarId) => {
@@ -501,6 +527,7 @@ function App() {
       createPersonalBox,
       deletePersonalBox,
       downloadPersonalCalendarPdf,
+      useMedicinesForPersonalPillbox,
     },
 
     sharedUserCalendars: {
@@ -516,6 +543,7 @@ function App() {
       updateSharedUserBox,
       createSharedUserBox,
       deleteSharedUserBox,
+      useMedicinesForSharedUserPillbox,
     },
 
     tokenCalendars: {

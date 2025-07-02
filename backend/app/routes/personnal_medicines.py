@@ -5,6 +5,7 @@ from . import api
 from app.services.verifications import verify_calendar
 from app.services.medicines import update_box, create_box, delete_box, get_boxes
 from app.utils.response import success_response, error_response, warning_response
+from app.services.pillulier import use_pillulier
 
 ERROR_UNAUTHORIZED_ACCESS = "accès refusé"
 
@@ -172,4 +173,52 @@ def handle_delete_box(calendar_id, box_id):
             origin="DELETE_MEDICINE_BOX",
             error=str(e),
             log_extra={"calendar_id": calendar_id, "box_id": box_id}
+        )
+
+@api.route("/calendars/<calendar_id>/pilluliers/used", methods=["POST"])
+@require_auth
+def handle_use_pillulier(calendar_id):
+    try:
+        t_0 = time.time()
+        uid = g.uid
+        start_time = request.args.get("startTime")
+        
+        if not verify_calendar(calendar_id, uid):
+            return warning_response(
+                message=ERROR_UNAUTHORIZED_ACCESS,
+                code="UNAUTHORIZED_ACCESS",
+                status_code=404,
+                uid=uid,
+                origin="USE_PILLULIER_MEDICATION",
+                log_extra={"calendar_id": calendar_id}
+            )
+
+        result = use_pillulier(calendar_id, start_time)
+
+        t_1 = time.time()
+        if not result:
+            return warning_response(
+                message="aucun médicament à utiliser",
+                code="NO_MEDICATION_TO_USE",
+                status_code=404,
+                uid=uid,
+                origin="USE_PILLULIER_MEDICATION",
+                log_extra={"calendar_id": calendar_id}
+            )
+        return success_response(
+            message="médicaments utilisés",
+            code="PILLULIER_MEDICATION_USED",
+            uid=uid,
+            origin="USE_PILLULIER_MEDICATION",
+            log_extra={"time": t_1 - t_0, "calendar_id": calendar_id}
+        )
+    except Exception as e:
+        return error_response(
+            message="erreur lors de l'utilisation du pillulier",
+            code="USE_PILLULIER_MEDICATION_ERROR",
+            status_code=500,
+            uid=uid,
+            origin="USE_PILLULIER_MEDICATION",
+            error=str(e),
+            log_extra={"calendar_id": calendar_id}
         )

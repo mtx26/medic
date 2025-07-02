@@ -5,6 +5,7 @@ from app.utils.response import success_response, error_response, warning_respons
 from app.services.verifications import verify_calendar_share
 from app.services.medicines import get_boxes, update_box, create_box, delete_box
 import time
+from app.services.pillulier import use_pillulier
 
 ERROR_CALENDAR_NOT_FOUND = "calendrier non trouvé"
 
@@ -163,3 +164,51 @@ def handle_delete_shared_box(calendar_id, box_id):
             error=str(e),
             log_extra={"calendar_id": calendar_id, "box_id": box_id}
         )
+
+@api.route("/shared/users/calendars/<calendarId>/pilluliers/used", methods=["POST"])
+@require_auth
+def handle_use_shared_users_pillulier(calendarId):
+    try:   
+        t_0 = time.time()
+        uid = g.uid
+        if not verify_calendar_share(calendarId, uid):
+            return warning_response(
+                message="calendrier non trouvé",
+                code="SHARED_USER_CALENDAR_NOT_FOUND",
+                status_code=404,
+                uid=uid,
+                origin="SHARED_USER_USE_PILLULIER",
+                log_extra={"calendar_id": calendarId}
+            )
+        
+        result = use_pillulier(calendarId)
+        if not result:
+            return warning_response(
+                message="erreur lors de l'utilisation du pilulier",
+                code="USE_PILLULIER_ERROR",
+                status_code=500,
+                uid=uid,
+                origin="SHARED_USER_USE_PILLULIER",
+                log_extra={"calendar_id": calendarId}
+            )
+        t_1 = time.time()
+        return success_response(
+            message="pilulier utilisé avec succès",
+            code="PILLULIER_USED",
+            uid=uid,
+            origin="SHARED_USER_USE_PILLULIER",
+            log_extra={"time": t_1 - t_0, "calendar_id": calendarId}
+        )
+    except Exception as e:  
+        return error_response(
+            message="erreur lors de l'utilisation du pilulier",
+            code="USE_PILLULIER_ERROR",
+            status_code=500,
+            uid=uid,
+            origin="SHARED_USER_USE_PILLULIER",
+            error=str(e),
+            log_extra={"calendar_id": calendarId}
+        )
+        
+
+

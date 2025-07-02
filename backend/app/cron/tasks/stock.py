@@ -4,8 +4,7 @@ from app.services.notifications import notify_and_record
 from app.utils.logger import log_backend
 from app.config import Config
 from urllib.parse import urljoin
-from datetime import datetime
-from app.services.calendar_service import is_medication_due
+from app.services.process_box_decrement import process_box_decrement
 
 # Vérifie les stocks faibles et envoie des notifications
 def check_low_stock_and_notify():
@@ -70,22 +69,17 @@ def decrease_stock():
                 calendars = cursor.fetchall()
 
                 for calendar in calendars:
+                    calendar_id = calendar.get("id")
                     cursor.execute("""
                         SELECT * FROM medicine_boxes
                         WHERE calendar_id = %s and stock_quantity > 0
-                    """, (calendar.get("id"),))
+                    """, (calendar_id,))
                     results = cursor.fetchall()
 
                     for result in results:
                         id_box = result.get("id")
                         qty = result.get("stock_quantity")
-                        cursor.execute("SELECT * FROM medicine_box_conditions WHERE box_id = %s", (id_box,))
-                        conditions = cursor.fetchall()
-                        for condition in conditions:
-                            if is_medication_due(condition, datetime.now().date()):
-                                tablet_count = condition.get("tablet_count")
-                                new_qty = qty - tablet_count
-                                cursor.execute("UPDATE medicine_boxes SET stock_quantity = %s WHERE id = %s", (new_qty, id_box))
+                        process_box_decrement(cursor, id_box, qty, calendar_id)
 
             conn.commit()
             

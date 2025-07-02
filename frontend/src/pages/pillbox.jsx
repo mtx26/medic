@@ -1,13 +1,12 @@
 // pages/PillboxPage.jsx
 import React from 'react';
-import { useParams, useLocation, useNavigate } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import ForcedLandscapeWrapper from '../components/ForcedLandscapeWrapper';
 import PillboxDisplay from '../components/PillboxDisplay';
 
 function PillboxPage({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
   const location = useLocation();
   const params = useParams();
-  const navigate = useNavigate();
   let calendarType = 'personal';
   let calendarId = params.calendarId;
   let basePath = 'calendar';

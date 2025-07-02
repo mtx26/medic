@@ -7,40 +7,34 @@ export const getCalendarSourceMap = (
     fetchSchedule: personalCalendars.fetchPersonalCalendarSchedule,
     calendarsData: personalCalendars.calendarsData,
     setCalendarsData: personalCalendars.setCalendarsData,
-    addMedicine: personalCalendars.addMedicine,
-    deleteMedicines: personalCalendars.deletePersonalCalendarMedicines,
-    updateMedicines: personalCalendars.updatePersonalCalendarMedicines,
     updateBox: personalCalendars.updatePersonalBox,
     createBox: personalCalendars.createPersonalBox,
     deleteBox: personalCalendars.deletePersonalBox,
     downloadCalendarPdf: personalCalendars.downloadPersonalCalendarPdf,
     deleteCalendar: personalCalendars.deleteCalendar,
+    decreaseStock: personalCalendars.useMedicinesForPersonalPillbox
   },
   sharedUser: {
     fetchSchedule: sharedUserCalendars.fetchSharedUserCalendarSchedule,
     calendarsData: sharedUserCalendars.sharedCalendarsData,
     setCalendarsData: sharedUserCalendars.setSharedCalendarsData,
-    addMedicine: sharedUserCalendars.addMedicine,
-    deleteMedicines: sharedUserCalendars.deleteSharedUserCalendarMedicines,
-    updateMedicines: sharedUserCalendars.updateSharedUserCalendarMedicines,
     updateBox: sharedUserCalendars.updateSharedUserBox,
     createBox: sharedUserCalendars.createSharedUserBox,
     deleteBox: sharedUserCalendars.deleteSharedUserBox,
     downloadCalendarPdf: null,
     deleteCalendar: null,
+    decreaseStock: sharedUserCalendars.useMedicinesForSharedUserPillbox
   },
   token: {
     fetchSchedule: tokenCalendars.fetchTokenCalendarSchedule,
     calendarsData: null,
     setCalendarsData: null,
-    addMedicine: null,
-    deleteMedicines: null,
-    updateMedicines: null,
     // TODO: add updateBox for tokenCalendars
     updateBox: null,
     createBox: null,
     deleteBox: null,
     downloadCalendarPdf: null,
     deleteCalendar: null,
+    decreaseStock: null
   },
 });
