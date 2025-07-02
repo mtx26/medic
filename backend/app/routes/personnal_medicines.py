@@ -6,6 +6,7 @@ from app.services.verifications import verify_calendar
 from app.services.medicines import update_box, create_box, delete_box, get_boxes
 from app.utils.response import success_response, error_response, warning_response
 from app.services.pillulier import use_pillulier
+from datetime import datetime, timezone
 
 ERROR_UNAUTHORIZED_ACCESS = "accès refusé"
 
@@ -181,7 +182,11 @@ def handle_use_pillulier(calendar_id):
     try:
         t_0 = time.time()
         uid = g.uid
-        start_time = request.args.get("startTime")
+        start_date = request.args.get("startTime")
+        if not start_date:
+            start_date = datetime.now(timezone.utc).date()
+        else:
+            start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
         
         if not verify_calendar(calendar_id, uid):
             return warning_response(
@@ -193,7 +198,7 @@ def handle_use_pillulier(calendar_id):
                 log_extra={"calendar_id": calendar_id}
             )
 
-        result = use_pillulier(calendar_id, start_time)
+        result = use_pillulier(calendar_id, start_date)
 
         t_1 = time.time()
         if not result:

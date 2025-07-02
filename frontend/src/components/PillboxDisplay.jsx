@@ -187,7 +187,6 @@ export default function PillboxDisplay({
                   <button
                     className="btn btn-success mt-4"
                     onClick={async () => {
-                      console.log(selectedDate)
                       await calendarSource.decreaseStock(calendarId, selectedDate);
                       if (type === 'calendar') {
                         setSuccessMessage(true);

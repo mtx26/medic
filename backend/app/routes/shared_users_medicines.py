@@ -6,6 +6,7 @@ from app.services.verifications import verify_calendar_share
 from app.services.medicines import get_boxes, update_box, create_box, delete_box
 import time
 from app.services.pillulier import use_pillulier
+from datetime import datetime, timezone
 
 ERROR_CALENDAR_NOT_FOUND = "calendrier non trouvé"
 
@@ -171,6 +172,14 @@ def handle_use_shared_users_pillulier(calendarId):
     try:   
         t_0 = time.time()
         uid = g.uid
+
+        start_date = request.args.get("startTime")
+        if not start_date:
+            start_date = datetime.now(timezone.utc).date()
+        else:
+            start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
+
+
         if not verify_calendar_share(calendarId, uid):
             return warning_response(
                 message="calendrier non trouvé",
@@ -181,7 +190,7 @@ def handle_use_shared_users_pillulier(calendarId):
                 log_extra={"calendar_id": calendarId}
             )
         
-        result = use_pillulier(calendarId)
+        result = use_pillulier(calendarId, start_date)
         if not result:
             return warning_response(
                 message="erreur lors de l'utilisation du pilulier",

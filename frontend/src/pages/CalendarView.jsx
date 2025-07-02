@@ -176,11 +176,6 @@ function CalendarPage({
     setEventsForDay(filtered);
   }, [selectedDate, calendarEvents]);
 
-  useEffect(() => {
-    console.log(startDate)
-    console.log(selectedDate)
-  }, [startDate, selectedDate])
-
   // 📍 Mémoisation des événements pour le calendrier
   const memoizedEvents = useMemo(() => {
     return calendarEvents.map((event) => ({

@@ -22,7 +22,6 @@ function PillboxPage({ personalCalendars, sharedUserCalendars, tokenCalendars })
   }
 
   const selectedDate = new URLSearchParams(location.search).get('date');
-  console.log(selectedDate);
 
   return (
     <ForcedLandscapeWrapper>

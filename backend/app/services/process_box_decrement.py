@@ -1,7 +1,11 @@
 from datetime import timedelta
+import re
+from this import d
+
+from psycopg2.sql import NULL
 from app.services.calendar_service import is_medication_due
 
-def process_box_decrement(cursor, id_box, qty, start_time=None):
+def process_box_decrement(cursor, id_box, qty, start_date):
     """
     Calcule et applique la diminution du stock pour une boîte donnée sur une semaine.
     """
@@ -11,16 +15,13 @@ def process_box_decrement(cursor, id_box, qty, start_time=None):
         WHERE box_id = %s
     """, (id_box,))
     conditions = cursor.fetchall()
-    print(f"Processing box {id_box} with initial quantity {qty} and start time {start_time}")
-
-    if not conditions or start_time is None:
-        return
 
     total_tablets_week = 0
-
+    if not start_date:
+        return
+        
     for i in range(7):
-        day = start_time + timedelta(days=i)
-
+        day = start_date + timedelta(days=i)
 
         total_tablets_day = sum(
             condition.get("tablet_count") for condition in conditions
@@ -28,8 +29,6 @@ def process_box_decrement(cursor, id_box, qty, start_time=None):
         )
 
         total_tablets_week += total_tablets_day
-
-    print(f"Total tablets to decrement for box {id_box}: {total_tablets_week}")
 
     if total_tablets_week > 0:
         new_qty = max(0, qty - total_tablets_week)

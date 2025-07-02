@@ -1,7 +1,7 @@
 from app.db.connection import get_connection
 from app.services.process_box_decrement import process_box_decrement
 
-def use_pillulier(calendar_id, start_time=None):
+def use_pillulier(calendar_id, start_date):
     """
     Diminue le stock de tous les médicaments du calendrier spécifié
     si le mode de décompte est manuel.
@@ -33,7 +33,7 @@ def use_pillulier(calendar_id, start_time=None):
                     id_box = result.get("id")
                     qty = result.get("stock_quantity")
 
-                    process_box_decrement(cursor, id_box, qty, start_time)
+                    process_box_decrement(cursor, id_box, qty, start_date)
 
                 conn.commit()
 

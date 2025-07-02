@@ -27,9 +27,6 @@ export default function ResetPasswordConfirm() {
         return;
       }
   
-      console.log(access_token);
-      console.log(refresh_token);
-  
       const { error } = await supabase.auth.setSession({ access_token, refresh_token });
   
       if (error) {
