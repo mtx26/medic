@@ -151,5 +151,10 @@
   "share_calendar": "Share calendar",
   "link": "Link",
   "share": "Share",
-  "loading_share": "Loading sharing..."
+  "loading_share": "Loading sharing...",
+  "my_account": "My account",
+  "security": "Security",
+  "preferences": "Preferences",
+  "reset_password": "Reset password",
+  "reset_password_email_sent": "A password reset email has been sent to your email address."
 }

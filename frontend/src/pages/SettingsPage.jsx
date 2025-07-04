@@ -6,10 +6,12 @@ import { Link, useLocation } from 'react-router-dom';
 import { handleLogout, resetPassword } from '../services/authService';
 import { UserContext } from '../contexts/UserContext';
 import AlertSystem from '../components/AlertSystem';
+import { useTranslation } from 'react-i18next';
 
 const SettingsPage = ({ sharedProps }) => {
   const location = useLocation();
   const { userInfo } = useContext(UserContext);
+  const { t } = useTranslation();
   const [alertType, setAlertType] = useState('');
   const [alertMessage, setAlertMessage] = useState('');
   const [showAlert, setShowAlert] = useState(false);
@@ -46,54 +48,54 @@ const SettingsPage = ({ sharedProps }) => {
         <div className="col-md-3 mb-3">
           <div className="card shadow-sm rounded">
             <div className="card-body p-3">
-              <h5 className="mb-3">Paramètres</h5>
+              <h5 className="mb-3">{t('settings')}</h5>
               <div className="nav flex-column nav-pills">
                 <Link
                   className={`nav-link text-start ${activeTab === 'account' ? 'active' : ''}`}
                   to="/settings?tab=account"
                 >
-                  <i className="bi bi-person me-2"></i> Mon compte
+                  <i className="bi bi-person me-2"></i> {t('my_account')}
                 </Link>
                 <Link
                   className={`nav-link text-start ${activeTab === 'security' ? 'active' : ''}`}
                   to="/settings?tab=security"
                 >
-                  <i className="bi bi-shield-lock me-2"></i> Sécurité
+                  <i className="bi bi-shield-lock me-2"></i> {t('security')}
                 </Link>
                 <Link
                   className={`nav-link text-start ${activeTab === 'notifications' ? 'active' : ''}`}
                   to="/settings?tab=notifications"
                 >
-                  <i className="bi bi-bell me-2"></i> Notifications
+                  <i className="bi bi-bell me-2"></i> {t('notifications')}
                 </Link>
                 <Link
                   className={`nav-link text-start ${activeTab === 'preferences' ? 'active' : ''}`}
                   to="/settings?tab=preferences"
                 >
-                  <i className="bi bi-sliders me-2"></i> Préférences
+                  <i className="bi bi-sliders me-2"></i> {t('preferences')}
                 </Link>
                 <hr />
                 <button
-                  aria-label="Déconnexion"
-                  title="Déconnexion"
+                  aria-label={t('logout')}
+                  title={t('logout')}
                   onClick={handleLogout}
                   className='btn btn-outline-primary text-start nav-link text-start'
                 >
-                  <i className="bi bi-unlock fs-5 me-2"></i> Déconnexion
+                  <i className="bi bi-unlock fs-5 me-2"></i> {t('logout')}
                 </button>
                 {showAlert && <AlertSystem type={alertType} message={alertMessage} />}
                 <button
-                  aria-label="Réinitialiser le mot de passe"
-                  title="Réinitialiser le mot de passe"
+                  aria-label={t('reset_password')}
+                  title={t('reset_password')}
                   onClick={() => {
                     resetPassword(userInfo.email);
                     setAlertType('success');
-                    setAlertMessage('Un email de réinitialisation a été envoyé à votre adresse email.');
+                    setAlertMessage(t('reset_password_email_sent'));
                     setShowAlert(true);
                   }}
                   className='btn btn-outline-primary text-start nav-link text-start'
                 >
-                  <i className="bi bi-envelope fs-5 me-2"></i> Réinitialiser le mot de passe
+                  <i className="bi bi-envelope fs-5 me-2"></i> {t('reset_password')}
                 </button>
               </div>
             </div>

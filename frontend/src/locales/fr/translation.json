@@ -153,5 +153,10 @@
   "share": "Partager",
   "previous_day": "Jour précédente",
   "next_day": "Jour suivante",
-  "no_events_today": "Aucun événement ce jour-là."
+  "no_events_today": "Aucun événement ce jour-là.",
+  "my_account": "Mon compte",
+  "security": "Sécurité",
+  "preferences": "Préférences",
+  "reset_password": "Réinitialiser le mot de passe",
+  "reset_password_email_sent": "Un email de réinitialisation a été envoyé à votre adresse email."
 }
