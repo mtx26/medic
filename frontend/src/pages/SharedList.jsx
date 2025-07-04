@@ -1,8 +1,9 @@
-import React, { useEffect, useContext, useState, useCallback } from 'react';
-import { UserContext } from '../contexts/UserContext';
-import AlertSystem from '../components/AlertSystem';
-import HoveredUserProfile from '../components/HoveredUserProfile';
-import { formatToLocalISODate } from '../utils/dateUtils';
+import React, { useEffect, useContext, useState, useCallback } from "react";
+import { UserContext } from "../contexts/UserContext";
+import AlertSystem from "../components/AlertSystem";
+import HoveredUserProfile from "../components/HoveredUserProfile";
+import { formatToLocalISODate } from "../utils/dateUtils";
+import { useTranslation } from "react-i18next";
 
 const VITE_URL = import.meta.env.VITE_VITE_URL;
 
@@ -13,10 +14,11 @@ function SharedList({
 }) {
   // 🔐 Contexte d'authentification
   const { userInfo } = useContext(UserContext); // Contexte de l'utilisateur connecté
+  const { t } = useTranslation();
 
   // ⚠️ Alertes et confirmations
-  const [alertType, setAlertType] = useState(''); // Type d'alerte (ex. success, error)
-  const [alertMessage, setAlertMessage] = useState(''); // Message d'alerte
+  const [alertType, setAlertType] = useState(""); // Type d'alerte (ex. success, error)
+  const [alertMessage, setAlertMessage] = useState(""); // Message d'alerte
   const [onConfirmAction, setOnConfirmAction] = useState(null); // Action à confirmer
   const [alertId, setAlertId] = useState(null); // Identifiant de l'alerte ciblée
 
@@ -38,14 +40,14 @@ function SharedList({
   const handleCopyLink = async (token) => {
     try {
       await navigator.clipboard.writeText(
-        `${VITE_URL}/shared-token-calendar/${token.id}`
+        `${VITE_URL}/shared-token-calendar/${token.id}`,
       );
-      setAlertType('success');
-      setAlertMessage('🔗 Lien copié !');
+      setAlertType("success");
+      setAlertMessage(t("link_copied"));
       setAlertId(token.id);
     } catch {
-      setAlertType('danger');
-      setAlertMessage('❌ Erreur lors de la copie du lien.');
+      setAlertType("danger");
+      setAlertMessage(t("copy_link_error"));
       setAlertId(token.id);
     }
   };
@@ -54,11 +56,11 @@ function SharedList({
   const handleUpdateTokenExpiration = async (tokenId, date) => {
     const rep = await tokenCalendars.updateTokenExpiration(tokenId, date);
     if (rep.success) {
-      setAlertType('success');
-      setAlertMessage('✅ ' + rep.message);
+      setAlertType("success");
+      setAlertMessage("✅ " + rep.message);
     } else {
-      setAlertType('danger');
-      setAlertMessage('❌ ' + rep.error);
+      setAlertType("danger");
+      setAlertMessage("❌ " + rep.error);
     }
     setAlertId(tokenId);
   };
@@ -67,11 +69,11 @@ function SharedList({
   const handleUpdateTokenPermissions = async (tokenId, value) => {
     const rep = await tokenCalendars.updateTokenPermissions(tokenId, value);
     if (rep.success) {
-      setAlertType('success');
-      setAlertMessage('✅ ' + rep.message);
+      setAlertType("success");
+      setAlertMessage("✅ " + rep.message);
     } else {
-      setAlertType('danger');
-      setAlertMessage('❌ ' + rep.error);
+      setAlertType("danger");
+      setAlertMessage("❌ " + rep.error);
     }
     setAlertId(tokenId);
     setSelectedModifyCalendar(null);
@@ -81,19 +83,19 @@ function SharedList({
   const handleToggleToken = async (tokenId) => {
     const rep = await tokenCalendars.updateRevokeToken(tokenId);
     if (rep.success) {
-      setAlertType('success');
-      setAlertMessage('✅ ' + rep.message);
+      setAlertType("success");
+      setAlertMessage("✅ " + rep.message);
     } else {
-      setAlertType('danger');
-      setAlertMessage('❌ ' + rep.error);
+      setAlertType("danger");
+      setAlertMessage("❌ " + rep.error);
     }
     setAlertId(tokenId);
     setSelectedModifyCalendar(null);
   };
 
   const deleteTokenConfirmAction = (tokenId) => {
-    setAlertType('confirm-danger');
-    setAlertMessage('❌ Supprimer le lien ?');
+    setAlertType("confirm-danger");
+    setAlertMessage(t("delete_link_confirm"));
     setAlertId(tokenId);
     setOnConfirmAction(() => () => handleDeleteToken(tokenId));
   };
@@ -102,20 +104,20 @@ function SharedList({
   const handleDeleteToken = async (tokenId) => {
     const rep = await tokenCalendars.deleteToken(tokenId);
     if (rep.success) {
-      setAlertType('success');
-      setAlertMessage('✅ ' + rep.message);
+      setAlertType("success");
+      setAlertMessage("✅ " + rep.message);
     } else {
-      setAlertType('danger');
-      setAlertMessage('❌ ' + rep.error);
+      setAlertType("danger");
+      setAlertMessage("❌ " + rep.error);
     }
     setAlertId(tokenId);
     setSelectedModifyCalendar(null);
   };
 
   const deleteUserConfirmAction = (calendarId, user) => {
-    setAlertType('confirm-danger');
-    setAlertMessage("❌ Supprimer l'accès ?");
-    setAlertId(user.receiver_uid + '-' + calendarId);
+    setAlertType("confirm-danger");
+    setAlertMessage(t("delete_access_confirm"));
+    setAlertId(user.receiver_uid + "-" + calendarId);
     setOnConfirmAction(() => () => handleDeleteUser(calendarId, user));
   };
 
@@ -123,19 +125,19 @@ function SharedList({
   const handleDeleteUser = async (calendarId, user) => {
     const rep = await sharedUserCalendars.deleteSharedUser(
       calendarId,
-      user.receiver_uid
+      user.receiver_uid,
     );
     if (rep.success) {
-      setAlertType('success');
-      setAlertMessage('✅ ' + rep.message);
-      setAlertId(user.receiver_uid + '-' + calendarId);
+      setAlertType("success");
+      setAlertMessage("✅ " + rep.message);
+      setAlertId(user.receiver_uid + "-" + calendarId);
       setTimeout(async () => {
         await setGroupedSharedFunction();
       }, 1000);
     } else {
-      setAlertType('danger');
-      setAlertMessage('❌ ' + rep.error);
-      setAlertId(user.receiver_uid + '-' + calendarId);
+      setAlertType("danger");
+      setAlertMessage("❌ " + rep.error);
+      setAlertId(user.receiver_uid + "-" + calendarId);
     }
   };
 
@@ -145,17 +147,17 @@ function SharedList({
 
     const rep = await sharedUserCalendars.sendInvitation(email, calendarId);
     if (rep.success) {
-      setAlertType('success');
-      setAlertMessage('✅ ' + rep.message);
-      setAlertId('addUser-' + calendarId);
+      setAlertType("success");
+      setAlertMessage("✅ " + rep.message);
+      setAlertId("addUser-" + calendarId);
       setTimeout(async () => {
         await setGroupedSharedFunction();
       }, 1000);
-      setEmailsToInvite((prev) => ({ ...prev, [calendarId]: '' }));
+      setEmailsToInvite((prev) => ({ ...prev, [calendarId]: "" }));
     } else {
-      setAlertType('danger');
-      setAlertMessage('❌ ' + rep.error);
-      setAlertId('addUser-' + calendarId);
+      setAlertType("danger");
+      setAlertMessage("❌ " + rep.error);
+      setAlertId("addUser-" + calendarId);
     }
   };
 
@@ -164,16 +166,16 @@ function SharedList({
     const rep = await tokenCalendars.createToken(
       calendarId,
       expiresAt[calendarId],
-      permissions[calendarId]
+      permissions[calendarId],
     );
     if (rep.success) {
-      setAlertType('success');
-      setAlertMessage('✅ ' + rep.message);
-      setAlertId('newLink-' + calendarId);
+      setAlertType("success");
+      setAlertMessage("✅ " + rep.message);
+      setAlertId("newLink-" + calendarId);
     } else {
-      setAlertType('danger');
-      setAlertMessage('❌ ' + rep.error);
-      setAlertId('newLink-' + calendarId);
+      setAlertType("danger");
+      setAlertMessage("❌ " + rep.error);
+      setAlertId("newLink-" + calendarId);
     }
   };
 
@@ -224,9 +226,9 @@ function SharedList({
   useEffect(() => {
     if (userInfo && personalCalendars.calendarsData) {
       for (const calendar of personalCalendars.calendarsData) {
-        setPermissions((prev) => ({ ...prev, [calendar.id]: 'read' }));
+        setPermissions((prev) => ({ ...prev, [calendar.id]: "read" }));
         setExpiresAt((prev) => ({ ...prev, [calendar.id]: null }));
-        setExpirationType((prev) => ({ ...prev, [calendar.id]: 'never' }));
+        setExpirationType((prev) => ({ ...prev, [calendar.id]: "never" }));
       }
     }
   }, [userInfo, personalCalendars.calendarsData]);
@@ -235,10 +237,10 @@ function SharedList({
     return (
       <div
         className="d-flex justify-content-center align-items-center"
-        style={{ height: '60vh' }}
+        style={{ height: "60vh" }}
       >
         <div className="spinner-border text-primary">
-          <span className="visually-hidden">Chargement des calendriers...</span>
+          <span className="visually-hidden">{t("loading_calendars")}</span>
         </div>
       </div>
     );
@@ -250,10 +252,8 @@ function SharedList({
   ) {
     return (
       <div className="container mt-4 text-center">
-        <h3 className="text-muted">Aucun calendrier trouvé</h3>
-        <p className="text-muted">
-          Vous pouvez créer un calendrier depuis la page d’accueil.
-        </p>
+        <h3 className="text-muted">{t("no_calendar_found")}</h3>
+        <p className="text-muted">{t("no_calendar_found_cta")}</p>
       </div>
     );
   }
@@ -262,7 +262,7 @@ function SharedList({
     <div className="container py-4">
       <h2 className="mb-4 fw-bold">
         <i className="bi bi-people-fill me-2"></i>
-        Gestion des calendriers partagés
+        {t("shared_calendar_management")}
       </h2>
 
       <div className="row g-4">
@@ -280,14 +280,14 @@ function SharedList({
                       setSelectedModifyCalendar(
                         selectedModifyCalendar === calendarId
                           ? null
-                          : calendarId
+                          : calendarId,
                       )
                     }
-                    aria-label="Modifier le partage"
-                    title="Modifier le partage"
+                    aria-label={t("manage_link")}
+                    title={t("manage_link")}
                   >
                     <i
-                      className={`bi ${selectedModifyCalendar === calendarId ? 'bi-x-lg' : 'bi-pencil'}`}
+                      className={`bi ${selectedModifyCalendar === calendarId ? "bi-x-lg" : "bi-pencil"}`}
                     ></i>
                   </button>
                 </h5>
@@ -379,7 +379,7 @@ function TokenList({
 }) {
   return (
     <ul className="list-group">
-      <h6 className="">Liens publics :</h6>
+      <h6 className="">{t("public_links")}:</h6>
       {(data.tokens || []).map((token) => (
         <div key={token.id}>
           {/* Alert */}
@@ -388,7 +388,7 @@ function TokenList({
               type={alertType}
               message={alertMessage}
               onClose={() => {
-                setAlertMessage('');
+                setAlertMessage("");
                 setOnConfirmAction(null);
                 setAlertId(null);
               }}
@@ -402,19 +402,19 @@ function TokenList({
           {/* Lien */}
           <div className="input-group col-md-6 mb-2">
             <input
-              id={'tokenLink' + token.id}
+              id={"tokenLink" + token.id}
               type="text"
-              className={`form-control border-2 border-${token.revoked ? 'danger' : 'success'}`}
-              aria-label="Lien du calendrier partagé"
-              title="Lien du calendrier partagé"
+              className={`form-control border-2 border-${token.revoked ? "danger" : "success"}`}
+              aria-label={t("shared_link_label")}
+              title={t("shared_link_label")}
               value={`${VITE_URL}/shared-token-calendar/${token.id}`}
               readOnly
             />
             <button
-              className={`btn btn-outline-${token.revoked ? 'danger' : 'success'}`}
+              className={`btn btn-outline-${token.revoked ? "danger" : "success"}`}
               onClick={() => handleCopyLink(token)}
-              aria-label="Copier le lien"
-              title="Copier le lien"
+              aria-label={t("copy_link")}
+              title={t("copy_link")}
               disabled={token.revoked}
             >
               <i className="bi bi-clipboard"></i>
@@ -430,19 +430,19 @@ function TokenList({
                     htmlFor={`switchToken-${token.id}`}
                     className="form-label mb-0 fw-semibold"
                   >
-                    Activation :
+                    {t("activation")}:
                   </label>
                   <div className="form-check form-switch m-0">
                     <input
-                      className={`form-check-input ${token.revoked ? '' : 'bg-success'}`}
+                      className={`form-check-input ${token.revoked ? "" : "bg-success"}`}
                       type="checkbox"
                       role="switch"
                       id={`switchToken-${token.id}`}
                       checked={!token.revoked}
                       onChange={() => handleToggleToken(token.id)}
-                      aria-label="Activer ou désactiver le lien"
+                      aria-label={t("activation_toggle_aria")}
                       title={
-                        token.revoked ? 'Réactiver le lien' : 'Révoquer le lien'
+                        token.revoked ? t("reactivate_link") : t("revoke_link")
                       }
                     />
                   </div>
@@ -454,33 +454,33 @@ function TokenList({
                     htmlFor={`tokenExpiration${token.id}`}
                     className="form-label mb-0 fw-semibold"
                   >
-                    Expiration :
+                    {t("expiration")}:
                   </label>
                   <select
                     id={`tokenExpiration${token.id}`}
                     className="form-select w-auto"
-                    value={token.expires_at === null ? '' : 'date'}
+                    value={token.expires_at === null ? "" : "date"}
                     onChange={(e) => {
                       const value = e.target.value;
                       handleUpdateTokenExpiration(
                         token.id,
-                        value === '' ? null : today
+                        value === "" ? null : today,
                       );
                     }}
                   >
-                    <option value="">Jamais</option>
-                    <option value="date">Date</option>
+                    <option value="">{t("never")}</option>
+                    <option value="date">{t("date")}</option>
                   </select>
                   {token.expires_at && (
                     <input
                       type="date"
                       className="form-control w-auto"
-                      style={{ minWidth: '130px' }}
+                      style={{ minWidth: "130px" }}
                       value={formatToLocalISODate(token.expires_at)}
                       onChange={(e) =>
                         handleUpdateTokenExpiration(
                           token.id,
-                          formatToLocalISODate(e.target.value)
+                          formatToLocalISODate(e.target.value),
                         )
                       }
                       min={formatToLocalISODate(today)}
@@ -494,7 +494,7 @@ function TokenList({
                     htmlFor={`tokenPermissions${token.id}`}
                     className="form-label mb-0 fw-semibold"
                   >
-                    Accès :
+                    {t("access")}:
                   </label>
                   <select
                     id={`tokenPermissions${token.id}`}
@@ -504,8 +504,8 @@ function TokenList({
                       handleUpdateTokenPermissions(token.id, e.target.value)
                     }
                   >
-                    <option value="read">Lecture seule</option>
-                    <option value="edit">Lecture + Édition</option>
+                    <option value="read">{t("read_only")}</option>
+                    <option value="edit">{t("read_write")}</option>
                   </select>
                 </div>
 
@@ -514,8 +514,8 @@ function TokenList({
                   <button
                     className="btn btn-outline-danger"
                     onClick={() => deleteTokenConfirmAction(token.id)}
-                    aria-label="Supprimer"
-                    title="Supprimer"
+                    aria-label={t("delete_link")}
+                    title={t("delete_link")}
                   >
                     <i className="bi bi-trash"></i>
                   </button>
@@ -530,12 +530,12 @@ function TokenList({
       {data.tokens.length === 0 && (
         <div>
           {/* Alert */}
-          {alertId === 'newLink-' + calendarId && (
+          {alertId === "newLink-" + calendarId && (
             <AlertSystem
               type={alertType}
               message={alertMessage}
               onClose={() => {
-                setAlertMessage('');
+                setAlertMessage("");
                 setOnConfirmAction(null);
                 setAlertId(null);
               }}
@@ -547,10 +547,11 @@ function TokenList({
           <button
             className="btn btn-outline-dark w-100"
             onClick={() => handleCreateToken(calendarId)}
-            aria-label="Créer un lien de partage"
-            title="Créer un lien de partage"
+            aria-label={t("create_share_link")}
+            title={t("create_share_link")}
           >
-            <i className="bi bi-plus-lg me-2"></i>Créer un lien de partage
+            <i className="bi bi-plus-lg me-2"></i>
+            {t("create_share_link")}
           </button>
         </div>
       )}
@@ -575,15 +576,15 @@ function UserList({
 }) {
   return (
     <ul className="list-group">
-      <h6>Utilisateurs partagés :</h6>
+      <h6>{t("shared_users")}:</h6>
       {(data.users || []).map((user) => (
-        <div key={user.receiver_uid + '-' + calendarId}>
-          {alertId === user.receiver_uid + '-' + calendarId && (
+        <div key={user.receiver_uid + "-" + calendarId}>
+          {alertId === user.receiver_uid + "-" + calendarId && (
             <AlertSystem
               type={alertType}
               message={alertMessage}
               onClose={() => {
-                setAlertMessage('');
+                setAlertMessage("");
                 setOnConfirmAction(null);
                 setAlertId(null);
               }}
@@ -593,7 +594,7 @@ function UserList({
             />
           )}
           <li
-            key={user.receiver_uid + '-' + calendarId}
+            key={user.receiver_uid + "-" + calendarId}
             className="list-group-item"
           >
             <div className="row align-items-center">
@@ -610,9 +611,9 @@ function UserList({
                         <div>
                           <img
                             src={user.receiver_photo_url}
-                            alt="Profil"
+                            alt={t("profile")}
                             className="rounded-circle"
-                            style={{ width: '40px', height: '40px' }}
+                            style={{ width: "40px", height: "40px" }}
                           />
                         </div>
 
@@ -627,9 +628,9 @@ function UserList({
                 {/* Statut */}
                 <div className="col-4 d-flex align-items-center justify-content-center">
                   <span
-                    className={`badge rounded-pill ${user.accepted ? 'bg-success' : 'bg-warning text-dark'}`}
+                    className={`badge rounded-pill ${user.accepted ? "bg-success" : "bg-warning text-dark"}`}
                   >
-                    {user.accepted ? 'Accepté' : 'En attente'}
+                    {user.accepted ? t("accepted") : t("pending")}
                   </span>
                 </div>
 
@@ -638,8 +639,8 @@ function UserList({
                   <button
                     className="btn btn-outline-danger"
                     onClick={() => deleteUserConfirmAction(calendarId, user)}
-                    aria-label="Supprimer l'accès"
-                    title="Supprimer l'accès"
+                    aria-label={t("delete_access")}
+                    title={t("delete_access")}
                   >
                     <i className="bi bi-trash"></i>
                   </button>
@@ -653,12 +654,12 @@ function UserList({
       {/* Ajouter un utilisateur */}
       <div>
         {/* Alert */}
-        {alertId === 'addUser-' + calendarId && (
+        {alertId === "addUser-" + calendarId && (
           <AlertSystem
             type={alertType}
             message={alertMessage}
             onClose={() => {
-              setAlertMessage('');
+              setAlertMessage("");
               setOnConfirmAction(null);
               setAlertId(null);
             }}
@@ -678,29 +679,29 @@ function UserList({
             >
               <div className="input-group ">
                 <input
-                  id={'emailToInvite' + calendarId}
+                  id={"emailToInvite" + calendarId}
                   type="email"
                   className={`form-control`}
-                  placeholder="Email du destinataire"
-                  aria-label="Email du destinataire"
+                  placeholder={t("recipient_email")}
+                  aria-label={t("recipient_email")}
                   onChange={(e) =>
                     setEmailsToInvite((prev) => ({
                       ...prev,
                       [calendarId]: e.target.value,
                     }))
                   }
-                  value={emailsToInvite[calendarId] ?? ''}
+                  value={emailsToInvite[calendarId] ?? ""}
                   required
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
+                    if (e.key === "Enter") {
                       handleSendInvitation(calendarId);
                     }
                   }}
                 />
                 <button
                   className={`btn btn-primary`}
-                  aria-label="Envoyer une invitation"
-                  title="Envoyer une invitation"
+                  aria-label={t("send_invitation")}
+                  title={t("send_invitation")}
                   type="submit"
                 >
                   <i className="bi bi-envelope-paper"></i>

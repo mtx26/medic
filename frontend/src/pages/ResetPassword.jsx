@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { resetPassword } from '../services/authService';
 import AlertSystem from '../components/AlertSystem';
+import { useTranslation } from 'react-i18next';
 
 function ResetPassword() {
+  const { t } = useTranslation();
   const [email, setEmail] = useState(''); // État pour l'adresse e-mail
   const [formValid, setFormValid] = useState(true);
   const [alertType, setAlertType] = useState('info');
@@ -19,9 +21,7 @@ function ResetPassword() {
         await resetPassword(email);
       } catch (error) {}
       setAlertType('success');
-      setAlertMessage(
-        'Un lien de réinitialisation a été envoyé à votre adresse email.'
-      );
+      setAlertMessage(t('reset_password.success'));
     }
   };
 
@@ -33,11 +33,8 @@ function ResetPassword() {
       >
         <div className="card-body p-4">
           <div className="text-center mb-4">
-            <h5>Réinitialiser le mot de passe</h5>
-            <p>
-              Entrez votre adresse email pour recevoir un lien de
-              réinitialisation.
-            </p>
+            <h5>{t('reset_password.title')}</h5>
+            <p>{t('reset_password.instructions')}</p>
           </div>
           <AlertSystem
             type={alertType}
@@ -47,13 +44,13 @@ function ResetPassword() {
           <form onSubmit={handleReset}>
             <div className="mb-3">
               <label htmlFor="emailInput" className="form-label">
-                Email
+                {t('auth.email')}
               </label>
               <input
                 type="email"
                 className={`form-control ${!formValid ? 'is-invalid' : ''}`}
                 id="emailInput"
-                aria-label="Email"
+                aria-label={t('auth.email')}
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -64,11 +61,11 @@ function ResetPassword() {
               className="btn btn-outline-primary w-100"
               type="submit"
               disabled={!formValid}
-              aria-label="Envoyer le lien"
-              title="Envoyer le lien"
+              aria-label={t('reset_password.send_link')}
+              title={t('reset_password.send_link')}
             >
               <i className="bi bi-envelope-paper"></i>
-              <span> Envoyer le lien</span>
+              <span> {t('reset_password.send_link')}</span>
             </button>
           </form>
         </div>
