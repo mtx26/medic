@@ -3,6 +3,7 @@ import ArrowControls from './ArrowControls';
 import WeekDayCircles from './WeekDayCircles';
 import { getMondayFromDate, getWeekDaysISOStrings } from '../utils/dateUtils';
 import PropTypes from 'prop-types';
+import { useTranslation } from 'react-i18next';
 
 export default function WeeklyEventContent({
   ifModal,
@@ -12,6 +13,7 @@ export default function WeeklyEventContent({
   onNext,
   onPrev,
 }) {
+  const { t } = useTranslation();
   const monday = getMondayFromDate(selectedDate);
   const weekDays = getWeekDaysISOStrings(monday);
   const isFirstDay = weekDays[0] === selectedDate;
@@ -23,20 +25,9 @@ export default function WeeklyEventContent({
         onLeft={isFirstDay ? () => {} : onPrev}
         onRight={isLastDay ? () => {} : onNext}
       />
-
-      <WeekDayCircles selectedDate={selectedDate} onSelectDate={onSelectDate} />
-
       {!ifModal && (
-        <div className="text-center mb-4">
-          <h6 className="mb-0">
-            <i className="bi bi-calendar-date me-2"></i>
-            {new Date(selectedDate).toLocaleDateString('fr-FR', {
-              weekday: 'long',
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-            })}
-          </h6>
+        <div className="mb-2 d-flex">
+          <WeekDayCircles selectedDate={selectedDate} onSelectDate={onSelectDate} />
         </div>
       )}
 
@@ -45,13 +36,43 @@ export default function WeeklyEventContent({
           className="btn btn-outline-secondary btn-sm"
           onClick={onPrev}
           disabled={isFirstDay}
-          aria-label="Semaine précédente"
-          title="Semaine précédente"
+          aria-label={t('previous_day')}
+          title={t('previous_day')}
         >
           <i className="bi bi-arrow-left"></i>
         </button>
 
-        <div className="flex-grow-1 mx-2">
+        <div className="text-center flex-grow-1 d-flex justify-content-center">
+          {ifModal ? (
+            <WeekDayCircles selectedDate={selectedDate} onSelectDate={onSelectDate} />
+          ) : (
+            <h6 className="mb-0">
+              <i className="bi bi-calendar-date me-2"></i>
+              {new Date(selectedDate).toLocaleDateString('fr-FR', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+              })}
+            </h6>
+          )}
+        </div>
+
+        <button
+          className="btn btn-outline-secondary btn-sm"
+          onClick={onNext}
+          disabled={isLastDay}
+          aria-label={t('next_day')}
+          title={t('next_day')}
+        >
+          <i className="bi bi-arrow-right"></i>
+        </button>
+      </div>
+
+
+      <div className="d-flex justify-content-between align-items-center mb-3">
+
+        <div className="flex-grow-1">
           {eventsForDay.length > 0 ? (
             <ul className="list-group">
               {eventsForDay.map((event, index) => (
@@ -79,20 +100,10 @@ export default function WeeklyEventContent({
             </ul>
           ) : (
             <p className="text-muted text-center mb-0">
-              Aucun événement ce jour-là.
+              {t('no_events_today')}
             </p>
           )}
         </div>
-
-        <button
-          className="btn btn-outline-secondary btn-sm"
-          onClick={onNext}
-          disabled={isLastDay}
-          aria-label="Semaine suivante"
-          title="Semaine suivante"
-        >
-          <i className="bi bi-arrow-right"></i>
-        </button>
       </div>
     </>
   );

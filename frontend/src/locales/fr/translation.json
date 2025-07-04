@@ -150,5 +150,8 @@
   "recipient_email": "Email du destinataire",
   "share_calendar": "Partager le calendrier",
   "link": "Lien",
-  "share": "Partager"
+  "share": "Partager",
+  "previous_day": "Jour précédente",
+  "next_day": "Jour suivante",
+  "no_events_today": "Aucun événement ce jour-là."
 }

@@ -11,7 +11,7 @@ export default function WeekDayCircles({ selectedDate, onSelectDate }) {
 
   return (
     <div
-      className="d-flex flex-nowrap justify-content-center px-3 mb-3"
+      className="d-flex flex-nowrap justify-content-center"
       style={{ overflow: 'hidden' }}
     >
       {getWeekDaysISOStrings(monday).map((day, index) => {
