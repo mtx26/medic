@@ -11,10 +11,12 @@ import { formatToLocalISODate } from './utils/dateUtils';
 import RealtimeManager from './components/RealtimeManager';
 import { getToken } from './services/tokenUtils';
 import { performApiCall } from './services/apiUtils';
+import { useTranslation } from 'react-i18next';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 function App() {
+  const { t } = useTranslation();
   const [tokensList, setTokensList] = useState([]);
   const [calendarsData, setCalendarsData] = useState(null);
   const [notificationsData, setNotificationsData] = useState(null);
@@ -600,12 +602,12 @@ function App() {
       navigator.serviceWorker
         .register('/firebase-messaging-sw.js')
         .then((registration) => {
-          log.info('[FCM] SW enregistré :', registration, {
+          log.info(t('fcm.sw_registered'), registration, {
             origin: 'FCM_SW_REGISTER_SUCCESS',
           });
         })
         .catch((err) => {
-          log.error('[FCM] Erreur SW :', err, {
+          log.error(t('fcm.sw_error'), err, {
             origin: 'FCM_SW_REGISTER_ERROR',
           });
         });
@@ -630,14 +632,14 @@ function App() {
       })
         .then((res) => res.json())
         .then((data) => {
-          log.info('[FCM] Token enregistré côté backend', {
+          log.info(t('fcm.token_registered'), {
             uid: userInfo.uid,
             token: tokenFcm,
             origin: 'FCM_TOKEN_REGISTER_SUCCESS',
           });
         })
         .catch((error) => {
-          log.error('[FCM] Erreur d’envoi du token', {
+          log.error(t('fcm.token_send_error'), {
             uid: userInfo.uid,
             token: tokenFcm,
             origin: 'FCM_TOKEN_REGISTER_ERROR',

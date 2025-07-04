@@ -4,6 +4,7 @@ import AlertSystem from '../components/AlertSystem';
 import HoveredUserProfile from '../components/HoveredUserProfile';
 import ShareCalendarModal from '../components/ShareCalendarModal';
 import ActionSheet from '../components/ActionSheet';
+import { useTranslation } from 'react-i18next';
 
 
 function SelectCalendar({
@@ -12,6 +13,7 @@ function SelectCalendar({
   tokenCalendars,
 }) {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   // 📅 Gestion des calendriers
   const [newCalendarName, setNewCalendarName] = useState(''); // État pour le nom du nouveau calendrier
@@ -72,7 +74,7 @@ function SelectCalendar({
   const handleRenameClick = (calendarId) => {
     setAlertType('confirm-safe');
     setSelectedAlert('calendar' + calendarId);
-    setAlertMessage('✅ Renommer le calendrier ?');
+    setAlertMessage('✅ ' + t('calendar.confirm_rename'));
     setOnConfirmAction(() => () => renameConfirmAction(calendarId));
   };
 
@@ -92,7 +94,7 @@ function SelectCalendar({
   const handleDeleteCalendarClick = (calendarId) => {
     setAlertType('confirm-danger');
     setSelectedAlert('calendar' + calendarId);
-    setAlertMessage('❌ Supprimer le calendrier ?');
+    setAlertMessage('❌ ' + t('calendar.confirm_delete'));
     setOnConfirmAction(() => () => deleteConfirmAction(calendarId));
   };
 
@@ -131,7 +133,7 @@ function SelectCalendar({
   const handleDeleteSharedCalendarClick = (calendarId) => {
     setAlertType('confirm-danger');
     setSelectedAlert('sharedCalendar' + calendarId);
-    setAlertMessage('❌ Supprimer le calendrier partagé ?');
+    setAlertMessage('❌ ' + t('calendar.confirm_delete_shared'));
     setOnConfirmAction(
       () => () => deleteSharedCalendarConfirmAction(calendarId)
     );
@@ -144,7 +146,7 @@ function SelectCalendar({
         style={{ height: '60vh' }}
       >
         <div className="spinner-border text-primary">
-          <span className="visually-hidden">Chargement des calendriers...</span>
+          <span className="visually-hidden">{t('loading_calendars')}</span>
         </div>
       </div>
     );
@@ -170,7 +172,7 @@ function SelectCalendar({
 
       <div className="w-100" style={{ maxWidth: '800px' }}>
         <h4 className="mb-3 fw-bold">
-          <i className="bi bi-calendar-week"></i> Mes calendriers
+          <i className="bi bi-calendar-week"></i> {t('my_calendars')}
         </h4>
         {selectedAlert === 'header' && (
           <AlertSystem
@@ -197,10 +199,10 @@ function SelectCalendar({
           <div className="input-group mb-2 shadow-sm">
             <input
               id="newCalendarName"
-              aria-label="Nom du calendrier"
+              aria-label={t('calendar.name')}
               type="text"
               className="form-control"
-              placeholder="Nom du calendrier"
+              placeholder={t('calendar.name')}
               required
               value={newCalendarName}
               onChange={(e) => setNewCalendarName(e.target.value)} // Mise à jour du nom du nouveau calendrier
@@ -208,11 +210,11 @@ function SelectCalendar({
             <button
               type="submit"
               className="btn btn-primary"
-              aria-label="Ajouter un calendrier"
-              title="Ajouter un calendrier"
+              aria-label={t('calendar.add')}
+              title={t('calendar.add')}
             >
               <i className="bi bi-plus-lg"></i>
-              <span> Ajouter</span>
+              <span> {t('add')}</span>
             </button>
           </div>
         </form>
@@ -257,7 +259,7 @@ function SelectCalendar({
                   <div className="me-auto">
                     <h5 className="mb-1 fs-semibold">{calendarData.name}</h5>
                     <div className="text-muted small">
-                      Médicaments :
+                      {t('medicines')}:
                       <span className="fw-semibold ms-1">
                         {calendarData.boxes_count ?? '...'}
                       </span>
@@ -267,11 +269,11 @@ function SelectCalendar({
                   {/* Bouton Ouvrir */}
                   <button
                     className="btn btn-outline-success"
-                    title="Ouvrir"
-                    aria-label="Ouvrir"
+                    title={t('open')}
+                    aria-label={t('open')}
                     onClick={() => navigate('/calendar/' + calendarData.id)}
                   >
-                    Ouvrir
+                    {t('open')}
                   </button>
 
                   {/* ActionSheet */}
@@ -280,7 +282,7 @@ function SelectCalendar({
                       {
                         label: (
                           <>
-                            <i className="bi bi-box-arrow-up"></i> Partager
+                            <i className="bi bi-box-arrow-up"></i> {t('share')}
                           </>
                         ),
                         onClick: () => handleShareCalendarClick(calendarData)
@@ -288,7 +290,7 @@ function SelectCalendar({
                       {
                         label: (
                           <>
-                            <i className="bi bi-pencil"></i> Renommer
+                            <i className="bi bi-pencil"></i> {t('rename')}
                           </>
                         ),
                         onClick: () => setRenameMode(calendarData.id)
@@ -299,7 +301,7 @@ function SelectCalendar({
                       {
                         label: (
                           <>
-                            <i className="bi bi-trash"></i> Supprimer
+                            <i className="bi bi-trash"></i> {t('delete')}
                           </>
                         ),
                         onClick: () => handleDeleteCalendarClick(calendarData.id),
@@ -322,10 +324,10 @@ function SelectCalendar({
                     >
                       <input
                         id={'renameCalendarName' + calendarData.id}
-                        aria-label="Nouveau nom"
+                        aria-label={t('calendar.new_name')}
                         type="text"
                         className="form-control form-control"
-                        placeholder="Nouveau nom"
+                        placeholder={t('calendar.new_name')}
                         required
                         value={renameValues[calendarData.id] || ''} // Valeur du champ de renommage
                         onChange={(e) =>
@@ -337,17 +339,17 @@ function SelectCalendar({
                       />
                       <button
                         className="btn btn-warning"
-                        title="Renommer"
+                        title={t('rename')}
                         type="submit"
-                        aria-label="Renommer"
+                        aria-label={t('rename')}
                       >
                         <i className="bi bi-pencil"></i>
                       </button>
                       <button
                         className="btn btn-outline-danger"
-                        title="Annuler"
+                        title={t('cancel')}
                         type="button"
-                        aria-label="Annuler"
+                        aria-label={t('cancel')}
                         onClick={() => setRenameMode(null)}
                       >
                         <i className="bi bi-x-lg"></i>
@@ -360,14 +362,14 @@ function SelectCalendar({
           </div>
         ) : (
           <div className="alert alert-warning">
-            Vous n'avez pas de calendrier personnel.
+            {t('no_personal_calendars')}
           </div>
         )}
       </div>
 
       <div className="w-100" style={{ maxWidth: '800px' }}>
         <h4 className="mb-3 fw-bold">
-          <i className="bi bi-people"></i> Calendriers partagés
+          <i className="bi bi-people"></i> {t('shared_calendars')}
         </h4>
 
         {/* 🔔 Alertes et confirmations */}
@@ -413,13 +415,13 @@ function SelectCalendar({
                     <div className="flex-grow-1">
                       <h5 className="mb-1 fs-semibold">{calendarData.name}</h5>
                       <div className="text-muted small">
-                        Médicaments :
+                        {t('medicines')}:
                         <span className="fw-semibold ms-1">
                           {calendarData.boxes_count ?? '...'}
                         </span>
                       </div>
                       <div className="text-muted small d-flex align-items-center ">
-                        Propriétaire :
+                        {t('owner')}:
                         <HoveredUserProfile
                           user={{
                             email: calendarData.owner_email,
@@ -441,18 +443,18 @@ function SelectCalendar({
                     <div className="btn-group btn-group">
                       <button
                         className="btn btn-outline-success"
-                        title="Ouvrir"
-                        aria-label="Ouvrir"
+                        title={t('open')}
+                        aria-label={t('open')}
                         onClick={() =>
                           navigate('/shared-user-calendar/' + calendarData.id)
                         }
                       >
-                        Ouvrir
+                        {t('open')}
                       </button>
                       <button
                         className="btn btn-outline-danger"
-                        title="Supprimer"
-                        aria-label="Supprimer"
+                        title={t('delete')}
+                        aria-label={t('delete')}
                         onClick={() =>
                           handleDeleteSharedCalendarClick(calendarData.id)
                         }
@@ -467,7 +469,7 @@ function SelectCalendar({
           </div>
         ) : (
           <div className="alert alert-warning">
-            Vous n'avez pas de calendrier partagé.
+            {t('no_shared_calendars')}
           </div>
         )}
       </div>

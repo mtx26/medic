@@ -1,9 +1,11 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import NotificationLine from '../components/NotificationLine';
 import ActionSheet from '../components/ActionSheet';
 
 function NotificationsPage({ notifications, sharedUserCalendars }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   if (notifications.notificationsData === null) {
@@ -14,7 +16,7 @@ function NotificationsPage({ notifications, sharedUserCalendars }) {
       >
         <div className="spinner-border text-primary">
           <span className="visually-hidden">
-            Chargement des notifications...
+            {t('loading_notifications')}
           </span>
         </div>
       </div>
@@ -25,14 +27,14 @@ function NotificationsPage({ notifications, sharedUserCalendars }) {
     <div className="container py-4">
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h4 className="fw-bold">
-          <i className="bi bi-bell-fill me-2"></i> Notifications
+          <i className="bi bi-bell-fill me-2"></i> {t('notifications')}
         </h4>
         <ActionSheet
           actions={[
             {
               label: (
                 <>
-                  <i className="bi bi-gear-fill me-2"></i> Paramètres
+                  <i className="bi bi-gear-fill me-2"></i> {t('settings')}
                 </>
               ),
               onClick: () => navigate('/settings?tab=notifications'),
@@ -43,7 +45,7 @@ function NotificationsPage({ notifications, sharedUserCalendars }) {
 
       {notifications.notificationsData.length === 0 ? (
         <div className="alert alert-info text-center">
-          Aucune notification pour le moment.
+          {t('no_notifications')}
         </div>
       ) : (
         <ul className="list-group">
