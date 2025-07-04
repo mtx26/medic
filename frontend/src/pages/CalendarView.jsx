@@ -5,6 +5,7 @@ import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import frLocale from '@fullcalendar/core/locales/fr';
+import { useTranslation } from 'react-i18next';
 import { UserContext } from '../contexts/UserContext';
 import { formatToLocalISODate, getMondayFromDate } from '../utils/dateUtils';
 import { getCalendarSourceMap } from '../utils/calendarSourceMap';
@@ -28,6 +29,7 @@ function CalendarPage({
   const navigate = useNavigate(); // Hook de navigation
   const location = useLocation();
   const params = useParams();
+  const { t } = useTranslation();
 
   // 🔐 Contexte d'authentification
   const { userInfo } = useContext(UserContext); // Contexte de l'utilisateur connecté
@@ -192,7 +194,7 @@ function CalendarPage({
         style={{ height: '60vh' }}
       >
         <div className="spinner-border text-primary">
-          <span className="visually-hidden">Chargement du calendrier...</span>
+          <span className="visually-hidden">{t('loading_calendar')}</span>
         </div>
       </div>
     );
@@ -201,7 +203,7 @@ function CalendarPage({
   if (loading === true && calendarId) {
     return (
       <div className="alert alert-danger text-center mt-5" role="alert">
-        ❌ Ce lien de calendrier partagé est invalide ou a expiré.
+        ❌ {t('invalid_or_expired_link')}
       </div>
     );
   }
@@ -243,11 +245,11 @@ function CalendarPage({
                 <button
                   className="btn btn-outline-secondary flex-grow-1 me-auto"
                   onClick={() => navigate(`/${basePath}/${calendarId}/boxes`)}
-                  aria-label="Médicaments"
-                  title="Médicaments"
+                  aria-label={t('medicines')}
+                  title={t('medicines')}
                 >
                   <i className="bi bi-capsule"></i>
-                  <span> Médicaments</span>
+                  <span> {t('medicines')}</span>
                 </button>
 
                 {/* Bouton pour afficher le menu déroulant */}
@@ -257,7 +259,7 @@ function CalendarPage({
                       {
                         label: (
                           <>
-                            <i className="bi bi-gear me-2" /> Paramètres
+                            <i className="bi bi-gear me-2" /> {t('settings')}
                           </>
                         ),
                         onClick: () => console.log('Paramètres'),
@@ -265,10 +267,10 @@ function CalendarPage({
                       {
                         label: (
                           <>
-                            <i className="bi bi-box-arrow-up me-2" /> Partager
+                            <i className="bi bi-box-arrow-up me-2" /> {t('share')}
                           </>
                         ),
-                        onClick: handleShareCalendarClick, 
+                        onClick: handleShareCalendarClick,
                       },
                       {
                         separator: true,
@@ -276,7 +278,7 @@ function CalendarPage({
                       {
                         label: (
                           <>
-                            <i className="bi bi-trash me-2" /> Supprimer
+                            <i className="bi bi-trash me-2" /> {t('delete')}
                           </>
                         ),
                         onClick: async () => {
@@ -302,7 +304,7 @@ function CalendarPage({
             ).length > 0 && (
               <div className="mb-2">
                 <h4 className="mb-3 fw-bold">
-                  <i className="bi bi-calendar-date"></i> Semaine de référence
+                  <i className="bi bi-calendar-date"></i> {t('calendar.reference_week')}
                 </h4>
                 <WeekCalendarSelector
                   selectedDate={startDate}
@@ -320,13 +322,13 @@ function CalendarPage({
               <div className="d-block d-lg-none col-12 col-lg-8 mb-4">
                 <div className="mb-2">
                   <h4 className="mb-3 fw-bold">
-                    <i className="bi bi-capsule"></i> Pilulier
+                    <i className="bi bi-capsule"></i> {t('pillbox.title')}
                   </h4>
                   <button
                     className="btn btn-outline-success w-100"
                     onClick={() => navigate(`/${basePath}/${calendarId}/pillbox?date=${startDate}`)}
                   >
-                    <i className="bi bi-capsule"></i> Faire le pilulier
+                    <i className="bi bi-capsule"></i> {t('pillbox.fill')}
                   </button>
                 </div>
               </div>
@@ -334,7 +336,7 @@ function CalendarPage({
               {/* Pilulier - Vue desktop */}
               <div className="d-none d-lg-block col-12 col-lg-8 mb-4">
                 <h4 className="mb-3 fw-bold">
-                  <i className="bi bi-capsule"></i> Pilulier
+                  <i className="bi bi-capsule"></i> {t('pillbox.title')}
                 </h4>
                 <PillboxDisplay
                   type="calendar"
@@ -432,15 +434,11 @@ function CalendarPage({
           {/* Calendrier mensuel */}
           <div className="container d-none d-md-block">
             <h4 className="mb-3 fw-bold">
-              <i className="bi bi-calendar-week"></i> Calendrier par semaine
+              <i className="bi bi-calendar-week"></i> {t('calendar.weekly_view')}
             </h4>
             <div className="alert alert-info mt-4 mb-4" role="alert">
               <i className="bi bi-pin-angle-fill"></i>
-              <span>
-                {' '}
-                Cliquez sur un jour du calendrier pour voir les médicaments
-                associés dans une fenêtre.
-              </span>
+              <span>{' '}{t('calendar.weekly_help')}</span>
             </div>
             <div className="card shadow-sm">
               <div className="card-body">
@@ -465,10 +463,10 @@ function CalendarPage({
                     handleDateClick({ dateStr: clickedDate });
                   }}
                   buttonText={{
-                    today: 'Aujourd’hui',
-                    month: 'Mois',
-                    week: 'Semaine',
-                    day: 'Jour',
+                    today: t('calendar.today'),
+                    month: t('calendar.month'),
+                    week: t('calendar.week'),
+                    day: t('calendar.day'),
                   }}
                 />
               </div>
@@ -488,7 +486,7 @@ function CalendarPage({
           {/* Calendrier - Vue mobile uniquement */}
           <div className="d-block d-md-none">
             <h4 className="mb-3 fw-bold">
-              <i className="bi bi-calendar-week"></i> Calendrier journalier
+              <i className="bi bi-calendar-week"></i> {t('calendar.daily_view')}
             </h4>
 
             <div className="card shadow-sm">
@@ -508,7 +506,7 @@ function CalendarPage({
       ) : (
         <div className="alert alert-info mt-4 mb-0" role="alert">
           <i className="bi bi-pin-angle-fill"></i>
-          <span> Aucun médicament prévu pour le moment.</span>
+          <span> {t('no_medicines')}</span>
         </div>
       )}
     </>

@@ -5,10 +5,12 @@ import { UserContext, getGlobalReloadUser } from '../contexts/UserContext';
 import AlertSystem from '../components/AlertSystem';
 import { log } from '../utils/logger';
 import { getSupabaseErrorMessage } from '../utils/SupabaseErrorMessage';
+import { useTranslation } from 'react-i18next';
 
 function VerifyEmail() {
   // 🔐 Contexte utilisateur
   const { userInfo } = useContext(UserContext);
+  const { t } = useTranslation();
 
   // ⚠️ Alertes
   const [alertMessage, setAlertMessage] = useState(null); // Message d'alerte
@@ -36,9 +38,7 @@ function VerifyEmail() {
     if (user) {
       try {
         await supabase.auth.sendEmailVerification();
-        setAlertMessage(
-          'Email de vérification envoyé ! Vérifiez votre boîte mail.'
-        );
+        setAlertMessage(t('auth.verification_sent'));
         setAlertType('success');
         log.info('Email de vérification envoyé', {
           id: 'EMAIL_VERIFICATION_SENT',
@@ -55,7 +55,7 @@ function VerifyEmail() {
         setAlertType('danger');
       }
     } else {
-      setAlertMessage('Aucun utilisateur connecté.');
+      setAlertMessage(t('verify_email.no_user'));
       setAlertType('danger');
     }
   };
@@ -83,10 +83,8 @@ function VerifyEmail() {
       >
         <div className="card-body p-4">
           <div className="text-center mb-4">
-            <h5>Vérification de l'adresse email</h5>
-            <p>
-              Envoyez un nouveau lien de vérification à votre adresse email.
-            </p>
+            <h5>{t('verify_email.title')}</h5>
+            <p>{t('verify_email.instructions')}</p>
           </div>
 
           <AlertSystem
@@ -99,11 +97,11 @@ function VerifyEmail() {
             <button
               type="submit"
               className="btn btn-outline-primary w-100 mt-3"
-              aria-label="Renvoyer le lien de vérification"
-              title="Renvoyer le lien de vérification"
+              aria-label={t('verify_email.resend_link')}
+              title={t('verify_email.resend_link')}
             >
               <i className="bi bi-envelope-paper"></i>
-              <span> Renvoyer le lien de vérification</span>
+              <span> {t('verify_email.resend_link')}</span>
             </button>
           </form>
         </div>

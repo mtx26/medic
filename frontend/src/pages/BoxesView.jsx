@@ -7,10 +7,12 @@ import { v4 as uuidv4 } from 'uuid';
 import { fetchSuggestions } from '../utils/fetchSuggestions';
 import ActionSheet from '../components/ActionSheet';
 import openNotice from '../utils/openNotice';
+import { useTranslation } from 'react-i18next';
 
 function BoxesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
   const location = useLocation();
   const params = useParams();
+  const { t } = useTranslation();
 
   const [boxes, setBoxes] = useState([]);
   const [loadingBoxes, setLoadingBoxes] = useState(undefined);
@@ -93,7 +95,7 @@ function BoxesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
   };
 
   const addBox = async () => {
-    const res = await calendarSource.createBox(calendarId, 'Nouvelle boîte');
+    const res = await calendarSource.createBox(calendarId, t('boxes.new_box'));
     if (res.success) {
       setSelectedModifyBox(res.boxId);
       setSelectedDropBox((prev) => ({ ...prev, [res.boxId]: true }));
@@ -154,7 +156,7 @@ function BoxesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
         style={{ height: '60vh' }}
       >
         <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">Chargement des médicaments...</span>
+          <span className="visually-hidden">{t('loading_medicines')}</span>
         </div>
       </div>
     );
@@ -163,7 +165,7 @@ function BoxesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
   if (loadingBoxes === false) {
     return (
       <div className="alert alert-danger text-center mt-5" role="alert">
-        ❌ Ce lien de calendrier partagé est invalide ou a expiré.
+        {t('invalid_or_expired_link')}
       </div>
     );
   }
@@ -173,7 +175,7 @@ function BoxesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
       <div className="p-1 w-100" style={{ maxWidth: '800px' }}>
         <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap">
           <h4 className="mb-0 fw-bold">
-            <i className="bi bi-box-seam me-2"></i> Boîtes de médicaments
+            <i className="bi bi-box-seam me-2"></i> {t('boxes.title')}
           </h4>
           <div className="ms-auto">
             <ActionSheet
@@ -181,7 +183,7 @@ function BoxesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
                 {
                   label: (
                     <>
-                      <i className="bi bi-download me-2" /> Exporter
+                      <i className="bi bi-download me-2" /> {t('boxes.export_pdf')}
                     </>
                   ),
                   onClick: () => calendarSource.downloadCalendarPdf(calendarId),
@@ -263,8 +265,8 @@ function BoxesView({ personalCalendars, sharedUserCalendars, tokenCalendars }) {
               onClick={() => addBox()}
               className="btn p-0 border-0 bg-transparent text-start h-100 w-100"
               style={{ cursor: 'pointer' }}
-              aria-label="Ajouter une boîte"
-              title="Ajouter une boîte"
+              aria-label={t('boxes.add_box')}
+              title={t('boxes.add_box')}
             >
               <div className="card h-100 shadow-sm border border-success">
                 <div className="card-body d-flex flex-column justify-content-center align-items-center">
@@ -302,9 +304,9 @@ function BoxCard({
 }) {
   const editable = selectedModifyBox === box.id;
   const timeOfDayMap = {
-    morning: 'Matin',
-    noon: 'Midi',
-    evening: 'Soir',
+    morning: t('morning'),
+    noon: t('noon'),
+    evening: t('evening'),
   };
 
   return (
@@ -328,7 +330,7 @@ function BoxCard({
                 {
                   label: (
                     <>
-                      <i className="bi bi-pencil me-2" /> Modifier
+                      <i className="bi bi-pencil me-2" /> {t('boxes.edit')}
                     </>
                   ),
                   onClick: () => setSelectedModifyBox(box.id),
@@ -336,7 +338,7 @@ function BoxCard({
                 {
                   label: (
                     <>
-                      <i className="bi bi-file-earmark-pdf me-2" /> Voir la notice
+                      <i className="bi bi-file-earmark-pdf me-2" /> {t('boxes.view_notice')}
                     </>
                   ),
                   onClick: () => openNotice(box.id),
@@ -347,7 +349,7 @@ function BoxCard({
                 {
                   label: (
                     <>
-                      <i className="bi bi-trash me-2" /> Supprimer
+                      <i className="bi bi-trash me-2" /> {t('boxes.delete')}
                     </>
                   ),
                   onClick: () => deleteBox(box.id),
@@ -392,7 +394,7 @@ function BoxCard({
         <div className="d-flex mb-2 gap-2">
           <BoxField
             type="number"
-            label="Capacité de la boîte"
+            label={t('boxes.capacity')}
             value={modifyBoxCapacity[box.id]}
             editable={editable}
             onChange={(e) =>
@@ -404,7 +406,7 @@ function BoxCard({
           />
           <BoxField
             type="number"
-            label="Seuil d’alerte"
+            label={t('boxes.alert_threshold')}
             value={modifyBoxStockAlertThreshold[box.id]}
             editable={editable}
             onChange={(e) =>
@@ -418,7 +420,7 @@ function BoxCard({
         <div className="d-flex mb-2 gap-2 align-items-center">
           <BoxField
             type="number"
-            label="Quantité restante"
+            label={t('boxes.remaining_qty')}
             value={modifyBoxStockQuantity[box.id]}
             editable={editable}
             onChange={(e) =>
@@ -434,10 +436,10 @@ function BoxCard({
                 <button
                   className="btn btn-outline-success"
                   onClick={() => restockBox(box.id)}
-                  aria-label="Réstockage"
-                  title="Réstockage"
+                  aria-label={t('boxes.restock')}
+                  title={t('boxes.restock')}
                 >
-                  <i className="bi bi-plus-circle"></i> Réstockage
+                  <i className="bi bi-plus-circle"></i> {t('boxes.restock')}
                 </button>
               </div>
             </>
@@ -456,8 +458,8 @@ function BoxCard({
             <button
               className="btn w-100 text-start d-flex justify-content-between align-items-center border-0 bg-transparent px-0 pb-0 mb-0"
               type="button"
-              title="Conditions de prise"
-              aria-label="Conditions de prise"
+              title={t('boxes.intake_conditions')}
+              aria-label={t('boxes.intake_conditions')}
               onClick={() => {
                 if (selectedDropBox[box.id] === true) {
                   setSelectedDropBox((prev) => ({ ...prev, [box.id]: false }));
@@ -466,7 +468,7 @@ function BoxCard({
                 }
               }}
             >
-              <span>Conditions de prise</span>
+              <span>{t('boxes.intake_conditions')}</span>
               <i
                 className={`bi bi-chevron-${selectedDropBox[box.id] === true ? 'up' : 'down'}`}
               ></i>
@@ -484,14 +486,14 @@ function BoxCard({
                       <div key={condition.id}>
                         <div className="mb-2 p-3 border rounded bg-light">
                           <label htmlFor="tablet_count">
-                            Nombre de comprimés
+                            {t('boxes.condition.tablet_count')}
                           </label>
                           <input
                             type="number"
                             className="form-control form-control-sm"
                             defaultValue={condition.tablet_count}
-                            title="Nombre de comprimés"
-                            aria-label="Nombre de comprimés"
+                            title={t('boxes.condition.tablet_count')}
+                            aria-label={t('boxes.condition.tablet_count')}
                             min={0}
                             step={0.25}
                             onChange={(e) =>
@@ -507,12 +509,12 @@ function BoxCard({
                               }))
                             }
                           />
-                          <label htmlFor="time_of_day">Heure de prise</label>
+                          <label htmlFor="time_of_day">{t('boxes.condition.time_of_day')}</label>
                           <select
                             className="form-control form-control-sm"
                             defaultValue={condition.time_of_day}
-                            title="Heure de prise"
-                            aria-label="Heure de prise"
+                            title={t('boxes.condition.time_of_day')}
+                            aria-label={t('boxes.condition.time_of_day')}
                             onChange={(e) =>
                               setBoxConditions((prev) => ({
                                 ...prev,
@@ -526,19 +528,19 @@ function BoxCard({
                               }))
                             }
                           >
-                            <option value="morning">Matin</option>
-                            <option value="noon">Midi</option>
-                            <option value="evening">Soir</option>
+                            <option value="morning">{t('morning')}</option>
+                            <option value="noon">{t('noon')}</option>
+                            <option value="evening">{t('evening')}</option>
                           </select>
                           <label htmlFor="interval_days">
-                            Intervalle de jours
+                            {t('boxes.condition.interval_days')}
                           </label>
                           <input
                             type="number"
                             className="form-control form-control-sm"
                             defaultValue={condition.interval_days}
-                            title="Intervalle de jours"
-                            aria-label="Intervalle de jours"
+                            title={t('boxes.condition.interval_days')}
+                            aria-label={t('boxes.condition.interval_days')}
                             min={0}
                             step={1}
                             onChange={(e) =>
@@ -554,12 +556,12 @@ function BoxCard({
                               }))
                             }
                           />
-                          <label htmlFor="start_date">Date de début</label>
+                          <label htmlFor="start_date">{t('boxes.condition.start_date')}</label>
                           <input
                             type="date"
                             className="form-control form-control-sm"
-                            title="Date de début"
-                            aria-label="Date de début"
+                            title={t('boxes.condition.start_date')}
+                            aria-label={t('boxes.condition.start_date')}
                             defaultValue={
                               condition.start_date
                                 ? new Date(condition.start_date)
@@ -592,10 +594,10 @@ function BoxCard({
                                 },
                               }))
                             }
-                            title="Supprimer"
-                            aria-label="Supprimer"
+                            title={t('boxes.condition.delete')}
+                            aria-label={t('boxes.condition.delete')}
                           >
-                            <i className="bi bi-trash"></i> Supprimer
+                            <i className="bi bi-trash"></i> {t('boxes.condition.delete')}
                           </button>
                         </div>
                       </div>
@@ -622,8 +624,8 @@ function BoxCard({
                       setSelectedModifyBox(box.id);
                     }}
                   >
-                    <i className="bi bi-plus-lg me-2"></i>
-                    Ajouter une condition
+                  <i className="bi bi-plus-lg me-2"></i>
+                  {t('boxes.condition.add')}
                   </button>
                 </>
               ) : Object.values(box.conditions).filter(
@@ -638,19 +640,19 @@ function BoxCard({
                     >
                       <strong>
                         {condition.tablet_count}{' '}
-                        {condition.tablet_count > 1 ? 'comprimés' : 'comprimé'}
+                        {condition.tablet_count > 1 ? t('boxes.tablets') : t('boxes.tablet')}
                       </strong>{' '}
-                      tous les{' '}
+                      {t('boxes.every')} {' '}
                       <strong>
                         {condition.interval_days}{' '}
-                        {condition.interval_days > 1 ? 'jours' : 'jour'}
+                        {condition.interval_days > 1 ? t('boxes.days') : t('boxes.day')}
                       </strong>{' '}
-                      chaque{' '}
+                      {t('boxes.each')} {' '}
                       <strong>{timeOfDayMap[condition.time_of_day]}</strong>
                       <br />
                       {condition.interval_days > 1 && (
                         <small className="text-muted">
-                          À partir du{' '}
+                          {t('boxes.from')} {' '}
                           {new Date(condition.start_date).toLocaleDateString()}
                         </small>
                       )}
@@ -658,7 +660,7 @@ function BoxCard({
                   ))
               ) : (
                 <div className="border rounded bg-light d-flex justify-content-start align-items-center p-2 mb-2">
-                  <p className="text-muted mb-0">Aucune condition de prise</p>
+                  <p className="text-muted mb-0">{t('boxes.condition.none')}</p>
                 </div>
               )}
             </div>
@@ -672,10 +674,10 @@ function BoxCard({
               <button
                 type="submit"
                 className="btn btn-success btn-sm"
-                aria-label="Enregistrer"
-                title="Enregistrer"
+                aria-label={t('boxes.save')}
+                title={t('boxes.save')}
               >
-                <i className="bi bi-save"></i> Enregistrer
+                <i className="bi bi-save"></i> {t('boxes.save')}
               </button>
               <button
                 type="button"
@@ -707,10 +709,10 @@ function BoxCard({
                   });
                   setDose({ ...dose, [box.id]: box.dose });
                 }}
-                aria-label="Annuler"
-                title="Annuler"
+                aria-label={t('boxes.cancel')}
+                title={t('boxes.cancel')}
               >
-                <i className="bi bi-x"></i> Annuler
+                <i className="bi bi-x"></i> {t('boxes.cancel')}
               </button>
             </div>
           </>
@@ -760,7 +762,7 @@ function StockBadge({ box }) {
   if (box.stock_quantity <= 0) {
     return (
       <span className="badge bg-danger">
-        <i className="bi bi-exclamation-triangle" /> Stock épuisé
+        <i className="bi bi-exclamation-triangle" /> {t('boxes.stock.badge.out')}
       </span>
     );
   }
@@ -768,14 +770,14 @@ function StockBadge({ box }) {
   if (box.stock_quantity <= box.stock_alert_threshold) {
     return (
       <span className="badge bg-warning">
-        <i className="bi bi-exclamation-triangle" /> Stock bas
+        <i className="bi bi-exclamation-triangle" /> {t('boxes.stock.badge.low')}
       </span>
     );
   }
 
   return (
     <span className="badge bg-success">
-      <i className="bi bi-check-circle" /> Stock élevé
+      <i className="bi bi-check-circle" /> {t('boxes.stock.badge.high')}
     </span>
   );
 }
@@ -823,7 +825,7 @@ function InputDropdown({
   return (
     <div className="position-relative w-100 d-flex gap-2">
       <div className="w-50">
-        <small className="text-muted">Nom</small>
+        <small className="text-muted">{t('boxes.name')}</small>
         <br />
         <input
           ref={inputRef}
@@ -835,12 +837,12 @@ function InputDropdown({
           }}
           onClick={() => setTimeout(() => setShowDropdown(true), 300)}
           onBlur={() => setTimeout(() => setShowDropdown(false), 150)}
-          placeholder="Commencez à taper..."
+          placeholder={t('boxes.start_typing')}
         />
       </div>
       <BoxField
         type="number"
-        label="Dose"
+        label={t('boxes.dose')}
         value={dose}
         editable={true}
         onChange={(e) => {
