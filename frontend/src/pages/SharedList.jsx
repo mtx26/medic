@@ -377,6 +377,7 @@ function TokenList({
   selectedModifyCalendar,
   setSelectedModifyCalendar,
 }) {
+  const { t } = useTranslation();
   return (
     <ul className="list-group">
       <h6 className="">{t("public_links")}:</h6>
@@ -574,6 +575,7 @@ function UserList({
   emailsToInvite,
   setEmailsToInvite,
 }) {
+  const { t } = useTranslation();
   return (
     <ul className="list-group">
       <h6>{t("shared_users")}:</h6>

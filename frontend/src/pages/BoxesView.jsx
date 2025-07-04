@@ -302,6 +302,7 @@ function BoxCard({
   setDose,
   dose,
 }) {
+  const { t } = useTranslation();
   const editable = selectedModifyBox === box.id;
   const timeOfDayMap = {
     morning: t('morning'),
@@ -757,6 +758,7 @@ function BoxField({
 }
 
 function StockBadge({ box }) {
+  const { t } = useTranslation();
   if (box.box_capacity === 0) return null;
 
   if (box.stock_quantity <= 0) {
@@ -791,6 +793,7 @@ function InputDropdown({
   onChangeStockQuantity,
   fetchSuggestions,
 }) {
+  const { t } = useTranslation();
   const [suggestions, setSuggestions] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const inputRef = useRef();
