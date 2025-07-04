@@ -4,6 +4,7 @@ import './styles/index.css';
 import './styles/bootstrap.min.css';
 import App from './App';
 import { UserProvider } from './contexts/UserContext';
+import './i18n';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

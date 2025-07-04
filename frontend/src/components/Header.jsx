@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import HoveredUserProfile from './HoveredUserProfile';
 import NotificationLine from './NotificationLine';
 import PropTypes from 'prop-types';
+import LanguageSelector from './LanguageSelector';
 
 function Navbar({ sharedProps }) {
   const { userInfo } = useContext(UserContext);
@@ -254,6 +255,9 @@ function Navbar({ sharedProps }) {
                   </Link>
                 </li>
               )}
+              <div className="d-flex align-items-center gap-2">
+                <LanguageSelector />
+              </div>
 
               {/* Notifs */}
               <li
