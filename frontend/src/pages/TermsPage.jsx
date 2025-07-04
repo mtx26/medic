@@ -1,110 +1,76 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 export default function TermsPage() {
+  const { t } = useTranslation();
   return (
-    <section class="container my-5">
+    <section className="container my-5">
       <>
-        <h2>📄 Conditions Générales d’Utilisation – MediTime</h2>
+        <h2>{t('terms.title')}</h2>
         <p>
-          <strong>Dernière mise à jour : 9 juin 2025</strong>
+          <strong>{t('terms.last_update')}</strong>
         </p>
 
-        <h3>1. Objet</h3>
-        <p>
-          Les présentes conditions ont pour objet de définir les modalités
-          d’utilisation de l’application <strong>MediTime</strong>, développée à
-          titre personnel par Matis Gillet (alias <em>mtx_26</em>), sans but
-          lucratif.
-        </p>
-        <p>
-          En utilisant l’application, vous acceptez sans réserve les présentes
-          conditions.
-        </p>
+        <h3>{t('terms.section1.title')}</h3>
+        <p dangerouslySetInnerHTML={{ __html: t('terms.section1.p1') }} />
+        <p>{t('terms.section1.p2')}</p>
 
         <hr />
 
-        <h3>2. Fonctionnalité</h3>
-        <p>MediTime permet à ses utilisateurs de :</p>
+        <h3>{t('terms.section2.title')}</h3>
+        <p>{t('terms.section2.p1')}</p>
         <ul>
-          <li>Créer et gérer des calendriers de prise de médicaments ;</li>
-          <li>Recevoir des rappels de traitement (notifications) ;</li>
-          <li>
-            Partager des calendriers avec d’autres personnes (liens ou comptes).
-          </li>
+          <li>{t('terms.section2.item1')}</li>
+          <li>{t('terms.section2.item2')}</li>
+          <li>{t('terms.section2.item3')}</li>
         </ul>
-        <p>
-          L’application est fournie « en l’état », sans garantie de disponibilité
-          continue ou d’exactitude médicale.
-        </p>
+        <p>{t('terms.section2.p2')}</p>
 
         <hr />
 
-        <h3>3. Accès et inscription</h3>
-        <p>L’accès à MediTime nécessite :</p>
+        <h3>{t('terms.section3.title')}</h3>
+        <p>{t('terms.section3.p1')}</p>
         <ul>
-          <li>Une inscription via Supabase Auth ;</li>
-          <li>
-            L’acceptation des présentes CGU et de la politique de confidentialité.
-          </li>
+          <li>{t('terms.section3.item1')}</li>
+          <li>{t('terms.section3.item2')}</li>
         </ul>
-        <p>
-          Chaque utilisateur est responsable de la confidentialité de son compte
-          et de ses données.
-        </p>
+        <p>{t('terms.section3.p2')}</p>
 
         <hr />
 
-        <h3>4. Propriété intellectuelle</h3>
-        <p>
-          Le code source, le design et le contenu de MediTime sont la propriété de{' '}
-          <strong>Matis Gillet</strong>, sauf mention contraire. Toute
-          reproduction, diffusion ou modification sans autorisation est interdite.
-        </p>
+        <h3>{t('terms.section4.title')}</h3>
+        <p dangerouslySetInnerHTML={{ __html: t('terms.section4.p1') }} />
 
         <hr />
 
-        <h3>5. Responsabilités</h3>
-        <p>
-          L’application n’a pas vocation à se substituer à un avis médical.
-          L’utilisateur reste seul responsable de l’usage des informations
-          affichées.
-        </p>
-        <p>
-          En aucun cas, MediTime ou son développeur ne pourront être tenus
-          responsables :
-        </p>
+        <h3>{t('terms.section5.title')}</h3>
+        <p>{t('terms.section5.p1')}</p>
+        <p>{t('terms.section5.p2')}</p>
         <ul>
-          <li>Des conséquences d’un oubli de prise ;</li>
-          <li>D’erreurs dans l’affichage des données ;</li>
-          <li>
-            De la perte ou divulgation des données suite à un usage non sécurisé.
-          </li>
+          <li>{t('terms.section5.item1')}</li>
+          <li>{t('terms.section5.item2')}</li>
+          <li>{t('terms.section5.item3')}</li>
         </ul>
 
         <hr />
 
-        <h3>6. Suppression de compte</h3>
-        <p>Vous pouvez à tout moment :</p>
+        <h3>{t('terms.section6.title')}</h3>
+        <p>{t('terms.section6.p1')}</p>
         <ul>
-          <li>
-            Supprimer votre compte et vos données via une demande par email ;
-          </li>
-          <li>Révoquer l’accès aux calendriers partagés.</li>
+          <li>{t('terms.section6.item1')}</li>
+          <li>{t('terms.section6.item2')}</li>
         </ul>
-        <p>La suppression est définitive et ne peut pas être annulée.</p>
+        <p>{t('terms.section6.p2')}</p>
 
         <hr />
 
-        <h3>7. Modifications</h3>
-        <p>
-          Les présentes CGU peuvent être modifiées à tout moment. Vous serez
-          informé des changements significatifs via l’application ou par email.
-        </p>
+        <h3>{t('terms.section7.title')}</h3>
+        <p>{t('terms.section7.p1')}</p>
 
         <hr />
 
-        <h3>8. Contact</h3>
-        <p>Pour toute question relative aux présentes conditions :</p>
+        <h3>{t('terms.section8.title')}</h3>
+        <p>{t('terms.section8.p1')}</p>
         <p>
           <strong>Matis Gillet</strong>
           <br />
