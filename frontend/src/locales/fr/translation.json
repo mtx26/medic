@@ -297,7 +297,6 @@
   "reset_password_confirm.new_password_label": "Nouveau mot de passe",
   "reset_password_confirm.saving": "Enregistrement...",
   "reset_password_confirm.save_password": "Enregistrer le mot de passe",
-
   "link_copied": "\ud83d\udd17 Lien copi\u00e9 !",
   "copy_link_error": "Erreur lors de la copie du lien.",
   "delete_link_confirm": "Supprimer le lien ?",

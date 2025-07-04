@@ -297,7 +297,6 @@
   "reset_password_confirm.new_password_label": "New password",
   "reset_password_confirm.saving": "Saving...",
   "reset_password_confirm.save_password": "Save password",
-
   "link_copied": "\ud83d\udd17 Link copied!",
   "copy_link_error": "Error copying link.",
   "delete_link_confirm": "Delete link?",
