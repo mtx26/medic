@@ -1,122 +1,118 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
+
+function TermsSection({ titleKey, paragraphs = [], list = [], conclusionKey }) {
+  const { t } = useTranslation();
+  return (
+    <>
+      <h3>
+        <i className="bi bi-file-earmark-text me-2" />
+        {t(titleKey)}
+      </h3>
+      {paragraphs.map((pKey) => (
+        <p key={pKey}>{t(pKey)}</p>
+      ))}
+      {list.length > 0 && (
+        <ul>
+          {list.map((itemKey) => (
+            <li key={itemKey}>{t(itemKey)}</li>
+          ))}
+        </ul>
+      )}
+      {conclusionKey && <p>{t(conclusionKey)}</p>}
+      <hr />
+    </>
+  );
+}
 
 export default function TermsPage() {
+  const { t } = useTranslation();
+
   return (
-    <section class="container my-5">
+    <section className="container my-5">
       <>
-        <h2>📄 Conditions Générales d’Utilisation – MediTime</h2>
+        <h2>
+          <i className="bi bi-file-text me-2" />
+          {t('terms.title')}
+        </h2>
         <p>
-          <strong>Dernière mise à jour : 9 juin 2025</strong>
+          <strong>{t('terms.last_update')}</strong>
         </p>
 
-        <h3>1. Objet</h3>
-        <p>
-          Les présentes conditions ont pour objet de définir les modalités
-          d’utilisation de l’application <strong>MediTime</strong>, développée à
-          titre personnel par Matis Gillet (alias <em>mtx_26</em>), sans but
-          lucratif.
-        </p>
-        <p>
-          En utilisant l’application, vous acceptez sans réserve les présentes
-          conditions.
-        </p>
+        <TermsSection
+          titleKey="terms.section1.title"
+          paragraphs={['terms.section1.p1', 'terms.section1.p2']}
+        />
 
-        <hr />
+        <TermsSection
+          titleKey="terms.section2.title"
+          paragraphs={['terms.section2.intro']}
+          list={[
+            'terms.section2.list.item1',
+            'terms.section2.list.item2',
+            'terms.section2.list.item3',
+          ]}
+          conclusionKey="terms.section2.disclaimer"
+        />
 
-        <h3>2. Fonctionnalité</h3>
-        <p>MediTime permet à ses utilisateurs de :</p>
-        <ul>
-          <li>Créer et gérer des calendriers de prise de médicaments ;</li>
-          <li>Recevoir des rappels de traitement (notifications) ;</li>
-          <li>
-            Partager des calendriers avec d’autres personnes (liens ou comptes).
-          </li>
-        </ul>
-        <p>
-          L’application est fournie « en l’état », sans garantie de disponibilité
-          continue ou d’exactitude médicale.
-        </p>
+        <TermsSection
+          titleKey="terms.section3.title"
+          paragraphs={['terms.section3.intro']}
+          list={[
+            'terms.section3.list.item1',
+            'terms.section3.list.item2',
+          ]}
+          conclusionKey="terms.section3.conclusion"
+        />
 
-        <hr />
+        <TermsSection
+          titleKey="terms.section4.title"
+          paragraphs={['terms.section4.content']}
+        />
 
-        <h3>3. Accès et inscription</h3>
-        <p>L’accès à MediTime nécessite :</p>
-        <ul>
-          <li>Une inscription via Supabase Auth ;</li>
-          <li>
-            L’acceptation des présentes CGU et de la politique de confidentialité.
-          </li>
-        </ul>
-        <p>
-          Chaque utilisateur est responsable de la confidentialité de son compte
-          et de ses données.
-        </p>
+        <TermsSection
+          titleKey="terms.section5.title"
+          paragraphs={['terms.section5.p1', 'terms.section5.p2']}
+          list={[
+            'terms.section5.list.item1',
+            'terms.section5.list.item2',
+            'terms.section5.list.item3',
+          ]}
+        />
 
-        <hr />
+        <TermsSection
+          titleKey="terms.section6.title"
+          paragraphs={['terms.section6.intro']}
+          list={[
+            'terms.section6.list.item1',
+            'terms.section6.list.item2',
+          ]}
+          conclusionKey="terms.section6.conclusion"
+        />
 
-        <h3>4. Propriété intellectuelle</h3>
-        <p>
-          Le code source, le design et le contenu de MediTime sont la propriété de{' '}
-          <strong>Matis Gillet</strong>, sauf mention contraire. Toute
-          reproduction, diffusion ou modification sans autorisation est interdite.
-        </p>
+        <TermsSection
+          titleKey="terms.section7.title"
+          paragraphs={['terms.section7.content']}
+        />
 
-        <hr />
-
-        <h3>5. Responsabilités</h3>
-        <p>
-          L’application n’a pas vocation à se substituer à un avis médical.
-          L’utilisateur reste seul responsable de l’usage des informations
-          affichées.
-        </p>
-        <p>
-          En aucun cas, MediTime ou son développeur ne pourront être tenus
-          responsables :
-        </p>
-        <ul>
-          <li>Des conséquences d’un oubli de prise ;</li>
-          <li>D’erreurs dans l’affichage des données ;</li>
-          <li>
-            De la perte ou divulgation des données suite à un usage non sécurisé.
-          </li>
-        </ul>
-
-        <hr />
-
-        <h3>6. Suppression de compte</h3>
-        <p>Vous pouvez à tout moment :</p>
-        <ul>
-          <li>
-            Supprimer votre compte et vos données via une demande par email ;
-          </li>
-          <li>Révoquer l’accès aux calendriers partagés.</li>
-        </ul>
-        <p>La suppression est définitive et ne peut pas être annulée.</p>
-
-        <hr />
-
-        <h3>7. Modifications</h3>
-        <p>
-          Les présentes CGU peuvent être modifiées à tout moment. Vous serez
-          informé des changements significatifs via l’application ou par email.
-        </p>
-
-        <hr />
-
-        <h3>8. Contact</h3>
-        <p>Pour toute question relative aux présentes conditions :</p>
+        <h3>
+          <i className="bi bi-info-circle me-2" />
+          {t('terms.section8.title')}
+        </h3>
+        <p>{t('terms.section8.intro')}</p>
         <p>
           <strong>Matis Gillet</strong>
           <br />
-          📧 <a href="mailto:mtx_26@outlook.be">mtx_26@outlook.be</a>
+          <i className="bi bi-envelope-fill me-1" />
+          <a href="mailto:mtx_26@outlook.be">mtx_26@outlook.be</a>
           <br />
-          🌐{' '}
-          <a href="https://meditime-app.com" target="_blank">
+          <i className="bi bi-globe me-1" />
+          <a href="https://meditime-app.com" target="_blank" rel="noreferrer">
             meditime-app.com
           </a>
           <br />
-          🐙{' '}
-          <a href="https://github.com/mtx26" target="_blank">
+          <i className="bi bi-github me-1" />
+          <a href="https://github.com/mtx26" target="_blank" rel="noreferrer">
             GitHub – mtx26
           </a>
         </p>
