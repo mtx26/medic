@@ -3,8 +3,10 @@ import { updateUserPassword } from '../../services/authService';
 import { UserContext } from '../../contexts/UserContext';
 import AlertSystem from '../../components/AlertSystem';
 import { supabase } from '../../services/supabaseClient';
+import { useTranslation } from 'react-i18next';
 
 const Security = ({ sharedProps }) => {
+  const { t } = useTranslation();
   // 👤 Contexte utilisateur
   const { userInfo } = useContext(UserContext); // Contexte de l'utilisateur connecté
 
@@ -22,7 +24,7 @@ const Security = ({ sharedProps }) => {
 
   const reauthenticate = async () => {
     if (!userInfo || !oldPassword)
-      throw new Error('Ancien mot de passe requis.');
+      throw new Error(t('security.current_password.required'));
     const { error } = await supabase.auth.updateUser({
       password: oldPassword,
     });
@@ -36,7 +38,7 @@ const Security = ({ sharedProps }) => {
       await updateUserPassword(newPassword);
 
       setAlertType('success');
-      setAlertMessage('✅ Mot de passe mis à jour avec succès.');
+      setAlertMessage(t('security.password_updated'));
 
       // Réinitialiser les champs
       setNewPassword('');
@@ -48,12 +50,12 @@ const Security = ({ sharedProps }) => {
   };
 
   if (!userInfo) {
-    return <div>Loading...</div>;
+    return <div>{t('loading')}</div>;
   }
 
   return (
     <div>
-      <h2 className="mb-4">Gestion de compte</h2>
+      <h2 className="mb-4">{t('security.title')}</h2>
 
       <AlertSystem
         type={alertType}
@@ -62,21 +64,20 @@ const Security = ({ sharedProps }) => {
       />
 
       <div className="mb-4">
-        <h5>Email actuel:</h5>
+        <h5>{t('security.current_email')}</h5>
         <p>{userInfo.email}</p>
       </div>
 
       {isGoogleUser ? (
         <div className="alert alert-info">
-          Connecté avec Google. Vous ne pouvez pas modifier votre email ou mot
-          de passe.
+          {t('security.google_warning')}
         </div>
       ) : (
         <form onSubmit={handleUpdatePassword}>
           {/* Champ Username visible */}
           <div className="mb-3">
             <label htmlFor="email" className="form-label">
-              Email
+              {t('auth.email')}
             </label>
             <input
               type="email"
@@ -93,28 +94,26 @@ const Security = ({ sharedProps }) => {
           {/* Ancien mot de passe */}
           <div className="mb-3 position-relative">
             <label htmlFor="oldPassword" className="form-label">
-              Mot de passe actuel
+              {t('security.current_password.label')}
             </label>
             <input
               type={oldPasswordVisible ? 'text' : 'password'}
               className="form-control"
               id="oldPassword"
               name="current-password"
-              aria-label="Mot de passe actuel"
+              aria-label={t('security.current_password.label')}
               autoComplete="current-password"
               required
               value={oldPassword}
               onChange={(e) => setOldPassword(e.target.value)}
-              placeholder="Entrez le mot de passe actuel"
+              placeholder={t('security.current_password.placeholder')}
             />
             <i
               className={`bi bi-${oldPasswordVisible ? 'eye-slash' : 'eye'} position-absolute`}
               role="button"
               tabIndex="0"
               aria-label={
-                oldPasswordVisible
-                  ? 'Masquer le mot de passe'
-                  : 'Afficher le mot de passe'
+                oldPasswordVisible ? t('auth.hide_password') : t('auth.show_password')
               }
               style={{
                 top: '38px',
@@ -135,18 +134,18 @@ const Security = ({ sharedProps }) => {
           {/* Nouveau mot de passe */}
           <div className="mb-3 position-relative">
             <label htmlFor="newPassword" className="form-label">
-              Nouveau mot de passe
+              {t('reset_password_confirm.new_password_label')}
             </label>
             <input
               type={newPasswordVisible ? 'text' : 'password'}
               className="form-control"
               id="newPassword"
               name="new-password"
-              aria-label="Nouveau mot de passe"
+              aria-label={t('reset_password_confirm.new_password_label')}
               autoComplete="new-password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="Entrez le nouveau mot de passe"
+              placeholder={t('security.new_password.placeholder')}
               required
             />
             <i
@@ -154,9 +153,7 @@ const Security = ({ sharedProps }) => {
               role="button"
               tabIndex="0"
               aria-label={
-                newPasswordVisible
-                  ? 'Masquer le mot de passe'
-                  : 'Afficher le mot de passe'
+                newPasswordVisible ? t('auth.hide_password') : t('auth.show_password')
               }
               style={{
                 top: '38px',
@@ -177,10 +174,10 @@ const Security = ({ sharedProps }) => {
           <button
             type="submit"
             className="btn btn-outline-primary mt-2"
-            aria-label="Mettre à jour le mot de passe"
-            title="Mettre à jour le mot de passe"
+            aria-label={t('security.update_password')}
+            title={t('security.update_password')}
           >
-            Mettre à jour le mot de passe
+            {t('security.update_password')}
           </button>
         </form>
       )}

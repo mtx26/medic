@@ -1,5 +1,6 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { UserContext, getGlobalReloadUser } from '../../contexts/UserContext';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '../../services/supabaseClient';
 import { log } from '../../utils/logger';
 import Cropper from 'react-easy-crop';
@@ -8,6 +9,7 @@ import getCroppedImg from '../../utils/cropImage';
 const API_URL = import.meta.env.VITE_API_URL;
 
 const Account = ({ sharedProps }) => {
+  const { t } = useTranslation();
   const { userInfo } = useContext(UserContext);
   const reloadUser = getGlobalReloadUser();
 
@@ -78,7 +80,7 @@ const Account = ({ sharedProps }) => {
       if (file) {
         const maxSize = 1024 * 1024 * 5; // 5MB
         if (file.size > maxSize) {
-          alert('La taille de l\'image ne doit pas dépasser 5MB');
+          alert(t('account.image_size_error'));
           return;
         }
         const imageURL = URL.createObjectURL(file);
@@ -100,10 +102,8 @@ const Account = ({ sharedProps }) => {
   return (
     <>
       <div>
-        <h2 className="mb-3">Mon compte</h2>
-        <p className="text-muted mb-4">
-          Vous pouvez modifier vos informations personnelles ici.
-        </p>
+        <h2 className="mb-3">{t('settings.account')}</h2>
+        <p className="text-muted mb-4">{t('account.instructions')}</p>
 
         <form className="row gap-3 align-items-center" onSubmit={handleSubmit}>
           <button
@@ -122,7 +122,7 @@ const Account = ({ sharedProps }) => {
           >
             <img
               src={previewURL}
-              alt="Profil"
+              alt={t('account.profile_alt')}
               className="w-100 h-100 rounded-circle"
               style={{ objectFit: 'cover' }}
             />
@@ -136,13 +136,13 @@ const Account = ({ sharedProps }) => {
 
           <div className="col">
             <label htmlFor="displayName" className="form-label">
-              Pseudo
+              {t('account.display_name.label')}
             </label>
             <input
               type="text"
               id="displayName"
               className="form-control"
-              placeholder="Entrez votre pseudo"
+              placeholder={t('account.display_name.placeholder')}
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
             />
@@ -150,7 +150,7 @@ const Account = ({ sharedProps }) => {
           {isModified && (
             <div className="d-flex gap-2 justify-content-end">
               <button type="submit" className="btn btn-outline-primary">
-                <i className="bi bi-check-lg"></i> Enregistrer les modifications
+                <i className="bi bi-check-lg"></i> {t('account.save_changes')}
               </button>
               <button
                 type="button"
@@ -161,7 +161,7 @@ const Account = ({ sharedProps }) => {
                   setIsModified(false);
                 }}
               >
-                <i className="bi bi-x-lg"></i> Annuler
+                <i className="bi bi-x-lg"></i> {t('cancel')}
               </button>
             </div>
           )}
@@ -176,7 +176,7 @@ const Account = ({ sharedProps }) => {
           <div className="modal-dialog modal-dialog-centered modal-lg">
             <div className="modal-content bg-white">
               <div className="modal-header">
-                <h5 className="modal-title">Recadrer la photo</h5>
+                <h5 className="modal-title">{t('account.crop.title')}</h5>
                 <button
                   type="button"
                   className="btn-close"
@@ -212,7 +212,7 @@ const Account = ({ sharedProps }) => {
                   className="form-range w-50"
                 />
                 <button className="btn btn-primary" onClick={handleCropConfirm}>
-                  Utiliser cette image
+                  {t('account.crop.use')}
                 </button>
               </div>
             </div>

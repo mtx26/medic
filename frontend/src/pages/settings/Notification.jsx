@@ -1,14 +1,16 @@
 import React, { useContext } from 'react';
 import { UserContext, getGlobalReloadUser } from '../../contexts/UserContext';
+import { useTranslation } from 'react-i18next';
 
 const Notification = () => {
+  const { t } = useTranslation();
   const { userInfo } = useContext(UserContext);
 
   const reloadUser = getGlobalReloadUser();
 
   return (
     <div>
-      <h2 className="mb-4">Notifications</h2>
+      <h2 className="mb-4">{t('notifications')}</h2>
 
       <div className="form-check form-switch mb-3">
         <input
@@ -26,7 +28,7 @@ const Notification = () => {
           }}
         />
         <label className="form-check-label" htmlFor="emailNotificationToggle">
-          Activer les notifications par e-mail
+          {t('notification.email_toggle')}
         </label>
       </div>
 
@@ -46,7 +48,7 @@ const Notification = () => {
           }}
         />
         <label className="form-check-label" htmlFor="pushNotificationToggle">
-          Activer les notifications par web push
+          {t('notification.push_toggle')}
         </label>
       </div>
     </div>
