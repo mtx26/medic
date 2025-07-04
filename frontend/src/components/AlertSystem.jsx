@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
+import { useTranslation } from 'react-i18next';
 
 function AlertSystem({
   type = 'info',
@@ -8,6 +9,7 @@ function AlertSystem({
   onConfirm = null,
   duration = 2000,
 }) {
+  const { t } = useTranslation();
   const isConfirm = type.startsWith('confirm');
   const [visible, setVisible] = useState(false);
 
@@ -43,39 +45,39 @@ function AlertSystem({
         role="alert"
       >
         <div className="d-flex flex-column flex-sm-row justify-content-between gap-3">
-          <div className="flex-fill">{message}</div>
+          <div className="flex-fill">{t(message)}</div>
 
           {isConfirm ? (
             <div className="d-flex flex-row flex-wrap gap-2 justify-content-center justify-content-sm-end">
               <button
                 className={`btn btn-sm btn-${bootstrapType}`}
-                aria-label="Oui"
-                title="Oui"
+                aria-label={t('yes')}
+                title={t('yes')}
                 onClick={() => {
                   onConfirm?.();
                   setVisible(false);
                   setTimeout(onClose, 400);
                 }}
               >
-                Oui
+                {t('yes')}
               </button>
               <button
                 className="btn btn-sm btn-outline-secondary"
-                aria-label="Annuler"
-                title="Annuler"
+                aria-label={t('cancel')}
+                title={t('cancel')}
                 onClick={() => {
                   setVisible(false);
                   setTimeout(onClose, 400);
                 }}
               >
-                Annuler
+                {t('cancel')}
               </button>
             </div>
           ) : (
             <button
               className="btn-close"
-              aria-label="Fermer"
-              title="Fermer"
+              aria-label={t('close')}
+              title={t('close')}
               onClick={() => {
                 setVisible(false);
                 setTimeout(onClose, 400);

@@ -7,12 +7,13 @@ import HoveredUserProfile from './HoveredUserProfile';
 import NotificationLine from './NotificationLine';
 import PropTypes from 'prop-types';
 import LanguageSelector from './LanguageSelector';
+import { useTranslation } from 'react-i18next';
 
 function Navbar({ sharedProps }) {
   const { userInfo } = useContext(UserContext);
   const navigate = useNavigate();
   const location = useLocation();
-
+  const { t } = useTranslation();
   const [calendarInfo, setCalendarInfo] = useState(null);
   const [basePath, setBasePath] = useState(null);
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
@@ -126,7 +127,7 @@ function Navbar({ sharedProps }) {
           {locationAvailableForReturnToCalendarList.calendar ||
           locationAvailableForReturnToCalendarList.sharedUserCalendar ? (
             <Link to="/calendars" className="navbar-brand fs-4">
-              <i className="bi bi-arrow-left"></i> Retour
+              <i className="bi bi-arrow-left"></i> {t('back')}
             </Link>
           ) : calendarInfo?.id &&
             basePath &&
@@ -136,7 +137,7 @@ function Navbar({ sharedProps }) {
               to={`/${basePath}/${calendarInfo.id}`}
               className="navbar-brand fs-4"
             >
-              <i className="bi bi-arrow-left"></i> Retour
+              <i className="bi bi-arrow-left"></i> {t('back')}
             </Link>
           ) : locationList.tokenCalendar &&
             tokenId &&
@@ -145,11 +146,11 @@ function Navbar({ sharedProps }) {
               to={`/shared-token-calendar/${tokenId}`}
               className="navbar-brand fs-4"
             >
-              <i className="bi bi-arrow-left"></i> Retour
+              <i className="bi bi-arrow-left"></i> {t('back')}
             </Link>
           ) : (
             <Link to="/" className="navbar-brand fw-bold text-primary fs-4">
-              <i className="bi bi-capsule"></i> MediTime
+              <i className="bi bi-capsule"></i> {t('app.title')}
             </Link>
           )}
 
@@ -166,14 +167,14 @@ function Navbar({ sharedProps }) {
                         to={`/${basePath}/${calendarInfo.id}`}
                         className="text-decoration-none text-dark"
                       >
-                        <span className="text-muted">Calendrier : </span>
+                        <span className="text-muted">{t('calendar')} : </span>
                         <span className="fw-bold">{calendarInfo.name}</span>
                       </Link>
                     )}
                   </h4>
                   {locationList.sharedUserCalendar && (
                     <div className="badge bg-info mt-2">
-                      Calendrier partagé par{' '}
+                      {t('shared_by')}
                       <HoveredUserProfile
                         user={{
                           email: calendarInfo.owner_email,
@@ -190,7 +191,7 @@ function Navbar({ sharedProps }) {
                       className="text-decoration-none text-dark"
                     >
                       <div className="badge bg-info mt-2">
-                        Calendrier partagé par un token
+                        {t('shared_by_token')}
                       </div>
                     </Link>
                   )}
@@ -227,7 +228,7 @@ function Navbar({ sharedProps }) {
                     className="text-decoration-none text-dark"
                   >
                     <div className="badge bg-info">
-                      Calendrier partagé par un token
+                      {t('shared_by_token')}
                     </div>
                   </Link>
                 )}
@@ -240,24 +241,22 @@ function Navbar({ sharedProps }) {
             <ul className="navbar-nav align-items-center gap-2">
               <li className="nav-item">
                 <Link to="/calendars" className="nav-link">
-                  <i className="bi bi-calendar-date fs-5"></i> Calendriers
+                  <i className="bi bi-calendar-date fs-5"></i> {t('calendars')}
                 </Link>
               </li>
               <li className="nav-item">
                 <Link to="/shared-calendars" className="nav-link">
-                  <i className="bi bi-box-arrow-up fs-5"></i> Partagés
+                  <i className="bi bi-box-arrow-up fs-5"></i> {t('shared')}
                 </Link>
               </li>
               {userInfo?.role === 'admin' && (
                 <li className="nav-item">
                   <Link to="/admin" className="nav-link">
-                    <i className="bi bi-lock fs-5"></i> Admin
+                    <i className="bi bi-lock fs-5"></i> {t('admin')}
                   </Link>
                 </li>
               )}
-              <div className="d-flex align-items-center gap-2">
-                <LanguageSelector />
-              </div>
+              <LanguageSelector />
 
               {/* Notifs */}
               <li
@@ -295,7 +294,7 @@ function Navbar({ sharedProps }) {
                   >
                     {notificationsData === null ? (
                       <li className="dropdown-item text-muted fs-6">
-                        Chargement des notifications...
+                        {t('loading_notifications')}
                       </li>
                     ) : (
                       notificationsData
@@ -316,7 +315,7 @@ function Navbar({ sharedProps }) {
                       notificationsData.filter((notif) => !notif.read)
                         .length === 0 && (
                         <li className="dropdown-item text-muted fs-6">
-                          Aucune nouvelle notification
+                          {t('no_notifications')}
                         </li>
                       )}
                     <li>
@@ -329,7 +328,7 @@ function Navbar({ sharedProps }) {
                         title="Ouvrir les notifications"
                         onClick={() => navigate('/notifications')}
                       >
-                        <i className="bi bi-bell"></i> Ouvrir les notifications
+                        <i className="bi bi-bell"></i> {t('open_notifications')}
                       </button>
                     </li>
                   </ul>
@@ -358,14 +357,14 @@ function Navbar({ sharedProps }) {
                         referrerPolicy="no-referrer"
                       />
                       <span className="text-muted">
-                        {userInfo.displayName || 'Utilisateur'}
+                        {userInfo.displayName || t('user')}
                       </span>
                       <i className="bi bi-caret-down-fill ms-2"></i>
                     </>
                   ) : (
                     <>
                       <i className="bi bi-person-circle fs-3 me-2"></i>
-                      <span className="text-muted">Compte</span>
+                      <span className="text-muted">{t('account')}</span>
                     </>
                   )}
                 </button>
@@ -383,13 +382,12 @@ function Navbar({ sharedProps }) {
                       <>
                         <li>
                           <Link className="dropdown-item" to="/profile">
-                            <i className="bi bi-person fs-5 me-2"></i> Mon
-                            profil
+                            <i className="bi bi-person fs-5 me-2"></i> {t('profile')}
                           </Link>
                         </li>
                         <li>
                           <Link className="dropdown-item" to="/settings">
-                            <i className="bi bi-gear fs-5 me-2"></i> Paramètres
+                            <i className="bi bi-gear fs-5 me-2"></i> {t('settings')}
                           </Link>
                         </li>
                         <li>
@@ -403,7 +401,7 @@ function Navbar({ sharedProps }) {
                             onClick={handleLogout}
                           >
                             <i className="bi bi-unlock fs-5 me-2"></i>{' '}
-                            Déconnexion
+                            {t('logout')}
                           </button>
                         </li>
                       </>
@@ -412,13 +410,13 @@ function Navbar({ sharedProps }) {
                         <li>
                           <Link className="dropdown-item" to="/login">
                             <i className="bi bi-box-arrow-in-right fs-5 me-2"></i>{' '}
-                            Connexion
+                            {t('login')}
                           </Link>
                         </li>
                         <li>
                           <Link className="dropdown-item" to="/register">
                             <i className="bi bi-person-plus fs-5 me-2"></i>{' '}
-                            Inscription
+                            {t('register')}
                           </Link>
                         </li>
                       </>
@@ -438,28 +436,28 @@ function Navbar({ sharedProps }) {
             className="text-center text-dark text-decoration-none link-hover"
           >
             <i className="bi bi-house fs-4"></i>
-            <div className="small">Accueil</div>
+            <div className="small">{t('home')}</div>
           </Link>
           <Link
             to="/calendars"
             className="text-center text-dark text-decoration-none link-hover"
           >
             <i className="bi bi-calendar-event fs-4"></i>
-            <div className="small">Calendrier</div>
+            <div className="small">{t('calendar')}</div>
           </Link>
           <Link
             to="/shared-calendars"
             className="text-center text-dark text-decoration-none link-hover"
           >
             <i className="bi bi-people fs-4"></i>
-            <div className="small">Partages</div>
+            <div className="small">{t('shared')}</div>
           </Link>
           <Link
             to="/notifications"
             className="text-center text-dark text-decoration-none link-hover position-relative"
           >
             <i className="bi bi-bell fs-4"></i>
-            <div className="small">Notifs</div>
+            <div className="small">{t('notifications')}</div>
             {notificationsData !== null &&
               notificationsData.filter((notif) => !notif.read).length > 0 && (
                 <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger fs-7">
@@ -486,7 +484,7 @@ function Navbar({ sharedProps }) {
             ) : (
               <i className="bi bi-person-circle fs-3 me-2"></i>
             )}
-            <div className="small">Comptes</div>
+            <div className="small">{t('account')}</div>
           </Link>
         </div>
       </nav>

@@ -1,7 +1,78 @@
 {
-    "welcome": "Bienvenue sur MediTime",
-    "login": "Se connecter",
-    "register": "Créer un compte",
-    "settings": "Paramètres"
-  }
+  "app.title": "MediTime",
+  "app.subtitle": "G\u00e9rez, suivez et partagez vos traitements m\u00e9dicaux facilement.",
+  "app.access": "Acc\u00e9der \u00e0 l'application",
+  "app.login": "Se connecter",
+  "app.register": "Cr\u00e9er un compte",
   
+  "features.title1": "Calendrier intelligent",
+  "features.desc1": "Programmez vos prises, recevez des rappels et gardez l\u2019esprit tranquille.",
+
+  "features.title2": "Partage collaboratif",
+  "features.desc2": "Donnez acc\u00e8s \u00e0 vos proches ou soignants pour vous accompagner au quotidien.",
+
+  "features.title3": "S\u00e9curit\u00e9 assur\u00e9e",
+  "features.desc3": "Vos donn\u00e9es sont prot\u00e9g\u00e9es avec des technologies fiables comme Supabase et Firebase.",
+
+  "why.title": "Pourquoi choisir MediTime\u00a0?",
+  "why.desc": "Parce que la sant\u00e9 ne laisse pas de place \u00e0 l’improvisation. MediTime vous offre une solution claire, intuitive et s\u00e9curis\u00e9e pour suivre vos traitements et ceux de vos proches, jour apr\u00e8s jour.",
+
+  "testimonials.title": "Ils nous font confiance",
+  "testimonials.quote": "Je continue \u00e0 remplir le pilulier de ma maman chaque semaine, mais avec MediTime, c’est devenu beaucoup plus simple. Je vois tout son traitement en un coup d’\u0153il, je re\u00e7ois des rappels, et elle aussi. On est bien plus sereins.",
+  "testimonials.author": "Andr\u00e9e C. et ses petits-enfants",
+
+  "mobile.title": "Disponible sur votre t\u00e9l\u00e9phone",
+  "mobile.desc": "MediTime fonctionne comme une application mobile. Ajoutez-la \u00e0 votre \u00e9cran d’accueil pour un acc\u00e8s rapide.",
+  "mobile.feature1": "Installation simple depuis le navigateur",
+  "mobile.feature2": "Interface tactile fluide",
+  "mobile.feature3": "Acc\u00e8s rapide depuis l'\u00e9cran d'accueil",
+  "mobile.ios": "Sur <strong>iPhone</strong>, ouvrez MediTime dans Safari, appuyez sur <i class=\"bi bi-share mx-1\"></i> puis <em>\"Sur l\u2019\u00e9cran d\u2019accueil\"</em>.",
+  "mobile.android": "Sur <strong>Android</strong>, un message <em>\"Ajouter \u00e0 l\u2019\u00e9cran d\u2019accueil\"</em> s’affiche automatiquement en bas du navigateur. Appuyez dessus pour installer MediTime.",
+  "mobile.other": "MediTime est \u00e9galement accessible sur ordinateur ou tablette.",
+
+  "cta.title": "Commencez d\u00e8s aujourd’hui",
+  "cta.desc": "Cr\u00e9ez votre compte gratuitement et simplifiez la gestion m\u00e9dicale de toute la famille.",
+  "cta.button": "Je cr\u00e9e mon compte",
+
+  "yes": "Oui",
+  "cancel": "Annuler",
+  "close": "Fermer",
+  "locale": "fr-FR",
+  "about": "À propos",
+  "terms": "Conditions d'utilisation",
+  "privacy": "Confidentialité",
+  "account": "Mon compte",
+  "my_calendars": "Mes calendriers",
+  "shared_calendars": "Calendriers partagés",
+  "contact": "Contact",
+  "rights_reserved": "Tous droits réservés",
+  "login": "Connexion",
+  "logout": "Déconnexion",
+  "register": "Inscription",
+  "settings": "Paramètres",
+  "profile": "Mon profil",
+  "back": "Retour",
+  "home": "Accueil",
+  "calendar": "Calendrier",
+  "calendars": "Calendriers",
+  "shared": "Partagés",
+  "shared_by": "Calendrier partagé par",
+  "shared_by_token": "Calendrier partagé par un token",
+  "notifications": "Notifications",
+  "open_notifications": "Ouvrir les notifications",
+  "no_notifications": "Aucune nouvelle notification",
+  "loading_notifications": "Chargement des notifications...",
+  "admin": "Admin",
+  "user": "Utilisateur",
+  "accept": "Accepter",
+  "reject": "Rejeter",
+  "notif": {
+    "calendar_invite": "{{user}} vous invite à rejoindre le calendrier <1>{{name}}</1>",
+    "calendar_joined": "Vous avez rejoint le calendrier <1>{{name}}</1> de {{user}}",
+    "invite_accepted": "{{user}} a accepté votre invitation pour rejoindre le calendrier <1>{{name}}</1>",
+    "invite_rejected": "{{user}} a refusé votre invitation pour rejoindre le calendrier <1>{{name}}</1>",
+    "share_removed_by_owner": "{{user}} a arrêté de partager le calendrier <1>{{name}}</1> avec vous",
+    "share_removed_by_you": "{{user}} a retiré le calendrier <1>{{name}}</1>",
+    "low_stock": "{{name}} est presque épuisé ({{qty}} restants)."
+  }
+}

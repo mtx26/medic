@@ -1,4 +1,5 @@
 import HoveredUserProfile from './HoveredUserProfile';
+import { useTranslation, Trans } from 'react-i18next';
 
 export default function NotificationLine({
   notif,
@@ -7,8 +8,9 @@ export default function NotificationLine({
   onReject,
   navigate,
 }) {
+  const { t } = useTranslation();
   const isUnread = !notif.read;
-  const timestamp = new Date(notif.timestamp).toLocaleString('fr-FR', {
+  const timestamp = new Date(notif.timestamp).toLocaleString(t('locale'), {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -44,16 +46,15 @@ export default function NotificationLine({
       );
       if (!notif.accepted) {
         message = (
-          <>
-            {user} vous invite à rejoindre le calendrier{' '}
-            <strong>{notif.calendar_name}</strong>
-          </>
+          <Trans i18nKey="notif.calendar_invite" values={{ name: notif.calendar_name }}>
+            {{ user }} vous invite à rejoindre le calendrier <strong>{{ name: notif.calendar_name }}</strong>
+          </Trans>
         );
         actions = (
           <div className="mt-2">
             <button
-              aria-label="Accepter"
-              title="Accepter"
+              aria-label={t('accept')}
+              title={t('accept')}
               className="btn btn-sm btn-outline-success me-2"
               onClick={async (e) => {
                 e.stopPropagation();
@@ -61,28 +62,26 @@ export default function NotificationLine({
                 navigate(`/shared-user-calendar/${notif.calendar_id}`);
               }}
             >
-              <i className="bi bi-check-circle-fill me-2 text-success"></i>{' '}
-              Accepter
+              <i className="bi bi-check-circle-fill me-2 text-success"></i> {t('accept')}
             </button>
             <button
-              aria-label="Rejeter"
-              title="Rejeter"
+              aria-label={t('reject')}
+              title={t('reject')}
               className="btn btn-sm btn-outline-danger"
               onClick={(e) => {
                 e.stopPropagation();
                 onReject(notif.notification_id);
               }}
             >
-              <i className="bi bi-x-circle-fill me-2 text-danger"></i> Rejeter
+              <i className="bi bi-x-circle-fill me-2 text-danger"></i> {t('reject')}
             </button>
           </div>
         );
       } else {
         message = (
-          <>
-            Vous avez rejoint le calendrier{' '}
-            <strong>{notif.calendar_name}</strong> de {user}
-          </>
+          <Trans i18nKey="notif.calendar_joined" values={{ name: notif.calendar_name }}>
+            Vous avez rejoint le calendrier <strong>{{ name: notif.calendar_name }}</strong> de {{ user }}
+          </Trans>
         );
       }
       break;
@@ -95,10 +94,9 @@ export default function NotificationLine({
         ></i>
       );
       message = (
-        <>
-          {user} a accepté votre invitation pour rejoindre le calendrier{' '}
-          <strong>{notif.calendar_name}</strong>
-        </>
+        <Trans i18nKey="notif.invite_accepted" values={{ name: notif.calendar_name }}>
+          {{ user }} a accepté votre invitation pour rejoindre le calendrier <strong>{{ name: notif.calendar_name }}</strong>
+        </Trans>
       );
       break;
 
@@ -110,10 +108,9 @@ export default function NotificationLine({
         ></i>
       );
       message = (
-        <>
-          {user} a refusé votre invitation pour rejoindre le calendrier{' '}
-          <strong>{notif.calendar_name}</strong>
-        </>
+        <Trans i18nKey="notif.invite_rejected" values={{ name: notif.calendar_name }}>
+          {{ user }} a refusé votre invitation pour rejoindre le calendrier <strong>{{ name: notif.calendar_name }}</strong>
+        </Trans>
       );
       break;
 
@@ -122,10 +119,9 @@ export default function NotificationLine({
         <i className="bi bi-trash-fill text-danger me-2" style={iconStyle}></i>
       );
       message = (
-        <>
-          {user} a arrêté de partager le calendrier{' '}
-          <strong>{notif.calendar_name}</strong> avec vous
-        </>
+        <Trans i18nKey="notif.share_removed_by_owner" values={{ name: notif.calendar_name }}>
+          {{ user }} a arrêté de partager le calendrier <strong>{{ name: notif.calendar_name }}</strong> avec vous
+        </Trans>
       );
       break;
 
@@ -134,19 +130,26 @@ export default function NotificationLine({
         <i className="bi bi-trash-fill text-danger me-2" style={iconStyle}></i>
       );
       message = (
-        <>
-          {user} a retiré le calendrier <strong>{notif.calendar_name}</strong>
-        </>
+        <Trans i18nKey="notif.share_removed_by_you" values={{ name: notif.calendar_name }}>
+          {{ user }} a retiré le calendrier <strong>{{ name: notif.calendar_name }}</strong>
+        </Trans>
       );
       break;
+
     case 'low_stock':
       icon = (
         <i className="bi bi-exclamation-triangle-fill text-warning me-2" style={iconStyle}></i>
       );
       message = (
-        <>
-          {notif.medication_name} est presque épuisé ({notif.medication_qty} restants).
-        </>
+        <Trans
+          i18nKey="notif.low_stock"
+          values={{
+            name: notif.medication_name,
+            qty: notif.medication_qty,
+          }}
+        >
+          {{ name: notif.medication_name }} est presque épuisé ({{ qty: notif.medication_qty }} restants).
+        </Trans>
       );
       link = notif.link;
       break;

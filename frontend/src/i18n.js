@@ -16,7 +16,7 @@ i18n
     fallbackLng: 'fr',
     detection: {
       order: ['localStorage', 'navigator'],
-      caches: ['localStorage'], // la langue reste entre les sessions
+      caches: ['localStorage'],
     },
     interpolation: {
       escapeValue: false

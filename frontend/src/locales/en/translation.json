@@ -1,7 +1,67 @@
 {
-    "welcome": "Welcome to MediTime",
-    "login": "Log in",
-    "register": "Sign up",
-    "settings": "Settings"
-  }
-  
+  "app.title": "MediTime",
+  "app.subtitle": "Manage, track and share your medical treatments with ease.",
+  "app.access": "Access the app",
+  "app.login": "Log in",
+  "app.register": "Create an account",
+
+  "features.title1": "Smart calendar",
+  "features.desc1": "Schedule your doses, receive reminders, and stay worry-free.",
+
+  "features.title2": "Collaborative sharing",
+  "features.desc2": "Allow loved ones or caregivers to support you every day.",
+
+  "features.title3": "Secured data",
+  "features.desc3": "Your data is protected with reliable technologies like Supabase and Firebase.",
+
+  "why.title": "Why choose MediTime?",
+  "why.desc": "Because health leaves no room for improvisation. MediTime offers you a clear, intuitive, and secure solution to manage your treatments and those of your loved ones, day after day.",
+
+  "testimonials.title": "They trust us",
+  "testimonials.quote": "I still fill my mom’s pillbox every week, but with MediTime, it’s become so much easier. I can see her whole treatment at a glance, I get reminders, and so does she. We feel much more at ease.",
+  "testimonials.author": "Andrée C. and her grandchildren",
+
+  "mobile.title": "Available on your phone",
+  "mobile.desc": "MediTime works like a mobile app. Add it to your home screen for quick access.",
+  "mobile.feature1": "Easy installation from your browser",
+  "mobile.feature2": "Smooth touch interface",
+  "mobile.feature3": "Quick access from home screen",
+  "mobile.ios": "On <strong>iPhone</strong>, open MediTime in Safari, tap <i class=\"bi bi-share mx-1\"></i> then <em>\"Add to Home Screen\"</em>.",
+  "mobile.android": "On <strong>Android</strong>, a message <em>\"Add to Home Screen\"</em> will automatically appear at the bottom of the browser. Tap it to install MediTime.",
+  "mobile.other": "MediTime is also accessible on desktop or tablet.",
+
+  "cta.title": "Start today",
+  "cta.desc": "Create your free account and simplify the medical management of the whole family.",
+  "cta.button": "Create my account",
+
+  "yes": "Yes",
+  "cancel": "Cancel",
+  "close": "Close",
+  "locale": "en-US",
+  "about": "About",
+  "terms": "Terms of use",
+  "privacy": "Privacy",
+  "account": "My account",
+  "my_calendars": "My calendars",
+  "shared_calendars": "Shared calendars",
+  "contact": "Contact",
+  "rights_reserved": "All rights reserved",
+  "login": "Login",
+  "logout": "Logout",
+  "register": "Sign up",
+  "settings": "Settings",
+  "profile": "My profile",
+  "back": "Back",
+  "home": "Home",
+  "calendar": "Calendar",
+  "calendars": "Calendars",
+  "shared": "Shared",
+  "shared_by": "Calendar shared by",
+  "shared_by_token": "Calendar shared via token",
+  "notifications": "Notifications",
+  "open_notifications": "Open notifications",
+  "no_notifications": "No new notifications",
+  "loading_notifications": "Loading notifications...",
+  "admin": "Admin",
+  "user": "User"
+}

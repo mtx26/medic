@@ -1,10 +1,12 @@
 import React, { useContext } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { UserContext } from '../contexts/UserContext';
+import { useTranslation } from 'react-i18next';
 
 function Footer() {
   const location = useLocation();
   const { userInfo } = useContext(UserContext);
+  const { t } = useTranslation();
 
   const hiddenFooterRoutes = [
     '/login',
@@ -33,7 +35,7 @@ function Footer() {
                       to="/"
                       className="text-muted text-decoration-none link-hover"
                     >
-                      Accueil
+                      {t('home')}
                     </Link>
                   </li>
                   <li>
@@ -42,7 +44,7 @@ function Footer() {
                       to="/about"
                       className="text-muted text-decoration-none link-hover"
                     >
-                      À propos
+                      {t('about')}
                     </Link>
                   </li>
                   <li>
@@ -51,7 +53,7 @@ function Footer() {
                       to="/terms"
                       className="text-muted text-decoration-none link-hover"
                     >
-                      Conditions d'utilisation
+                      {t('terms')}
                     </Link>
                   </li>
                   <li>
@@ -60,7 +62,7 @@ function Footer() {
                       to="/privacy"
                       className="text-muted text-decoration-none link-hover"
                     >
-                      Confidentialité
+                      {t('privacy')}
                     </Link>
                   </li>
                 </ul>
@@ -74,7 +76,7 @@ function Footer() {
                         to="/account"
                         className="text-muted text-decoration-none link-hover"
                       >
-                        Mon compte
+                        {t('account')}
                       </Link>
                     </li>
                     <li>
@@ -83,7 +85,7 @@ function Footer() {
                         to="/calendars"
                         className="text-muted text-decoration-none link-hover"
                       >
-                        Mes calendriers
+                        {t('my_calendars')}
                       </Link>
                     </li>
                     <li>
@@ -92,7 +94,7 @@ function Footer() {
                         to="/shared-calendars"
                         className="text-muted text-decoration-none link-hover"
                       >
-                        Calendriers partagés
+                        {t('shared_calendars')}
                       </Link>
                     </li>
                     <li>
@@ -101,7 +103,7 @@ function Footer() {
                         to="/notifications"
                         className="text-muted text-decoration-none link-hover"
                       >
-                        Notifications
+                        {t('notifications')}
                       </Link>
                     </li>
                   </ul>
@@ -117,7 +119,7 @@ function Footer() {
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      Contact
+                      {t('contact')}
                     </a>
                   </li>
                   <li>
@@ -142,7 +144,7 @@ function Footer() {
               <i className="bi bi-capsule me-2"></i> MediTime
             </div>
             <div className="text-muted small">
-              © {currentYear} — Tous droits réservés
+              © {currentYear} — {t('rights_reserved')}
             </div>
           </div>
         </div>
