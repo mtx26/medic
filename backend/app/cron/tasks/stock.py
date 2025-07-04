@@ -5,6 +5,7 @@ from app.utils.logger import log_backend
 from app.config import Config
 from urllib.parse import urljoin
 from app.services.process_box_decrement import process_box_decrement
+from datetime import datetime, timezone
 
 # Vérifie les stocks faibles et envoie des notifications
 def check_low_stock_and_notify():
@@ -76,10 +77,12 @@ def decrease_stock():
                     """, (calendar_id,))
                     results = cursor.fetchall()
 
+                    current_date = datetime.now(timezone.utc).date()
+
                     for result in results:
                         id_box = result.get("id")
                         qty = result.get("stock_quantity")
-                        process_box_decrement(cursor, id_box, qty, calendar_id)
+                        process_box_decrement(cursor, id_box, qty, current_date)
 
             conn.commit()
             
