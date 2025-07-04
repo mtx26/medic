@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import HoveredUserProfile from './HoveredUserProfile';
 import PropTypes from 'prop-types';
 import Modal from 'bootstrap/js/dist/modal';
+import { useTranslation } from 'react-i18next';
 
 const VITE_URL = import.meta.env.VITE_VITE_URL;
 
@@ -19,17 +20,19 @@ const LinkShareOptions = ({
   navigate,
   refObj,
 }) => {
+  const { t } = useTranslation();
+
   if (existingShareToken) {
     const link = `${VITE_URL}/shared-token-calendar/${existingShareToken.id}`;
 
     return (
       <>
-        <p>Un lien existe déjà pour ce calendrier.</p>
+        <p>{t('link_already_exists')}</p>
         <div className="input-group">
           <input
             type="text"
             className="form-control"
-            aria-label="Lien du calendrier partagé"
+            aria-label={t('shared_link_label')}
             value={link}
             id={'existingShareTokenLink-' + existingShareToken.id}
             readOnly
@@ -41,8 +44,8 @@ const LinkShareOptions = ({
               navigate('/shared-calendars');
               refObj?.current?.close();
             }}
-            aria-label="Gérer le lien"
-            title="Gérer le lien"
+            aria-label={t('manage_link')}
+            title={t('manage_link')}
           >
             <i className="bi bi-gear"></i>
           </button>
@@ -50,8 +53,8 @@ const LinkShareOptions = ({
             type="button"
             className="btn btn-outline-primary"
             onClick={() => handleCopyLink(link)}
-            aria-label="Copier le lien"
-            title="Copier le lien"
+            aria-label={t('copy_link')}
+            title={t('copy_link')}
           >
             <i className="bi bi-clipboard"></i>
           </button>
@@ -63,10 +66,10 @@ const LinkShareOptions = ({
   return (
     <>
       <p>
-        Un lien sera généré pour <strong>{calendarName}</strong>.
+        {t('link_will_be_generated')} <strong>{calendarName}</strong>.
       </p>
       <label htmlFor="newTokenExpiration" className="form-label">
-        Expiration du lien
+        {t('link_expiration')}
       </label>
       <select
         id="newTokenExpiration"
@@ -76,14 +79,14 @@ const LinkShareOptions = ({
           setExpiration(e.target.value);
         }}
       >
-        <option value="never">Jamais</option>
-        <option value="date">Choisir une date</option>
+        <option value="never">{t('never')}</option>
+        <option value="date">{t('choose_date')}</option>
       </select>
       {expiration !== 'never' && (
         <input
           type="date"
           className={`form-control`}
-          aria-label="Date d'expiration du lien"
+          aria-label={t('expiration_date')}
           id={'newTokenExpiration-' + new Date().getTime()}
           value={expiresAt}
           onChange={(e) => setExpiresAt(e.target.value)}
@@ -92,7 +95,7 @@ const LinkShareOptions = ({
         />
       )}
       <label htmlFor="newTokenPermissions" className="form-label mt-2">
-        Permissions
+        {t('permissions')}
       </label>
       <select
         id="newTokenPermissions"
@@ -100,8 +103,8 @@ const LinkShareOptions = ({
         value={permissions}
         onChange={(e) => setPermissions(e.target.value)}
       >
-        <option value="read">Lecture seule</option>
-        <option value="edit">Lecture + Édition</option>
+        <option value="read">{t('read_only')}</option>
+        <option value="edit">{t('read_write')}</option>
       </select>
     </>
   );
@@ -128,6 +131,8 @@ const AccountShareOptions = ({
   setEmailToInvite,
   handleInvite,
 }) => {
+  const { t } = useTranslation();
+
   return (
     <div>
       {sharedUsersData.length > 0 && (
@@ -150,14 +155,14 @@ const AccountShareOptions = ({
                   >
                     <img
                       src={user.receiver_photo_url}
-                      alt="Profil"
+                      alt={t('profile')}
                       className="rounded-circle"
                       style={{ width: '40px', height: '40px' }}
                     />
                     <span>
                       <strong>{user.receiver_name}</strong>
                       <br />
-                      Accès : {user.access}
+                      {t('access')}: {user.access}
                     </span>
                   </span>
                 }
@@ -165,14 +170,14 @@ const AccountShareOptions = ({
               <span
                 className={`badge rounded-pill ${user.accepted ? 'bg-success' : 'bg-warning text-dark'}`}
               >
-                {user.accepted ? 'Accepté' : 'En attente'}
+                {user.accepted ? t('accepted') : t('pending')}
               </span>
             </li>
           ))}
         </ul>
       )}
       <p>
-        Envoyer une invitation pour accéder à <strong>{calendarName}</strong>.
+        {t('send_invitation')} <strong>{calendarName}</strong>.
       </p>
       <form
         onSubmit={(e) => {
@@ -185,8 +190,8 @@ const AccountShareOptions = ({
             type="email"
             autoComplete="email"
             className={`form-control`}
-            aria-label="Email du destinataire"
-            placeholder="Email du destinataire"
+            aria-label={t('recipient_email')}
+            placeholder={t('recipient_email')}
             value={emailToInvite}
             onChange={(e) => setEmailToInvite(e.target.value)}
             id="emailToInvite"
@@ -195,8 +200,8 @@ const AccountShareOptions = ({
           <button
             className="btn btn-outline-primary"
             type="submit"
-            aria-label="Envoyer l'invitation"
-            title="Envoyer l'invitation"
+            aria-label={t('send_invitation')}
+            title={t('send_invitation')}
           >
             <i className="bi bi-person-plus-fill"></i>
           </button>
@@ -242,19 +247,20 @@ const ModalBody = ({
   refObj,
 }) => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   return (
     <div className="modal-content">
       <div className="modal-header">
         <h5 className="modal-title">
-          Partager le calendrier <strong>{calendarName}</strong>
+          {t('share_calendar')} <strong>{calendarName}</strong>
         </h5>
         <button
           type="button"
           className="btn-close"
           onClick={() => refObj?.current?.close()}
-          aria-label="Fermer"
-          title="Fermer"
+          aria-label={t('close')}
+          title={t('close')}
         ></button>
       </div>
 
@@ -265,19 +271,19 @@ const ModalBody = ({
               type="button"
               className={`btn ${shareMethod === 'link' ? 'btn-primary' : 'btn-outline-primary'}`}
               onClick={() => setShareMethod('link')}
-              aria-label="Lien"
-              title="Lien"
+              aria-label={t('link')}
+              title={t('link')}
             >
-              <i className="bi bi-link"></i> Lien
+              <i className="bi bi-link"></i> {t('link')}
             </button>
             <button
               type="button"
               className={`btn ${shareMethod === 'account' ? 'btn-primary' : 'btn-outline-primary'}`}
               onClick={() => setShareMethod('account')}
-              aria-label="Compte"
-              title="Compte"
+              aria-label={t('accounts')}
+              title={t('accounts')}
             >
-              <i className="bi bi-person-plus-fill"></i> Compte
+              <i className="bi bi-person-plus-fill"></i> {t('accounts')}
             </button>
           </div>
         </div>
@@ -314,19 +320,19 @@ const ModalBody = ({
           type="button"
           className="btn btn-outline-secondary"
           onClick={() => refObj?.current?.close()}
-          aria-label="Fermer"
-          title="Fermer"
+          aria-label={t('close')}
+          title={t('close')}
         >
-          Fermer
+          {t('close')}
         </button>
         {!existingShareToken && shareMethod === 'link' && (
           <button
             className="btn btn-outline-primary"
             type="submit"
-            aria-label="Partager"
-            title="Partager"
+            aria-label={t('share')}
+            title={t('share')}
           >
-            <i className="bi bi-share"></i> Partager
+            <i className="bi bi-share"></i> {t('share')}
           </button>
         )}
       </div>
@@ -384,6 +390,7 @@ const ShareCalendarModal = forwardRef(
     const [expiration, setExpiration] = useState('never');
     const [permissions, setPermissions] = useState('read');
     const [emailToInvite, setEmailToInvite] = useState('');
+    const { t } = useTranslation();
 
     const triggerAlert = (type, messageOrError) => {
       setAlertType(type);
@@ -481,15 +488,26 @@ const ShareCalendarModal = forwardRef(
           <div className="modal-dialog">
             <div className="modal-content">
               <div className="modal-header">
-                <h5 className="modal-title">Partager le calendrier <strong>{calendarName}</strong></h5>
+                <h5 className="modal-title">
+                  {t('share_calendar')} <strong>{calendarName}</strong>
+                </h5>
               </div>
-              <div className="modal-body d-flex justify-content-center align-items-center" style={{ minHeight: '150px' }}>
+              <div
+                className="modal-body d-flex justify-content-center align-items-center"
+                style={{ minHeight: '150px' }}
+              >
                 <div className="spinner-border text-primary" role="status">
-                  <span className="visually-hidden">Chargement du partage...</span>
+                  <span className="visually-hidden">{t('loading_share')}</span>
                 </div>
               </div>
               <div className="modal-footer">
-                <button type="button" className="btn btn-outline-secondary" onClick={() => ref?.current?.close()}>Fermer</button>
+                <button
+                  type="button"
+                  className="btn btn-outline-secondary"
+                  onClick={() => ref?.current?.close()}
+                >
+                  {t('close')}
+                </button>
               </div>
             </div>
           </div>

@@ -1,30 +1,16 @@
-// components/PillboxDisplay.jsx
 import React, { useEffect, useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UserContext } from '../contexts/UserContext';
 import { getCalendarSourceMap } from '../utils/calendarSourceMap';
 import isEqual from 'lodash/isEqual';
+import { useTranslation } from 'react-i18next';
 
 const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-const days_map = {
-  Mon: 'Lundi',
-  Tue: 'Mardi',
-  Wed: 'Mercredi',
-  Thu: 'Jeudi',
-  Fri: 'Vendredi',
-  Sat: 'Samedi',
-  Sun: 'Dimanche',
-};
 const pill_count = {
   0.25: '0.25',
   0.5: '0.50',
   0.75: '0.75',
   1: '1.00',
-};
-const moment_map = {
-  morning: 'Matin',
-  noon: 'Midi',
-  evening: 'Soir',
 };
 
 export default function PillboxDisplay({
@@ -37,6 +23,7 @@ export default function PillboxDisplay({
   sharedUserCalendars,
   tokenCalendars,
 }) {
+  const { t } = useTranslation();
   const { userInfo } = useContext(UserContext);
   const navigate = useNavigate();
   const [calendarTable, setCalendarTable] = useState([]);
@@ -44,6 +31,7 @@ export default function PillboxDisplay({
   const [orderedMeds, setOrderedMeds] = useState([]);
   const [loading, setLoading] = useState(undefined);
   const [successMessage, setSuccessMessage] = useState(false);
+
   const calendarSource = getCalendarSourceMap(
     personalCalendars,
     sharedUserCalendars,
@@ -91,7 +79,7 @@ export default function PillboxDisplay({
     return (
       <div className="d-flex justify-content-center align-items-center" style={{ height: '60vh' }}>
         <div className="spinner-border text-primary">
-          <span className="visually-hidden">Chargement du calendrier...</span>
+          <span className="visually-hidden">{t('loading_calendar')}</span>
         </div>
       </div>
     );
@@ -100,7 +88,7 @@ export default function PillboxDisplay({
   if (loading === false) {
     return (
       <div className="alert alert-danger text-center mt-5" role="alert">
-        ❌ Ce lien de calendrier partagé est invalide ou a expiré.
+        ❌ {t('invalid_or_expired_link')}
       </div>
     );
   }
@@ -109,7 +97,7 @@ export default function PillboxDisplay({
     <div className="container-fluid text-center w-100 mt-3">
       {successMessage ? (
         <div className="alert alert-success mt-4" role="alert">
-          ✅ Calendrier complété avec succès !
+          ✅ {t('calendar_completed')}
         </div>
       ) : (
         <>
@@ -118,15 +106,13 @@ export default function PillboxDisplay({
               <div 
                 className={
                   `rounded-top px-3 py-2 ${
-                  orderedMeds[selectedMedIndex].moment === 'morning' ?
-                  'bg-danger text-white' :
-                  orderedMeds[selectedMedIndex].moment === 'noon' ?
-                  'bg-success text-white' :
-                  orderedMeds[selectedMedIndex].moment === 'evening' ?
-                  'bg-info text-white' :
-                  'bg-white text-primary'}`}
+                  orderedMeds[selectedMedIndex].moment === 'morning' ? 'bg-danger text-white' :
+                  orderedMeds[selectedMedIndex].moment === 'noon' ? 'bg-success text-white' :
+                  orderedMeds[selectedMedIndex].moment === 'evening' ? 'bg-info text-white' :
+                  'bg-white text-primary'}`
+                }
               >
-                <h4 className="mb-0"><strong>{moment_map[orderedMeds[selectedMedIndex].moment]}</strong></h4>
+                <h4 className="mb-0"><strong>{t(orderedMeds[selectedMedIndex].moment)}</strong></h4>
               </div>
               <div className="bg-primary text-white px-3 py-3 rounded-bottom mb-4">
                 <h4 className="mb-0"><strong>{orderedMeds[selectedMedIndex].title}</strong></h4>
@@ -135,7 +121,7 @@ export default function PillboxDisplay({
                 {days.map((day) => (
                   <div key={day} className="col">
                     <div className="d-flex flex-column h-100">
-                      <h6 className="mb-2">{days_map[day]}</h6>
+                      <h6 className="mb-2">{t(day)}</h6>
                       <div className="border rounded bg-light p-2 flex-grow-1 d-flex align-items-center justify-content-center">
                         {orderedMeds[selectedMedIndex].cells[day] !== undefined && (
                           <div className="w-100 ratio ratio-1x1">
@@ -153,7 +139,7 @@ export default function PillboxDisplay({
               </div>
               <div className="d-flex gap-3 justify-content-between text-center">
                 <button className="btn btn-outline-primary mt-4" onClick={handlePreviousMed} disabled={selectedMedIndex === 0}>
-                  <i className="bi bi-arrow-left"></i> Précédent
+                  <i className="bi bi-arrow-left"></i> {t('previous')}
                 </button>
                 {selectedMedIndex < orderedMeds.length - 1 ? (
                   (() => {
@@ -163,22 +149,19 @@ export default function PillboxDisplay({
                     if (currentMoment === nextMoment) {
                       return (
                         <button className="btn btn-outline-primary mt-4" onClick={handleNextMed}>
-                          Suivant <i className="bi bi-arrow-right"></i>
+                          {t('next')} <i className="bi bi-arrow-right"></i>
                         </button>
                       );
                     } else {
                       return (
-                        <button 
+                        <button
                           className={`btn ${
-                            nextMoment === 'morning' ?
-                            'btn-danger text-white' :
-                            nextMoment === 'noon' ?
-                            'btn-success text-white' :
-                            nextMoment === 'evening' ?
-                            'btn-info text-white' :
+                            nextMoment === 'morning' ? 'btn-danger text-white' :
+                            nextMoment === 'noon' ? 'btn-success text-white' :
+                            nextMoment === 'evening' ? 'btn-info text-white' :
                             'btn-primary text-white'
                           } mt-4`} onClick={handleNextMed}>
-                          {moment_map[nextMoment]} <i className="bi bi-arrow-right"></i>
+                          {t(nextMoment)} <i className="bi bi-arrow-right"></i>
                         </button>
                       );
                     }
@@ -195,13 +178,13 @@ export default function PillboxDisplay({
                       }
                     }}
                   >
-                    <i className="bi bi-check-circle"></i> Terminé
+                    <i className="bi bi-check-circle"></i> {t('done')}
                   </button>
                 )}
               </div>
             </>
           )}
-          {orderedMeds.length === 0 && <p className="mt-5">Aucun médicament à afficher.</p>}
+          {orderedMeds.length === 0 && <p className="mt-5">{t('no_medicines')}</p>}
         </>
       )}
     </div>

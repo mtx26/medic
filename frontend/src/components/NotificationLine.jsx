@@ -39,16 +39,15 @@ export default function NotificationLine({
   switch (notif.notification_type) {
     case 'calendar_invitation':
       icon = (
-        <i
-          className="bi bi-person-plus-fill text-primary me-2"
-          style={iconStyle}
-        ></i>
+        <i className="bi bi-person-plus-fill text-primary me-2" style={iconStyle}></i>
       );
       if (!notif.accepted) {
         message = (
-          <Trans i18nKey="notif.calendar_invite" values={{ name: notif.calendar_name }}>
-            {{ user }} vous invite à rejoindre le calendrier <strong>{{ name: notif.calendar_name }}</strong>
-          </Trans>
+          <Trans
+            i18nKey="notif.calendar_invite"
+            values={{ name: notif.calendar_name }}
+            components={[user, <strong />]}
+          />
         );
         actions = (
           <div className="mt-2">
@@ -79,38 +78,38 @@ export default function NotificationLine({
         );
       } else {
         message = (
-          <Trans i18nKey="notif.calendar_joined" values={{ name: notif.calendar_name }}>
-            Vous avez rejoint le calendrier <strong>{{ name: notif.calendar_name }}</strong> de {{ user }}
-          </Trans>
+          <Trans
+            i18nKey="notif.calendar_joined"
+            values={{ name: notif.calendar_name }}
+            components={[user, <strong />]}
+          />
         );
       }
       break;
 
     case 'calendar_invitation_accepted':
       icon = (
-        <i
-          className="bi bi-check-circle-fill text-success me-2"
-          style={iconStyle}
-        ></i>
+        <i className="bi bi-check-circle-fill text-success me-2" style={iconStyle}></i>
       );
       message = (
-        <Trans i18nKey="notif.invite_accepted" values={{ name: notif.calendar_name }}>
-          {{ user }} a accepté votre invitation pour rejoindre le calendrier <strong>{{ name: notif.calendar_name }}</strong>
-        </Trans>
+        <Trans
+          i18nKey="notif.invite_accepted"
+          values={{ name: notif.calendar_name }}
+          components={[user, <strong />]}
+        />
       );
       break;
 
     case 'calendar_invitation_rejected':
       icon = (
-        <i
-          className="bi bi-x-circle-fill text-danger me-2"
-          style={iconStyle}
-        ></i>
+        <i className="bi bi-x-circle-fill text-danger me-2" style={iconStyle}></i>
       );
       message = (
-        <Trans i18nKey="notif.invite_rejected" values={{ name: notif.calendar_name }}>
-          {{ user }} a refusé votre invitation pour rejoindre le calendrier <strong>{{ name: notif.calendar_name }}</strong>
-        </Trans>
+        <Trans
+          i18nKey="notif.invite_rejected"
+          values={{ name: notif.calendar_name }}
+          components={[user, <strong />]}
+        />
       );
       break;
 
@@ -119,9 +118,11 @@ export default function NotificationLine({
         <i className="bi bi-trash-fill text-danger me-2" style={iconStyle}></i>
       );
       message = (
-        <Trans i18nKey="notif.share_removed_by_owner" values={{ name: notif.calendar_name }}>
-          {{ user }} a arrêté de partager le calendrier <strong>{{ name: notif.calendar_name }}</strong> avec vous
-        </Trans>
+        <Trans
+          i18nKey="notif.share_removed_by_owner"
+          values={{ name: notif.calendar_name }}
+          components={[user, <strong />]}
+        />
       );
       break;
 
@@ -130,9 +131,11 @@ export default function NotificationLine({
         <i className="bi bi-trash-fill text-danger me-2" style={iconStyle}></i>
       );
       message = (
-        <Trans i18nKey="notif.share_removed_by_you" values={{ name: notif.calendar_name }}>
-          {{ user }} a retiré le calendrier <strong>{{ name: notif.calendar_name }}</strong>
-        </Trans>
+        <Trans
+          i18nKey="notif.share_removed_by_you"
+          values={{ name: notif.calendar_name }}
+          components={[user, <strong />]}
+        />
       );
       break;
 
@@ -147,9 +150,8 @@ export default function NotificationLine({
             name: notif.medication_name,
             qty: notif.medication_qty,
           }}
-        >
-          {{ name: notif.medication_name }} est presque épuisé ({{ qty: notif.medication_qty }} restants).
-        </Trans>
+          components={[<strong />]}
+        />
       );
       link = notif.link;
       break;
