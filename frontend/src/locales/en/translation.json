@@ -151,5 +151,18 @@
   "share_calendar": "Share calendar",
   "link": "Link",
   "share": "Share",
+  "link_copied": "Link copied!",
+  "copy_link_error": "Error copying the link.",
+  "previous_day": "Previous day",
+  "next_day": "Next day",
+  "no_events_today": "No events today.",
   "loading_share": "Loading sharing..."
+  "invalid_reset_link": "Invalid or expired reset link.",
+  "invalid_session": "Invalid session. Please request a new link.",
+  "session_change_error": "Unable to change password: invalid session.",
+  "password_updated": "Your password has been updated.",
+  "new_password": "New password",
+  "new_password_desc": "Enter a new password for your MediTime account.",
+  "saving": "Saving...",
+  "save_password": "Save password"
 }

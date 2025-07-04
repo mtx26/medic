@@ -442,10 +442,10 @@ const ShareCalendarModal = forwardRef(
     const handleCopyLink = async (link) => {
       try {
         await navigator.clipboard.writeText(link);
-        triggerAlert('success', 'Lien copié !');
+        triggerAlert('success', t('link_copied'));
         ref?.current?.close();
       } catch {
-        triggerAlert('danger', 'Erreur lors de la copie du lien.');
+        triggerAlert('danger', t('copy_link_error'));
       }
     };
 
@@ -474,7 +474,7 @@ const ShareCalendarModal = forwardRef(
           );
           triggerAlert('success', rep.message);
         } catch {
-          triggerAlert('danger', 'Erreur lors de la copie du lien.');
+          triggerAlert('danger', t('copy_link_error'));
         }
       } else {
         triggerAlert('danger', rep.error);

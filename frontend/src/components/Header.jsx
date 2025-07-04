@@ -396,8 +396,8 @@ function Navbar({ sharedProps }) {
                         <li>
                           <button
                             className="dropdown-item"
-                            aria-label="Déconnexion"
-                            title="Déconnexion"
+                            aria-label={t('logout')}
+                            title={t('logout')}
                             onClick={handleLogout}
                           >
                             <i className="bi bi-unlock fs-5 me-2"></i>{' '}

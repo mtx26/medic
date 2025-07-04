@@ -150,7 +150,7 @@ function Footer() {
         </div>
       </div>
 
-      {/* Style pour le hover souligné */}
+      {/* Underline on hover */}
       <style>{`
         .link-hover:hover {
           text-decoration: underline;

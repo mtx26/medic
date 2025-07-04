@@ -11,7 +11,7 @@ function ActionSheet({ actions, buttonSize }) {
       const rect = buttonRef.current.getBoundingClientRect();
       setPosition({
         top: rect.bottom + window.scrollY,
-        left: rect.right - 192, // largeur estimée du menu
+        left: rect.right - 192, // estimated menu width
       });
     }
     setShow(!show);
@@ -33,7 +33,7 @@ function ActionSheet({ actions, buttonSize }) {
 
   return (
     <>
-      {/* pas de background */}
+      {/* no background */}
       <button className={`btn btn-outline-dark ${buttonSize === 'sm' ? 'btn-sm' : ''}`} ref={buttonRef} onClick={toggleDropdown}>
         <i className="bi bi-three-dots-vertical"></i>
       </button>

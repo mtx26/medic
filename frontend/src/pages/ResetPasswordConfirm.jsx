@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '../services/supabaseClient';
 import AlertSystem from '../components/AlertSystem';
 import { log } from '../utils/logger';
@@ -11,6 +12,7 @@ export default function ResetPasswordConfirm() {
   const [loading, setLoading] = useState(false);
   const [sessionReady, setSessionReady] = useState(false);
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   useEffect(() => {
     const initSession = async () => {
@@ -23,7 +25,7 @@ export default function ResetPasswordConfirm() {
           origin: 'RESET_PASSWORD_CONFIRM',
         });
         setAlertType('danger');
-        setAlertMessage("Lien de réinitialisation invalide ou expiré.");
+        setAlertMessage(t('invalid_reset_link'));
         return;
       }
   
@@ -34,7 +36,7 @@ export default function ResetPasswordConfirm() {
           origin: 'RESET_PASSWORD_CONFIRM',
         });
         setAlertType('danger');
-        setAlertMessage("Session invalide. Merci de redemander un lien.");
+        setAlertMessage(t('invalid_session'));
         return;
       }
   
@@ -44,7 +46,7 @@ export default function ResetPasswordConfirm() {
   
       if (!session || !session.user) {
         setAlertType('danger');
-        setAlertMessage("Session invalide. Merci de redemander un lien.");
+        setAlertMessage(t('invalid_session'));
         return;
       }
   
@@ -65,7 +67,7 @@ export default function ResetPasswordConfirm() {
 
     if (!sessionReady) {
       setAlertType('danger');
-      setAlertMessage("Impossible de modifier le mot de passe : session invalide.");
+      setAlertMessage(t('session_change_error'));
       setLoading(false);
       return;
     }
@@ -79,7 +81,7 @@ export default function ResetPasswordConfirm() {
       setAlertMessage(error.message);
     } else {
       setAlertType('success');
-      setAlertMessage("Votre mot de passe a bien été modifié.");
+      setAlertMessage(t('password_updated'));
       setTimeout(() => navigate('/login'), 2500);
     }
 
@@ -90,9 +92,9 @@ export default function ResetPasswordConfirm() {
     <div className="container d-flex justify-content-center align-items-center my-5">
       <div className="card shadow" style={{ maxWidth: '500px', width: '100%', borderRadius: '1rem' }}>
         <div className="card-body p-4">
-          <h5 className="text-center mb-3">🔐 Nouveau mot de passe</h5>
+          <h5 className="text-center mb-3">🔐 {t('new_password')}</h5>
           <p className="text-muted text-center">
-            Saisissez un nouveau mot de passe pour votre compte MediTime.
+            {t('new_password_desc')}
           </p>
           <AlertSystem
             type={alertType}
@@ -101,7 +103,7 @@ export default function ResetPasswordConfirm() {
           />
           <form onSubmit={handleSubmit}>
             <div className="mb-3">
-              <label htmlFor="password" className="form-label">Nouveau mot de passe</label>
+              <label htmlFor="password" className="form-label">{t('new_password')}</label>
               <input
                 type="password"
                 id="password"
@@ -116,7 +118,7 @@ export default function ResetPasswordConfirm() {
               className="btn btn-primary w-100"
               disabled={loading || !sessionReady}
             >
-              {loading ? "Enregistrement..." : "Enregistrer le mot de passe"}
+              {loading ? t('saving') : t('save_password')}
             </button>
           </form>
         </div>

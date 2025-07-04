@@ -32,7 +32,7 @@ export default function RealtimeManager({
     location.pathname.startsWith(route)
   );
 
-  // ✅ Appel des hooks (OK car toujours dans un composant monté dans <Router>)
+// ✅ Hooks call (safe since component is mounted within <Router>)
   useRealtimeCalendars(
     isRealtimeEnabled ? setCalendarsData : null,
     setLoadingStates

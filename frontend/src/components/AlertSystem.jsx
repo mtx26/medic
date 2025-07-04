@@ -15,7 +15,7 @@ function AlertSystem({
 
   useEffect(() => {
     if (!message) return;
-    setVisible(true); // déclenche l'animation d'apparition
+    setVisible(true); // trigger fade-in animation
 
     if (!isConfirm) {
       const timer = setTimeout(() => {
