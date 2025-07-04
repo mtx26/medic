@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { supabase } from '../services/supabaseClient';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { UserContext, getGlobalReloadUser } from '../contexts/UserContext';
 import AlertSystem from '../components/AlertSystem';
 import { log } from '../utils/logger';
@@ -9,6 +10,7 @@ import { getSupabaseErrorMessage } from '../utils/SupabaseErrorMessage';
 function VerifyEmail() {
   // 🔐 Contexte utilisateur
   const { userInfo } = useContext(UserContext);
+  const { t } = useTranslation();
 
   // ⚠️ Alertes
   const [alertMessage, setAlertMessage] = useState(null); // Message d'alerte
@@ -37,7 +39,7 @@ function VerifyEmail() {
       try {
         await supabase.auth.sendEmailVerification();
         setAlertMessage(
-          'Email de vérification envoyé ! Vérifiez votre boîte mail.'
+          t('verify-email.verification-sent')
         );
         setAlertType('success');
         log.info('Email de vérification envoyé', {
@@ -51,11 +53,11 @@ function VerifyEmail() {
           origin: 'VerifyEmail.jsx',
           error,
         });
-        setAlertMessage('❌ ' + getSupabaseErrorMessage(error.code));
+        setAlertMessage('❌ ' + t(getSupabaseErrorMessage(error.code)));
         setAlertType('danger');
       }
     } else {
-      setAlertMessage('Aucun utilisateur connecté.');
+        setAlertMessage(t('verify-email.no-user'));
       setAlertType('danger');
     }
   };
@@ -83,10 +85,8 @@ function VerifyEmail() {
       >
         <div className="card-body p-4">
           <div className="text-center mb-4">
-            <h5>Vérification de l'adresse email</h5>
-            <p>
-              Envoyez un nouveau lien de vérification à votre adresse email.
-            </p>
+            <h5>{t('verify-email.title')}</h5>
+            <p>{t('verify-email.description')}</p>
           </div>
 
           <AlertSystem
@@ -99,11 +99,11 @@ function VerifyEmail() {
             <button
               type="submit"
               className="btn btn-outline-primary w-100 mt-3"
-              aria-label="Renvoyer le lien de vérification"
-              title="Renvoyer le lien de vérification"
+              aria-label={t('verify-email.resend-link-aria')}
+              title={t('verify-email.resend-link-title')}
             >
               <i className="bi bi-envelope-paper"></i>
-              <span> Renvoyer le lien de vérification</span>
+              <span> {t('verify-email.resend-link')}</span>
             </button>
           </form>
         </div>

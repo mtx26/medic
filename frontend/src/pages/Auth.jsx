@@ -11,12 +11,14 @@ import {
 } from '../services/authService';
 import AlertSystem from '../components/AlertSystem';
 import { getSupabaseErrorMessage } from '../utils/SupabaseErrorMessage';
+import { useTranslation } from 'react-i18next';
 import { log } from '../utils/logger';
 import { Link } from 'react-router-dom';
 import { UserContext } from '../contexts/UserContext';
 
 function Auth() {
   const { userInfo } = useContext(UserContext);
+  const { t } = useTranslation();
   // 👤 Authentification utilisateur
   const [email, setEmail] = useState(''); // État pour l'adresse e-mail
   const [password, setPassword] = useState(''); // État pour le mot de passe
@@ -163,7 +165,7 @@ function Auth() {
                 if (activeTab === 'login') {
                   const error = await loginWithEmail(email, password);
                   if (error) {
-                    setAlertMessage('❌ ' + getSupabaseErrorMessage(error.message));
+                    setAlertMessage('❌ ' + t(getSupabaseErrorMessage(error.message)));
                     setAlertType('danger');
                   } else {
                     log.info('Connexion réussie', {
@@ -176,11 +178,11 @@ function Auth() {
                   const error = await registerWithEmail(email, password, name);
                   if (error) {
                     console.log(error.message);
-                    setAlertMessage('❌ ' + getSupabaseErrorMessage(error.message));
+                    setAlertMessage('❌ ' + t(getSupabaseErrorMessage(error.message)));
                     setAlertType('danger');
                   } else {
                     setDuration(5000);
-                    setAlertMessage('📩 Un lien de vérification a été envoyé à votre adresse e-mail.');
+                    setAlertMessage('📩 ' + t('auth.verification-link-sent'));
                     setAlertType('success');
                     log.info('Inscription réussie', {
                       id: 'REGISTER-SUCCESS',
