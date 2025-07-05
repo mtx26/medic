@@ -5,7 +5,6 @@ import { getCalendarSourceMap } from '../utils/calendarSourceMap';
 import isEqual from 'lodash/isEqual';
 import { useTranslation } from 'react-i18next';
 import AlertSystem from './AlertSystem';
-import { set } from 'lodash';
 
 const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const pill_count = {
