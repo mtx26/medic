@@ -1,11 +1,12 @@
 const fs = require('fs');
 const path = require('path');
 const process = require('process');
+require('dotenv').config();
 const { Translate } = require('@google-cloud/translate').v2;
 
 // 🔑 Clé API Google Translate
 const translate = new Translate({
-  key: 'AIzaSyDPdmga1kKo65cAlp3Yx7xsNgKxbG66vlE',
+  key: process.env.VITE_GOOGLE_TRANSLATE_API_KEY,
 });
 
 // 📦 Chargement des langues
