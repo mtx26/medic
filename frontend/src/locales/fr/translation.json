@@ -344,5 +344,6 @@
   "security.new_password.placeholder": "Entrez le nouveau mot de passe",
   "security.update_password": "Mettre à jour le mot de passe",
   "security.password_updated": "✅ Mot de passe mis à jour avec succès.",
-  "security.current_password.required": "Ancien mot de passe requis."
+  "security.current_password.required": "Ancien mot de passe requis.",
+  "confirm_calendar_completion": "Confirmer la complétion du calendrier"
 }

@@ -343,5 +343,6 @@
   "security.new_password.placeholder": "Enter new password",
   "security.update_password": "Update password",
   "security.password_updated": "✅ Password successfully updated.",
-  "security.current_password.required": "Current password required."
+  "security.current_password.required": "Current password required.",
+  "confirm_calendar_completion": "Confirm calendar completion"
 }

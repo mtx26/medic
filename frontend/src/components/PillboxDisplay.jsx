@@ -4,6 +4,8 @@ import { UserContext } from '../contexts/UserContext';
 import { getCalendarSourceMap } from '../utils/calendarSourceMap';
 import isEqual from 'lodash/isEqual';
 import { useTranslation } from 'react-i18next';
+import AlertSystem from './AlertSystem';
+import { set } from 'lodash';
 
 const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const pill_count = {
@@ -31,6 +33,9 @@ export default function PillboxDisplay({
   const [orderedMeds, setOrderedMeds] = useState([]);
   const [loading, setLoading] = useState(undefined);
   const [successMessage, setSuccessMessage] = useState(false);
+  const [message, setMessage] = useState('');
+  const [alertType, setAlertType] = useState('');
+  const [showConfirmation, setShowConfirmation] = useState(false);
 
   const calendarSource = getCalendarSourceMap(
     personalCalendars,
@@ -94,99 +99,123 @@ export default function PillboxDisplay({
   }
 
   return (
-    <div className="container-fluid text-center w-100 mt-3">
-      {successMessage ? (
-        <div className="alert alert-success mt-4" role="alert">
-          ✅ {t('calendar_completed')}
+    <div className="position-relative">
+      {showConfirmation && (
+        <div
+          className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+          style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1055 }}
+        >
+          <AlertSystem
+            message={message}
+            type={alertType}
+            onClose={() => {
+              setMessage('');
+              setAlertType('');
+              setShowConfirmation(false);
+            }}
+            onConfirm={() => {
+              if (type === 'calendar') {
+                setSuccessMessage(true);
+              } else {
+                navigate(`/${basePath}/${calendarId}`);
+              }
+              setShowConfirmation(false);
+            }}
+          />
         </div>
-      ) : (
-        <>
-          {orderedMeds.length > 0 && (
-            <>
-              <div 
-                className={
-                  `rounded-top px-3 py-2 ${
-                  orderedMeds[selectedMedIndex].moment === 'morning' ? 'bg-danger text-white' :
-                  orderedMeds[selectedMedIndex].moment === 'noon' ? 'bg-success text-white' :
-                  orderedMeds[selectedMedIndex].moment === 'evening' ? 'bg-info text-white' :
-                  'bg-white text-primary'}`
-                }
-              >
-                <h4 className="mb-0"><strong>{t(orderedMeds[selectedMedIndex].moment)}</strong></h4>
-              </div>
-              <div className="bg-primary text-white px-3 py-3 rounded-bottom mb-4">
-                <h4 className="mb-0"><strong>{orderedMeds[selectedMedIndex].title}</strong></h4>
-              </div>
-              <div className="row row-cols-7 g-3 align-items-stretch text-center">
-                {days.map((day) => (
-                  <div key={day} className="col">
-                    <div className="d-flex flex-column h-100">
-                      <h6 className="mb-2">{t(day)}</h6>
-                      <div className="border rounded bg-light p-2 flex-grow-1 d-flex align-items-center justify-content-center">
-                        {orderedMeds[selectedMedIndex].cells[day] !== undefined && (
-                          <div className="w-100 ratio ratio-1x1">
-                            <img
-                              src={`/icons/pills/${pill_count[orderedMeds[selectedMedIndex].cells[day]]}_pills.svg`}
-                              alt="Pills"
-                              className="img-fluid object-fit-contain"
-                            />
-                          </div>
-                        )}
+      )}
+
+      <div className="container-fluid text-center w-100 mt-3">
+        {successMessage ? (
+          <div className="alert alert-success mt-4" role="alert">
+            ✅ {t('calendar_completed')}
+          </div>
+        ) : (
+          <>
+            {orderedMeds.length > 0 && (
+              <>
+                <div 
+                  className={
+                    `rounded-top px-3 py-2 ${
+                    orderedMeds[selectedMedIndex].moment === 'morning' ? 'bg-danger text-white' :
+                    orderedMeds[selectedMedIndex].moment === 'noon' ? 'bg-success text-white' :
+                    orderedMeds[selectedMedIndex].moment === 'evening' ? 'bg-info text-white' :
+                    'bg-white text-primary'}`
+                  }
+                >
+                  <h4 className="mb-0"><strong>{t(orderedMeds[selectedMedIndex].moment)}</strong></h4>
+                </div>
+                <div className="bg-primary text-white px-3 py-3 rounded-bottom mb-4">
+                  <h4 className="mb-0"><strong>{orderedMeds[selectedMedIndex].title}</strong></h4>
+                </div>
+                <div className="row row-cols-7 g-3 align-items-stretch text-center">
+                  {days.map((day) => (
+                    <div key={day} className="col">
+                      <div className="d-flex flex-column h-100">
+                        <h6 className="mb-2">{t(day)}</h6>
+                        <div className="border rounded bg-light p-2 flex-grow-1 d-flex align-items-center justify-content-center">
+                          {orderedMeds[selectedMedIndex].cells[day] !== undefined && (
+                            <div className="w-100 ratio ratio-1x1">
+                              <img
+                                src={`/icons/pills/${pill_count[orderedMeds[selectedMedIndex].cells[day]]}_pills.svg`}
+                                alt="Pills"
+                                className="img-fluid object-fit-contain"
+                              />
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-              <div className="d-flex gap-3 justify-content-between text-center">
-                <button className="btn btn-outline-primary mt-4" onClick={handlePreviousMed} disabled={selectedMedIndex === 0}>
-                  <i className="bi bi-arrow-left"></i> {t('previous')}
-                </button>
-                {selectedMedIndex < orderedMeds.length - 1 ? (
-                  (() => {
-                    const currentMoment = orderedMeds[selectedMedIndex].moment;
-                    const nextMoment = orderedMeds[selectedMedIndex + 1].moment;
-
-                    if (currentMoment === nextMoment) {
-                      return (
-                        <button className="btn btn-outline-primary mt-4" onClick={handleNextMed}>
-                          {t('next')} <i className="bi bi-arrow-right"></i>
-                        </button>
-                      );
-                    } else {
-                      return (
-                        <button
-                          className={`btn ${
-                            nextMoment === 'morning' ? 'btn-danger text-white' :
-                            nextMoment === 'noon' ? 'btn-success text-white' :
-                            nextMoment === 'evening' ? 'btn-info text-white' :
-                            'btn-primary text-white'
-                          } mt-4`} onClick={handleNextMed}>
-                          {t(nextMoment)} <i className="bi bi-arrow-right"></i>
-                        </button>
-                      );
-                    }
-                  })()
-                ) : (
-                  <button
-                    className="btn btn-success mt-4"
-                    onClick={async () => {
-                      await calendarSource.decreaseStock(calendarId, selectedDate);
-                      if (type === 'calendar') {
-                        setSuccessMessage(true);
-                      } else {
-                        navigate(`/${basePath}/${calendarId}`);
-                      }
-                    }}
-                  >
-                    <i className="bi bi-check-circle"></i> {t('done')}
+                  ))}
+                </div>
+                <div className="d-flex gap-3 justify-content-between text-center">
+                  <button className="btn btn-outline-primary mt-4" onClick={handlePreviousMed} disabled={selectedMedIndex === 0}>
+                    <i className="bi bi-arrow-left"></i> {t('previous')}
                   </button>
-                )}
-              </div>
-            </>
-          )}
-          {orderedMeds.length === 0 && <p className="mt-5">{t('no_medicines')}</p>}
-        </>
-      )}
+                  {selectedMedIndex < orderedMeds.length - 1 ? (
+                    (() => {
+                      const currentMoment = orderedMeds[selectedMedIndex].moment;
+                      const nextMoment = orderedMeds[selectedMedIndex + 1].moment;
+
+                      if (currentMoment === nextMoment) {
+                        return (
+                          <button className="btn btn-outline-primary mt-4" onClick={handleNextMed}>
+                            {t('next')} <i className="bi bi-arrow-right"></i>
+                          </button>
+                        );
+                      } else {
+                        return (
+                          <button
+                            className={`btn ${
+                              nextMoment === 'morning' ? 'btn-danger text-white' :
+                              nextMoment === 'noon' ? 'btn-success text-white' :
+                              nextMoment === 'evening' ? 'btn-info text-white' :
+                              'btn-primary text-white'
+                            } mt-4`} onClick={handleNextMed}>
+                            {t(nextMoment)} <i className="bi bi-arrow-right"></i>
+                          </button>
+                        );
+                      }
+                    })()
+                  ) : (
+                    <button
+                      className="btn btn-success mt-4"
+                      onClick={() => {
+                        setMessage(t('confirm_calendar_completion'));
+                        setAlertType('confirm-safe');
+                        setShowConfirmation(true);
+                      }}
+                    >
+                      <i className="bi bi-check-circle"></i> {t('done')}
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
+            {orderedMeds.length === 0 && <p className="mt-5">{t('no_medicines')}</p>}
+          </>
+        )}
+      </div>
     </div>
   );
 }
