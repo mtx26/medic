@@ -453,7 +453,7 @@ function CalendarPage({
                     center: '',
                     right: '',
                   }}
-                  locale={frLocale}
+                  locale={t('locale')}
                   firstDay={1}
                   dateClick={handleDateClick}
                   height={400}

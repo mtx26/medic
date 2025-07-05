@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import HoveredUserProfile from './HoveredUserProfile';
 import NotificationLine from './NotificationLine';
 import PropTypes from 'prop-types';
-import LanguageSelector from './LanguageSelector';
+import LanguageSelector from './LanguageSelector.jsx';
 import { useTranslation } from 'react-i18next';
 
 function Navbar({ sharedProps }) {

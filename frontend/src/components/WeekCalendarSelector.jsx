@@ -7,10 +7,12 @@ import {
   formatToLocalISODate,
 } from '../utils/dateUtils';
 import PropTypes from 'prop-types';
+import { useTranslation } from 'react-i18next';
 
 export default function WeekCalendarSelector({ selectedDate, onWeekSelect }) {
   const monday = getMondayFromDate(selectedDate);
   const today = formatToLocalISODate(new Date());
+  const { t } = useTranslation();
 
   const handleChange = (date) => {
     onWeekSelect(date);
@@ -20,7 +22,7 @@ export default function WeekCalendarSelector({ selectedDate, onWeekSelect }) {
     <Calendar
       onClickDay={handleChange}
       value={new Date(selectedDate)}
-      locale="fr-FR"
+      locale={t('locale')}
       tileClassName={({ date, view }) => {
         if (view === 'month') {
           const date_iso = formatToLocalISODate(date);
